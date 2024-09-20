@@ -271,11 +271,19 @@ BO_ 1813 BMS_TEMPERATURES_48_49: 8 BMS
  SG_ TEMPERATURE_48 : 0|8@1+ (0.5,-28) [-28|99.5] "C" Vector__XXX
  SG_ TEMPERATURE_49 : 8|8@1+ (0.5,-28) [-28|99.5] "C" Vector__XXX
 
+BO_ 1536 VCU_SENSOR_INPUTS: 8 VCU
+ SG_ APPS_1_PERCENT : 0|16@1+ (0.0015259021896696422,0) [0|100] "%" Vector__XXX
+ SG_ APPS_2_PERCENT : 16|8@1+ (0.392156862745,0) [0|100] "%" Vector__XXX
+ SG_ BSE_FRONT_PERCENT : 24|16@1+ (0.0015259021896696422,0) [0|100] "%" Vector__XXX
+ SG_ BSE_REAR_PERCENT : 40|8@1+ (0.392156862745,0) [0|100] "%" Vector__XXX
+ SG_ STEERING_ANGLE : 48|16@1- (0.0054931640625,0) [-180|180] "Deg" Vector__XXX
+
 CM_ SG_ 1026 HEADING_MOTION "TODO(Barach): The scalar on this is listed as 1, but this is likely wrong.";
 CM_ SG_ 1026 HEADING_VEHICLE "TODO(Barach): The scalar on this is listed as 1, but this is likely wrong.";
 
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+
 
 
 
