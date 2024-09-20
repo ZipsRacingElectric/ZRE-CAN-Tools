@@ -1,0 +1,19 @@
+VCU torque limit set and access
+VCU regen limit set and access
+VCU regen bias set and access
+VCU pedal percents
+
+BMS state of charge
+BMS temp
+Inv temp
+Motor temp
+
+Brake / tire temp
+Damper pos
+X / Y Accel
+
+BMS view
+
+Data marker
+
+Faults
