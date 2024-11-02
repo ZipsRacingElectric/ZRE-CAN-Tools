@@ -123,6 +123,12 @@ float signalDecode (canSignal_t* signal, uint64_t payload);
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
 /**
+ * @brief Prints the raw data of a CAN frame.
+ * @param frame The frame to print.
+ */
+void framePrint (struct can_frame* frame);
+
+/**
  * @brief Prints the decoded data of a CAN frame.
  * @param message The message to print.
  * @param frame The frame to decode from.

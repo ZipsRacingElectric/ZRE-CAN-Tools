@@ -196,13 +196,15 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 				signal->name = malloc (nameSize + 1);
 				strcpy (signal->name, dataBuffer0);
 
+				if (scaleFactor == 0)
+					scaleFactor = 1;
+
 				// Copy signal metadata
 				signal->bitPosition = (uint8_t) (bitPosition);
 				signal->bitLength   = (uint8_t) (bitLength);
 				signal->scaleFactor = scaleFactor;
 				signal->offset      = offset;
 				signal->signedness  = (signedness == '-');
-				// TODO(Barach): Random values
 				signal->endianness  = (endianness == 1);
 
 				// Populate bitmask

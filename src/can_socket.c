@@ -112,7 +112,7 @@ bool canSocketReceive (canSocket_t* canSocket, struct can_frame* frame)
 	return true;
 }
 
-uint64_t encodeSignal (canSignal_t* signal, float value)
+uint64_t signalEncode (canSignal_t* signal, float value)
 {
 	uint64_t buffer = roundf (value - signal->offset) / signal->scaleFactor;
 	buffer &= signal->bitmask;
@@ -120,7 +120,7 @@ uint64_t encodeSignal (canSignal_t* signal, float value)
 	return buffer;
 }
 
-float decodeSignal (canSignal_t* signal, uint64_t payload)
+float signalDecode (canSignal_t* signal, uint64_t payload)
 {
 	payload >>= signal->bitPosition;
 	payload &= signal->bitmask;
@@ -135,6 +135,14 @@ float decodeSignal (canSignal_t* signal, uint64_t payload)
 }
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
+
+void framePrint (struct can_frame* frame)
+{
+	printf ("%X\t[%u]\t", frame->can_id, frame->can_dlc);
+	for (uint8_t index = 0; index < frame->can_dlc; ++index)
+		printf ("%2X ", frame->data [index]);
+	printf ("\n");
+}
 
 void messagePrint (canMessage_t* message, struct can_frame* frame)
 {
@@ -164,8 +172,8 @@ struct can_frame messagePrompt (canMessage_t* message)
 
 void signalPrint (canSignal_t* signal, uint64_t payload)
 {
-	float value = decodeSignal (signal, payload);
-		printf ("%s: %f\n", signal->name, value);
+	float value = signalDecode (signal, payload);
+	printf ("%s: %f\n", signal->name, value);
 }
 
 uint64_t signalPrompt (canSignal_t* signal)
@@ -176,7 +184,7 @@ uint64_t signalPrompt (canSignal_t* signal)
 		
 		float value;
 		if (fscanf (stdin, "%f%*1[\n]", &value) == 1)
-			return encodeSignal (signal, value);
+			return signalEncode (signal, value);
 
 		printf ("Invalid value.\n");
 	}

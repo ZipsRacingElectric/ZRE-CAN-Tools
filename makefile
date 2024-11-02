@@ -4,8 +4,9 @@ TARGET := $(BUILDDIR)/can-cli
 
 SRC :=	src/main.c			\
 		src/vcu.c			\
+		src/can_database.c	\
 		src/can_dbc.c		\
-		src/can_socket.c	\
+		src/can_socket.c
 
 CC_FLAGS := -Wall -Wextra
 
