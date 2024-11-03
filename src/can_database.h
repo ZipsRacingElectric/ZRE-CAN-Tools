@@ -33,12 +33,13 @@ struct canDatabase
 {
 	canSocket_t		txSocket;
 	canSocket_t		rxSocket;
+	pthread_t		rxThread;
 	canMessage_t	messages [CAN_DATABASE_MESSAGE_COUNT_MAX];
 	size_t			messageCount;
 	canSignal_t		signals [CAN_DATABASE_SIGNAL_COUNT_MAX];
 	size_t			signalCount;
 	float			signalValues [CAN_DATABASE_SIGNAL_COUNT_MAX];
-	pthread_t		rxThread;
+	bool			signalsValid [CAN_DATABASE_SIGNAL_COUNT_MAX];
 };
 
 typedef struct canDatabase canDatabase_t;

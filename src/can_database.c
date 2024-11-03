@@ -49,6 +49,10 @@ bool canDatabaseInit (canDatabase_t* database, const char* deviceName, const cha
 	if (pthread_create (&database->rxThread, NULL, canDatabaseRxThreadEntrypoint, database) != 0)
 		return false;
 
+	// Invalidate all the signals.
+	for (size_t index = 0; index < database->signalCount; ++index)
+		database->signalsValid [index] = false;
+
 	return true;
 }
 
@@ -70,9 +74,13 @@ void canDatabasePrint (canDatabase_t* database)
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
 			canSignal_t* signal = message->signals + signalIndex;
+			bool valid = database->signalsValid [signalOffset + signalIndex];
 			float value = database->signalValues [signalOffset + signalIndex];
-
-			printf ("    %-48s = %f\n", signal->name, value);
+			
+			if (valid)
+				printf ("    %-48s = %f\n", signal->name, value);
+			else
+				printf ("    %-48s = -\n", signal->name);
 		}
 
 		printf ("\n");
@@ -152,12 +160,13 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 		#endif // CAN_DATABASE_RX_PRINT
 
 		uint64_t payload = *((uint64_t*) frame.data);
-		float* signalValues = database->signalValues + (size_t) (message->signals - database->signals);
+		size_t signalOffset = message->signals - database->signals;
 
 		for (size_t index = 0; index < message->signalCount; ++index)
 		{
 			canSignal_t* signal = message->signals + index;
-			signalValues [index] = signalDecode (signal, payload);
+			database->signalValues [signalOffset + index] = signalDecode (signal, payload);
+			database->signalsValid [signalOffset + index] = true;
 		}
 	}
 }
