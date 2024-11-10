@@ -60,16 +60,19 @@ void canDatabasePrint (canDatabase_t* database)
 {
 	size_t signalOffset = 0;
 
+	printf ("%32s | %10s | %8s | %10s | %12s | %12s | %12s | %9s | %6s\n\n", "Signal Name", "Value", "Bit Mask", "Bit Length", "Bit Position", "Scale Factor", "Offset", "Is Signed", "Endian");
+
 	for (size_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
 	{
 		canMessage_t* message = database->messages + messageIndex;
 
-		printf ("- %s (0x%3X) ", message->name, message->id);
+		printf ("%s - ID: %3X\n", message->name, message->id);
 
-		for (size_t charIndex = strlen (message->name) - 8; charIndex < 64; ++charIndex)
-			printf ("-");
+		// TODO(Barach): Formatting could be better.
+		// for (size_t charIndex = strlen (message->name) - 8; charIndex < 64; ++charIndex)
+		// 	printf ("-");
 
-		printf ("\n");
+		// printf ("\n");
 
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
@@ -78,9 +81,9 @@ void canDatabasePrint (canDatabase_t* database)
 			float value = database->signalValues [signalOffset + signalIndex];
 			
 			if (valid)
-				printf ("    %-48s = %f\n", signal->name, value);
+				printf ("%32s | %10f | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n", signal->name, value, signal->bitmask, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
 			else
-				printf ("    %-48s = -\n", signal->name);
+				printf ("%32s | %10s | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n", signal->name, "--", signal->bitmask, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
 		}
 
 		printf ("\n");

@@ -24,42 +24,42 @@ vcuVariable_t eepromMap [] =
 {
 	{
 		.address = 0x10,
-		.name = "apps1_min",
+		.name = "APPS_1_MIN",
 		.type = VCU_VARIABLE_TYPE_UINT16
 	},
 	{
 		.address = 0x12,
-		.name = "apps1_max",
+		.name = "APPS_1_MAX",
 		.type = VCU_VARIABLE_TYPE_UINT16
 	},
 	{
 		.address = 0x14,
-		.name = "apps2_min",
+		.name = "APPS_2_MIN",
 		.type = VCU_VARIABLE_TYPE_UINT16
 	},
 	{
 		.address = 0x16,
-		.name = "apps2_max",
+		.name = "APPS_2_MAX",
 		.type = VCU_VARIABLE_TYPE_UINT16
 	},
 	{
 		.address = 0x18,
-		.name = "bseF_min",
+		.name = "BSE_F_MIN",
 		.type = VCU_VARIABLE_TYPE_UINT16
 	},
 	{
 		.address = 0x1A,
-		.name = "bseF_max",
+		.name = "BSE_F_MAX",
 		.type = VCU_VARIABLE_TYPE_UINT16
 	},
 	{
 		.address = 0x1C,
-		.name = "bseR_min",
+		.name = "BSE_R_MIN",
 		.type = VCU_VARIABLE_TYPE_UINT16
 	},
 	{
 		.address = 0x1E,
-		.name = "bseR_max",
+		.name = "BSE_R_MAX",
 		.type = VCU_VARIABLE_TYPE_UINT16
 	},
 };
