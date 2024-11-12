@@ -1,22 +1,34 @@
+# Directories
 BUILDDIR := bin
 
-TARGET := $(BUILDDIR)/can-cli
-
-SRC :=	src/main.c			\
-		src/vcu.c			\
-		src/can_database.c	\
+# Common source files
+SRC :=	src/can_database.c	\
 		src/can_dbc.c		\
-		src/can_socket.c
+		src/can_socket.c	\
+		src/vcu.c
 
-CC_FLAGS := -Wall -Wextra
-
+# Flags
 LIB_FLAGS := -lm
+CC_FLAGS := -Wall -Wextra $(LIB_FLAGS)
 
-$(TARGET): $(SRC)
+# Targets
+CAN_DBC_CLI := $(BUILDDIR)/can-dbc-cli
+VCU_CLI := $(BUILDDIR)/vcu-cli
+AMK_CLI := $(BUILDDIR)/amk-cli
+
+all: $(CAN_DBC_CLI) $(VCU_CLI) $(AMK_CLI)
+
+$(CAN_DBC_CLI): src/can_dbc_cli.c $(SRC)
 	mkdir -p $(BUILDDIR)
-	gcc $(SRC) $(CC_FLAGS) $(LIB_FLAGS) -o $(TARGET)
+	gcc src/can_dbc_cli.c $(SRC) $(CC_FLAGS) -o $(CAN_DBC_CLI)
 
-all: $(TARGET)
+$(VCU_CLI): src/vcu_cli.c $(SRC)
+	mkdir -p $(BUILDDIR)
+	gcc src/vcu_cli.c $(SRC) $(CC_FLAGS) -o $(VCU_CLI)
+
+$(AMK_CLI): src/amk_cli.c $(SRC)
+	mkdir -p $(BUILDDIR)
+	gcc src/amk_cli.c $(SRC) $(CC_FLAGS) -o $(AMK_CLI)
 
 clean:
 	rm -r $(BUILDDIR)

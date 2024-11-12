@@ -1,15 +1,14 @@
-// CAN Command-Line Interface -------------------------------------------------------------------------------------------------
+// CAN Database CLI -----------------------------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
 // Date Created: 2024.10.27
 //
-// Description: 
+// Description: Command-line interface for interacting with a CAN bus.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
 #include "can_database.h"
-#include "vcu.h"
 
 // C Standard Library
 #include <stdio.h>
@@ -20,7 +19,7 @@ int main (int argc, char** argv)
 {
 	if (argc != 3)
 	{
-		printf ("Format: can-cli <device name> <DBC file path>\n");
+		printf ("Format: can-dbc-cli <device name> <DBC file path>\n");
 		return -1;
 	}
 
@@ -29,7 +28,8 @@ int main (int argc, char** argv)
 
 	// Initialize the database.
 	canDatabase_t database;
-	canDatabaseInit (&database, deviceName, dbcPath);
+	if (!canDatabaseInit (&database, deviceName, dbcPath))
+		return -1;
 
 	while (true)
 	{
@@ -38,7 +38,6 @@ int main (int argc, char** argv)
 		printf (" t - Transmit a CAN message.\n");
 		printf (" r - Read a received CAN message.\n");
 		printf (" p - Print a list of all messages.\n");
-		printf (" v - Program the VCU's EEPROM.\n");
 		printf (" q - Quit the program.\n");
 
 		size_t messageIndex;
@@ -61,10 +60,6 @@ int main (int argc, char** argv)
 			break;
 		case 'p':
 			canDatabasePrint (&database);
-			break;
-		case 'v':
-			frame = vcuEepromMessagePrompt ();
-			canSocketTransmit (&database.txSocket, &frame);
 			break;
 		case 'q':
 			return 0;
