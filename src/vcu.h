@@ -18,23 +18,20 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
-enum vcuVariableType
+typedef enum
 {
-	VCU_VARIABLE_TYPE_UINT16	= 0,
-	VCU_VARIABLE_TYPE_UINT32	= 1,
-	VCU_VARIABLE_TYPE_FLOAT		= 2,
-};
+	VCU_VARIABLE_TYPE_UINT8		= 0,
+	VCU_VARIABLE_TYPE_UINT16	= 1,
+	VCU_VARIABLE_TYPE_UINT32	= 2,
+	VCU_VARIABLE_TYPE_FLOAT		= 3,
+} vcuVariableType_t;
 
-typedef enum vcuVariableType vcuVariableType_t;
-
-struct vcuVariable
+typedef struct
 {
 	uint16_t			address;
 	const char*			name;
 	vcuVariableType_t	type;
-};
-
-typedef struct vcuVariable vcuVariable_t;
+} vcuVariable_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 

@@ -8,8 +8,8 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
+#include "amk.h"
 #include "can_database.h"
-#include "vcu.h"
 
 // C Standard Library
 #include <stdio.h>
@@ -41,16 +41,13 @@ int main (int argc, char** argv)
 
 		struct can_frame frame;
 
+		// TODO(Barach)
+		(void) deviceId;
+		(void) frame;
+
 		fscanf (stdin, "%c%*1[\n]", &selection);
 		switch (selection)
 		{
-		case 'w':
-			frame = vcuEepromMessagePrompt ();
-			canSocketTransmit (&database.txSocket, &frame);
-			break;
-		case 'r':
-			printf ("Not implemented.\n");
-			break;
 		case 'q':
 			return 0;
 		}

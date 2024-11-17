@@ -14,6 +14,7 @@
 
 uint16_t vcuVariableSizes [] =
 {
+	sizeof (uint8_t),
 	sizeof (uint16_t),
 	sizeof (uint32_t),
 	sizeof (float)
@@ -62,6 +63,16 @@ vcuVariable_t eepromMap [] =
 		.name = "BSE_R_MAX",
 		.type = VCU_VARIABLE_TYPE_UINT16
 	},
+	{
+		.address = 0x28,
+		.name = "TORQUE_LIMIT",
+		.type = VCU_VARIABLE_TYPE_FLOAT
+	},
+	{
+		.address = 0x2C,
+		.name = "TORQUE_ALGORITHM_INDEX",
+		.type = VCU_VARIABLE_TYPE_UINT8
+	}
 };
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -116,6 +127,10 @@ struct can_frame vcuEepromMessagePrompt ()
 
 	switch (variable->type)
 	{
+	case VCU_VARIABLE_TYPE_UINT8:
+		printf ("Enter the value of the variable (uint8_t): ");
+		fscanf (stdin, "%u%*1[\n]", &variableData);
+		break;
 	case VCU_VARIABLE_TYPE_UINT16:
 		printf ("Enter the value of the variable (uint16_t): ");
 		fscanf (stdin, "%u%*1[\n]", &variableData);

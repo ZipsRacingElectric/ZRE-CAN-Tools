@@ -2,7 +2,8 @@
 BUILDDIR := bin
 
 # Common source files
-SRC :=	src/can_database.c	\
+SRC :=	src/amk.h			\
+		src/can_database.c	\
 		src/can_dbc.c		\
 		src/can_socket.c	\
 		src/vcu.c
