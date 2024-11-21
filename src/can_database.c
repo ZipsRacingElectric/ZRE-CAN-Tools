@@ -79,9 +79,9 @@ void canDatabasePrint (canDatabase_t* database)
 			canSignal_t* signal = message->signals + signalIndex;
 			bool valid = database->signalsValid [signalOffset + signalIndex];
 			float value = database->signalValues [signalOffset + signalIndex];
-			
+
 			if (valid)
-				printf ("%32s | %10f | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n", signal->name, value, signal->bitmask, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
+				printf ("%32s | %10.3f | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n", signal->name, value, signal->bitmask, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
 			else
 				printf ("%32s | %10s | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n", signal->name, "--", signal->bitmask, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
 		}

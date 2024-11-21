@@ -14,14 +14,19 @@ CC_FLAGS := -Wall -Wextra $(LIB_FLAGS)
 
 # Targets
 CAN_DBC_CLI := $(BUILDDIR)/can-dbc-cli
+CAN_DBC_TUI := $(BUILDDIR)/can-dbc-tui
 VCU_CLI := $(BUILDDIR)/vcu-cli
 AMK_CLI := $(BUILDDIR)/amk-cli
 
-all: $(CAN_DBC_CLI) $(VCU_CLI) $(AMK_CLI)
+all: $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(VCU_CLI) $(AMK_CLI)
 
 $(CAN_DBC_CLI): src/can_dbc_cli.c $(SRC)
 	mkdir -p $(BUILDDIR)
 	gcc src/can_dbc_cli.c $(SRC) $(CC_FLAGS) -o $(CAN_DBC_CLI)
+
+$(CAN_DBC_TUI): src/can_dbc_tui.c $(SRC)
+	mkdir -p $(BUILDDIR)
+	gcc src/can_dbc_tui.c $(SRC) $(CC_FLAGS) -lncurses -o $(CAN_DBC_TUI)
 
 $(VCU_CLI): src/vcu_cli.c $(SRC)
 	mkdir -p $(BUILDDIR)
