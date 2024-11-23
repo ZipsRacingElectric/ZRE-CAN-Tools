@@ -10,7 +10,7 @@ SRC :=	src/amk.h			\
 
 # Flags
 LIB_FLAGS := -lm
-CC_FLAGS := -Wall -Wextra $(LIB_FLAGS)
+CC_FLAGS := -Wall -Wextra -Isrc $(LIB_FLAGS)
 
 # Targets
 CAN_DBC_CLI := $(BUILDDIR)/can-dbc-cli
@@ -20,21 +20,21 @@ AMK_CLI := $(BUILDDIR)/amk-cli
 
 all: $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(VCU_CLI) $(AMK_CLI)
 
-$(CAN_DBC_CLI): src/can_dbc_cli.c $(SRC)
+$(CAN_DBC_CLI): src/can_dbc_cli/main.c $(SRC)
 	mkdir -p $(BUILDDIR)
-	gcc src/can_dbc_cli.c $(SRC) $(CC_FLAGS) -o $(CAN_DBC_CLI)
+	gcc src/can_dbc_cli/main.c $(SRC) $(CC_FLAGS) -o $(CAN_DBC_CLI)
 
-$(CAN_DBC_TUI): src/can_dbc_tui.c $(SRC)
+$(CAN_DBC_TUI): src/can_dbc_tui/main.c $(SRC)
 	mkdir -p $(BUILDDIR)
-	gcc src/can_dbc_tui.c $(SRC) $(CC_FLAGS) -lncurses -o $(CAN_DBC_TUI)
+	gcc src/can_dbc_tui/main.c $(SRC) $(CC_FLAGS) -lncurses -o $(CAN_DBC_TUI)
 
-$(VCU_CLI): src/vcu_cli.c $(SRC)
+$(VCU_CLI): src/vcu_cli/main.c $(SRC)
 	mkdir -p $(BUILDDIR)
-	gcc src/vcu_cli.c $(SRC) $(CC_FLAGS) -o $(VCU_CLI)
+	gcc src/vcu_cli/main.c $(SRC) $(CC_FLAGS) -o $(VCU_CLI)
 
-$(AMK_CLI): src/amk_cli.c $(SRC)
+$(AMK_CLI): src/amk_cli/main.c $(SRC)
 	mkdir -p $(BUILDDIR)
-	gcc src/amk_cli.c $(SRC) $(CC_FLAGS) -o $(AMK_CLI)
+	gcc src/amk_cli/main.c $(SRC) $(CC_FLAGS) -o $(AMK_CLI)
 
 clean:
 	rm -r $(BUILDDIR)

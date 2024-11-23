@@ -77,21 +77,22 @@ BO_ 512 AMK_RL_MOTOR_REQUEST: 8 AMK_RL
  SG_ RL_NEGATIVE_TORQUE_LIMIT : 48|16@1+ (0.0098,0) [0|21] "Nm" Vector__XXX
 
 BO_ 516 AMK_RL_MOTOR_FEEDBACK: 8 AMK_RL
- SG_ RL_SYSTEM_READY : 8|1@1+ (0,0) [0|0] "" Vector__XXX
- SG_ RL_ERROR : 9|1@1+ (0,0) [0|0] "" Vector__XXX
- SG_ RL_WARNING : 10|1@1+ (0,0) [0|0] "" Vector__XXX
- SG_ RL_QUIT_DC_ON : 11|1@1+ (0,0) [0|0] "" Vector__XXX
- SG_ RL_DC_ON : 12|1@1+ (0,0) [0|0] "" Vector__XXX
- SG_ RL_QUIT_INVERTER : 13|1@1+ (0,0) [0|0] "" Vector__XXX
- SG_ RL_INVERTER_ON : 14|1@1+ (0,0) [0|0] "" Vector__XXX
- SG_ RL_DERATING : 15|1@1+ (0,0) [0|0] "" Vector__XXX
- SG_ RL_ACTUAL_TORQUE_VALUE : 16|16@1- (0,0) [0|0] "" Vector__XXX
- SG_ RL_ACTUAL_SPEED_VALUE : 32|32@1+ (0,0) [0|0] "" Vector__XXX
+ SG_ RL_SYSTEM_READY : 8|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ RL_ERROR : 9|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ RL_WARNING : 10|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ RL_QUIT_DC_ON : 11|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ RL_DC_ON : 12|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ RL_QUIT_INVERTER : 13|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ RL_INVERTER_ON : 14|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ RL_DERATING : 15|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ RL_ACTUAL_TORQUE_VALUE : 16|16@1- (0.0098,0) [0|0] "Nm" Vector__XXX
+ SG_ RL_ACTUAL_SPEED_VALUE : 32|32@1- (0.00001,0) [0|0] "RPM" Vector__XXX
 
 BO_ 256 VCU_STATUS: 2 Vector__XXX
  SG_ VEHICLE_STATE : 0|2@1+ (1,0) [0|3] "Enum" Vector__XXX
  SG_ TORQUE_PLAUSIBLE : 2|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ PEDALS_PLAUSIBLE : 3|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ CAN_PLAUSIBLE : 7|1@1+ (1,0) [0|0] "Bool" Vector__XXX
  SG_ APPS_1_PLAUSIBLE : 8|1@1+ (1,0) [0|0] "Bool" Vector__XXX
  SG_ APPS_1_CONFIG_PLAUSIBLE : 9|1@1+ (1,0) [0|0] "Bool" Vector__XXX
  SG_ APPS_2_PLAUSIBLE : 10|1@1+ (1,0) [0|0] "Bool" Vector__XXX
