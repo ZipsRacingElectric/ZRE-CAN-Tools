@@ -104,7 +104,7 @@ bool canSocketReceive (canSocket_t* canSocket, struct can_frame* frame)
 		// Check for timeout
 		// TODO(Barach): Timeout handling
 		// if(code == EAGAIN || code == EWOULDBLOCK || code == EINPROGRESS)
-		
+
 		DEBUG_PRINTF ("Failed to read CAN message: %s\n", strerror (code));
 		return false;
 	}
@@ -181,7 +181,7 @@ uint64_t signalPrompt (canSignal_t* signal)
 	while (true)
 	{
 		printf ("%s: ", signal->name);
-		
+
 		float value;
 		if (fscanf (stdin, "%f%*1[\n]", &value) == 1)
 			return signalEncode (signal, value);

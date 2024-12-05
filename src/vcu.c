@@ -70,8 +70,23 @@ vcuVariable_t eepromMap [] =
 	},
 	{
 		.address = 0x2C,
+		.name = "TORQUE_BIAS",
+		.type = VCU_VARIABLE_TYPE_FLOAT
+	},
+	{
+		.address = 0x30,
+		.name = "REGEN_LIMIT",
+		.type = VCU_VARIABLE_TYPE_FLOAT
+	},
+	{
+		.address = 0x34,
+		.name = "REGEN_BIAS",
+		.type = VCU_VARIABLE_TYPE_FLOAT
+	},
+	{
+		.address = 0x38,
 		.name = "TORQUE_ALGORITHM_INDEX",
-		.type = VCU_VARIABLE_TYPE_UINT8
+		.type = VCU_VARIABLE_TYPE_UINT16
 	}
 };
 

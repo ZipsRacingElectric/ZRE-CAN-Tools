@@ -67,14 +67,14 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 	{
 		// Read the next keyword in the file.
 		// TODO(Barach): Unbounded scan
-		code = fscanf (file, "%s", dataBuffer0);		
-		
+		code = fscanf (file, "%s", dataBuffer0);
+
 		// Check for the end of the file.
 		if (feof (file))
 			break;
-		
+
 		if (code != 1)
-		{   
+		{
 			code = errno;
 			INFO_PRINTF ("Failed to parse DBC file: %s\n", strerror(code));
 			return false;
@@ -121,7 +121,7 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 			else
 			{
 				PARSE_PRINTF ("Message name: %s, ID: %u, DLC: %u, ECU: %s\n", dataBuffer0, messageId, messageDlc, dataBuffer1);
-				
+
 				// Add message to array
 				message = messages + *messageCount;
 				++(*messageCount);
@@ -152,7 +152,7 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 				INFO_PRINTF ("Failed to parse DBC file: The file exceeds the maximum number of signals (%lu).\n", maxSignals);
 				return false;
 			}
-			
+
 			// Create data buffers
 			unsigned int bitPosition;
 			unsigned int bitLength;
@@ -176,7 +176,7 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 			if(code != 11)
 			{
 				INFO_PRINTF ("Failed to parse DBC signal '%s': Invalid format.\n", dataBuffer0);
-				
+
 				// Ignore remainder of line
 				fgets(dataBuffer0, LINE_LENGTH_MAX, file);
 			}
@@ -190,7 +190,7 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 				++message->signalCount;
 
 				signal->message = message;
-				
+
 				// Allocate and copy signal name
 				size_t nameSize = strlen (dataBuffer0);
 				signal->name = malloc (nameSize + 1);
@@ -206,6 +206,10 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 				signal->offset      = offset;
 				signal->signedness  = (signedness == '-');
 				signal->endianness  = (endianness == 1);
+
+				// Handle BE
+				if (!endianness)
+					signal->bitPosition -= 7;
 
 				// Populate bitmask
 				signal->bitmask = ((uint64_t) 1 << signal->bitLength) - 1;
@@ -252,7 +256,7 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 				code = fgetc (file);
 				if (code == EOF)
 					break;
-				
+
 				unsigned char startingChar = (unsigned char) (code);
 				if (!isspace (startingChar) || startingChar == '\n')
 				{

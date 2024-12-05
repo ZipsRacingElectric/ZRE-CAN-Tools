@@ -47,6 +47,7 @@ int main (int argc, char** argv)
 
 	int row, col;
 	getmaxyx(stdscr, row, col);
+	(void) col;
 
 	while (true)
 	{

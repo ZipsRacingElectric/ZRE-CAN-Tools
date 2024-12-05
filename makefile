@@ -2,8 +2,7 @@
 BUILDDIR := bin
 
 # Common source files
-SRC :=	src/amk.h			\
-		src/can_database.c	\
+SRC :=	src/can_database.c	\
 		src/can_dbc.c		\
 		src/can_socket.c	\
 		src/vcu.c
@@ -16,9 +15,8 @@ CC_FLAGS := -Wall -Wextra -Isrc $(LIB_FLAGS)
 CAN_DBC_CLI := $(BUILDDIR)/can-dbc-cli
 CAN_DBC_TUI := $(BUILDDIR)/can-dbc-tui
 VCU_CLI := $(BUILDDIR)/vcu-cli
-AMK_CLI := $(BUILDDIR)/amk-cli
 
-all: $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(VCU_CLI) $(AMK_CLI)
+all: $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(VCU_CLI)
 
 $(CAN_DBC_CLI): src/can_dbc_cli/main.c $(SRC)
 	mkdir -p $(BUILDDIR)
@@ -31,10 +29,6 @@ $(CAN_DBC_TUI): src/can_dbc_tui/main.c $(SRC)
 $(VCU_CLI): src/vcu_cli/main.c $(SRC)
 	mkdir -p $(BUILDDIR)
 	gcc src/vcu_cli/main.c $(SRC) $(CC_FLAGS) -o $(VCU_CLI)
-
-$(AMK_CLI): src/amk_cli/main.c $(SRC)
-	mkdir -p $(BUILDDIR)
-	gcc src/amk_cli/main.c $(SRC) $(CC_FLAGS) -o $(AMK_CLI)
 
 clean:
 	rm -r $(BUILDDIR)
