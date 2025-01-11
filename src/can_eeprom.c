@@ -41,7 +41,6 @@ static const char* VARIABLE_NAMES [] =
 #define EEPROM_RESPONSE_MESSAGE_IS_VALID(word)				(((word) & 0b00000100) == 0b00000100)
 #define EEPROM_RESPONSE_MESSAGE_DATA_COUNT(word)			((((word) & 0b00001100) >> 2) + 1)
 
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 struct can_frame canEepromWriteMessageEncode (canEeprom_t* eeprom, uint16_t variableIndex, void* data)
@@ -52,6 +51,7 @@ struct can_frame canEepromWriteMessageEncode (canEeprom_t* eeprom, uint16_t vari
 	uint16_t instruction = EEPROM_COMMAND_MESSAGE_READ_NOT_WRITE (false)
 		| EEPROM_COMMAND_MESSAGE_DATA_NOT_VALIDATION (true)
 		| EEPROM_COMMAND_MESSAGE_DATA_COUNT (count);
+	uint16_t address = variable->address;
 
 	struct can_frame frame =
 	{
@@ -60,7 +60,9 @@ struct can_frame canEepromWriteMessageEncode (canEeprom_t* eeprom, uint16_t vari
 		.data		=
 		{
 			instruction,
-			instruction >> 8
+			instruction >> 8,
+			address,
+			address >> 8
 		}
 	};
 	memcpy (frame.data + 4, data, count);
@@ -153,12 +155,16 @@ bool canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variable
 		uint8_t size = VARIABLE_SIZES [eeprom->variables [variableIndex].type];
 		canSocketTransmit (socket, &commandFrame);
 		if (!canEepromRead (eeprom, socket, variableIndex, readData))
+		{
+			printf ("Failed to write to EEPROM: Read operation failed.\n");
 			return false;
+		}
 
 		if (memcmp (data, readData, size) == 0)
 			return true;
 	}
 
+	printf ("Failed to write to EEPROM: Did not read correct value back.\n");
 	return false;
 }
 
@@ -259,6 +265,12 @@ void canEepromPrintVariable (canEeprom_t* eeprom, uint16_t variableIndex, void* 
 
 void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket)
 {
+	bool isValid = true;
+
+	printf ("%s Memory Map: %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
+	printf ("%24s | %10s | %10s\n", "Variable", "Type", "Value");
+	printf ("-------------------------|------------|------------\n");
+
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
 		uint8_t data [4];
@@ -268,6 +280,25 @@ void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket)
 			return;
 		}
 
-		canEepromPrintVariable (eeprom, index, data);
+		canEepromVariable_t* variable = eeprom->variables + index;
+		printf ("%24s | %10s | ", variable->name, VARIABLE_NAMES [variable->type]);
+
+		switch (variable->type)
+		{
+		case CAN_EEPROM_TYPE_UINT8_T:
+			printf ("%10u\n", *((uint8_t*) data));
+			break;
+		case CAN_EEPROM_TYPE_UINT16_T:
+			printf ("%10u\n", *((uint16_t*) data));
+			break;
+		case CAN_EEPROM_TYPE_UINT32_T:
+			printf ("%10u\n", *((uint32_t*) data));
+			break;
+		case CAN_EEPROM_TYPE_FLOAT:
+			printf ("%10f\n", *((float*) data));
+			break;
+		}
 	}
+
+	printf ("\n");
 }

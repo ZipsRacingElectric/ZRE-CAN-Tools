@@ -80,7 +80,7 @@ static canEepromVariable_t vcuVariables [] =
 
 static canEeprom_t vcuEeprom =
 {
-	.name			= "vcu",
+	.name			= "VCU",
 	.canAddress		= 0x750,
 	.variables		= vcuVariables,
 	.variableCount	= VCU_VARIABLE_COUNT
