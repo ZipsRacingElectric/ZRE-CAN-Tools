@@ -4,12 +4,16 @@
 // C Standard Library
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
 
 // Constants ------------------------------------------------------------------------------------------------------------------
 
-#define RESPONSE_ATTEMPT_COUNT		5
-#define RESPONSE_ATTEMPT_TIMEOUT_S	1
+#define RESPONSE_ATTEMPT_COUNT 7
+static const struct timeval RESPONSE_ATTEMPT_TIMEOUT =
+{
+	.tv_sec		= 0,
+	.tv_usec	= 200000
+};
 
 #define VARIABLE_COUNT (sizeof (VARIABLE_SIZES) / sizeof (uint16_t))
 static const uint16_t VARIABLE_SIZES [] =
@@ -239,15 +243,17 @@ bool canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableI
 
 	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
-		time_t timeStart = time (NULL);
-		time_t timeCurrent = timeStart;
-
 		if (!canSocketTransmit (socket, &commandFrame))
 			return false;
 
-		while (timeCurrent < timeStart + RESPONSE_ATTEMPT_COUNT)
+		struct timeval deadline;
+		struct timeval timeCurrent;
+		gettimeofday (&timeCurrent, NULL);
+		timeradd (&timeCurrent, &RESPONSE_ATTEMPT_TIMEOUT, &deadline);
+
+		while (timercmp (&timeCurrent, &deadline, <))
 		{
-			time (&timeCurrent);
+			gettimeofday (&timeCurrent, NULL);
 
 			struct can_frame response;
 			if (!canSocketReceive (socket, &response))
@@ -258,6 +264,7 @@ bool canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableI
 		}
 	}
 
+	printf ("Failed to read from EEPROM: No response received.\n");
 	return false;
 }
 
@@ -289,15 +296,17 @@ bool canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid)
 
 	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
-		time_t timeStart = time (NULL);
-		time_t timeCurrent = timeStart;
-
 		if (!canSocketTransmit (socket, &commandFrame))
 			return false;
 
-		while (timeCurrent < timeStart + RESPONSE_ATTEMPT_COUNT)
+		struct timeval deadline;
+		struct timeval timeCurrent;
+		gettimeofday (&timeCurrent, NULL);
+		timeradd (&timeCurrent, &RESPONSE_ATTEMPT_TIMEOUT, &deadline);
+
+		while (timercmp (&timeCurrent, &deadline, <))
 		{
-			time (&timeCurrent);
+			gettimeofday (&timeCurrent, NULL);
 
 			struct can_frame response;
 			if (!canSocketReceive (socket, &response))
@@ -308,6 +317,7 @@ bool canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid)
 		}
 	}
 
+	printf ("Failed to check EEPROM validity: No response received.\n");
 	return false;
 }
 
@@ -382,12 +392,10 @@ void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket)
 {
 	bool isValid;
 	if (!canEepromIsValid (eeprom, socket, &isValid))
-	{
-		printf ("Failed to check EEPROM's validity.\n");
 		return;
-	}
 
-	printf ("%s Memory Map: EEPROM %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
+	printf ("%s Memory Map: %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
+	printf ("---------------------------------------------------\n");
 	printf ("%24s | %10s | %10s\n", "Variable", "Type", "Value");
 	printf ("-------------------------|------------|------------\n");
 
@@ -395,10 +403,7 @@ void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket)
 	{
 		uint8_t data [4];
 		if (!canEepromRead (eeprom, socket, index, data))
-		{
-			printf ("Failed to read EEPROM variable.\n");
 			return;
-		}
 
 		canEepromVariable_t* variable = eeprom->variables + index;
 		printf ("%24s | %10s | ", variable->name, VARIABLE_NAMES [variable->type]);

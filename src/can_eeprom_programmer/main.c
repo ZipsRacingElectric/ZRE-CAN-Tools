@@ -105,7 +105,7 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
-	if (!canSocketSetTimeout (&socket, 1000))
+	if (!canSocketSetTimeout (&socket, 100))
 	{
 		fprintf (stderr, "Failed to set CAN socket timeout.\n");
 		return -1;
@@ -136,8 +136,8 @@ int main (int argc, char** argv)
 			break;
 		case 'r':
 			index = canEepromVariableIndexPrompt (&vcuEeprom);
-			canEepromRead (&vcuEeprom, &socket, index, data);
-			canEepromPrintVariable (&vcuEeprom, index, data);
+			if (canEepromRead (&vcuEeprom, &socket, index, data))
+				canEepromPrintVariable (&vcuEeprom, index, data);
 			break;
 		case 'm':
 			canEepromPrintMap (&vcuEeprom, &socket);
@@ -151,7 +151,7 @@ int main (int argc, char** argv)
 		case 'c':
 			bool isValid;
 			if (canEepromIsValid (&vcuEeprom, &socket, &isValid))
-				printf ("Valid: %u\n", (unsigned int) isValid);
+				printf ("%s.\n", isValid ? "Valid" : "Invalid");
 			break;
 		case 'q':
 			return 0;

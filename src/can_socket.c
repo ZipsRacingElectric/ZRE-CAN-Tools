@@ -45,7 +45,7 @@ bool canSocketInit (canSocket_t* canSocket, const char* deviceName)
 
 	// Create the interface structure
 	struct ifreq interface;
-	
+
 	// Set interface name, set terminating character if name exceeds bounds
 	strncpy (interface.ifr_name, deviceName, IFNAMSIZ - 1);
 	interface.ifr_name[IFNAMSIZ - 1] = '\0';
@@ -100,7 +100,11 @@ bool canSocketReceive (canSocket_t* canSocket, struct can_frame* frame)
 	if (code < (long long int) sizeof (struct can_frame))
 	{
 		code = errno;
-		DEBUG_PRINTF ("Failed to read CAN message: %s\n", strerror (code));
+
+		// Only print if the error was not a timeout
+		if (code != EAGAIN && code != EINPROGRESS && code != EWOULDBLOCK)
+			DEBUG_PRINTF ("Failed to read CAN message: %s\n", strerror (code));
+
 		return false;
 	}
 
