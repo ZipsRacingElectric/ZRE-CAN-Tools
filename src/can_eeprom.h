@@ -48,9 +48,19 @@ struct can_frame canEepromReadMessageEncode (canEeprom_t* eeprom, uint16_t varia
 
 bool canEepromReadMessageParse (canEeprom_t* eeprom, struct can_frame* frame, uint16_t variableIndex, void* data);
 
+struct can_frame canEepromValidateMessageEncode (canEeprom_t* eeprom, bool isValid);
+
+struct can_frame canEepromIsValidMessageEncode (canEeprom_t* eeprom);
+
+bool canEepromIsValidMessageParse (canEeprom_t* eeprom, struct can_frame* frame, bool* isValid);
+
 bool canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data);
 
 bool canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data);
+
+bool canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
+
+bool canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 

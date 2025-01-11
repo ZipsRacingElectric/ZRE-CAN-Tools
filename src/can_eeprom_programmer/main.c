@@ -118,6 +118,9 @@ int main (int argc, char** argv)
 		printf (" w - Write to the EEPROM.\n");
 		printf (" r - Read from the EEPROM.\n");
 		printf (" m - Print a map of the EEPROM's memory.\n");
+		printf (" v - Validate the EEPROM.\n");
+		printf (" i - Invalidate the EEPROM.\n");
+		printf (" c - Check the EEPROM's validity.\n");
 		printf (" q - Quit the program.\n");
 
 		uint16_t index;
@@ -138,6 +141,17 @@ int main (int argc, char** argv)
 			break;
 		case 'm':
 			canEepromPrintMap (&vcuEeprom, &socket);
+			break;
+		case 'v':
+			canEepromValidate (&vcuEeprom, &socket, true);
+			break;
+		case 'i':
+			canEepromValidate (&vcuEeprom, &socket, false);
+			break;
+		case 'c':
+			bool isValid;
+			if (canEepromIsValid (&vcuEeprom, &socket, &isValid))
+				printf ("Valid: %u\n", (unsigned int) isValid);
 			break;
 		case 'q':
 			return 0;

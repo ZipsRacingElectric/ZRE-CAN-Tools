@@ -8,9 +8,8 @@
 
 // Constants ------------------------------------------------------------------------------------------------------------------
 
-#define WRITE_ATTEMPT_COUNT		5
-#define READ_ATTEMPT_COUNT		5
-#define READ_ATTEMPT_TIMEOUT	1
+#define RESPONSE_ATTEMPT_COUNT		5
+#define RESPONSE_ATTEMPT_TIMEOUT_S	1
 
 #define VARIABLE_COUNT (sizeof (VARIABLE_SIZES) / sizeof (uint16_t))
 static const uint16_t VARIABLE_SIZES [] =
@@ -88,7 +87,7 @@ struct can_frame canEepromReadMessageEncode (canEeprom_t* eeprom, uint16_t varia
 		{
 			instruction,
 			instruction >> 8,
-		address,
+			address,
 			address >> 8
 		}
 	};
@@ -145,12 +144,78 @@ bool canEepromReadMessageParse (canEeprom_t* eeprom, struct can_frame* frame, ui
 	return true;
 }
 
+struct can_frame canEepromValidateMessageEncode (canEeprom_t* eeprom, bool isValid)
+{
+	uint16_t instruction = EEPROM_COMMAND_MESSAGE_READ_NOT_WRITE (false)
+		| EEPROM_COMMAND_MESSAGE_DATA_NOT_VALIDATION (false)
+		| EEPROM_COMMAND_MESSAGE_IS_VALID (isValid);
+
+	struct can_frame frame =
+	{
+		.can_id		= eeprom->canAddress,
+		.can_dlc	= 8,
+		.data		=
+		{
+			instruction,
+			instruction >> 8
+		}
+	};
+
+	return frame;
+}
+
+struct can_frame canEepromIsValidMessageEncode (canEeprom_t* eeprom)
+{
+	uint16_t instruction = EEPROM_COMMAND_MESSAGE_READ_NOT_WRITE (true)
+		| EEPROM_COMMAND_MESSAGE_DATA_NOT_VALIDATION (false);
+
+	struct can_frame frame =
+	{
+		.can_id		= eeprom->canAddress,
+		.can_dlc	= 8,
+		.data		=
+		{
+			instruction,
+			instruction >> 8,
+		}
+	};
+
+	return frame;
+}
+
+bool canEepromIsValidMessageParse (canEeprom_t* eeprom, struct can_frame* frame, bool* isValid)
+{
+	uint16_t instruction = frame->data [0] | (frame->data [1] << 8);
+
+	// Check message ID is correct
+	if (frame->can_id != (uint16_t) (eeprom->canAddress + 1))
+		return false;
+
+	// Check message is a read response
+	if (!EEPROM_RESPONSE_MESSAGE_READ_NOT_WRITE (instruction))
+	{
+		fprintf (stderr, "Warning: Received EEPROM response with invalid read/write flag.\n");
+		return false;
+	}
+
+	// Check message is a validation response
+	if (EEPROM_RESPONSE_MESSAGE_DATA_NOT_VALIDATION (instruction))
+	{
+		fprintf (stderr, "Warning: Received EEPROM response with invalid data/validation flag.\n");
+		return false;
+	}
+
+	// Success, read the isValid flag
+	*isValid = EEPROM_RESPONSE_MESSAGE_IS_VALID (instruction);
+	return true;
+}
+
 bool canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data)
 {
 	struct can_frame commandFrame = canEepromWriteMessageEncode (eeprom, variableIndex, data);
 
 	uint8_t readData [4];
-	for (uint8_t attempt = 0; attempt < WRITE_ATTEMPT_COUNT; ++attempt)
+	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
 		uint8_t size = VARIABLE_SIZES [eeprom->variables [variableIndex].type];
 		canSocketTransmit (socket, &commandFrame);
@@ -172,7 +237,7 @@ bool canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableI
 {
 	struct can_frame commandFrame = canEepromReadMessageEncode (eeprom, variableIndex);
 
-	for (uint8_t attempt = 0; attempt < READ_ATTEMPT_COUNT; ++attempt)
+	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
 		time_t timeStart = time (NULL);
 		time_t timeCurrent = timeStart;
@@ -180,7 +245,7 @@ bool canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableI
 		if (!canSocketTransmit (socket, &commandFrame))
 			return false;
 
-		while (timeCurrent < timeStart + READ_ATTEMPT_TIMEOUT)
+		while (timeCurrent < timeStart + RESPONSE_ATTEMPT_COUNT)
 		{
 			time (&timeCurrent);
 
@@ -189,6 +254,56 @@ bool canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableI
 				continue;
 
 			if (canEepromReadMessageParse (eeprom, &response, variableIndex, data))
+				return true;
+		}
+	}
+
+	return false;
+}
+
+bool canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid)
+{
+	struct can_frame commandFrame = canEepromValidateMessageEncode (eeprom, isValid);
+
+	bool readIsValid;
+	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
+	{
+		canSocketTransmit (socket, &commandFrame);
+		if (!canEepromIsValid (eeprom, socket, &readIsValid))
+		{
+			printf ("Failed to write EEPROM validity: Read operation failed.\n");
+			return false;
+		}
+
+		if (readIsValid == isValid)
+			return true;
+	}
+
+	printf ("Failed to write to EEPROM: Did not read correct value back.\n");
+	return false;
+}
+
+bool canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid)
+{
+	struct can_frame commandFrame = canEepromIsValidMessageEncode (eeprom);
+
+	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
+	{
+		time_t timeStart = time (NULL);
+		time_t timeCurrent = timeStart;
+
+		if (!canSocketTransmit (socket, &commandFrame))
+			return false;
+
+		while (timeCurrent < timeStart + RESPONSE_ATTEMPT_COUNT)
+		{
+			time (&timeCurrent);
+
+			struct can_frame response;
+			if (!canSocketReceive (socket, &response))
+				continue;
+
+			if (canEepromIsValidMessageParse (eeprom, &response, isValid))
 				return true;
 		}
 	}
@@ -265,9 +380,14 @@ void canEepromPrintVariable (canEeprom_t* eeprom, uint16_t variableIndex, void* 
 
 void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket)
 {
-	bool isValid = true;
+	bool isValid;
+	if (!canEepromIsValid (eeprom, socket, &isValid))
+	{
+		printf ("Failed to check EEPROM's validity.\n");
+		return;
+	}
 
-	printf ("%s Memory Map: %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
+	printf ("%s Memory Map: EEPROM %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
 	printf ("%24s | %10s | %10s\n", "Variable", "Type", "Value");
 	printf ("-------------------------|------------|------------\n");
 
