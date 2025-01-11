@@ -105,6 +105,14 @@ bool canSocketTransmit (canSocket_t* canSocket, struct can_frame* frame);
 bool canSocketReceive (canSocket_t* canSocket, struct can_frame* frame);
 
 /**
+ * @brief Sets the timeout period of a socket.
+ * @param canSocket The socket to modify.
+ * @param timeMs The amount of time to timeout after, in milliseconds. Use 0 to disable timeouts.
+ * @return True if successful, false otherwise.
+ */
+bool canSocketSetTimeout (canSocket_t* canSocket, unsigned long timeMs);
+
+/**
  * @brief Encodes the specified signal's data into a payload.
  * @param signal The signal to encode.
  * @param value The value of the signal.

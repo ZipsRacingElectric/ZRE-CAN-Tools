@@ -1,0 +1,15 @@
+{
+	"name": "VCU",
+	"addr": 256,
+	"map":
+	[
+		{
+			"type": "uint16_t",
+			"addr": 16
+		},
+		{
+			"type": "uint16_t",
+			"addr": 18
+		}
+	]
+}

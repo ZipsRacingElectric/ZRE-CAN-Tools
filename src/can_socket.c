@@ -100,12 +100,31 @@ bool canSocketReceive (canSocket_t* canSocket, struct can_frame* frame)
 	if (code < (long long int) sizeof (struct can_frame))
 	{
 		code = errno;
-
-		// Check for timeout
-		// TODO(Barach): Timeout handling
-		// if(code == EAGAIN || code == EWOULDBLOCK || code == EINPROGRESS)
-
 		DEBUG_PRINTF ("Failed to read CAN message: %s\n", strerror (code));
+		return false;
+	}
+
+	return true;
+}
+
+bool canSocketSetTimeout (canSocket_t* canSocket, unsigned long timeMs)
+{
+	struct timeval timeout =
+	{
+		.tv_sec = 0,
+		.tv_usec = 0
+	};
+
+	if (timeMs != 0)
+	{
+		timeout.tv_usec = (timeMs % 1000) * 1000;
+		timeout.tv_sec = timeMs / 1000;
+	}
+
+	if (setsockopt(canSocket->descriptor, SOL_SOCKET, SO_RCVTIMEO, (void*) &timeout, (socklen_t) sizeof (timeout)) != 0)
+	{
+		int code = errno;
+		DEBUG_PRINTF ("Failed to set socket timeout: %s\n", strerror (code));
 		return false;
 	}
 

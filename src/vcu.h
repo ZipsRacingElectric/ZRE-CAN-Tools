@@ -7,6 +7,8 @@
 // Date Created: 2024.10.30
 //
 // Description: Set of functions for interfacing with the VCU via CAN.
+//
+// TODO(Barach): This could be a generic EEPROM tool that loads a JSON map.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
