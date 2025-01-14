@@ -7,9 +7,6 @@
 // Date created: 2025.01.09
 //
 // Description: Set of functions for interfacing with an EEPROM via CAN.
-//
-// TODO(Barach):
-// - If a read fails the program hangs.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 

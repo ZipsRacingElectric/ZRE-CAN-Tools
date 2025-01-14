@@ -8,7 +8,7 @@
 //
 // Description: Set of functions for interfacing with the VCU via CAN.
 //
-// TODO(Barach): This could be a generic EEPROM tool that loads a JSON map.
+// TODO(Barach): Delete this and the VCU CLI eventually.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 

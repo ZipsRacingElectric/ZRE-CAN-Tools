@@ -75,7 +75,27 @@ static canEepromVariable_t vcuVariables [] =
 		.address = 0x38,
 		.name = "TORQUE_ALGORITHM_INDEX",
 		.type = CAN_EEPROM_TYPE_UINT16_T
-	}
+	},
+	{
+		.address = 0x3C,
+		.name = "POWER_LIMIT",
+		.type = CAN_EEPROM_TYPE_FLOAT
+	},
+	{
+		.address = 0x40,
+		.name = "POWER_LIMIT_PID_KP",
+		.type = CAN_EEPROM_TYPE_FLOAT
+	},
+	{
+		.address = 0x44,
+		.name = "POWER_LIMIT_PID_KI",
+		.type = CAN_EEPROM_TYPE_FLOAT
+	},
+	{
+		.address = 0x48,
+		.name = "POWER_LIMIT_PID_KD",
+		.type = CAN_EEPROM_TYPE_FLOAT
+	},
 };
 
 static canEeprom_t vcuEeprom =

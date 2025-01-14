@@ -102,6 +102,7 @@ BO_ 256 VCU_STATUS: 3 Vector__XXX
  SG_ BSE_R_PLAUSIBLE : 14|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BSE_R_CONFIG_PLAUSIBLE : 15|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ GLV_BATTERY_VOLTAGE : 16|8@1+ (0.00432384774154,0) [0|17.706] "V" Vector__XXX
+ SG_ TORQUE_DERATING : 4|1@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 1872 VCU_EEPROM_COMMAND: 8 Vector__XXX
  SG_ VCU_EEPROM_COMMAND_INSTRUCTION : 0|16@1+ (0,0) [0|0] "" Vector__XXX
@@ -351,11 +352,36 @@ BO_ 1873 VCU_EEPROM_RESPONSE: 8 Vector__XXX
  SG_ VCU_EEPROM_COMMAND_ADDRESS : 16|16@1+ (0,0) [0|0] "" Vector__XXX
  SG_ VCU_EEPROM_COMMAND_DATA : 32|32@1+ (0,0) [0|0] "" Vector__XXX
 
+BO_ 233 MOTEC_RESERVED_0: 0 Vector__XXX
+ SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
+
+BO_ 864 MOTEC_RESERVED_1: 0 Vector__XXX
+ SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
+
+BO_ 865 MOTEC_RESERVED_2: 0 Vector__XXX
+ SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
+
+BO_ 866 MOTEC_RESERVED_3: 0 Vector__XXX
+ SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
+
+BO_ 879 MOTEC_RESERVED_4: 0 Vector__XXX
+ SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
+
+BO_ 889 MOTEC_RESERVED_5: 0 Vector__XXX
+ SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
+
+BO_ 890 MOTEC_RESERVED_6: 0 Vector__XXX
+ SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
+
+BO_ 894 MOTEC_RESERVED_7: 0 Vector__XXX
+ SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
+
 CM_ SG_ 1280 RL_TEMPERATURE_EXTERNAL "TODO(Barach): No documented scale factor";
 CM_ SG_ 1280 RL_TEMPERATURE_SENSOR_MOTOR "TODO(Barach): No documented scale factor";
 
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+
 
 
 
