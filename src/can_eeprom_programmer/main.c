@@ -53,22 +53,22 @@ static canEepromVariable_t vcuVariables [] =
 	},
 	{
 		.address = 0x28,
-		.name = "TORQUE_LIMIT",
+		.name = "DRIVING_TORQUE_LIMIT",
 		.type = CAN_EEPROM_TYPE_FLOAT
 	},
 	{
 		.address = 0x2C,
-		.name = "TORQUE_BIAS",
+		.name = "DRIVING_TORQUE_BIAS",
 		.type = CAN_EEPROM_TYPE_FLOAT
 	},
 	{
 		.address = 0x30,
-		.name = "REGEN_LIMIT",
+		.name = "REGEN_TORQUE_LIMIT",
 		.type = CAN_EEPROM_TYPE_FLOAT
 	},
 	{
 		.address = 0x34,
-		.name = "REGEN_BIAS",
+		.name = "REGEN_TORQUE_BIAS",
 		.type = CAN_EEPROM_TYPE_FLOAT
 	},
 	{
@@ -96,6 +96,11 @@ static canEepromVariable_t vcuVariables [] =
 		.name = "POWER_LIMIT_PID_KD",
 		.type = CAN_EEPROM_TYPE_FLOAT
 	},
+	{
+		.address = 0x4C,
+		.name = "POWER_LIMIT_PID_A",
+		.type = CAN_EEPROM_TYPE_FLOAT
+	}
 };
 
 static canEeprom_t vcuEeprom =

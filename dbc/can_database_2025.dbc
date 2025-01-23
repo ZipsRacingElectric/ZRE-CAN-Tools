@@ -34,7 +34,7 @@ BS_:
 
 BU_: VCU BMS ECUMASTER_GPS_IMU AMK_RL
 
-BO_ 256 VCU_STATUS: 3 Vector__XXX
+BO_ 256 VCU_STATUS: 4 Vector__XXX
  SG_ VEHICLE_STATE : 0|2@1+ (1,0) [0|3] "Enum" Vector__XXX
  SG_ TORQUE_PLAUSIBLE : 2|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ PEDALS_PLAUSIBLE : 3|1@1+ (1,0) [0|1] "Bool" Vector__XXX
@@ -49,7 +49,12 @@ BO_ 256 VCU_STATUS: 3 Vector__XXX
  SG_ BSE_F_CONFIG_PLAUSIBLE : 13|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BSE_R_PLAUSIBLE : 14|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BSE_R_CONFIG_PLAUSIBLE : 15|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ GLV_BATTERY_VOLTAGE : 16|8@1+ (0.00432384774154,0) [0|17.706] "V" Vector__XXX
+ SG_ AMK_RL_VALID : 16|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ AMK_RR_VALID : 17|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ AMK_FL_VALID : 18|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ AMK_FR_VALID : 19|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ GPS_VALID : 20|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ GLV_BATTERY_VOLTAGE : 24|8@1+ (0.00432384774154,0) [0|17.706] "V" Vector__XXX
 
 BO_ 1536 VCU_SENSOR_INPUT_PERCENT: 8 VCU
  SG_ APPS_1_PERCENT : 0|12@1+ (0.02442002442002442,0) [0|100] "%" Vector__XXX
