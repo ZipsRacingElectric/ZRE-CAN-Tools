@@ -100,6 +100,16 @@ static canEepromVariable_t vcuVariables [] =
 		.address = 0x4C,
 		.name = "POWER_LIMIT_PID_A",
 		.type = CAN_EEPROM_TYPE_FLOAT
+	},
+	{
+		.address = 0x50,
+		.name = "GLV_BATTERY_SAMPLE_11V5",
+		.type = CAN_EEPROM_TYPE_UINT16_T
+	},
+	{
+		.address = 0x52,
+		.name = "GLV_BATTERY_SAMPLE_14V4",
+		.type = CAN_EEPROM_TYPE_UINT16_T
 	}
 };
 
