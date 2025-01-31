@@ -1,0 +1,137 @@
+{
+	"name":				"VCU",
+	"canAddress":		"0x750",
+	"variableMap":
+	[
+		{
+			"address":	"0x10",
+			"name":		"APPS_1_MIN",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x12",
+			"name":		"APPS_1_MAX",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x14",
+			"name":		"APPS_2_MIN",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x16",
+			"name":		"APPS_2_MAX",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x18",
+			"name":		"BSE_F_MIN",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x1A",
+			"name":		"BSE_F_MAX",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x1C",
+			"name":		"BSE_R_MIN",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x1E",
+			"name":		"BSE_R_MAX",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x28",
+			"name":		"DRIVING_TORQUE_LIMIT",
+			"type":		"float"
+		},
+		{
+			"address":	"0x2C",
+			"name":		"DRIVING_TORQUE_BIAS",
+			"type":		"float"
+		},
+		{
+			"address":	"0x30",
+			"name":		"REGEN_TORQUE_LIMIT",
+			"type":		"float"
+		},
+		{
+			"address":	"0x34",
+			"name":		"REGEN_TORQUE_BIAS",
+			"type":		"float"
+		},
+		{
+			"address":	"0x38",
+			"name":		"TORQUE_ALGORITHM_INDEX",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x3C",
+			"name":		"POWER_LIMIT",
+			"type":		"float"
+		},
+		{
+			"address":	"0x40",
+			"name":		"POWER_LIMIT_PID_KP",
+			"type":		"float"
+		},
+		{
+			"address":	"0x44",
+			"name":		"POWER_LIMIT_PID_KI",
+			"type":		"float"
+		},
+		{
+			"address":	"0x48",
+			"name":		"POWER_LIMIT_PID_KD",
+			"type":		"float"
+		},
+		{
+			"address":	"0x4C",
+			"name":		"POWER_LIMIT_PID_A",
+			"type":		"float"
+		},
+		{
+			"address":	"0x50",
+			"name":		"GLV_BATTERY_SAMPLE_11V5",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x52",
+			"name":		"GLV_BATTERY_SAMPLE_14V4",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x54",
+			"name":		"SAS_POSITIVE_SAMPLE_ADDR",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x56",
+			"name":		"SAS_ZERO_SAMPLE_ADDR",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x58",
+			"name":		"SAS_NEGATIVE_SAMPLE_ADDR",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x5C",
+			"name":		"SAS_POSITVIE_ANGLE_ADDR",
+			"type":		"float"
+		},
+		{
+			"address":	"0x60",
+			"name":		"SAS_NEGATIVE_ANGLE_ADDR",
+			"type":		"float"
+		},
+		{
+			"address":	"0x64",
+			"name":		"SAS_DEADZONE_RANGE_ADDR",
+			"type":		"float"
+		}
+	]
+}

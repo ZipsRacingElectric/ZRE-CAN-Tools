@@ -13,7 +13,7 @@ Where ```device name``` is the name of the network device to use (ex. ```can0```
 This program is used to monitor the activity of a CAN bus in realtime.
 
 ### CAN EEPROM Programmer
-```can-eeprom-programmer <device name>```
+```can-eeprom-programmer <device name> <JSON file path>```
 
 This program is used to program a device's EEPROM via CAN bus.
 ## Compilation

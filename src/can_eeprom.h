@@ -34,7 +34,7 @@ typedef struct
 	char*					name;
 	uint16_t				canAddress;
 	canEepromVariable_t*	variables;
-	uint16_t				variableCount;
+	size_t					variableCount;
 } canEeprom_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -59,6 +59,10 @@ bool canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
 
 bool canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
 
+// File I/O -------------------------------------------------------------------------------------------------------------------
+
+bool canEepromLoad (canEeprom_t* eeprom, const char* path);
+
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
 uint16_t canEepromVariableIndexPrompt (canEeprom_t* eeprom);
@@ -68,5 +72,7 @@ void canEepromVariableValuePrompt (canEeprom_t* eeprom, uint16_t variableIndex, 
 void canEepromPrintVariable (canEeprom_t* eeprom, uint16_t variableIndex, void* data);
 
 void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket);
+
+void canEepromPrintEmptyMap (canEeprom_t* eeprom);
 
 #endif // CAN_EEPROM_H

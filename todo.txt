@@ -1,14 +1,2 @@
-VCU torque limit set and access
-VCU regen limit set and access
-VCU regen bias set and access
-VCU pedal percents
-
-BMS state of charge
-
-Brake / tire temp
-Damper pos
-X / Y Accel
-
-Data marker
-
-Faults
+TODO(Barach): Stdin/stdout is inconsistent
+TODO(Barach): can-eeprom-programmer should accept data from stdin (use with Octave).

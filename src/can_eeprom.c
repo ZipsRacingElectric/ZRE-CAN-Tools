@@ -1,7 +1,11 @@
 // Header
 #include "can_eeprom.h"
 
+// cJSON
+#include <cjson.h>
+
 // C Standard Library
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
@@ -43,6 +47,16 @@ static const char* VARIABLE_NAMES [] =
 #define EEPROM_RESPONSE_MESSAGE_DATA_NOT_VALIDATION(word)	(((word) & 0b00000010) == 0b00000010)
 #define EEPROM_RESPONSE_MESSAGE_IS_VALID(word)				(((word) & 0b00000100) == 0b00000100)
 #define EEPROM_RESPONSE_MESSAGE_DATA_COUNT(word)			((((word) & 0b00001100) >> 2) + 1)
+
+// Function Prototypes --------------------------------------------------------------------------------------------------------
+
+cJSON* jsonLoad (const char* path);
+
+bool jsonReadObject (cJSON* json, const char* key, cJSON** value);
+
+bool jsonReadString (cJSON* json, const char* key, char** value);
+
+bool jsonReadUint16_t (cJSON* json, const char* key, uint16_t* value);
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
@@ -321,6 +335,55 @@ bool canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid)
 	return false;
 }
 
+bool canEepromLoad (canEeprom_t* eeprom, const char* path)
+{
+	cJSON* json = jsonLoad (path);
+	if (json == NULL)
+		return false;
+
+	if (!jsonReadString (json, "name", &eeprom->name))
+		return false;
+
+	if (!jsonReadUint16_t (json, "canAddress", &eeprom->canAddress))
+		return false;
+
+	cJSON* variableMap;
+	if (!jsonReadObject (json, "variableMap", &variableMap))
+		return false;
+	eeprom->variableCount = cJSON_GetArraySize (variableMap);
+	eeprom->variables = malloc (eeprom->variableCount * sizeof (canEepromVariable_t));
+
+	for (size_t index = 0; index < eeprom->variableCount; ++index)
+	{
+		cJSON* element = cJSON_GetArrayItem (variableMap, index);
+		if (!jsonReadUint16_t (element, "address", &(eeprom->variables [index].address)))
+			return false;
+
+		if (!jsonReadString (element, "name", &(eeprom->variables [index].name)))
+			return false;
+
+		char* variableType;
+		if (!jsonReadString (element, "type", &variableType))
+			return false;
+
+		if (strcmp (variableType, "uint8_t") == 0)
+			eeprom->variables [index].type = CAN_EEPROM_TYPE_UINT8_T;
+		else if (strcmp (variableType, "uint16_t") == 0)
+			eeprom->variables [index].type = CAN_EEPROM_TYPE_UINT16_T;
+		else if (strcmp (variableType, "uint32_t") == 0)
+			eeprom->variables [index].type = CAN_EEPROM_TYPE_UINT32_T;
+		else if (strcmp (variableType, "float") == 0)
+			eeprom->variables [index].type = CAN_EEPROM_TYPE_FLOAT;
+		else
+		{
+			fprintf (stderr, "Failed to load CAN EEPROM from JSON: Unknown type '%s'.\n", variableType);
+			return false;
+		}
+	}
+
+	return true;
+}
+
 uint16_t canEepromVariableIndexPrompt (canEeprom_t* eeprom)
 {
 	char buffer [256];
@@ -426,4 +489,89 @@ void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket)
 	}
 
 	printf ("\n");
+}
+
+void canEepromPrintEmptyMap (canEeprom_t* eeprom)
+{
+	printf ("%s Memory Map:\n", eeprom->name);
+	printf ("-----------------------------------------------------\n");
+	printf ("%24s | %10s | %10s\n", "Variable", "Type", "Address");
+	printf ("-------------------------|------------|--------------\n");
+
+	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
+	{
+		canEepromVariable_t* variable = eeprom->variables + index;
+		printf ("%24s | %10s |       0x%04X\n", variable->name, VARIABLE_NAMES [variable->type], variable->address);
+	}
+
+	printf ("\n");
+}
+
+cJSON* jsonLoad (const char* path)
+{
+	// Open the file for reading
+	FILE* file = fopen (path, "r");
+	if (file == NULL)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to load JSON file: %s.\n", strerror (code));
+		return false;
+	}
+
+	// Get the size of the file (including null terminator).
+	fseek (file, 0, SEEK_END);
+	size_t size = ftell (file) + 1;
+	fseek (file, 0, SEEK_SET);
+
+	char* buffer = malloc (size);
+	if (buffer == NULL)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to load JSON file: %s.\n", strerror (code));
+		return false;
+	}
+
+	// Read the file into a string (appending null-terminator)
+	fread (buffer, 1, size, file);
+	fclose (file);
+	buffer [size - 1] = '\0';
+
+	// Parse the JSON
+	return cJSON_Parse (buffer);
+}
+
+bool jsonReadObject (cJSON* json, const char* key, cJSON** value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		printf ("Failed to parse key '%s' from JSON: Missing key.\n", key);
+		return false;
+	}
+	*value = item;
+	return true;
+}
+
+bool jsonReadString (cJSON* json, const char* key, char** value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		printf ("Failed to parse key '%s' from JSON: Missing key.\n", key);
+		return false;
+	}
+	*value = cJSON_GetStringValue (item);
+	return true;
+}
+
+bool jsonReadUint16_t (cJSON* json, const char* key, uint16_t* value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		printf ("Failed to parse key '%s' from JSON: Missing key.\n", key);
+		return false;
+	}
+	*value = strtol (cJSON_GetStringValue (item), NULL, 0);
+	return true;
 }
