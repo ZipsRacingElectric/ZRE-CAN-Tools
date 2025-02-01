@@ -9,11 +9,13 @@
 
 // Includes
 #include "can_database.h"
+#include "error_codes.h"
 
 // NCurses
 #include <ncurses.h>
 
 // C Standard Library
+#include <errno.h>
 #include <stdio.h>
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
@@ -33,8 +35,12 @@ int main (int argc, char** argv)
 
 	// Initialize the database.
 	canDatabase_t database;
-	if (!canDatabaseInit (&database, deviceName, dbcPath))
-		return -1;
+	if (canDatabaseInit (&database, deviceName, dbcPath) != 0)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to initialize CAN database: %s.\n", errorMessage (code));
+		return code;
+	}
 
 	initscr ();
 

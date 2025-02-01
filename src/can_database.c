@@ -7,20 +7,21 @@
 #include "can_dbc.h"
 
 // C Standard Library
+#include <errno.h>
 #include <string.h>
 
 // Debugging ------------------------------------------------------------------------------------------------------------------
 
 #if CAN_DATABASE_DEBUG
 	#include <stdio.h>
-	#define DEBUG_PRINTF(...) printf(__VA_ARGS__)
+	#define DEBUG_PRINTF(...) fprintf (stderr, __VA_ARGS__)
 #else
 	#define DEBUG_PRINTF(...) while (false)
 #endif // CAN_DATABASE_DEBUG
 
 #if CAN_DATABASE_RX_PRINT
 	#include <stdio.h>
-	#define RX_PRINTF(...) printf(__VA_ARGS__)
+	#define RX_PRINTF(...) fprintf (stderr, __VA_ARGS__)
 #else
 	#define RX_PRINTF(...) while (false)
 #endif // CAN_DATABASE_RX_PRINT
@@ -29,31 +30,36 @@
 
 void* canDatabaseRxThreadEntrypoint (void* arg);
 
-bool canDatabaseInit (canDatabase_t* database, const char* deviceName, const char* dbcPath)
+int canDatabaseInit (canDatabase_t* database, const char* deviceName, const char* dbcPath)
 {
 	// Parse the DBC file.
 	database->messageCount	= CAN_DATABASE_MESSAGE_COUNT_MAX;
 	database->signalCount	= CAN_DATABASE_SIGNAL_COUNT_MAX;
-	if (!dbcFileParse (dbcPath, database->messages, &database->messageCount, database->signals, &database->signalCount))
-		return false;
+
+	if (dbcFileParse (dbcPath, database->messages, &database->messageCount, database->signals, &database->signalCount) != 0)
+		return errno;
 
 	// Initialize the TX socket.
-	if (!canSocketInit (&database->txSocket, deviceName))
-		return false;
+	if (canSocketInit (&database->txSocket, deviceName) != 0)
+		return errno;
 
 	// Initialize the RX socket.
-	if (!canSocketInit (&database->rxSocket, deviceName))
-		return false;
+	if (canSocketInit (&database->rxSocket, deviceName) != 0)
+		return errno;
 
 	// Start the RX thread.
-	if (pthread_create (&database->rxThread, NULL, canDatabaseRxThreadEntrypoint, database) != 0)
-		return false;
+	int code = pthread_create (&database->rxThread, NULL, canDatabaseRxThreadEntrypoint, database);
+	if (code != 0)
+	{
+		errno = code;
+		return errno;
+	}
 
 	// Invalidate all the signals.
 	for (size_t index = 0; index < database->signalCount; ++index)
 		database->signalsValid [index] = false;
 
-	return true;
+	return 0;
 }
 
 void canDatabasePrint (canDatabase_t* database)
@@ -67,12 +73,6 @@ void canDatabasePrint (canDatabase_t* database)
 		canMessage_t* message = database->messages + messageIndex;
 
 		printf ("%s - ID: %3X\n", message->name, message->id);
-
-		// TODO(Barach): Formatting could be better.
-		// for (size_t charIndex = strlen (message->name) - 8; charIndex < 64; ++charIndex)
-		// 	printf ("-");
-
-		// printf ("\n");
 
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
@@ -139,7 +139,7 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 	while (true)
 	{
 		struct can_frame frame;
-		if (!canSocketReceive (&database->rxSocket, &frame))
+		if (canSocketReceive (&database->rxSocket, &frame) != 0)
 		{
 			DEBUG_PRINTF ("CAN RX thread failed to receive frame.\n");
 			continue;

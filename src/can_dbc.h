@@ -12,6 +12,7 @@
 // - This is a pretty poor implementation, error handling is a big issue. A better approach would be to read lines in all at
 //   once then parse them.
 // - Endianness is not implemented correctly, I really don't understand the logic of DBC file endianness.
+// - This should accept a string input, rather than a file.
 //
 // References:
 // - http://mcu.so/Microcontroller/Automotive/dbc-file-format-documentation_compress.pdf
@@ -24,18 +25,17 @@
 #include "can_socket.h"
 
 // C Standard Library
-#include <stdbool.h>
 #include <stdlib.h>
 
 // Debugging ------------------------------------------------------------------------------------------------------------------
 
-#define CAN_DBC_DEBUG_INFO		1
-#define CAN_DBC_DEBUG_PARSING	0
+/// @brief Enables / disables internal logging.
+#define CAN_DBC_DEBUG_INFO 0
 
 // Constants ------------------------------------------------------------------------------------------------------------------
 
-/// @brief The maximum length of a line in the file, in bytes.
-#define LINE_LENGTH_MAX 4096
+/// @brief The maximum length of a line in a CAN DBC file, in bytes.
+#define CAN_DBC_LINE_LENGTH_MAX 4096
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
@@ -48,8 +48,8 @@
  * @param signals The array of populate with the database's signals.
  * @param signalCount Input, should contain the size of the @c signals array. Output written to contain the number of populated
  * signals.
- * @return True if successful, false otherwise. 
+ * @return 0 if successful, the error code otherwise.
  */
-bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount, canSignal_t* signals, size_t* signalCount);
+int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount, canSignal_t* signals, size_t* signalCount);
 
 #endif // CAN_DBC_H

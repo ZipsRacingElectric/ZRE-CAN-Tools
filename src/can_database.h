@@ -19,7 +19,7 @@
 
 // Debugging ------------------------------------------------------------------------------------------------------------------
 
-#define CAN_DATABASE_DEBUG		1
+#define CAN_DATABASE_DEBUG		0
 #define CAN_DATABASE_RX_PRINT	0
 
 // Constants ------------------------------------------------------------------------------------------------------------------
@@ -50,8 +50,9 @@ typedef struct canDatabase canDatabase_t;
  * @brief Initializes a CAN database bound to the specified device using the specified database file.
  * @param deviceName The CAN device to bind to.
  * @param dbcPath The database file to import from.
+ * @return 0 if successful, the error code otherwise.
  */
-bool canDatabaseInit (canDatabase_t* database, const char* deviceName, const char* dbcPath);
+int canDatabaseInit (canDatabase_t* database, const char* deviceName, const char* dbcPath);
 
 /**
  * @brief Prints all of the data of a database.

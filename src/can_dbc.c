@@ -1,27 +1,22 @@
 // Header
 #include "can_dbc.h"
 
+#include "error_codes.h"
+
 // C Standard Library
 #include <ctype.h>
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
-#include <math.h>
 
 // Debugging ------------------------------------------------------------------------------------------------------------------
 
 #if CAN_DBC_DEBUG_INFO
 	#include <stdio.h>
-	#define INFO_PRINTF(...) printf(__VA_ARGS__)
+	#define INFO_PRINTF(...) fprintf (stderr, __VA_ARGS__)
 #else
 	#define INFO_PRINTF(...) while (false)
 #endif // CAN_DBC_DEBUG_INFO
-
-#if CAN_DBC_DEBUG_PARSING
-	#include <stdio.h>
-	#define PARSE_PRINTF(...) printf(__VA_ARGS__)
-#else
-	#define PARSE_PRINTF(...) while (false)
-#endif // CAN_DBC_DEBUG_PARSING
 
 // DBC Keywords ---------------------------------------------------------------------------------------------------------------
 
@@ -38,12 +33,11 @@
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount, canSignal_t* signals, size_t* signalCount)
+int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount, canSignal_t* signals, size_t* signalCount)
 {
-	int code;
-	char dataBuffer0 [LINE_LENGTH_MAX];
-	char dataBuffer1 [LINE_LENGTH_MAX];
-	char dataBuffer2 [LINE_LENGTH_MAX];
+	char dataBuffer0 [CAN_DBC_LINE_LENGTH_MAX];
+	char dataBuffer1 [CAN_DBC_LINE_LENGTH_MAX];
+	char dataBuffer2 [CAN_DBC_LINE_LENGTH_MAX];
 
 	INFO_PRINTF ("Parsing DBC file '%s'...\n", path);
 
@@ -55,11 +49,7 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 	// Open the file for reading
 	FILE* file = fopen (path, "r");
 	if (file == NULL)
-	{
-		code = errno;
-		INFO_PRINTF ("Failed to parse DBC file: %s\n", strerror (code));
-		return false;
-	}
+		return errno;
 
 	canMessage_t* message = NULL;
 
@@ -67,33 +57,28 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 	{
 		// Read the next keyword in the file.
 		// TODO(Barach): Unbounded scan
-		code = fscanf (file, "%s", dataBuffer0);
+		int code = fscanf (file, "%s", dataBuffer0);
 
 		// Check for the end of the file.
 		if (feof (file))
 			break;
 
+		// Check the keyword was read
 		if (code != 1)
-		{
-			code = errno;
-			INFO_PRINTF ("Failed to parse DBC file: %s\n", strerror(code));
-			return false;
-		}
-
+			return errno;
 
 		// Identify the keyword.
 		if (strcmp (dataBuffer0, DBC_KEYWORD_NETWORK_NODE) == 0)
 		{
 			// Ignore remainder of line.
-			fgets (dataBuffer0, LINE_LENGTH_MAX, file);
+			fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 		}
 		else if (strcmp(dataBuffer0, DBC_KEYWORD_MESSAGE) == 0)
 		{
 			if (*messageCount == maxMessages)
 			{
-				INFO_PRINTF ("Failed to parse DBC file: The file exceeds the maximum number of messages (%lu).\n",
-					maxMessages);
-				return false;
+				errno = ERRNO_CAN_DBC_MESSAGE_COUNT;
+				return errno;
 			}
 
 			// Create data buffers
@@ -116,11 +101,11 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 				INFO_PRINTF ("Failed to parse DBC message '%s': Invalid format.\n", dataBuffer0);
 
 				// Ignore remainder of line
-				fgets (dataBuffer0, LINE_LENGTH_MAX, file);
+				fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 			}
 			else
 			{
-				PARSE_PRINTF ("Message name: %s, ID: %u, DLC: %u, ECU: %s\n", dataBuffer0, messageId, messageDlc, dataBuffer1);
+				INFO_PRINTF ("Message name: %s, ID: %u, DLC: %u, ECU: %s\n", dataBuffer0, messageId, messageDlc, dataBuffer1);
 
 				// Add message to array
 				message = messages + *messageCount;
@@ -143,14 +128,14 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 		{
 			if(message == NULL)
 			{
-				INFO_PRINTF ("Failed to parse DBC file: Read a signal before reading the first message.\n");
-				return false;
+				errno = ERRNO_CAN_DBC_MESSAGE_MISSING;
+				return errno;
 			}
 
 			if(*signalCount == maxSignals)
 			{
-				INFO_PRINTF ("Failed to parse DBC file: The file exceeds the maximum number of signals (%lu).\n", maxSignals);
-				return false;
+				errno = ERRNO_CAN_DBC_SIGNAL_COUNT;
+				return errno;
 			}
 
 			// Create data buffers
@@ -164,7 +149,7 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 			double max;
 
 			// Format: SG_ <Name> : <Bit position>|<Bit length>@<Endianness><Signedness> (<Scale factor>,<Offset>) [<Min>|<Max>] "<Unit>" <Network Node>
-			code = fscanf(file, "%s : %u|%u@%u%c (%lf,%lf) [%lf|%lf] \"%s %s", dataBuffer0, &bitPosition, &bitLength, &endianness, &signedness, &scaleFactor, &offset, &min, &max, dataBuffer1, dataBuffer2);
+			code = fscanf (file, "%s : %u|%u@%u%c (%lf,%lf) [%lf|%lf] \"%s %s", dataBuffer0, &bitPosition, &bitLength, &endianness, &signedness, &scaleFactor, &offset, &min, &max, dataBuffer1, dataBuffer2);
 
 			// Remove ending quote from unit name
 			size_t charIndex = 0;
@@ -178,11 +163,11 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 				INFO_PRINTF ("Failed to parse DBC signal '%s': Invalid format.\n", dataBuffer0);
 
 				// Ignore remainder of line
-				fgets(dataBuffer0, LINE_LENGTH_MAX, file);
+				fgets(dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 			}
 			else
 			{
-				PARSE_PRINTF ("Signal name: %s, Bit Pos: %i, Bit Len: %i, Endianness: %i, Sign: %c, Scale: %f, Offset: %f, Min: %f, Max: %f, Unit: %s, ECU: %s\n", dataBuffer0, bitPosition, bitLength, endianness, signedness, scaleFactor, offset, min, max, dataBuffer1, dataBuffer2);
+				INFO_PRINTF ("Signal name: %s, Bit Pos: %i, Bit Len: %i, Endianness: %i, Sign: %c, Scale: %f, Offset: %f, Min: %f, Max: %f, Unit: %s, ECU: %s\n", dataBuffer0, bitPosition, bitLength, endianness, signedness, scaleFactor, offset, min, max, dataBuffer1, dataBuffer2);
 
 				// Add signal to array
 				canSignal_t* signal = signals + *signalCount;
@@ -230,22 +215,22 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 			INFO_PRINTF ("Value tables are not implemented. Ignoring...\n");
 
 			// Ignore remainder of line
-			fgets (dataBuffer0, LINE_LENGTH_MAX, file);
+			fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 		}
 		else if (strcmp (dataBuffer0, DBC_KEYWORD_VERSION) == 0)
 		{
 			// Ignore remainder of line
-			fgets (dataBuffer0, LINE_LENGTH_MAX, file);
+			fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 		}
 		else if (strcmp (dataBuffer0, DBC_KEYWORD_BIT_TIMING) == 0)
 		{
 			// Ignore remainder of line
-			fgets (dataBuffer0, LINE_LENGTH_MAX, file);
+			fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 		}
 		else if (strcmp (dataBuffer0, DBC_KEYWORD_COMMENT) == 0)
 		{
 			// Ignore remainder of line
-			fgets (dataBuffer0, LINE_LENGTH_MAX, file);
+			fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 		}
 		else if (strcmp (dataBuffer0, DBC_KEYWORD_NS) == 0)
 		{
@@ -266,7 +251,7 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 				}
 
 				// Ignore remainder of line
-				char* errorString = fgets (dataBuffer0, LINE_LENGTH_MAX, file);
+				char* errorString = fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 				if(errorString == NULL)
 					break;
 			}
@@ -276,7 +261,7 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 			INFO_PRINTF ("Unknown keyword '%s'. Ignoring line...\n", dataBuffer0);
 
 			// Ignore remainder of line
-			fgets (dataBuffer0, LINE_LENGTH_MAX, file);
+			fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 		}
 
 		// Check for the end of the file
@@ -290,5 +275,5 @@ bool dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCoun
 	if(file != NULL)
 		fclose(file);
 
-	return true;
+	return 0;
 }

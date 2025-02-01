@@ -10,9 +10,10 @@
 // Includes
 #include "can_eeprom.h"
 #include "cjson_util.h"
+#include "error_codes.h"
 
 // C Standard Library
-#include <stdbool.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -79,33 +80,39 @@ int main (int argc, char** argv)
 	// 	}
 	// }
 
-	// const char* deviceName = argv [argc - 2];
-	const char* jsonPath = argv [1];
+	const char* deviceName = argv [1];
+	const char* jsonPath = argv [2];
+
+	canSocket_t socket;
+	if (canSocketInit (&socket, deviceName) != 0)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to open CAN socket '%s': %s.\n", deviceName, errorMessage (code));
+		return code;
+	}
+	if (canSocketSetTimeout (&socket, 100) != 0)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to set CAN socket timeout: %s\n", errorMessage (code));
+		return errno;
+	}
 
 	canEeprom_t eeprom;
-	// if (!canEepromLoad (&eeprom, jsonPath))
-	// {
-	// 	fprintf (stderr, "Failed to read CAN EEPROM JSON file '%s'.\n", jsonPath);
-	// 	return -1;
-	// }
+	cJSON* json = jsonLoad (jsonPath);
+	if (json == NULL)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to load JSON file: %s.\n", errorMessage (code));
+		return code;
+	}
+	if (canEepromInit (&eeprom, json) != 0)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to initialize CAN EEPROM: %s.\n", errorMessage (code));
+		return code;
+	}
 
-	FILE* file = fopen (jsonPath, "r");
-	cJSON* json = jsonPrompt (file);
-	canEepromInit (&eeprom, json);
 	canEepromPrintEmptyMap (&eeprom);
-
-	// canSocket_t socket;
-	// if (!canSocketInit (&socket, deviceName))
-	// {
-	// 	fprintf (stderr, "Failed to open CAN socket '%s'.\n", deviceName);
-	// 	return -1;
-	// }
-
-	// if (!canSocketSetTimeout (&socket, 100))
-	// {
-	// 	fprintf (stderr, "Failed to set CAN socket timeout.\n");
-	// 	return -1;
-	// }
 
 	return 0;
 }

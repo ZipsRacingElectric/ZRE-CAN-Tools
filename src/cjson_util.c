@@ -1,6 +1,9 @@
 // Header
 #include "cjson_util.h"
 
+// Includes
+#include "error_codes.h"
+
 // C Standard Library
 #include <errno.h>
 #include <stdlib.h>
@@ -13,119 +16,107 @@
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-cJSON* jsonLoadFile (const char* path)
+cJSON* jsonLoad (const char* path)
 {
-	// Open the file for reading
+	// Open the file
 	FILE* file = fopen (path, "r");
 	if (file == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to load JSON file: %s.\n", strerror (code));
-		return false;
-	}
+		return NULL;
 
-	// Get the size of the file (including null terminator).
-	fseek (file, 0, SEEK_END);
-	size_t size = ftell (file) + 1;
-	fseek (file, 0, SEEK_SET);
+	// Read the JSON from the file
+	cJSON* json = jsonRead (file);
 
-	char* buffer = malloc (size);
-	if (buffer == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to load JSON file: %s.\n", strerror (code));
-		return false;
-	}
-
-	// Read the file into a string (appending null-terminator)
-	fread (buffer, 1, size, file);
+	// Close the file, preserving errno
+	int code = errno;
 	fclose (file);
-	buffer [size - 1] = '\0';
+	errno = code;
 
-	// Parse the JSON
-	return cJSON_Parse (buffer);
+	return json;
 }
 
-cJSON* jsonPrompt (FILE* stream)
+cJSON* jsonRead (FILE* stream)
 {
-	char buffer [JSON_SIZE_MAX + 1];
+	char buffer [JSON_SIZE_MAX];
+	int c;
 
-	char* head = buffer;
-
-	// Read until the first bracket.
-	int bracketCount = 0;
-	while (bracketCount == 0)
+	// Read until the first bracket is read.
+	do
 	{
-		int c = fgetc (stream);
+		c = fgetc (stream);
 		if (c == EOF)
 		{
-			fprintf (stderr, "Failed to prompt JSON file: Unexpected end of file.");
+			errno = ERRNO_CJSON_EOF;
 			return NULL;
 		}
+	} while (c != '{');
 
-		if (c == '{')
-		{
-			++bracketCount;
-			*head = c;
-			++head;
-		}
-	}
+	// First character of the buffer is the opening bracket.
+	uint16_t bracketCount = 1;
+	buffer [0] = '{';
+	char* head = buffer + 1;
 
 	// Read until the last closing bracket is read.
 	while (bracketCount > 0)
 	{
-		int c = fgetc (stream);
+		c = fgetc (stream);
 		if (c == EOF)
 		{
-			fprintf (stderr, "Failed to prompt JSON file: Unexpected end of file.");
+			errno = ERRNO_CJSON_EOF;
 			return NULL;
 		}
 
 		*head = c;
 		++head;
 
+		// Count the number of brackets
 		if (c == '{')
 			++bracketCount;
-
-		if (c == '}')
+		else if (c == '}')
 			--bracketCount;
 	}
 
-	return cJSON_Parse (buffer);
+	// Parse the JSON data
+	cJSON* json = cJSON_Parse (buffer);
+	if (json == NULL)
+		errno = ERRNO_CJSON_PARSE_FAIL;
+	return json;
 }
 
-bool jsonGetObject (cJSON* json, const char* key, cJSON** value)
+int jsonGetObject (cJSON* json, const char* key, cJSON** value)
 {
 	cJSON* item = cJSON_GetObjectItem (json, key);
 	if (item == NULL)
 	{
-		printf ("Failed to parse key '%s' from JSON: Missing key.\n", key);
-		return false;
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
 	}
+
 	*value = item;
-	return true;
+	return 0;
 }
 
-bool jsonGetString (cJSON* json, const char* key, char** value)
+int jsonGetString (cJSON* json, const char* key, char** value)
 {
 	cJSON* item = cJSON_GetObjectItem (json, key);
 	if (item == NULL)
 	{
-		printf ("Failed to parse key '%s' from JSON: Missing key.\n", key);
-		return false;
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
 	}
+
 	*value = cJSON_GetStringValue (item);
-	return true;
+	return 0;
 }
 
-bool jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value)
+int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value)
 {
 	cJSON* item = cJSON_GetObjectItem (json, key);
 	if (item == NULL)
 	{
-		printf ("Failed to parse key '%s' from JSON: Missing key.\n", key);
-		return false;
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
 	}
+
 	*value = strtol (cJSON_GetStringValue (item), NULL, 0);
-	return true;
+	return 0;
 }

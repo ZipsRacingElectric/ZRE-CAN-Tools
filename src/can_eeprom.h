@@ -46,15 +46,15 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-bool canEepromInit (canEeprom_t* eeprom, cJSON* json);
+int canEepromInit (canEeprom_t* eeprom, cJSON* json);
 
-bool canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data);
+int canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data);
 
-bool canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data);
+int canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data);
 
-bool canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
+int canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
 
-bool canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
+int canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 

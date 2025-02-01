@@ -32,7 +32,7 @@
 
 // Debugging ------------------------------------------------------------------------------------------------------------------
 
-#define CAN_SOCKET_DEBUG 1
+#define CAN_SOCKET_DEBUG 0
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -84,33 +84,33 @@ struct canSignal
  * @brief Creates and opens a CAN socket bound to the specified device interface.
  * @param canSocket The socket structure to initialize.
  * @param deviceName The name of the device's interface to bind to.
- * @return True if successful, false otherwise.
+ * @return 0 if successful, the error code otherwise.
  */
-bool canSocketInit (canSocket_t* canSocket, const char* deviceName);
+int canSocketInit (canSocket_t* canSocket, const char* deviceName);
 
 /**
  * @brief Transmits the specified frame on a socket.
  * @param canSocket The socket to transmit from.
  * @param frame The CAN frame to transmit.
- * @return True if successful, false otherwise.
+ * @return 0 if successful, the error code otherwise.
  */
-bool canSocketTransmit (canSocket_t* canSocket, struct can_frame* frame);
+int canSocketTransmit (canSocket_t* canSocket, struct can_frame* frame);
 
 /**
  * @brief Receives the next frame from a socket.
  * @param canSocket The socket to receive from.
  * @param frame Written to contain the next received frame.
- * @return True if successful, false otherwise.
+ * @return 0 if successful, the error code otherwise.
  */
-bool canSocketReceive (canSocket_t* canSocket, struct can_frame* frame);
+int canSocketReceive (canSocket_t* canSocket, struct can_frame* frame);
 
 /**
  * @brief Sets the timeout period of a socket.
  * @param canSocket The socket to modify.
  * @param timeMs The amount of time to timeout after, in milliseconds. Use 0 to disable timeouts.
- * @return True if successful, false otherwise.
+ * @return 0 if successful, the error code otherwise.
  */
-bool canSocketSetTimeout (canSocket_t* canSocket, unsigned long timeMs);
+int canSocketSetTimeout (canSocket_t* canSocket, unsigned long timeMs);
 
 /**
  * @brief Encodes the specified signal's data into a payload.

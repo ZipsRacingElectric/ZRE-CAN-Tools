@@ -27,13 +27,13 @@ int main (int argc, char** argv)
 	}
 
 	canSocket_t socket;
-	if (!canSocketInit (&socket, deviceName))
+	if (canSocketInit (&socket, deviceName) != 0)
 	{
 		fprintf (stderr, "Failed to open CAN socket '%s'.\n", deviceName);
 		return -1;
 	}
 
-	if (!canSocketSetTimeout (&socket, 100))
+	if (canSocketSetTimeout (&socket, 100) != 0)
 	{
 		fprintf (stderr, "Failed to set CAN socket timeout.\n");
 		return -1;
@@ -65,7 +65,7 @@ int main (int argc, char** argv)
 			break;
 		case 'r':
 			index = canEepromVariableIndexPrompt (&eeprom);
-			if (canEepromRead (&eeprom, &socket, index, data))
+			if (canEepromRead (&eeprom, &socket, index, data) == 0)
 				canEepromPrintVariable (&eeprom, index, data);
 			break;
 		case 'm':
@@ -82,7 +82,7 @@ int main (int argc, char** argv)
 			break;
 		case 'c':
 			bool isValid;
-			if (canEepromIsValid (&eeprom, &socket, &isValid))
+			if (canEepromIsValid (&eeprom, &socket, &isValid) == 0)
 				printf ("%s.\n", isValid ? "Valid" : "Invalid");
 			break;
 		case 'q':

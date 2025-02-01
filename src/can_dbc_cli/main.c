@@ -9,8 +9,10 @@
 
 // Includes
 #include "can_database.h"
+#include "error_codes.h"
 
 // C Standard Library
+#include <errno.h>
 #include <stdio.h>
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
@@ -28,8 +30,12 @@ int main (int argc, char** argv)
 
 	// Initialize the database.
 	canDatabase_t database;
-	if (!canDatabaseInit (&database, deviceName, dbcPath))
-		return -1;
+	if (canDatabaseInit (&database, deviceName, dbcPath) != 0)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to initialize CAN database: %s.\n", errorMessage (code));
+		return code;
+	}
 
 	while (true)
 	{
@@ -49,7 +55,7 @@ int main (int argc, char** argv)
 		case 't':
 			messageIndex = canDatabaseMessageNamePrompt (&database);
 			frame = canDatabaseMessageValuePrompt (&database, messageIndex);
-			if (canSocketTransmit (&database.txSocket, &frame))
+			if (canSocketTransmit (&database.txSocket, &frame) != 0)
 				printf ("Success.\n");
 			else
 			 	printf ("Failure.\n");

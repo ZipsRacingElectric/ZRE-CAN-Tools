@@ -15,6 +15,7 @@
 // C Standard Libraries
 #include <errno.h>
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 
 // Debugging ------------------------------------------------------------------------------------------------------------------
@@ -28,20 +29,14 @@
 
 // CAN Socket -----------------------------------------------------------------------------------------------------------------
 
-bool canSocketInit (canSocket_t* canSocket, const char* deviceName)
+int canSocketInit (canSocket_t* canSocket, const char* deviceName)
 {
-	int code;
-
 	canSocket->name = deviceName;
 
 	// Create the socket using the CAN protocol family and the raw CAN protol
 	canSocket->descriptor = socket (PF_CAN, SOCK_RAW, CAN_RAW);
 	if (canSocket->descriptor == -1)
-	{
-		code = errno;
-		DEBUG_PRINTF ("Failed to create CAN socket for interface '%s': %s.\n", deviceName, strerror(code));
-		return false;
-	}
+		return errno;
 
 	// Create the interface structure
 	struct ifreq interface;
@@ -51,13 +46,8 @@ bool canSocketInit (canSocket_t* canSocket, const char* deviceName)
 	interface.ifr_name[IFNAMSIZ - 1] = '\0';
 
 	// Get the interface index from its name
-	code = ioctl (canSocket->descriptor, SIOCGIFINDEX, &interface);
-	if (code == -1)
-	{
-		code = errno;
-		DEBUG_PRINTF ("Failed to get index of CAN device '%s': %s\n", deviceName, strerror (code));
-		return false;
-	}
+	if (ioctl (canSocket->descriptor, SIOCGIFINDEX, &interface) == -1)
+		return errno;
 
 	// Allocate the CAN socket address
 	struct sockaddr_can address =
@@ -67,51 +57,31 @@ bool canSocketInit (canSocket_t* canSocket, const char* deviceName)
 	};
 
 	// Bind the socket to the specified address
-	code = bind (canSocket->descriptor, (struct sockaddr*) (&address), (socklen_t) (sizeof(address)));
-	if(code == -1)
-	{
-		code = errno;
-		DEBUG_PRINTF ("Failed to bind CAN socket '%s' to index %i: %s\n", deviceName, interface.ifr_ifindex,
-			strerror (code));
-		return false;
-	}
+	if (bind (canSocket->descriptor, (struct sockaddr*) (&address), (socklen_t) (sizeof(address))) == -1)
+		return errno;
 
-	return true;
+	return 0;
 }
 
-bool canSocketTransmit (canSocket_t* canSocket, struct can_frame* frame)
+int canSocketTransmit (canSocket_t* canSocket, struct can_frame* frame)
 {
 	int code = write (canSocket->descriptor, frame, sizeof (struct can_frame));
 	if(code < (long int) sizeof (struct can_frame))
-	{
-		code = errno;
-		DEBUG_PRINTF ("Failed to send CAN message: %s\n", strerror(code));
-		return false;
-	}
+		return errno;
 
-	return true;
+	return 0;
 }
 
-bool canSocketReceive (canSocket_t* canSocket, struct can_frame* frame)
+int canSocketReceive (canSocket_t* canSocket, struct can_frame* frame)
 {
-	// Read message
 	int code = read (canSocket->descriptor, frame, sizeof (struct can_frame));
+	if (code < (long int) sizeof (struct can_frame))
+		return errno;
 
-	if (code < (long long int) sizeof (struct can_frame))
-	{
-		code = errno;
-
-		// Only print if the error was not a timeout
-		if (code != EAGAIN && code != EINPROGRESS && code != EWOULDBLOCK)
-			DEBUG_PRINTF ("Failed to read CAN message: %s\n", strerror (code));
-
-		return false;
-	}
-
-	return true;
+	return 0;
 }
 
-bool canSocketSetTimeout (canSocket_t* canSocket, unsigned long timeMs)
+int canSocketSetTimeout (canSocket_t* canSocket, unsigned long timeMs)
 {
 	struct timeval timeout =
 	{
@@ -126,13 +96,9 @@ bool canSocketSetTimeout (canSocket_t* canSocket, unsigned long timeMs)
 	}
 
 	if (setsockopt(canSocket->descriptor, SOL_SOCKET, SO_RCVTIMEO, (void*) &timeout, (socklen_t) sizeof (timeout)) != 0)
-	{
-		int code = errno;
-		DEBUG_PRINTF ("Failed to set socket timeout: %s\n", strerror (code));
-		return false;
-	}
+		return errno;
 
-	return true;
+	return 0;
 }
 
 uint64_t signalEncode (canSignal_t* signal, float value)
