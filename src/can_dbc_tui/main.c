@@ -26,7 +26,7 @@ int main (int argc, char** argv)
 {
 	if (argc != 3)
 	{
-		printf ("Format: can-dbc-tui <device name> <DBC file path>\n");
+		fprintf (stderr, "Format: can-dbc-tui <device name> <DBC file path>\n");
 		return -1;
 	}
 

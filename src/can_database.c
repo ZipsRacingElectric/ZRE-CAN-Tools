@@ -62,17 +62,18 @@ int canDatabaseInit (canDatabase_t* database, const char* deviceName, const char
 	return 0;
 }
 
-void canDatabasePrint (canDatabase_t* database)
+void canDatabasePrint (FILE* stream, canDatabase_t* database)
 {
 	size_t signalOffset = 0;
 
-	printf ("%32s | %10s | %8s | %10s | %12s | %12s | %12s | %9s | %6s\n\n", "Signal Name", "Value", "Bit Mask", "Bit Length", "Bit Position", "Scale Factor", "Offset", "Is Signed", "Endian");
+	fprintf (stream, "%32s | %10s | %8s | %10s | %12s | %12s | %12s | %9s | %6s\n\n", "Signal Name", "Value", "Bit Mask",
+		"Bit Length", "Bit Position", "Scale Factor", "Offset", "Is Signed", "Endian");
 
 	for (size_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
 	{
 		canMessage_t* message = database->messages + messageIndex;
 
-		printf ("%s - ID: %3X\n", message->name, message->id);
+		fprintf (stream, "%s - ID: %3X\n", message->name, message->id);
 
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
@@ -81,21 +82,25 @@ void canDatabasePrint (canDatabase_t* database)
 			float value = database->signalValues [signalOffset + signalIndex];
 
 			if (valid)
-				printf ("%32s | %10.3f | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n", signal->name, value, signal->bitmask, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
+				fprintf (stream, "%32s | %10.3f | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n", signal->name, value,
+					signal->bitmask, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset,
+					signal->signedness, signal->endianness);
 			else
-				printf ("%32s | %10s | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n", signal->name, "--", signal->bitmask, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
+				fprintf (stream, "%32s | %10s | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n", signal->name, "--",
+					signal->bitmask, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset,
+					signal->signedness, signal->endianness);
 		}
 
-		printf ("\n");
+		fprintf (stream, "\n");
 
 		signalOffset += message->signalCount;
 	}
 }
 
-void canDatabaseMessagesPrint (canDatabase_t* database)
+void canDatabaseMessagesPrint (FILE* stream, canDatabase_t* database)
 {
 	for (size_t index = 0; index < database->messageCount; ++index)
-		printf ("%s\n", database->messages [index].name);
+		fprintf (stream, "%s\n", database->messages [index].name);
 }
 
 size_t canDatabaseMessageNamePrompt (canDatabase_t* database)
@@ -116,15 +121,15 @@ size_t canDatabaseMessageNamePrompt (canDatabase_t* database)
 	}
 }
 
-void canDatabaseMessageValuePrint (canDatabase_t* database, size_t index)
+void canDatabaseMessageValuePrint (FILE* stream, canDatabase_t* database, size_t index)
 {
 	canMessage_t* message = database->messages + index;
 
 	float* signalValues = database->signalValues + (size_t) (message->signals - database->signals);
 
-	printf ("- Message %s (0x%X) -\n", message->name, message->id);
+	fprintf (stream, "- Message %s (0x%X) -\n", message->name, message->id);
 	for (size_t index = 0; index < message->signalCount; ++index)
-		printf ("%s: %f\n", message->signals [index].name, signalValues [index]);
+		fprintf (stream, "%s: %f\n", message->signals [index].name, signalValues [index]);
 }
 
 struct can_frame canDatabaseMessageValuePrompt (canDatabase_t* database, size_t index)

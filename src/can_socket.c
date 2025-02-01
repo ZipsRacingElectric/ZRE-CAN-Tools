@@ -125,20 +125,20 @@ float signalDecode (canSignal_t* signal, uint64_t payload)
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
-void framePrint (struct can_frame* frame)
+void framePrint (FILE* stream, struct can_frame* frame)
 {
-	printf ("%X\t[%u]\t", frame->can_id, frame->can_dlc);
+	fprintf (stream, "%X\t[%u]\t", frame->can_id, frame->can_dlc);
 	for (uint8_t index = 0; index < frame->can_dlc; ++index)
-		printf ("%2X ", frame->data [index]);
-	printf ("\n");
+		fprintf (stream, "%2X ", frame->data [index]);
+	fprintf (stream, "\n");
 }
 
-void messagePrint (canMessage_t* message, struct can_frame* frame)
+void messagePrint (FILE* stream, canMessage_t* message, struct can_frame* frame)
 {
-	printf ("- Message %s (0x%X) -\n", message->name, message->id);
+	fprintf (stream, "- Message %s (0x%X) -\n", message->name, message->id);
 
 	for (size_t index = 0; index < message->signalCount; ++index)
-		signalPrint (&message->signals [index], *(uint64_t*) frame->data);
+		signalPrint (stream, &message->signals [index], *(uint64_t*) frame->data);
 }
 
 struct can_frame messagePrompt (canMessage_t* message)
@@ -159,10 +159,10 @@ struct can_frame messagePrompt (canMessage_t* message)
 	return frame;
 }
 
-void signalPrint (canSignal_t* signal, uint64_t payload)
+void signalPrint (FILE* stream, canSignal_t* signal, uint64_t payload)
 {
 	float value = signalDecode (signal, payload);
-	printf ("%s: %f\n", signal->name, value);
+	fprintf (stream, "%s: %f\n", signal->name, value);
 }
 
 uint64_t signalPrompt (canSignal_t* signal)

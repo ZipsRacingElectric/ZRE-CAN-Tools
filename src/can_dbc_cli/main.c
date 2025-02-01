@@ -21,7 +21,7 @@ int main (int argc, char** argv)
 {
 	if (argc != 3)
 	{
-		printf ("Format: can-dbc-cli <device name> <DBC file path>\n");
+		fprintf (stderr, "Format: can-dbc-cli <device name> <DBC file path>\n");
 		return -1;
 	}
 
@@ -62,10 +62,10 @@ int main (int argc, char** argv)
 			break;
 		case 'r':
 			messageIndex = canDatabaseMessageNamePrompt (&database);
-			canDatabaseMessageValuePrint (&database, messageIndex);
+			canDatabaseMessageValuePrint (stdout, &database, messageIndex);
 			break;
 		case 'p':
-			canDatabasePrint (&database);
+			canDatabasePrint (stdout, &database);
 			break;
 		case 'q':
 			return 0;

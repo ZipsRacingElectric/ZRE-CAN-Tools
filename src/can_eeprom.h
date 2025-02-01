@@ -15,9 +15,10 @@
 
 // Includes
 #include "can_socket.h"
+#include "cjson_util.h"
 
-// cJSON
-#include "cjson.h"
+// C Standard Library
+#include <stdio.h>
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -62,10 +63,10 @@ uint16_t canEepromVariablePrompt (canEeprom_t* eeprom);
 
 void canEepromValuePrompt (canEeprom_t* eeprom, uint16_t variableIndex, void* data);
 
-void canEepromPrintVariable (canEeprom_t* eeprom, uint16_t variableIndex, void* data);
+void canEepromPrintVariable (FILE* stream, canEeprom_t* eeprom, uint16_t variableIndex, void* data);
 
-void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket);
+void canEepromPrintMap (FILE* stream, canEeprom_t* eeprom, canSocket_t* socket);
 
-void canEepromPrintEmptyMap (canEeprom_t* eeprom);
+void canEepromPrintEmptyMap (FILE* stream, canEeprom_t* eeprom);
 
 #endif // CAN_EEPROM_H

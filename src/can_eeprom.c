@@ -1,10 +1,6 @@
 // Header
 #include "can_eeprom.h"
-#include "cjson_util.h"
 #include "error_codes.h"
-
-// cJSON
-#include <cjson.h>
 
 // C Standard Library
 #include <errno.h>
@@ -262,38 +258,38 @@ void canEepromValuePrompt (canEeprom_t* eeprom, uint16_t variableIndex, void* da
 	}
 }
 
-void canEepromPrintVariable (canEeprom_t* eeprom, uint16_t variableIndex, void* data)
+void canEepromPrintVariable (FILE* stream, canEeprom_t* eeprom, uint16_t variableIndex, void* data)
 {
 	canEepromVariable_t* variable = eeprom->variables + variableIndex;
-	printf ("%s (%s): ", variable->name, VARIABLE_NAMES [variable->type]);
+	fprintf (stream, "%s (%s): ", variable->name, VARIABLE_NAMES [variable->type]);
 
 	switch (variable->type)
 	{
 	case CAN_EEPROM_TYPE_UINT8_T:
-		printf ("%u\n", *((uint8_t*) data));
+		fprintf (stream, "%u\n", *((uint8_t*) data));
 		break;
 	case CAN_EEPROM_TYPE_UINT16_T:
-		printf ("%u\n", *((uint16_t*) data));
+		fprintf (stream, "%u\n", *((uint16_t*) data));
 		break;
 	case CAN_EEPROM_TYPE_UINT32_T:
-		printf ("%u\n", *((uint32_t*) data));
+		fprintf (stream, "%u\n", *((uint32_t*) data));
 		break;
 	case CAN_EEPROM_TYPE_FLOAT:
-		printf ("%f\n", *((float*) data));
+		fprintf (stream, "%f\n", *((float*) data));
 		break;
 	}
 }
 
-void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket)
+void canEepromPrintMap (FILE* stream, canEeprom_t* eeprom, canSocket_t* socket)
 {
 	bool isValid;
 	if (canEepromIsValid (eeprom, socket, &isValid) != 0)
 		return;
 
-	printf ("%s Memory Map: %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
-	printf ("---------------------------------------------------\n");
-	printf ("%24s | %10s | %10s\n", "Variable", "Type", "Value");
-	printf ("-------------------------|------------|------------\n");
+	fprintf (stream, "%s Memory Map: %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
+	fprintf (stream, "---------------------------------------------------\n");
+	fprintf (stream, "%24s | %10s | %10s\n", "Variable", "Type", "Value");
+	fprintf (stream, "-------------------------|------------|------------\n");
 
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
@@ -302,42 +298,42 @@ void canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket)
 			return;
 
 		canEepromVariable_t* variable = eeprom->variables + index;
-		printf ("%24s | %10s | ", variable->name, VARIABLE_NAMES [variable->type]);
+		fprintf (stream, "%24s | %10s | ", variable->name, VARIABLE_NAMES [variable->type]);
 
 		switch (variable->type)
 		{
 		case CAN_EEPROM_TYPE_UINT8_T:
-			printf ("%10u\n", *((uint8_t*) data));
+			fprintf (stream, "%10u\n", *((uint8_t*) data));
 			break;
 		case CAN_EEPROM_TYPE_UINT16_T:
-			printf ("%10u\n", *((uint16_t*) data));
+			fprintf (stream, "%10u\n", *((uint16_t*) data));
 			break;
 		case CAN_EEPROM_TYPE_UINT32_T:
-			printf ("%10u\n", *((uint32_t*) data));
+			fprintf (stream, "%10u\n", *((uint32_t*) data));
 			break;
 		case CAN_EEPROM_TYPE_FLOAT:
-			printf ("%10f\n", *((float*) data));
+			fprintf (stream, "%10f\n", *((float*) data));
 			break;
 		}
 	}
 
-	printf ("\n");
+	fprintf (stream, "\n");
 }
 
-void canEepromPrintEmptyMap (canEeprom_t* eeprom)
+void canEepromPrintEmptyMap (FILE* stream, canEeprom_t* eeprom)
 {
-	printf ("%s Memory Map:\n", eeprom->name);
-	printf ("-----------------------------------------------------\n");
-	printf ("%24s | %10s | %10s\n", "Variable", "Type", "Address");
-	printf ("-------------------------|------------|--------------\n");
+	fprintf (stream, "%s Memory Map:\n", eeprom->name);
+	fprintf (stream, "-----------------------------------------------------\n");
+	fprintf (stream, "%24s | %10s | %10s\n", "Variable", "Type", "Address");
+	fprintf (stream, "-------------------------|------------|--------------\n");
 
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
 		canEepromVariable_t* variable = eeprom->variables + index;
-		printf ("%24s | %10s |       0x%04X\n", variable->name, VARIABLE_NAMES [variable->type], variable->address);
+		fprintf (stream, "%24s | %10s |       0x%04X\n", variable->name, VARIABLE_NAMES [variable->type], variable->address);
 	}
 
-	printf ("\n");
+	fprintf (stream, "\n");
 }
 
 // Private Functions ----------------------------------------------------------------------------------------------------------

@@ -112,7 +112,7 @@ int main (int argc, char** argv)
 		return code;
 	}
 
-	canEepromPrintEmptyMap (&eeprom);
+	canEepromPrintEmptyMap (stderr, &eeprom);
 
 	return 0;
 }

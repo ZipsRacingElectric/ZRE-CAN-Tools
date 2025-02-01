@@ -17,6 +17,9 @@
 // POSIX Libraries
 #include <pthread.h>
 
+// C Standard Library
+#include <stdio.h>
+
 // Debugging ------------------------------------------------------------------------------------------------------------------
 
 #define CAN_DATABASE_DEBUG		0
@@ -56,9 +59,10 @@ int canDatabaseInit (canDatabase_t* database, const char* deviceName, const char
 
 /**
  * @brief Prints all of the data of a database.
+ * @param stream The stream to write to.
  * @param database The database to print.
  */
-void canDatabasePrint (canDatabase_t* database);
+void canDatabasePrint (FILE* stream, canDatabase_t* database);
 
 /**
  * @brief Prompts the user to select a database message.
@@ -69,16 +73,18 @@ size_t canDatabaseMessageNamePrompt (canDatabase_t* database);
 
 /**
  * @brief Prints the name of each message in the database.
+ * @param stream The stream to print to.
  * @param database The database to search from.
  */
-void canDatabaseMessagesPrint (canDatabase_t* database);
+void canDatabaseMessagesPrint (FILE* stream, canDatabase_t* database);
 
 /**
  * @brief Prints the last read values of a CAN message from the database.
+ * @param stream The stream to print to.
  * @param database The database to read from.
  * @param index The index of the message to print.
  */
-void canDatabaseMessageValuePrint (canDatabase_t* database, size_t index);
+void canDatabaseMessageValuePrint (FILE* stream, canDatabase_t* database, size_t index);
 
 /**
  * @brief Prompts the user to input data for the given message.

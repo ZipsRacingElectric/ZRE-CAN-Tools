@@ -28,6 +28,7 @@
 // C Standard Library
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 // Debugging ------------------------------------------------------------------------------------------------------------------
@@ -132,16 +133,18 @@ float signalDecode (canSignal_t* signal, uint64_t payload);
 
 /**
  * @brief Prints the raw data of a CAN frame.
+ * @param stream The stream to print to.
  * @param frame The frame to print.
  */
-void framePrint (struct can_frame* frame);
+void framePrint (FILE* stream, struct can_frame* frame);
 
 /**
  * @brief Prints the decoded data of a CAN frame.
+ * @param stream The stream to print to.
  * @param message The message to print.
  * @param frame The frame to decode from.
  */
-void messagePrint (canMessage_t* message, struct can_frame* frame);
+void messagePrint (FILE* stream, canMessage_t* message, struct can_frame* frame);
 
 /**
  * @brief Prompts the user to input data for the given message.
@@ -152,10 +155,11 @@ struct can_frame messagePrompt (canMessage_t* message);
 
 /**
  * @brief Prints the decoded signal's data.
+ * @param stream The stream to print to.
  * @param signal The signal to print.
  * @param payload The payload to decode from.
  */
-void signalPrint (canSignal_t* signal, uint64_t payload);
+void signalPrint (FILE* stream, canSignal_t* signal, uint64_t payload);
 
 /**
  * @brief Prompts the user to input a value for the given signal.
