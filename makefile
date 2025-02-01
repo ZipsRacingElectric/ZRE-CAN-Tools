@@ -5,7 +5,8 @@ BUILDDIR := bin
 SRC :=	src/can_database.c	\
 		src/can_dbc.c		\
 		src/can_eeprom.c	\
-		src/can_socket.c
+		src/can_socket.c	\
+		src/cjson_util.c
 
 INC_FLAGS := -Isrc
 

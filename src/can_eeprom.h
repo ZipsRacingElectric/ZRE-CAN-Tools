@@ -7,10 +7,17 @@
 // Date created: 2025.01.09
 //
 // Description: Set of functions for interfacing with an EEPROM via CAN.
+//
+// TODO(Barach):
+// - Index should be size_t or uint16_t.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
+// Includes
 #include "can_socket.h"
+
+// cJSON
+#include "cjson.h"
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -34,22 +41,12 @@ typedef struct
 	char*					name;
 	uint16_t				canAddress;
 	canEepromVariable_t*	variables;
-	size_t					variableCount;
+	uint16_t				variableCount;
 } canEeprom_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-struct can_frame canEepromWriteMessageEncode (canEeprom_t* eeprom, uint16_t variableIndex, void* data);
-
-struct can_frame canEepromReadMessageEncode (canEeprom_t* eeprom, uint16_t variableIndex);
-
-bool canEepromReadMessageParse (canEeprom_t* eeprom, struct can_frame* frame, uint16_t variableIndex, void* data);
-
-struct can_frame canEepromValidateMessageEncode (canEeprom_t* eeprom, bool isValid);
-
-struct can_frame canEepromIsValidMessageEncode (canEeprom_t* eeprom);
-
-bool canEepromIsValidMessageParse (canEeprom_t* eeprom, struct can_frame* frame, bool* isValid);
+bool canEepromInit (canEeprom_t* eeprom, cJSON* json);
 
 bool canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data);
 
@@ -59,15 +56,11 @@ bool canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
 
 bool canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
 
-// File I/O -------------------------------------------------------------------------------------------------------------------
-
-bool canEepromLoad (canEeprom_t* eeprom, const char* path);
-
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
-uint16_t canEepromVariableIndexPrompt (canEeprom_t* eeprom);
+uint16_t canEepromVariablePrompt (canEeprom_t* eeprom);
 
-void canEepromVariableValuePrompt (canEeprom_t* eeprom, uint16_t variableIndex, void* data);
+void canEepromValuePrompt (canEeprom_t* eeprom, uint16_t variableIndex, void* data);
 
 void canEepromPrintVariable (canEeprom_t* eeprom, uint16_t variableIndex, void* data);
 

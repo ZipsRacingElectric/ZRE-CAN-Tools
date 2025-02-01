@@ -15,6 +15,18 @@ This program is used to monitor the activity of a CAN bus in realtime.
 ### CAN EEPROM Programmer
 ```can-eeprom-programmer <device name> <JSON file path>```
 
+// TODO(Barach)
+```
+Usage
+
+can-eeprom-programmer <options> <device name> <JSON file path>
+
+Options:
+
+	-i - Interactive
+
+```
+
 This program is used to program a device's EEPROM via CAN bus.
 ## Compilation
 Use ```make``` to compile all of the programs.
