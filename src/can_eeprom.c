@@ -8,6 +8,15 @@
 #include <string.h>
 #include <sys/time.h>
 
+// Macros ---------------------------------------------------------------------------------------------------------------------
+
+#if CAN_EEPROM_DEBUG
+	#include <stdio.h>
+	#define DEBUG_PRINTF(...) fprintf (stderr, __VA_ARGS__)
+#else
+	#define DEBUG_PRINTF(...) while (false)
+#endif // CAN_DATABASE_DEBUG
+
 // Constants ------------------------------------------------------------------------------------------------------------------
 
 #define RESPONSE_ATTEMPT_COUNT 7
@@ -152,7 +161,7 @@ int canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIn
 			if (canSocketReceive (socket, &response) != 0)
 				continue;
 
-			if (readMessageParse (eeprom, &response, variableIndex, data))
+			if (readMessageParse (eeprom, &response, variableIndex, data) == 0)
 				return 0;
 		}
 	}
@@ -173,7 +182,7 @@ int canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid)
 			return errno;
 
 		if (readIsValid == isValid)
-			return true;
+			return 0;
 	}
 
 	errno = ERRNO_CAN_EEPROM_VALIDATE_TIMEOUT;
@@ -202,13 +211,64 @@ int canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid)
 			if (canSocketReceive (socket, &response) != 0)
 				continue;
 
-			if (isValidMessageParse (eeprom, &response, isValid))
+			if (isValidMessageParse (eeprom, &response, isValid) == 0)
 				return 0;
 		}
 	}
 
 	errno = ERRNO_CAN_EEPROM_IS_VALID_TIMEOUT;
 	return errno;
+}
+
+int canEepromProgram (canEeprom_t* eeprom, canSocket_t* socket, cJSON* json)
+{
+	size_t keyCount = cJSON_GetArraySize (json);
+
+	for (size_t keyIndex = 0; keyIndex < keyCount; ++keyIndex)
+	{
+		cJSON* key = cJSON_GetArrayItem (json, keyIndex);
+
+		uint16_t varIndex = 0;
+		for (; varIndex < eeprom->variableCount; ++varIndex)
+		{
+			if (strcmp (key->string, eeprom->variables [varIndex].name) != 0)
+				continue;
+
+			char* valueStr = cJSON_GetStringValue (key);
+			if (valueStr == NULL)
+			{
+				errno = ERRNO_CAN_EEPROM_BAD_VALUE;
+				return errno;
+			}
+
+			uint32_t data;
+			switch (eeprom->variables [varIndex].type)
+			{
+			case CAN_EEPROM_TYPE_UINT8_T:
+			case CAN_EEPROM_TYPE_UINT16_T:
+			case CAN_EEPROM_TYPE_UINT32_T:
+				data = strtol (valueStr, NULL, 0);
+				break;
+			case CAN_EEPROM_TYPE_FLOAT:
+				*((float*) (&data)) = strtof (valueStr, NULL);
+				break;
+			}
+
+			if (canEepromWrite (eeprom, socket, varIndex, &data) != 0)
+				return errno;
+
+			break;
+		}
+
+		if (varIndex == eeprom->variableCount)
+		{
+			DEBUG_PRINTF ("Bad key '%s'.\n", key->string);
+			errno = ERRNO_CAN_EEPROM_BAD_KEY;
+			return errno;
+		}
+	}
+
+	return 0;
 }
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
@@ -244,11 +304,7 @@ void canEepromValuePrompt (canEeprom_t* eeprom, uint16_t variableIndex, void* da
 	switch (variable->type)
 	{
 	case CAN_EEPROM_TYPE_UINT8_T:
-		fscanf (stdin, "%u%*1[\n]", (uint32_t*) data);
-		break;
 	case CAN_EEPROM_TYPE_UINT16_T:
-		fscanf (stdin, "%u%*1[\n]", (uint32_t*) data);
-		break;
 	case CAN_EEPROM_TYPE_UINT32_T:
 		fscanf (stdin, "%u%*1[\n]", (uint32_t*) data);
 		break;
@@ -280,11 +336,11 @@ void canEepromPrintVariable (FILE* stream, canEeprom_t* eeprom, uint16_t variabl
 	}
 }
 
-void canEepromPrintMap (FILE* stream, canEeprom_t* eeprom, canSocket_t* socket)
+int canEepromPrintMap (FILE* stream, canEeprom_t* eeprom, canSocket_t* socket)
 {
 	bool isValid;
 	if (canEepromIsValid (eeprom, socket, &isValid) != 0)
-		return;
+		return errno;
 
 	fprintf (stream, "%s Memory Map: %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
 	fprintf (stream, "---------------------------------------------------\n");
@@ -295,7 +351,7 @@ void canEepromPrintMap (FILE* stream, canEeprom_t* eeprom, canSocket_t* socket)
 	{
 		uint8_t data [4];
 		if (canEepromRead (eeprom, socket, index, data) != 0)
-			return;
+			return errno;
 
 		canEepromVariable_t* variable = eeprom->variables + index;
 		fprintf (stream, "%24s | %10s | ", variable->name, VARIABLE_NAMES [variable->type]);
@@ -318,6 +374,8 @@ void canEepromPrintMap (FILE* stream, canEeprom_t* eeprom, canSocket_t* socket)
 	}
 
 	fprintf (stream, "\n");
+
+	return 0;
 }
 
 void canEepromPrintEmptyMap (FILE* stream, canEeprom_t* eeprom)
@@ -494,14 +552,14 @@ int isValidMessageParse (canEeprom_t* eeprom, struct can_frame* frame, bool* isV
 	// Check message is a read response
 	if (!EEPROM_RESPONSE_MESSAGE_READ_NOT_WRITE (instruction))
 	{
-		errno = ERRNO_CAN_EEPROM_BAD_RESPONSE_ID;
+		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
 		return errno;
 	}
 
 	// Check message is a validation response
 	if (EEPROM_RESPONSE_MESSAGE_DATA_NOT_VALIDATION (instruction))
 	{
-		errno = ERRNO_CAN_EEPROM_BAD_RESPONSE_ID;
+		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
 		return errno;
 	}
 

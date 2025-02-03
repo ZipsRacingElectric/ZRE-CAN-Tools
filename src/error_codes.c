@@ -32,6 +32,10 @@ const char* errorMessage (int errorCode)
 		return ERRMSG_CAN_EEPROM_MALFORMED_RESPONSE;
 	else if (errorCode == ERRNO_CAN_EEPROM_BAD_RESPONSE_ID)
 		return ERRMSG_CAN_EEPROM_BAD_RESPONSE_ID;
+	else if (errorCode == ERRNO_CAN_EEPROM_BAD_KEY)
+		return ERRMSG_CAN_EEPROM_BAD_KEY;
+	else if (errorCode == ERRNO_CAN_EEPROM_BAD_VALUE)
+		return ERRMSG_CAN_EEPROM_BAD_VALUE;
 	else
 	 	return strerror (errorCode);
 }

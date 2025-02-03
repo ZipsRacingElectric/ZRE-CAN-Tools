@@ -105,32 +105,32 @@
 		},
 		{
 			"address":	"0x54",
-			"name":		"SAS_POSITIVE_SAMPLE_ADDR",
+			"name":		"SAS_POSITIVE_SAMPLE",
 			"type":		"uint16_t"
 		},
 		{
 			"address":	"0x56",
-			"name":		"SAS_ZERO_SAMPLE_ADDR",
+			"name":		"SAS_ZERO_SAMPLE",
 			"type":		"uint16_t"
 		},
 		{
 			"address":	"0x58",
-			"name":		"SAS_NEGATIVE_SAMPLE_ADDR",
+			"name":		"SAS_NEGATIVE_SAMPLE",
 			"type":		"uint16_t"
 		},
 		{
 			"address":	"0x5C",
-			"name":		"SAS_POSITVIE_ANGLE_ADDR",
+			"name":		"SAS_POSITIVE_ANGLE",
 			"type":		"float"
 		},
 		{
 			"address":	"0x60",
-			"name":		"SAS_NEGATIVE_ANGLE_ADDR",
+			"name":		"SAS_NEGATIVE_ANGLE",
 			"type":		"float"
 		},
 		{
 			"address":	"0x64",
-			"name":		"SAS_DEADZONE_RANGE_ADDR",
+			"name":		"SAS_DEADZONE_RANGE",
 			"type":		"float"
 		}
 	]

@@ -12,18 +12,17 @@ Where ```device name``` is the name of the network device to use (ex. ```can0```
 
 This program is used to monitor the activity of a CAN bus in realtime.
 
-### CAN EEPROM Programmer
-```can-eeprom-programmer <device name> <JSON file path>```
-
-// TODO(Barach)
+### CAN EEPROM CLI
 ```
-Usage
+Usage:
 
-can-eeprom-programmer <options> <device name> <JSON file path>
+can-eeprom-cli <options> <device name> <address JSON file path>
 
 Options:
 
-	-i - Interactive
+	-i			- Interactive mode. Prompts the user for commands.
+	-p			- Programming mode. Reads a data JSON from stdin and programs the key-value pairs to the device.
+	-p=<path>	- Programming mode. Reads a data JSON from the specified path and programs the key-value pairs to the device.
 
 ```
 

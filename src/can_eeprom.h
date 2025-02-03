@@ -20,6 +20,10 @@
 // C Standard Library
 #include <stdio.h>
 
+// Debugging ------------------------------------------------------------------------------------------------------------------
+
+#define CAN_EEPROM_DEBUG 1
+
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
 typedef enum
@@ -57,6 +61,8 @@ int canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
 
 int canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
 
+int canEepromProgram (canEeprom_t* eeprom, canSocket_t* socket, cJSON* json);
+
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
 uint16_t canEepromVariablePrompt (canEeprom_t* eeprom);
@@ -65,7 +71,7 @@ void canEepromValuePrompt (canEeprom_t* eeprom, uint16_t variableIndex, void* da
 
 void canEepromPrintVariable (FILE* stream, canEeprom_t* eeprom, uint16_t variableIndex, void* data);
 
-void canEepromPrintMap (FILE* stream, canEeprom_t* eeprom, canSocket_t* socket);
+int canEepromPrintMap (FILE* stream, canEeprom_t* eeprom, canSocket_t* socket);
 
 void canEepromPrintEmptyMap (FILE* stream, canEeprom_t* eeprom);
 
