@@ -1,2 +1,0 @@
-TODO(Barach): Stdin/stdout is inconsistent
-TODO(Barach): can-eeprom-programmer should accept data from stdin (use with Octave).

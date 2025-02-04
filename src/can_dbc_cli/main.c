@@ -4,16 +4,20 @@
 // Date Created: 2024.10.27
 //
 // Description: Command-line interface for interacting with a CAN bus.
+//
+// TODO(Barach):
+// - Utilize stdin in the same way the EEPROM CLI does.
+// - Long term, I want a shell script that can use this program to automatically clear all AMK errors (slow and tedious by
+//   hand)
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_database.h"
+#include "can/can_database.h"
 #include "error_codes.h"
 
 // C Standard Library
 #include <errno.h>
-#include <stdio.h>
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 

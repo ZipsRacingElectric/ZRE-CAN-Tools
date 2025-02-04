@@ -4,20 +4,18 @@
 // Date Created: 2025.01.11
 //
 // Description: TODO(Barach)
+//
+// TODO(Barach):
+// -h & -v options.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
 #include "can_eeprom.h"
-#include "cjson_util.h"
 #include "error_codes.h"
 
 // C Standard Library
 #include <errno.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
 // Global Data ----------------------------------------------------------------------------------------------------------------
 

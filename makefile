@@ -1,41 +1,35 @@
 # Directories
-BUILDDIR := bin
-
-# Common source files
-SRC :=	src/can_database.c	\
-		src/can_dbc.c		\
-		src/can_eeprom.c	\
-		src/can_socket.c	\
-		src/cjson_util.c	\
-		src/error_codes.c
-
-INC_FLAGS := -Isrc
+BIN_DIR := bin
 
 # Libraries
-include lib/cjson/cjson.mk
+CAN_LIB := $(BIN_DIR)/can.a
+CJSON_LIB := $(BIN_DIR)/cjson.a
 
-# Flags
-LIB_FLAGS := -lm
-CC_FLAGS := -Wall -Wextra $(INC_FLAGS) $(LIB_FLAGS)
-
-# Targets
-CAN_DBC_CLI := $(BUILDDIR)/can-dbc-cli
-CAN_DBC_TUI := $(BUILDDIR)/can-dbc-tui
-CAN_EEPROM_CLI := $(BUILDDIR)/can-eeprom-cli
+# Applications
+CAN_DBC_CLI := $(BIN_DIR)/can-dbc-cli
+CAN_DBC_TUI := $(BIN_DIR)/can-dbc-tui
+CAN_EEPROM_CLI := $(BIN_DIR)/can-eeprom-cli
 
 all: $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI)
 
-$(CAN_DBC_CLI): src/can_dbc_cli/main.c $(SRC)
-	mkdir -p $(BUILDDIR)
-	gcc src/can_dbc_cli/main.c $(SRC) $(CC_FLAGS) -o $(CAN_DBC_CLI)
+$(CAN_LIB): FORCE
+	make -C lib/can
 
-$(CAN_DBC_TUI): src/can_dbc_tui/main.c $(SRC)
-	mkdir -p $(BUILDDIR)
-	gcc src/can_dbc_tui/main.c $(SRC) $(CC_FLAGS) -lncurses -o $(CAN_DBC_TUI)
+$(CJSON_LIB): FORCE
+	make -C lib/cjson
 
-$(CAN_EEPROM_CLI): src/can_eeprom_cli/main.c $(SRC)
-	mkdir -p $(BUILDDIR)
-	gcc src/can_eeprom_cli/main.c $(SRC) $(CC_FLAGS) -o $(CAN_EEPROM_CLI)
+$(CAN_DBC_CLI): $(CAN_LIB) FORCE
+	make -C src/can_dbc_cli
 
+$(CAN_DBC_TUI): $(CAN_LIB) FORCE
+	make -C src/can_dbc_tui
+
+$(CAN_EEPROM_CLI): $(CAN_LIB) $(CJSON_LIB) FORCE
+	make -C src/can_eeprom_cli
+
+# Phony target, forces dependent targets to always be re-compiled
+FORCE:
+
+# Cleanup
 clean:
-	rm -r $(BUILDDIR)
+	rm -r $(BIN_DIR)

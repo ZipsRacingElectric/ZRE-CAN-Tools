@@ -8,7 +8,7 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_database.h"
+#include "can/can_database.h"
 #include "error_codes.h"
 
 // NCurses
@@ -16,7 +16,6 @@
 
 // C Standard Library
 #include <errno.h>
-#include <stdio.h>
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 

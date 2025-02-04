@@ -14,11 +14,8 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_socket.h"
-#include "cjson_util.h"
-
-// C Standard Library
-#include <stdio.h>
+#include "can/can_socket.h"
+#include "cjson/cjson_util.h"
 
 // Debugging ------------------------------------------------------------------------------------------------------------------
 

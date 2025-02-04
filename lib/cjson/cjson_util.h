@@ -1,10 +1,18 @@
 #ifndef CJSON_UTIL_H
 #define CJSON_UTIL_H
 
+// cJSON Utilities ------------------------------------------------------------------------------------------------------------
+//
+// Author: Cole Barach
+// Date Created: 2025.02.04
+//
+// Description: Set of utility functions for working with the cJSON library. Do not confuse this as part of this library, it is
+//   merely a small extension to cleanup code working with the actual library.
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
-// cJSON
-#include <cjson.h>
+// Includes
+#include "cjson.h"
 
 // C Standard Library
 #include <stdio.h>
