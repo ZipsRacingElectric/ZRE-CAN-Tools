@@ -20,14 +20,18 @@ can-eeprom-cli <options> <device name> <address JSON file path>
 
 Options:
 
-	-i			- Interactive mode. Prompts the user for commands.
-	-p			- Programming mode. Reads a data JSON from stdin and programs the key-value pairs to the device.
-	-p=<path>	- Programming mode. Reads a data JSON from the specified path and programs the key-value pairs to the device.
-
+    -i			- Interactive mode. Prompts the user for commands.
+    -p=<path>	- Programming mode. Reads a data JSON from the specified path
+                  and programs the key-value pairs to the device. If no path
+                  is specified, the file is read from stdin.
+    -v			- Verbose. Enables more verbose output to stderr for debugging.
+    -h			- Help. Prints this text.
 ```
 
 This program is used to program a device's EEPROM via CAN bus.
+
 ## Compilation
+
 Use ```make``` to compile all of the programs.
 
 Use ```make bin\<Executable File>``` to compile a specific program.
@@ -35,3 +39,5 @@ Use ```make bin\<Executable File>``` to compile a specific program.
 Use ```make -B``` to re-compile all of the programs.
 
 Use ```sudo ip link set up can0 type can bitrate 1000000``` to setup the ```can0``` device at 1 megabaud.
+
+Use ```sudo ip link add dev vcan type vcan``` followed by ```sudo ip link up vcan``` to create and setup a virtual CAN device named ```vcan```.

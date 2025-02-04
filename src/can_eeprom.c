@@ -69,6 +69,8 @@ struct can_frame isValidMessageEncode (canEeprom_t* eeprom);
 
 int isValidMessageParse (canEeprom_t* eeprom, struct can_frame* frame, bool* isValid);
 
+void valueParse (canEeprom_t* eeprom, uint16_t variableIndex, const char* string, void* data);
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 int canEepromInit (canEeprom_t* eeprom, cJSON* json)
@@ -228,44 +230,74 @@ int canEepromProgram (canEeprom_t* eeprom, canSocket_t* socket, cJSON* json)
 	{
 		cJSON* key = cJSON_GetArrayItem (json, keyIndex);
 
-		uint16_t varIndex = 0;
-		for (; varIndex < eeprom->variableCount; ++varIndex)
+		uint16_t variableIndex = 0;
+		for (; variableIndex < eeprom->variableCount; ++variableIndex)
 		{
-			if (strcmp (key->string, eeprom->variables [varIndex].name) != 0)
+			if (strcmp (key->string, eeprom->variables [variableIndex].name) != 0)
 				continue;
 
-			char* valueStr = cJSON_GetStringValue (key);
-			if (valueStr == NULL)
+			char* string = cJSON_GetStringValue (key);
+			if (string == NULL)
 			{
 				errno = ERRNO_CAN_EEPROM_BAD_VALUE;
 				return errno;
 			}
 
 			uint32_t data;
-			switch (eeprom->variables [varIndex].type)
-			{
-			case CAN_EEPROM_TYPE_UINT8_T:
-			case CAN_EEPROM_TYPE_UINT16_T:
-			case CAN_EEPROM_TYPE_UINT32_T:
-				data = strtol (valueStr, NULL, 0);
-				break;
-			case CAN_EEPROM_TYPE_FLOAT:
-				*((float*) (&data)) = strtof (valueStr, NULL);
-				break;
-			}
+			valueParse(eeprom, variableIndex, string, &data);
 
-			if (canEepromWrite (eeprom, socket, varIndex, &data) != 0)
+			if (canEepromWrite (eeprom, socket, variableIndex, &data) != 0)
 				return errno;
 
 			break;
 		}
 
-		if (varIndex == eeprom->variableCount)
+		if (variableIndex == eeprom->variableCount)
 		{
-			DEBUG_PRINTF ("Bad key '%s'.\n", key->string);
+			DEBUG_PRINTF ("canEepromProgram failed: Bad key '%s'.\n", key->string);
 			errno = ERRNO_CAN_EEPROM_BAD_KEY;
 			return errno;
 		}
+	}
+
+	return 0;
+}
+
+int canEepromRecover (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
+{
+	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
+	{
+		canEepromVariable_t* variable = eeprom->variables + index;
+
+		uint32_t data;
+		if (canEepromRead (eeprom, socket, index, &data) != 0)
+			return errno;
+
+		if (index == 0)
+			fprintf (stream, "{");
+
+		fprintf (stream, "\t\"%s\": ", variable->name);
+
+		switch (variable->type)
+		{
+		case CAN_EEPROM_TYPE_UINT8_T:
+			fprintf (stream, "\"%u\"", *((uint8_t*) &data));
+			break;
+		case CAN_EEPROM_TYPE_UINT16_T:
+			fprintf (stream, "\"%u\"", *((uint16_t*) &data));
+			break;
+		case CAN_EEPROM_TYPE_UINT32_T:
+			fprintf (stream, "\"%u\"", *((uint32_t*) &data));
+			break;
+		case CAN_EEPROM_TYPE_FLOAT:
+			fprintf (stream, "\"%f\"", *((float*) &data));
+			break;
+		}
+
+		if (index == eeprom->variableCount - 1)
+			fprintf (stream, ",");
+		else
+			fprintf (stream, "\n}");
 	}
 
 	return 0;
@@ -566,4 +598,23 @@ int isValidMessageParse (canEeprom_t* eeprom, struct can_frame* frame, bool* isV
 	// Success, read the isValid flag
 	*isValid = EEPROM_RESPONSE_MESSAGE_IS_VALID (instruction);
 	return 0;
+}
+
+void valueParse (canEeprom_t* eeprom, uint16_t variableIndex, const char* string, void* data)
+{
+	switch (eeprom->variables [variableIndex].type)
+	{
+	case CAN_EEPROM_TYPE_UINT8_T:
+		*((uint8_t*) (&data)) = strtol (string, NULL, 0);
+		break;
+	case CAN_EEPROM_TYPE_UINT16_T:
+		*((uint16_t*) (&data)) = strtol (string, NULL, 0);
+		break;
+	case CAN_EEPROM_TYPE_UINT32_T:
+		*((uint32_t*) (&data)) = strtol (string, NULL, 0);
+		break;
+	case CAN_EEPROM_TYPE_FLOAT:
+		*((float*) (&data)) = strtof (string, NULL);
+		break;
+	}
 }

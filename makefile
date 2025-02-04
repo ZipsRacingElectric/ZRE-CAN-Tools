@@ -39,9 +39,3 @@ $(CAN_EEPROM_CLI): src/can_eeprom_cli/main.c $(SRC)
 
 clean:
 	rm -r $(BUILDDIR)
-
-vcan-create:
-	ip link add dev vcan type vcan
-
-vcan-set-up:
-	ip link set up vcan

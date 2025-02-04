@@ -63,6 +63,8 @@ int canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
 
 int canEepromProgram (canEeprom_t* eeprom, canSocket_t* socket, cJSON* json);
 
+int canEepromRecover (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream);
+
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
 uint16_t canEepromVariablePrompt (canEeprom_t* eeprom);
