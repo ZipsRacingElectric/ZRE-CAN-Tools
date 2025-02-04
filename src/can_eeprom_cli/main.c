@@ -16,39 +16,23 @@
 
 // C Standard Library
 #include <errno.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 // Global Data ----------------------------------------------------------------------------------------------------------------
 
 enum
 {
 	MODE_INTERACTIVE	= '\0',
-	MODE_PROGRAM		= 'p'
+	MODE_PROGRAM		= 'p',
+	MODE_RECOVER		= 'r'
 } mode = MODE_INTERACTIVE;
 
-cJSON* programJson = NULL;
+cJSON* programDataJson = NULL;
+FILE* recoverStream;
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
-
-// int parseOptionWrite (char* arg)
-// {
-// 	key = arg + 2;
-
-// 	if (key [0] == ':' || key [0] == ',' || key [0] == '-')
-// 		++key;
-
-// 	value = arg;
-// 	strsep (&value, "=");
-
-// 	if (value == NULL)
-// 	{
-// 		fprintf (stderr, "Invalid argument usage '%s'.\n", arg);
-// 		return -1;
-// 	}
-
-// 	// mode = MODE_WRITE;
-
-// 	return 0;
-// }
 
 int parseOptionProgram (char* arg)
 {
@@ -57,17 +41,17 @@ int parseOptionProgram (char* arg)
 	// If no path is specified, use stdin
 	if (path [0] == '\0')
 	{
-		programJson = jsonRead (stdin);
+		programDataJson = jsonRead (stdin);
 	}
 	else
 	{
 		if (path [0] == '=')
 			++path;
 
-		programJson = jsonLoad (path);
+		programDataJson = jsonLoad (path);
 	}
 
-	if (programJson == NULL)
+	if (programDataJson == NULL)
 	{
 		int code = errno;
 		fprintf (stderr, "Failed to read data JSON: %s.\n", errorMessage (code));
@@ -75,6 +59,34 @@ int parseOptionProgram (char* arg)
 	}
 
 	mode = MODE_PROGRAM;
+
+	return 0;
+}
+
+int parseOptionRecover (char* arg)
+{
+	char* path = arg + 2;
+
+	// If no path is specified, use stdout
+	if (path [0] == '\0')
+	{
+		recoverStream = stdout;
+	}
+	else
+	{
+		if (path [0] == '=')
+			++path;
+
+		recoverStream = fopen (path, "w");
+		if (recoverStream == NULL)
+		{
+			int code = errno;
+			fprintf (stderr, "Failed to open JSON '%s': %s.\n", path, errorMessage (code));
+			return code;
+		}
+	}
+
+	mode = MODE_RECOVER;
 
 	return 0;
 }
@@ -97,6 +109,10 @@ int main (int argc, char** argv)
 			{
 			case MODE_PROGRAM:
 				if (parseOptionProgram (argv [index]) != 0)
+					return -1;
+				break;
+			case MODE_RECOVER:
+				if (parseOptionRecover (argv [index]) != 0)
 					return -1;
 				break;
 			case MODE_INTERACTIVE:
@@ -148,12 +164,25 @@ int main (int argc, char** argv)
 
 	if (mode == MODE_PROGRAM)
 	{
-		if (canEepromProgram (&eeprom, &socket, programJson) != 0)
+		if (canEepromWriteJson (&eeprom, &socket, programDataJson) != 0)
 		{
 			int code = errno;
 			fprintf (stderr, "Failed to program EEPROM: %s.\n", errorMessage (code));
 			return code;
 		}
+	}
+	else if (mode == MODE_RECOVER)
+	{
+		if (canEepromReadJson (&eeprom, &socket, recoverStream) != 0)
+		{
+			fclose (recoverStream);
+
+			int code = errno;
+			fprintf (stderr, "Failed to recover EEPROM: %s.\n", errorMessage (code));
+			return code;
+		}
+
+		fclose (recoverStream);
 	}
 	else if (mode == MODE_INTERACTIVE)
 	{
@@ -163,47 +192,52 @@ int main (int argc, char** argv)
 			printf (" w - Write to the EEPROM.\n");
 			printf (" r - Read from the EEPROM.\n");
 			printf (" m - Print a map of the EEPROM's memory.\n");
-			printf (" e - Print an empty map of the EEPROM's memory.\n");
 			printf (" v - Validate the EEPROM.\n");
 			printf (" i - Invalidate the EEPROM.\n");
 			printf (" c - Check the EEPROM's validity.\n");
 			printf (" q - Quit the program.\n");
 
 			char selection;
-			uint16_t index;
-			uint8_t data [4];
+			canEepromVariable_t* variable;
+			uint8_t buffer [4];
 
 			fscanf (stdin, "%c%*1[\n]", &selection);
 			switch (selection)
 			{
 			case 'w':
-				index = canEepromVariablePrompt (&eeprom);
-				canEepromValuePrompt (&eeprom, index, data);
-				if (canEepromWrite (&eeprom, &socket, index, data) != 0)
+				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
+				canEepromPromptValue (variable, buffer, stdin, stdout);
+				if (canEepromWriteVariable (&eeprom, &socket, variable, buffer) != 0)
 					printf ("Failed to write to EEPROM: %s.\n", errorMessage (errno));
 				break;
+
 			case 'r':
-				index = canEepromVariablePrompt (&eeprom);
-				if (canEepromRead (&eeprom, &socket, index, data) != 0)
-				 	printf ("Failed to read from EEPROM: %s.\n", errorMessage (errno));
+				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
+				if (canEepromReadVariable (&eeprom, &socket, variable, buffer) != 0)
+				 	printf ("Failed to read variable from EEPROM: %s.\n", errorMessage (errno));
 				else
-					canEepromPrintVariable (stdout, &eeprom, index, data);
+				{
+					printf ("Read: ");
+					canEepromPrintVariable (variable, buffer, stdout);
+					printf (".\n");
+				}
 				break;
+
 			case 'm':
-				if (canEepromPrintMap (stdout, &eeprom, &socket) != 0)
+				if (canEepromPrintMap (&eeprom, &socket, stdout) != 0)
 					printf ("Failed to print EEPROM map: %s.\n", errorMessage (errno));
 				break;
-			case 'e':
-				canEepromPrintEmptyMap (stdout, &eeprom);
-				break;
+
 			case 'v':
 				if (canEepromValidate (&eeprom, &socket, true) != 0)
 					printf ("Failed to validate EEPROM: %s.\n", errorMessage (errno));
 				break;
+
 			case 'i':
 				if (canEepromValidate (&eeprom, &socket, false) != 0)
 					printf ("Failed to invalidate EEPROM: %s.\n", errorMessage (errno));
 				break;
+
 			case 'c':
 				bool isValid;
 				if (canEepromIsValid (&eeprom, &socket, &isValid) != 0)
@@ -211,6 +245,7 @@ int main (int argc, char** argv)
 				else
 					printf ("%s.\n", isValid ? "Valid" : "Invalid");
 				break;
+
 			case 'q':
 				return 0;
 			}

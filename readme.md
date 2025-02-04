@@ -26,6 +26,8 @@ Options:
     -p=<path>   - Programming mode. Reads a data JSON from the specified path
                   and programs the key-value pairs to the device. If no path
                   is specified, the file is read from stdin.
+    -r=<path>   - Recovery mode. Writes the EEPROM's memory to a data JSON
+                  file. If no path is specified, the file is written to stdout.
     -v          - Verbose. Enables more verbose output to stderr for debugging.
     -h          - Help. Prints this text.
 ```

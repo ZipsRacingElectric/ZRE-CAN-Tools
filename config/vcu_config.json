@@ -1,7 +1,7 @@
 {
 	"name":				"VCU",
 	"canAddress":		"0x750",
-	"variableMap":
+	"variables":
 	[
 		{
 			"address":	"0x10",

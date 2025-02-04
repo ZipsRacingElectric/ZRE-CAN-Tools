@@ -7,9 +7,6 @@
 // Date created: 2025.01.09
 //
 // Description: Set of functions for interfacing with an EEPROM via CAN.
-//
-// TODO(Barach):
-// - Index should be size_t or uint16_t.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -50,28 +47,60 @@ typedef struct
 
 int canEepromInit (canEeprom_t* eeprom, cJSON* json);
 
-int canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data);
+int canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer);
 
-int canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t variableIndex, void* data);
+/**
+ * @brief Reads a block of data from the EEPROM into a block of memory.
+ * @param eeprom The EEPROM to read from.
+ * @param socket The CAN socket to negotiate with.
+ * @param address The memory address to begin the read at.
+ * @param count The number of bytes to read.
+ * @param buffer The buffer to write the read data into.
+ * @return 0 if successful, the error code otherwise.
+ */
+int canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer);
+
+int canEepromWriteVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer);
+
+/**
+ * @brief Reads a variable's value from the EEPROM.
+ * @param eeprom The EEPROM to read from.
+ * @param socket The CAN socket to negotiate with.
+ * @param variable The variable to read.
+ * @param buffer The buffer to write the read data into.
+ * @return 0 if successful, the error code otherwise.
+ */
+int canEepromReadVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer);
+
+int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJson);
+
+int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream);
 
 int canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
 
 int canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
 
-int canEepromProgram (canEeprom_t* eeprom, canSocket_t* socket, cJSON* json);
-
-int canEepromRecover (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream);
-
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
-uint16_t canEepromVariablePrompt (canEeprom_t* eeprom);
+/**
+ * @brief Prompts the user to select a variable from the EEPROM.
+ * @param eeprom The EEPROM to select from.
+ * @param steamIn The stream to read input from.
+ * @param streamOut The stream to print the prompt to. Use @c NULL for no prompt.
+ * @return The selected variable.
+ */
+canEepromVariable_t* canEepromPromptVariable (canEeprom_t* eeprom, FILE* streamIn, FILE* streamOut);
 
-void canEepromValuePrompt (canEeprom_t* eeprom, uint16_t variableIndex, void* data);
+void canEepromPromptValue (canEepromVariable_t* variable, void* buffer, FILE* streamIn, FILE* streamOut);
 
-void canEepromPrintVariable (FILE* stream, canEeprom_t* eeprom, uint16_t variableIndex, void* data);
+/**
+ * @brief Prints the value of a variable to the specified stream.
+ * @param variable The variable to print the value of.
+ * @param buffer The value of the variable.
+ * @param stream The stream to print to.
+ */
+void canEepromPrintVariable (canEepromVariable_t* variable, void* buffer, FILE* stream);
 
-int canEepromPrintMap (FILE* stream, canEeprom_t* eeprom, canSocket_t* socket);
-
-void canEepromPrintEmptyMap (FILE* stream, canEeprom_t* eeprom);
+int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream);
 
 #endif // CAN_EEPROM_H
