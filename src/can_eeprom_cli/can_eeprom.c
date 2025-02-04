@@ -400,6 +400,22 @@ int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 	return 0;
 }
 
+void canEepromPrintEmptyMap (canEeprom_t* eeprom, FILE* stream)
+{
+	fprintf (stream, "%s Memory Map:\n", eeprom->name);
+	fprintf (stream, "-----------------------------------------------------\n");
+	fprintf (stream, "%24s | %10s | %10s\n", "Variable", "Type", "Address");
+	fprintf (stream, "-------------------------|------------|--------------\n");
+
+	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
+	{
+		canEepromVariable_t* variable = eeprom->variables + index;
+		fprintf (stream, "%24s | %10s |       0x%04X\n", variable->name, VARIABLE_NAMES [variable->type], variable->address);
+	}
+
+	fprintf (stream, "\n");
+}
+
 // Private Functions ----------------------------------------------------------------------------------------------------------
 
 struct can_frame writeMessageEncode (canEeprom_t* eeprom, uint16_t address, uint8_t count, void* buffer)

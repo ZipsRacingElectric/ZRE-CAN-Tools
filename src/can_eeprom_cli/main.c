@@ -192,6 +192,7 @@ int main (int argc, char** argv)
 			printf (" w - Write to the EEPROM.\n");
 			printf (" r - Read from the EEPROM.\n");
 			printf (" m - Print a map of the EEPROM's memory.\n");
+			printf (" e - Print an empty map of the EEPROM.\n");
 			printf (" v - Validate the EEPROM.\n");
 			printf (" i - Invalidate the EEPROM.\n");
 			printf (" c - Check the EEPROM's validity.\n");
@@ -226,6 +227,10 @@ int main (int argc, char** argv)
 			case 'm':
 				if (canEepromPrintMap (&eeprom, &socket, stdout) != 0)
 					printf ("Failed to print EEPROM map: %s.\n", errorMessage (errno));
+				break;
+
+			case 'e':
+				canEepromPrintEmptyMap (&eeprom, stdout);
 				break;
 
 			case 'v':
