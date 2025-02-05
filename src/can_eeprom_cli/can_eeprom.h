@@ -6,7 +6,65 @@
 // Author: Cole Barach
 // Date created: 2025.01.09
 //
-// Description: Set of functions for interfacing with an EEPROM via CAN.
+// Description: Set of objects for interacting with a device's EEPROM through a CAN bus. In order to use this, a device must
+//   implement the handshake described below.
+//
+// Command Message:               Response Message:
+//   ---------------------------    ---------------------------
+//   | Byte | Meaning          |    | Byte | Meaning          |
+//   |------|------------------|    |------|------------------|
+//   |  7   |                  |    |  7   |                  |
+//   |  6   | Data Word        |    |  6   | Data Word        |
+//   |  5   | (32-bit)         |    |  5   | (32-bit)         |
+//   |  4   |                  |    |  4   |                  |
+//   |------|------------------|    |------|------------------|
+//   |  3   | Data Address     |    |  3   | Data Address     |
+//   |  2   | (16-bit)         |    |  2   | (16-bit)         |
+//   |------|------------------|    |------|------------------|
+//   |  1   | Reserved         |    |  1   | Reserved         |
+//   |------|------------------|    |------|------------------|
+//   |  0   | Instruction Byte |    |  0   | Instruction Byte |
+//   ---------------------------    ---------------------------
+//   ID: eeprom.canId               ID: eeprom.canId + 1
+//
+//   Data Word (data write command only): The data to write to the EEPROM.
+//   Data Word (data read response only): The data read from the EEPROM.
+//   Data Address (data command only): The address to read from / write to.
+//   Data Address (data response only): The address that was read from.
+//   Instruction Byte: Indicates the type of command/reponse, see below.
+//
+//   Responses should only be given to read commands.
+//
+// Instruction Byte (Data Message):
+//       -------------------------------------------------
+//   Bit |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
+//       |-----------------------------------|-----|-----|
+//   Var |           Reserved    |     DC    | D/V | R/W |
+//       -------------------------------------------------
+//
+// Instruction Byte (Validation Message):
+//       -------------------------------------------------
+//   Bit |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
+//       |-----------------------------|-----|-----|-----|
+//   Var |           Reserved          |  IV | D/V | R/W |
+//       -------------------------------------------------
+//
+// Instruction Byte Variables:
+//   R/W: Read / Not Write
+//     0 => Write Command
+//     1 => Read Command
+//   D/V: Data / Not Validation
+//     0 => Interpret as Validation Message
+//     1 => Interpret as Data Message
+//   DC: Data Count (data message only). Indicates the number of bytes to read/write.
+//     0x0 => 1 Byte
+//     0x1 => 2 Bytes
+//     0x2 => 3 Bytes
+//     0x3 => 4 Bytes
+//   IV: Is Valid (validation message only). In a write command, indicates the validity to be written. In a read response,
+//     indicates the validity that was read.
+//     0 => Invalid
+//     1 => Valid
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -38,7 +96,7 @@ typedef struct
 typedef struct
 {
 	char*					name;
-	uint16_t				canAddress;
+	uint16_t				canId;
 	canEepromVariable_t*	variables;
 	uint16_t				variableCount;
 } canEeprom_t;

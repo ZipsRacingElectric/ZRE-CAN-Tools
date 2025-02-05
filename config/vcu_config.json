@@ -1,6 +1,6 @@
 {
 	"name":				"VCU",
-	"canAddress":		"0x750",
+	"canId":			"0x750",
 	"variables":
 	[
 		{

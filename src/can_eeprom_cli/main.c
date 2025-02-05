@@ -1,9 +1,10 @@
-// CAN EEPROM Programmer ------------------------------------------------------------------------------------------------------
+// CAN EEPROM CLI -------------------------------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
 // Date Created: 2025.01.11
 //
-// Description: TODO(Barach)
+// Description: Command-line interface for interacting with a device's EEPROM through a CAN bus. See this project's readme for
+//   usage details.
 //
 // TODO(Barach):
 // -h & -v options.
@@ -16,9 +17,6 @@
 
 // C Standard Library
 #include <errno.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
 
 // Global Data ----------------------------------------------------------------------------------------------------------------
 
@@ -114,9 +112,6 @@ int main (int argc, char** argv)
 			case MODE_RECOVER:
 				if (parseOptionRecover (argv [index]) != 0)
 					return -1;
-				break;
-			case MODE_INTERACTIVE:
-				mode = MODE_INTERACTIVE;
 				break;
 			default:
 				fprintf (stderr, "Unknown option '%s'.\n", argv [index]);

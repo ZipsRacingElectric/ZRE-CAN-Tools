@@ -3,7 +3,7 @@
 // Author: Cole Barach
 // Date Created: 2024.10.27
 //
-// Description: TODO(Barach)
+// Description: Terminal user interface for monitoring a CAN bus's traffic in real-time.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 

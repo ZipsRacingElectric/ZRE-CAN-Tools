@@ -86,7 +86,7 @@ int canEepromInit (canEeprom_t* eeprom, cJSON* json)
 	if (jsonGetString (json, "name", &eeprom->name) != 0)
 		return errno;
 
-	if (jsonGetUint16_t (json, "canAddress", &eeprom->canAddress) != 0)
+	if (jsonGetUint16_t (json, "canId", &eeprom->canId) != 0)
 		return errno;
 
 	cJSON* variables;
@@ -426,7 +426,7 @@ struct can_frame writeMessageEncode (canEeprom_t* eeprom, uint16_t address, uint
 
 	struct can_frame frame =
 	{
-		.can_id		= eeprom->canAddress,
+		.can_id		= eeprom->canId,
 		.can_dlc	= 8,
 		.data		=
 		{
@@ -449,7 +449,7 @@ struct can_frame readMessageEncode (canEeprom_t* eeprom, uint16_t address, uint8
 
 	struct can_frame frame =
 	{
-		.can_id		= eeprom->canAddress,
+		.can_id		= eeprom->canId,
 		.can_dlc	= 8,
 		.data		=
 		{
@@ -468,7 +468,7 @@ int readMessageParse (canEeprom_t* eeprom, struct can_frame* frame, uint16_t add
 	uint16_t instruction = frame->data [0] | (frame->data [1] << 8);
 
 	// Check message ID is correct
-	if (frame->can_id != (uint16_t) (eeprom->canAddress + 1))
+	if (frame->can_id != (uint16_t) (eeprom->canId + 1))
 	{
 		errno = ERRNO_CAN_EEPROM_BAD_RESPONSE_ID;
 		return errno;
@@ -568,7 +568,7 @@ struct can_frame validateMessageEncode (canEeprom_t* eeprom, bool isValid)
 
 	struct can_frame frame =
 	{
-		.can_id		= eeprom->canAddress,
+		.can_id		= eeprom->canId,
 		.can_dlc	= 8,
 		.data		=
 		{
@@ -587,7 +587,7 @@ struct can_frame isValidMessageEncode (canEeprom_t* eeprom)
 
 	struct can_frame frame =
 	{
-		.can_id		= eeprom->canAddress,
+		.can_id		= eeprom->canId,
 		.can_dlc	= 8,
 		.data		=
 		{
@@ -604,7 +604,7 @@ int isValidMessageParse (canEeprom_t* eeprom, struct can_frame* frame, bool* isV
 	uint16_t instruction = frame->data [0] | (frame->data [1] << 8);
 
 	// Check message ID is correct
-	if (frame->can_id != (uint16_t) (eeprom->canAddress + 1))
+	if (frame->can_id != (uint16_t) (eeprom->canId + 1))
 	{
 		errno = ERRNO_CAN_EEPROM_BAD_RESPONSE_ID;
 		return errno;
