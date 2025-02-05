@@ -131,7 +131,8 @@ int canEepromInit (canEeprom_t* eeprom, cJSON* json)
 		}
 	}
 
-	return 0;
+	// Allocate a buffer for the EEPROM.
+	return allocateBuffer (eeprom);
 }
 
 int canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer)
@@ -201,10 +202,9 @@ int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJso
 				return errno;
 			}
 
-			uint8_t buffer [4];
-			valueParse (variable, string, buffer);
+			valueParse (variable, string, eeprom->bufferInternal);
 
-			if (canEepromWriteVariable (eeprom, socket, variable, buffer) != 0)
+			if (canEepromWriteVariable (eeprom, socket, variable, eeprom->bufferInternal) != 0)
 				return errno;
 
 			break;
@@ -227,8 +227,7 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 	{
 		canEepromVariable_t* variable = eeprom->variables + index;
 
-		uint8_t buffer [4];
-		if (canEepromReadVariable (eeprom, socket, variable, buffer) != 0)
+		if (canEepromReadVariable (eeprom, socket, variable, eeprom->bufferInternal) != 0)
 			return errno;
 
 		if (index == 0)
@@ -239,16 +238,16 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 		switch (variable->type)
 		{
 		case CAN_EEPROM_TYPE_UINT8_T:
-			fprintf (stream, "\"%u\"", *((uint8_t*) buffer));
+			fprintf (stream, "\"%u\"", *((uint8_t*) eeprom->bufferInternal));
 			break;
 		case CAN_EEPROM_TYPE_UINT16_T:
-			fprintf (stream, "\"%u\"", *((uint16_t*) buffer));
+			fprintf (stream, "\"%u\"", *((uint16_t*) eeprom->bufferInternal));
 			break;
 		case CAN_EEPROM_TYPE_UINT32_T:
-			fprintf (stream, "\"%u\"", *((uint32_t*) buffer));
+			fprintf (stream, "\"%u\"", *((uint32_t*) eeprom->bufferInternal));
 			break;
 		case CAN_EEPROM_TYPE_FLOAT:
-			fprintf (stream, "\"%f\"", *((float*) buffer));
+			fprintf (stream, "\"%f\"", *((float*) eeprom->bufferInternal));
 			break;
 		}
 
@@ -388,13 +387,12 @@ int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
 		canEepromVariable_t* variable = eeprom->variables + index;
-		uint8_t buffer [4];
 
-		if (canEepromReadVariable (eeprom, socket, variable, buffer) != 0)
+		if (canEepromReadVariable (eeprom, socket, variable, eeprom->bufferInternal) != 0)
 			return errno;
 
 		fprintf (stream, "%24s | %10s | ", variable->name, VARIABLE_NAMES [variable->type]);
-		canEepromPrintVariable (variable, buffer, stream);
+		canEepromPrintVariable (variable, eeprom->bufferInternal, stream);
 		fprintf (stream, "\n");
 	}
 
@@ -427,8 +425,15 @@ int allocateBuffer (canEeprom_t* eeprom)
 
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
-		
+		uint16_t size = VARIABLE_SIZES [eeprom->variables [index].type];
+		if (size > bufferSize)
+			bufferSize = size;
 	}
+
+	eeprom->bufferUser = malloc (bufferSize);
+	eeprom->bufferInternal = malloc (bufferSize);
+
+	return (eeprom->bufferUser != NULL && eeprom->bufferInternal != NULL) ? 0 : errno;
 }
 
 struct can_frame writeMessageEncode (canEeprom_t* eeprom, uint16_t address, uint8_t count, void* buffer)
@@ -527,14 +532,13 @@ int writeSingle (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uin
 {
 	struct can_frame commandFrame = writeMessageEncode (eeprom, address, count, buffer);
 
-	uint8_t readBuffer [4];
 	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
 		canSocketTransmit (socket, &commandFrame);
-		if (canEepromRead (eeprom, socket, address, count, readBuffer) != 0)
+		if (canEepromRead (eeprom, socket, address, count, eeprom->bufferInternal) != 0)
 			return errno;
 
-		if (memcmp (buffer, readBuffer, count) == 0)
+		if (memcmp (buffer, eeprom->bufferInternal, count) == 0)
 			return 0;
 	}
 

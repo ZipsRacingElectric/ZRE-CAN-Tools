@@ -103,7 +103,8 @@ typedef struct
 	uint16_t				canId;
 	canEepromVariable_t*	variables;
 	uint16_t				variableCount;
-	void*					buffer;
+	void*					bufferUser;
+	void*					bufferInternal;
 } canEeprom_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

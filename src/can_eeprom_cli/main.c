@@ -8,9 +8,7 @@
 //
 // TODO(Barach):
 // - '-h' & '-v' options.
-// - Figure out matrices. Prompt, parse, read, write, and print aren't hard, given the memory is already allocated. Allocation
-//   is the issue I see.
-// - Maybe a 'variableAllocateBuffer' function wrapping malloc?
+// - Implement matrices.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -198,26 +196,25 @@ int main (int argc, char** argv)
 
 			char selection;
 			canEepromVariable_t* variable;
-			uint8_t buffer [4];
 
 			fscanf (stdin, "%c%*1[\n]", &selection);
 			switch (selection)
 			{
 			case 'w':
 				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
-				canEepromPromptValue (variable, buffer, stdin, stdout);
-				if (canEepromWriteVariable (&eeprom, &socket, variable, buffer) != 0)
+				canEepromPromptValue (variable, eeprom.bufferUser, stdin, stdout);
+				if (canEepromWriteVariable (&eeprom, &socket, variable, eeprom.bufferUser) != 0)
 					printf ("Failed to write to EEPROM: %s.\n", errorMessage (errno));
 				break;
 
 			case 'r':
 				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
-				if (canEepromReadVariable (&eeprom, &socket, variable, buffer) != 0)
+				if (canEepromReadVariable (&eeprom, &socket, variable, eeprom.bufferUser) != 0)
 				 	printf ("Failed to read variable from EEPROM: %s.\n", errorMessage (errno));
 				else
 				{
 					printf ("Read: ");
-					canEepromPrintVariable (variable, buffer, stdout);
+					canEepromPrintVariable (variable, eeprom.bufferUser, stdout);
 					printf (".\n");
 				}
 				break;
