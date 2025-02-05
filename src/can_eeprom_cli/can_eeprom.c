@@ -3,10 +3,10 @@
 
 // Includes
 #include "error_codes.h"
+#include "can_eeprom_operations.h"
 
 // C Standard Library
 #include <errno.h>
-#include <sys/time.h>
 
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
@@ -18,13 +18,6 @@
 #endif // CAN_DATABASE_DEBUG
 
 // Constants ------------------------------------------------------------------------------------------------------------------
-
-#define RESPONSE_ATTEMPT_COUNT 7
-static const struct timeval RESPONSE_ATTEMPT_TIMEOUT =
-{
-	.tv_sec		= 0,
-	.tv_usec	= 200000
-};
 
 static const uint16_t VARIABLE_SIZES [] =
 {
@@ -42,58 +35,23 @@ static const char* VARIABLE_NAMES [] =
 	"float"
 };
 
-// Macros ---------------------------------------------------------------------------------------------------------------------
-
-#define EEPROM_COMMAND_MESSAGE_READ_NOT_WRITE(rnw)			(((uint16_t) (rnw))	<< 0)
-#define EEPROM_COMMAND_MESSAGE_DATA_NOT_VALIDATION(dnv)		(((uint16_t) (dnv))	<< 1)
-#define EEPROM_COMMAND_MESSAGE_IS_VALID(iv)					(((uint16_t) (iv))	<< 2)
-#define EEPROM_COMMAND_MESSAGE_DATA_COUNT(dc)				(((uint16_t) ((dc) - 1)) << 2)
-
-#define EEPROM_RESPONSE_MESSAGE_READ_NOT_WRITE(word)		(((word) & 0b00000001) == 0b00000001)
-#define EEPROM_RESPONSE_MESSAGE_DATA_NOT_VALIDATION(word)	(((word) & 0b00000010) == 0b00000010)
-#define EEPROM_RESPONSE_MESSAGE_IS_VALID(word)				(((word) & 0b00000100) == 0b00000100)
-#define EEPROM_RESPONSE_MESSAGE_DATA_COUNT(word)			((((word) & 0b00001100) >> 2) + 1)
-
 // Function Prototypes --------------------------------------------------------------------------------------------------------
 
-/// @brief Allocates enough memory to store the largest variable in the EEPROM
-int allocateBuffer (canEeprom_t* eeprom);
-
-/// @brief Encodes the command frame for a data write operation.
-struct can_frame writeMessageEncode (canEeprom_t* eeprom, uint16_t address, uint8_t count, void* buffer);
-
-/// @brief Encodes the command frame for a data read operation.
-struct can_frame readMessageEncode (canEeprom_t* eeprom, uint16_t address, uint8_t count);
-
-/// @brief Parses a CAN frame to check whether it is the response to a data read command.
-int readMessageParse (canEeprom_t* eeprom, struct can_frame* frame, uint16_t address, uint8_t count, void* buffer);
-
-/// @brief Performs a single write operation on the EEPROM.
-int writeSingle (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint8_t count, void* buffer);
-
-/// @brief Performs a single read operation on the EEPROM.
-int readSingle (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint8_t count, void* buffer);
-
-struct can_frame validateMessageEncode (canEeprom_t* eeprom, bool isValid);
-
-struct can_frame isValidMessageEncode (canEeprom_t* eeprom);
-
-int isValidMessageParse (canEeprom_t* eeprom, struct can_frame* frame, bool* isValid);
-
+/// @brief Parses a string to get a variable's value.
 void valueParse (canEepromVariable_t* variable, const char* string, void* buffer);
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-int canEepromInit (canEeprom_t* eeprom, cJSON* json)
+int canEepromInit (canEeprom_t* eeprom, cJSON* configJson)
 {
-	if (jsonGetString (json, "name", &eeprom->name) != 0)
+	if (jsonGetString (configJson, "name", &eeprom->name) != 0)
 		return errno;
 
-	if (jsonGetUint16_t (json, "canId", &eeprom->canId) != 0)
+	if (jsonGetUint16_t (configJson, "canId", &eeprom->canId) != 0)
 		return errno;
 
 	cJSON* variables;
-	if (jsonGetObject (json, "variables", &variables) != 0)
+	if (jsonGetObject (configJson, "variables", &variables) != 0)
 		return errno;
 
 	eeprom->variableCount = cJSON_GetArraySize (variables);
@@ -131,52 +89,28 @@ int canEepromInit (canEeprom_t* eeprom, cJSON* json)
 		}
 	}
 
-	// Allocate a buffer for the EEPROM.
-	return allocateBuffer (eeprom);
-}
-
-int canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer)
-{
-	// Write all of the full messages
-	while (count > 4)
-	{
-		if (writeSingle (eeprom, socket, address, 4, buffer) != 0)
-			return errno;
-
-		buffer += 4;
-		address += 4;
-		count -= 4;
-	}
-
-	// Write the last message
-	return writeSingle (eeprom, socket, address, count, buffer);
-}
-
-int canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer)
-{
-	// Read all of the full messages
-	while (count > 4)
-	{
-		if (readSingle (eeprom, socket, address, 4, buffer) != 0)
-			return errno;
-
-		buffer += 4;
-		address += 4;
-		count -= 4;
-	}
-
-	// Read the last message
-	return readSingle (eeprom, socket, address, count, buffer);
+	eeprom->buffer = canEepromAllocateBuffer (eeprom);
+	return (eeprom->buffer != NULL) ? 0 : errno;
 }
 
 int canEepromWriteVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer)
 {
-	return writeSingle (eeprom, socket, variable->address, VARIABLE_SIZES [variable->type], buffer);
+	return canEepromWrite (eeprom->canId, socket, variable->address, VARIABLE_SIZES [variable->type], buffer);
 }
 
 int canEepromReadVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer)
 {
-	return readSingle (eeprom, socket, variable->address, VARIABLE_SIZES [variable->type], buffer);
+	return canEepromRead (eeprom->canId, socket, variable->address, VARIABLE_SIZES [variable->type], buffer);
+}
+
+int canEepromWriteValid (canEeprom_t* eeprom, canSocket_t* socket, bool isValid)
+{
+	return canEepromValidate (eeprom->canId, socket, isValid);
+}
+
+int canEepromReadValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid)
+{
+	canEepromIsValid (eeprom->canId, socket, isValid);
 }
 
 int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJson)
@@ -202,9 +136,9 @@ int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJso
 				return errno;
 			}
 
-			valueParse (variable, string, eeprom->bufferInternal);
+			valueParse (variable, string, eeprom->buffer);
 
-			if (canEepromWriteVariable (eeprom, socket, variable, eeprom->bufferInternal) != 0)
+			if (canEepromWriteVariable (eeprom, socket, variable, eeprom->buffer) != 0)
 				return errno;
 
 			break;
@@ -227,7 +161,7 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 	{
 		canEepromVariable_t* variable = eeprom->variables + index;
 
-		if (canEepromReadVariable (eeprom, socket, variable, eeprom->bufferInternal) != 0)
+		if (canEepromReadVariable (eeprom, socket, variable, eeprom->buffer) != 0)
 			return errno;
 
 		if (index == 0)
@@ -238,16 +172,16 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 		switch (variable->type)
 		{
 		case CAN_EEPROM_TYPE_UINT8_T:
-			fprintf (stream, "\"%u\"", *((uint8_t*) eeprom->bufferInternal));
+			fprintf (stream, "\"%u\"", *((uint8_t*) eeprom->buffer));
 			break;
 		case CAN_EEPROM_TYPE_UINT16_T:
-			fprintf (stream, "\"%u\"", *((uint16_t*) eeprom->bufferInternal));
+			fprintf (stream, "\"%u\"", *((uint16_t*) eeprom->buffer));
 			break;
 		case CAN_EEPROM_TYPE_UINT32_T:
-			fprintf (stream, "\"%u\"", *((uint32_t*) eeprom->bufferInternal));
+			fprintf (stream, "\"%u\"", *((uint32_t*) eeprom->buffer));
 			break;
 		case CAN_EEPROM_TYPE_FLOAT:
-			fprintf (stream, "\"%f\"", *((float*) eeprom->bufferInternal));
+			fprintf (stream, "\"%f\"", *((float*) eeprom->buffer));
 			break;
 		}
 
@@ -260,54 +194,18 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 	return 0;
 }
 
-int canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid)
+void* canEepromAllocateBuffer (canEeprom_t* eeprom)
 {
-	struct can_frame commandFrame = validateMessageEncode (eeprom, isValid);
+	uint16_t bufferSize = 0;
 
-	bool readIsValid;
-	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
+	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
-		canSocketTransmit (socket, &commandFrame);
-		if (canEepromIsValid (eeprom, socket, &readIsValid) != 0)
-			return errno;
-
-		if (readIsValid == isValid)
-			return 0;
+		uint16_t size = VARIABLE_SIZES [eeprom->variables [index].type];
+		if (size > bufferSize)
+			bufferSize = size;
 	}
 
-	errno = ERRNO_CAN_EEPROM_VALIDATE_TIMEOUT;
-	return errno;
-}
-
-int canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid)
-{
-	struct can_frame commandFrame = isValidMessageEncode (eeprom);
-
-	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
-	{
-		if (canSocketTransmit (socket, &commandFrame) != 0)
-			return errno;
-
-		struct timeval deadline;
-		struct timeval timeCurrent;
-		gettimeofday (&timeCurrent, NULL);
-		timeradd (&timeCurrent, &RESPONSE_ATTEMPT_TIMEOUT, &deadline);
-
-		while (timercmp (&timeCurrent, &deadline, <))
-		{
-			gettimeofday (&timeCurrent, NULL);
-
-			struct can_frame response;
-			if (canSocketReceive (socket, &response) != 0)
-				continue;
-
-			if (isValidMessageParse (eeprom, &response, isValid) == 0)
-				return 0;
-		}
-	}
-
-	errno = ERRNO_CAN_EEPROM_IS_VALID_TIMEOUT;
-	return errno;
+	return malloc (bufferSize);
 }
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
@@ -376,7 +274,7 @@ void canEepromPrintVariable (canEepromVariable_t* variable, void* buffer, FILE* 
 int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 {
 	bool isValid;
-	if (canEepromIsValid (eeprom, socket, &isValid) != 0)
+	if (canEepromIsValid (eeprom->canId, socket, &isValid) != 0)
 		return errno;
 
 	fprintf (stream, "%s Memory Map: %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
@@ -388,11 +286,11 @@ int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 	{
 		canEepromVariable_t* variable = eeprom->variables + index;
 
-		if (canEepromReadVariable (eeprom, socket, variable, eeprom->bufferInternal) != 0)
+		if (canEepromReadVariable (eeprom, socket, variable, eeprom->buffer) != 0)
 			return errno;
 
 		fprintf (stream, "%24s | %10s | ", variable->name, VARIABLE_NAMES [variable->type]);
-		canEepromPrintVariable (variable, eeprom->bufferInternal, stream);
+		canEepromPrintVariable (variable, eeprom->buffer, stream);
 		fprintf (stream, "\n");
 	}
 
@@ -418,233 +316,6 @@ void canEepromPrintEmptyMap (canEeprom_t* eeprom, FILE* stream)
 }
 
 // Private Functions ----------------------------------------------------------------------------------------------------------
-
-int allocateBuffer (canEeprom_t* eeprom)
-{
-	uint16_t bufferSize = 0;
-
-	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
-	{
-		uint16_t size = VARIABLE_SIZES [eeprom->variables [index].type];
-		if (size > bufferSize)
-			bufferSize = size;
-	}
-
-	eeprom->bufferUser = malloc (bufferSize);
-	eeprom->bufferInternal = malloc (bufferSize);
-
-	return (eeprom->bufferUser != NULL && eeprom->bufferInternal != NULL) ? 0 : errno;
-}
-
-struct can_frame writeMessageEncode (canEeprom_t* eeprom, uint16_t address, uint8_t count, void* buffer)
-{
-	uint16_t instruction = EEPROM_COMMAND_MESSAGE_READ_NOT_WRITE (false)
-		| EEPROM_COMMAND_MESSAGE_DATA_NOT_VALIDATION (true)
-		| EEPROM_COMMAND_MESSAGE_DATA_COUNT (count);
-
-	struct can_frame frame =
-	{
-		.can_id		= eeprom->canId,
-		.can_dlc	= 8,
-		.data		=
-		{
-			instruction,
-			instruction >> 8,
-			address,
-			address >> 8
-		}
-	};
-	memcpy (frame.data + 4, buffer, count);
-
-	return frame;
-}
-
-struct can_frame readMessageEncode (canEeprom_t* eeprom, uint16_t address, uint8_t count)
-{
-	uint16_t instruction = EEPROM_COMMAND_MESSAGE_READ_NOT_WRITE (true)
-		| EEPROM_COMMAND_MESSAGE_DATA_NOT_VALIDATION (true)
-		| EEPROM_COMMAND_MESSAGE_DATA_COUNT (count);
-
-	struct can_frame frame =
-	{
-		.can_id		= eeprom->canId,
-		.can_dlc	= 8,
-		.data		=
-		{
-			instruction,
-			instruction >> 8,
-			address,
-			address >> 8
-		}
-	};
-
-	return frame;
-}
-
-int readMessageParse (canEeprom_t* eeprom, struct can_frame* frame, uint16_t address, uint8_t count, void* buffer)
-{
-	uint16_t instruction = frame->data [0] | (frame->data [1] << 8);
-
-	// Check message ID is correct
-	if (frame->can_id != (uint16_t) (eeprom->canId + 1))
-	{
-		errno = ERRNO_CAN_EEPROM_BAD_RESPONSE_ID;
-		return errno;
-	}
-
-	// Check message is a read response
-	if (!EEPROM_RESPONSE_MESSAGE_READ_NOT_WRITE (instruction))
-	{
-		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
-		return errno;
-	}
-
-	// Check message is a data response
-	if (!EEPROM_RESPONSE_MESSAGE_DATA_NOT_VALIDATION (instruction))
-	{
-		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
-		return errno;
-	}
-
-	uint16_t frameAddress = frame->data [2] | (frame->data [3] << 8);
-
-	// Check message is the correct address
-	if (frameAddress != address)
-	{
-		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
-		return errno;
-	}
-
-	// Check data count is correct
-	uint8_t frameCount = EEPROM_RESPONSE_MESSAGE_DATA_COUNT (instruction);
-	if (frameCount != count)
-	{
-		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
-		return errno;
-	}
-
-	// Success, copy the data into the buffer
-	memcpy (buffer, frame->data + 4, count);
-	return 0;
-}
-
-int writeSingle (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint8_t count, void* buffer)
-{
-	struct can_frame commandFrame = writeMessageEncode (eeprom, address, count, buffer);
-
-	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
-	{
-		canSocketTransmit (socket, &commandFrame);
-		if (canEepromRead (eeprom, socket, address, count, eeprom->bufferInternal) != 0)
-			return errno;
-
-		if (memcmp (buffer, eeprom->bufferInternal, count) == 0)
-			return 0;
-	}
-
-	errno = ERRNO_CAN_EEPROM_WRITE_TIMEOUT;
-	return errno;
-}
-
-int readSingle (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint8_t count, void* buffer)
-{
-	struct can_frame commandFrame = readMessageEncode (eeprom, address, count);
-
-	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
-	{
-		if (canSocketTransmit (socket, &commandFrame) != 0)
-			return errno;
-
-		struct timeval deadline;
-		struct timeval timeCurrent;
-		gettimeofday (&timeCurrent, NULL);
-		timeradd (&timeCurrent, &RESPONSE_ATTEMPT_TIMEOUT, &deadline);
-
-		while (timercmp (&timeCurrent, &deadline, <))
-		{
-			gettimeofday (&timeCurrent, NULL);
-
-			struct can_frame response;
-			if (canSocketReceive (socket, &response) != 0)
-				continue;
-
-			if (readMessageParse (eeprom, &response, address, count, buffer) == 0)
-				return 0;
-		}
-	}
-
-	errno = ERRNO_CAN_EEPROM_READ_TIMEOUT;
-	return errno;
-}
-
-struct can_frame validateMessageEncode (canEeprom_t* eeprom, bool isValid)
-{
-	uint16_t instruction = EEPROM_COMMAND_MESSAGE_READ_NOT_WRITE (false)
-		| EEPROM_COMMAND_MESSAGE_DATA_NOT_VALIDATION (false)
-		| EEPROM_COMMAND_MESSAGE_IS_VALID (isValid);
-
-	struct can_frame frame =
-	{
-		.can_id		= eeprom->canId,
-		.can_dlc	= 8,
-		.data		=
-		{
-			instruction,
-			instruction >> 8
-		}
-	};
-
-	return frame;
-}
-
-struct can_frame isValidMessageEncode (canEeprom_t* eeprom)
-{
-	uint16_t instruction = EEPROM_COMMAND_MESSAGE_READ_NOT_WRITE (true)
-		| EEPROM_COMMAND_MESSAGE_DATA_NOT_VALIDATION (false);
-
-	struct can_frame frame =
-	{
-		.can_id		= eeprom->canId,
-		.can_dlc	= 8,
-		.data		=
-		{
-			instruction,
-			instruction >> 8,
-		}
-	};
-
-	return frame;
-}
-
-int isValidMessageParse (canEeprom_t* eeprom, struct can_frame* frame, bool* isValid)
-{
-	uint16_t instruction = frame->data [0] | (frame->data [1] << 8);
-
-	// Check message ID is correct
-	if (frame->can_id != (uint16_t) (eeprom->canId + 1))
-	{
-		errno = ERRNO_CAN_EEPROM_BAD_RESPONSE_ID;
-		return errno;
-	}
-
-	// Check message is a read response
-	if (!EEPROM_RESPONSE_MESSAGE_READ_NOT_WRITE (instruction))
-	{
-		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
-		return errno;
-	}
-
-	// Check message is a validation response
-	if (EEPROM_RESPONSE_MESSAGE_DATA_NOT_VALIDATION (instruction))
-	{
-		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
-		return errno;
-	}
-
-	// Success, read the isValid flag
-	*isValid = EEPROM_RESPONSE_MESSAGE_IS_VALID (instruction);
-	return 0;
-}
 
 void valueParse (canEepromVariable_t* variable, const char* string, void* buffer)
 {

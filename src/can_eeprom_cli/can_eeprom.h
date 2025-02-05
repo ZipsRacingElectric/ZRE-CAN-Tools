@@ -6,69 +6,7 @@
 // Author: Cole Barach
 // Date created: 2025.01.09
 //
-// Description: Set of objects for interacting with a device's EEPROM through a CAN bus. In order to use this, a device must
-//   implement the handshake described below.
-//
-// TODO(Barach):
-// - The scope of this module has grown way too much, consider splitting into low-level (protocol & handshake) and high-level
-//   (variable mapping, matrices, stdio, etc.)
-//
-// Command Message:               Response Message:
-//   ---------------------------    ---------------------------
-//   | Byte | Meaning          |    | Byte | Meaning          |
-//   |------|------------------|    |------|------------------|
-//   |  7   |                  |    |  7   |                  |
-//   |  6   | Data Word        |    |  6   | Data Word        |
-//   |  5   | (32-bit)         |    |  5   | (32-bit)         |
-//   |  4   |                  |    |  4   |                  |
-//   |------|------------------|    |------|------------------|
-//   |  3   | Data Address     |    |  3   | Data Address     |
-//   |  2   | (16-bit)         |    |  2   | (16-bit)         |
-//   |------|------------------|    |------|------------------|
-//   |  1   | Reserved         |    |  1   | Reserved         |
-//   |------|------------------|    |------|------------------|
-//   |  0   | Instruction Byte |    |  0   | Instruction Byte |
-//   ---------------------------    ---------------------------
-//   ID: eeprom.canId               ID: eeprom.canId + 1
-//
-//   Data Word (data write command only): The data to write to the EEPROM.
-//   Data Word (data read response only): The data read from the EEPROM.
-//   Data Address (data command only): The address to read from / write to.
-//   Data Address (data response only): The address that was read from.
-//   Instruction Byte: Indicates the type of command/reponse, see below.
-//
-//   Responses should only be given to read commands.
-//
-// Instruction Byte (Data Message):
-//       -------------------------------------------------
-//   Bit |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
-//       |-----------------------------------|-----|-----|
-//   Var |           Reserved    |     DC    | D/V | R/W |
-//       -------------------------------------------------
-//
-// Instruction Byte (Validation Message):
-//       -------------------------------------------------
-//   Bit |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
-//       |-----------------------------|-----|-----|-----|
-//   Var |           Reserved          |  IV | D/V | R/W |
-//       -------------------------------------------------
-//
-// Instruction Byte Variables:
-//   R/W: Read / Not Write
-//     0 => Write Command
-//     1 => Read Command
-//   D/V: Data / Not Validation
-//     0 => Interpret as Validation Message
-//     1 => Interpret as Data Message
-//   DC: Data Count (data message only). Indicates the number of bytes to read/write.
-//     0x0 => 1 Byte
-//     0x1 => 2 Bytes
-//     0x2 => 3 Bytes
-//     0x3 => 4 Bytes
-//   IV: Is Valid (validation message only). In a write command, indicates the validity to be written. In a read response,
-//     indicates the validity that was read.
-//     0 => Invalid
-//     1 => Valid
+// Description: Object and functions for interacting with a device's EEPROM through a CAN bus.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -95,46 +33,36 @@ typedef struct
 	char*			name;
 	uint16_t		address;
 	canEepromType_t	type;
+	uint16_t		width;
+	uint16_t		height;
 } canEepromVariable_t;
 
 typedef struct
 {
-	char*					name;
-	uint16_t				canId;
-	canEepromVariable_t*	variables;
-	uint16_t				variableCount;
-	void*					bufferUser;
-	void*					bufferInternal;
+	/// @brief The user-friendly name of the device.
+	char* name;
+	/// @brief The base CAN ID of the device.
+	uint16_t canId;
+	/// @brief The array of EEPROM variables.
+	canEepromVariable_t* variables;
+	/// @brief The size of @c variables .
+	uint16_t variableCount;
+	/// @brief A buffer large enough to store the data of the largest variable.
+	void* buffer;
 } canEeprom_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-int canEepromInit (canEeprom_t* eeprom, cJSON* json);
-
 /**
- * @brief Writes a block of data to the EEPROM from a block of memory.
- * @param eeprom The EEPROM to write to.
- * @param socket The CAN socket to negotiate with.
- * @param address The memory address to begin the write at.
- * @param count The number of bytes to write.
- * @param buffer The buffer to write the data from.
+ * @brief Initializes the EEPROM by importing the structure's data from a configuration JSON.
+ * @param eeprom The EEPROM to initialize.
+ * @param configJson The configuration JSON to load the data from.
  * @return 0 if successful, the error code otherwise.
  */
-int canEepromWrite (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer);
+int canEepromInit (canEeprom_t* eeprom, cJSON* configJson);
 
 /**
- * @brief Reads a block of data from the EEPROM into a block of memory.
- * @param eeprom The EEPROM to read from.
- * @param socket The CAN socket to negotiate with.
- * @param address The memory address to begin the read at.
- * @param count The number of bytes to read.
- * @param buffer The buffer to write the read data into.
- * @return 0 if successful, the error code otherwise.
- */
-int canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer);
-
-/**
- * @brief Writes a variable's value into the EEPROM.
+ * @brief Writes a variable's value into an EEPROM.
  * @param eeprom The EEPROM to write to.
  * @param socket The CAN socket to negotiate with.
  * @param variable The variable to write.
@@ -144,7 +72,7 @@ int canEepromRead (canEeprom_t* eeprom, canSocket_t* socket, uint16_t address, u
 int canEepromWriteVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer);
 
 /**
- * @brief Reads a variable's value from the EEPROM.
+ * @brief Reads a variable's value from an EEPROM.
  * @param eeprom The EEPROM to read from.
  * @param socket The CAN socket to negotiate with.
  * @param variable The variable to read.
@@ -152,6 +80,24 @@ int canEepromWriteVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromV
  * @return 0 if successful, the error code otherwise.
  */
 int canEepromReadVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer);
+
+/**
+ * @brief Writes a validation command to an EEPROM.
+ * @param eeprom The EEPROM to validate/invalidate.
+ * @param socket The CAN socket to negotiate with.
+ * @param isValid The validity to write. True => valid, false => invalid.
+ * @return 0 if successful, the error code otherwise.
+ */
+int canEepromWriteValid (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
+
+/**
+ * @brief Reads the validity of an EEPROM.
+ * @param eeprom The EEPROM to check the validity of.
+ * @param socket The CAN socket to negotiate with.
+ * @param isValid Written to contain the validity of the EEPROM.
+ * @return 0 if successful, the error code otherwise.
+ */
+int canEepromReadValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
 
 /**
  * @brief Writes the contents of a data JSON to the EEPROM.
@@ -174,22 +120,11 @@ int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJso
 int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream);
 
 /**
- * @brief Writes a validation command to the EEPROM.
- * @param eeprom The EEPROM to validate.
- * @param socket The CAN socket to negotiate with.
- * @param isValid The validity to write. True => valid, false => invalid.
- * @return 0 if successful, the error code otherwise.
+ * @brief Allocates a buffer large enough to store the data of the largest variable in an EEPROM.
+ * @param eeprom The EEPROM to get the buffer for.
+ * @return The dynamically allocated memory if successful, @c NULL otherwise.
  */
-int canEepromValidate (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
-
-/**
- * @brief Reads the validity of the EEPROM.
- * @param eeprom The EEPROM to read from.
- * @param socket The CAN socket to negotiate with.
- * @param isValid Written to contain the validity of the EEPROM.
- * @return 0 if successful, the error code otherwise.
- */
-int canEepromIsValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
+void* canEepromAllocateBuffer (canEeprom_t* eeprom);
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 

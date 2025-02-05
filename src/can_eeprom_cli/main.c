@@ -202,19 +202,19 @@ int main (int argc, char** argv)
 			{
 			case 'w':
 				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
-				canEepromPromptValue (variable, eeprom.bufferUser, stdin, stdout);
-				if (canEepromWriteVariable (&eeprom, &socket, variable, eeprom.bufferUser) != 0)
+				canEepromPromptValue (variable, eeprom.buffer, stdin, stdout);
+				if (canEepromWriteVariable (&eeprom, &socket, variable, eeprom.buffer) != 0)
 					printf ("Failed to write to EEPROM: %s.\n", errorMessage (errno));
 				break;
 
 			case 'r':
 				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
-				if (canEepromReadVariable (&eeprom, &socket, variable, eeprom.bufferUser) != 0)
+				if (canEepromReadVariable (&eeprom, &socket, variable, eeprom.buffer) != 0)
 				 	printf ("Failed to read variable from EEPROM: %s.\n", errorMessage (errno));
 				else
 				{
 					printf ("Read: ");
-					canEepromPrintVariable (variable, eeprom.bufferUser, stdout);
+					canEepromPrintVariable (variable, eeprom.buffer, stdout);
 					printf (".\n");
 				}
 				break;
@@ -229,18 +229,18 @@ int main (int argc, char** argv)
 				break;
 
 			case 'v':
-				if (canEepromValidate (&eeprom, &socket, true) != 0)
+				if (canEepromWriteValid (&eeprom, &socket, true) != 0)
 					printf ("Failed to validate EEPROM: %s.\n", errorMessage (errno));
 				break;
 
 			case 'i':
-				if (canEepromValidate (&eeprom, &socket, false) != 0)
+				if (canEepromWriteValid (&eeprom, &socket, false) != 0)
 					printf ("Failed to invalidate EEPROM: %s.\n", errorMessage (errno));
 				break;
 
 			case 'c':
 				bool isValid;
-				if (canEepromIsValid (&eeprom, &socket, &isValid) != 0)
+				if (canEepromReadValid (&eeprom, &socket, &isValid) != 0)
 				 	printf ("Failed to check EEPROM validity: %s.\n", errorMessage (errno));
 				else
 					printf ("%s.\n", isValid ? "Valid" : "Invalid");
