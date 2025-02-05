@@ -6,9 +6,12 @@
 // Description: Command-line interface for interacting with a CAN bus.
 //
 // TODO(Barach):
-// - Utilize stdin in the same way the EEPROM CLI does.
+// - Utilize stdin/stdout in the same way the EEPROM CLI does.
 // - Long term, I want a shell script that can use this program to automatically clear all AMK errors (slow and tedious by
 //   hand)
+// - GNUPlot allows the user to pipe commands to it in realtime, meaning it can be used to monitor real-time data. Obviously
+//   this is incredibly useful. For now though, that part of the toolchain is covered by MoTeC, so its not worth implementing
+//   until next year.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 

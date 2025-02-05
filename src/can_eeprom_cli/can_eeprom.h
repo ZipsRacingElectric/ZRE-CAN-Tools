@@ -9,6 +9,10 @@
 // Description: Set of objects for interacting with a device's EEPROM through a CAN bus. In order to use this, a device must
 //   implement the handshake described below.
 //
+// TODO(Barach):
+// - The scope of this module has grown way too much, consider splitting into low-level (protocol & handshake) and high-level
+//   (variable mapping, matrices, stdio, etc.)
+//
 // Command Message:               Response Message:
 //   ---------------------------    ---------------------------
 //   | Byte | Meaning          |    | Byte | Meaning          |
@@ -99,6 +103,7 @@ typedef struct
 	uint16_t				canId;
 	canEepromVariable_t*	variables;
 	uint16_t				variableCount;
+	void*					buffer;
 } canEeprom_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

@@ -56,6 +56,9 @@ static const char* VARIABLE_NAMES [] =
 
 // Function Prototypes --------------------------------------------------------------------------------------------------------
 
+/// @brief Allocates enough memory to store the largest variable in the EEPROM
+int allocateBuffer (canEeprom_t* eeprom);
+
 /// @brief Encodes the command frame for a data write operation.
 struct can_frame writeMessageEncode (canEeprom_t* eeprom, uint16_t address, uint8_t count, void* buffer);
 
@@ -417,6 +420,16 @@ void canEepromPrintEmptyMap (canEeprom_t* eeprom, FILE* stream)
 }
 
 // Private Functions ----------------------------------------------------------------------------------------------------------
+
+int allocateBuffer (canEeprom_t* eeprom)
+{
+	uint16_t bufferSize = 0;
+
+	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
+	{
+		
+	}
+}
 
 struct can_frame writeMessageEncode (canEeprom_t* eeprom, uint16_t address, uint8_t count, void* buffer)
 {

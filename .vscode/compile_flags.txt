@@ -1,0 +1,4 @@
+-I../lib/
+-I../src/can_dbc_cli/
+-I../src/can_dbc_tui/
+-I../src/can_eeprom_cli/

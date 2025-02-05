@@ -1,0 +1,12 @@
+{
+	"C_Cpp.intelliSenseEngine": "disabled",
+	"C_Cpp.default.intelliSenseMode": "gcc-x86",
+	"clangd.arguments":
+	[
+		"-log=verbose",
+		"-pretty",
+		"--background-index",
+		"--compile-commands-dir=./.vscode/",
+		"-header-insertion=never"
+	]
+}

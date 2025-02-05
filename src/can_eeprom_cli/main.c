@@ -7,7 +7,10 @@
 //   usage details.
 //
 // TODO(Barach):
-// -h & -v options.
+// - '-h' & '-v' options.
+// - Figure out matrices. Prompt, parse, read, write, and print aren't hard, given the memory is already allocated. Allocation
+//   is the issue I see.
+// - Maybe a 'variableAllocateBuffer' function wrapping malloc?
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
