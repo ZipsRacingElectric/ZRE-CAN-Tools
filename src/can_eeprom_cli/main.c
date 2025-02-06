@@ -127,7 +127,7 @@ int main (int argc, char** argv)
 	}
 
 	const char* deviceName = argv [argc - 2];
-	const char* jsonPath = argv [argc - 1];
+	const char* configJsonPath = argv [argc - 1];
 
 	canSocket_t socket;
 	if (canSocketInit (&socket, deviceName) != 0)
@@ -144,14 +144,14 @@ int main (int argc, char** argv)
 	}
 
 	canEeprom_t eeprom;
-	cJSON* json = jsonLoad (jsonPath);
-	if (json == NULL)
+	cJSON* configJson = jsonLoad (configJsonPath);
+	if (configJson == NULL)
 	{
 		int code = errno;
-		fprintf (stderr, "Failed to load address JSON file: %s.\n", errorMessage (code));
+		fprintf (stderr, "Failed to load config JSON file: %s.\n", errorMessage (code));
 		return code;
 	}
-	if (canEepromInit (&eeprom, json) != 0)
+	if (canEepromInit (&eeprom, configJson) != 0)
 	{
 		int code = errno;
 		fprintf (stderr, "Failed to initialize CAN EEPROM: %s.\n", errorMessage (code));
@@ -213,9 +213,9 @@ int main (int argc, char** argv)
 				 	printf ("Failed to read variable from EEPROM: %s.\n", errorMessage (errno));
 				else
 				{
-					printf ("Read: ");
+					printf ("Read:\n");
 					canEepromPrintVariable (variable, eeprom.buffer, stdout);
-					printf (".\n");
+					printf ("\n");
 				}
 				break;
 
@@ -244,6 +244,10 @@ int main (int argc, char** argv)
 				 	printf ("Failed to check EEPROM validity: %s.\n", errorMessage (errno));
 				else
 					printf ("%s.\n", isValid ? "Valid" : "Invalid");
+				break;
+
+			default:
+				printf ("Enter a valid option.\n");
 				break;
 
 			case 'q':

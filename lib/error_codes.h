@@ -28,6 +28,7 @@
 #define ERRNO_CAN_EEPROM_BAD_RESPONSE_ID		1542
 #define ERRNO_CAN_EEPROM_BAD_KEY				1543
 #define ERRNO_CAN_EEPROM_BAD_VALUE				1544
+#define ERRNO_CAN_EEPROM_BAD_DIMENSION			1545
 
 // Error Messages -------------------------------------------------------------------------------------------------------------
 
@@ -48,6 +49,7 @@
 #define ERRMSG_CAN_EEPROM_BAD_RESPONSE_ID		"Received an EEPROM response with the incorrect message ID"
 #define ERRMSG_CAN_EEPROM_BAD_KEY				"EEPROM data JSON contains an invalid key"
 #define ERRMSG_CAN_EEPROM_BAD_VALUE				"EEPROM data JSON contains an invalid value"
+#define ERRMSG_CAN_EEPROM_BAD_DIMENSION			"EEPROM data JSON contains a matrix of the incorrect dimension"
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
@@ -83,6 +85,8 @@ static inline const char* errorMessage (int errorCode)
 		return ERRMSG_CAN_EEPROM_BAD_KEY;
 	else if (errorCode == ERRNO_CAN_EEPROM_BAD_VALUE)
 		return ERRMSG_CAN_EEPROM_BAD_VALUE;
+	else if (errorCode == ERRNO_CAN_EEPROM_BAD_DIMENSION)
+		return ERRMSG_CAN_EEPROM_BAD_DIMENSION;
 	else
 	 	return strerror (errorCode);
 }
