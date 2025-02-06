@@ -147,12 +147,13 @@ canEepromVariable_t* canEepromPromptVariable (canEeprom_t* eeprom, FILE* streamI
 void canEepromPromptValue (canEepromVariable_t* variable, void* buffer, FILE* streamIn, FILE* streamOut);
 
 /**
- * @brief Prints the value of a variable to the specified stream.
+ * @brief Prints the value of a variable to the specified stream. The value is followed by a newline.
  * @param variable The variable to print the value of.
  * @param buffer The value of the variable.
+ * @param indent The indentation to use at the beginning of each new line (for matrices).
  * @param stream The stream to print to.
  */
-void canEepromPrintVariable (canEepromVariable_t* variable, void* buffer, FILE* stream);
+void canEepromPrintVariableValue (canEepromVariable_t* variable, void* buffer, const char* indent, FILE* stream);
 
 /**
  * @brief Reads and prints all the contents of an EEPROM's memory to a table.

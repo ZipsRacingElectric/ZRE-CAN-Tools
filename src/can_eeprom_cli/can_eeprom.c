@@ -47,9 +47,6 @@ void printPrimativeValue (canEepromVariable_t* variable, void* buffer, FILE* str
 /// @brief Prints the datatype and indices of an element of a matrix/array variable.
 void printVariableIndex (canEepromVariable_t* variable, FILE* stream, uint16_t x, uint16_t y);
 
-/// @brief Prints the value of a variable (including matrices / arrays). Value is followed by newline.
-void printVariableValue (canEepromVariable_t* variable, void* buffer, const char* indent, FILE* stream);
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 int canEepromInit (canEeprom_t* eeprom, cJSON* configJson)
@@ -368,43 +365,24 @@ void canEepromPromptValue (canEepromVariable_t* variable, void* buffer, FILE* st
 	}
 }
 
-void canEepromPrintVariable (canEepromVariable_t* variable, void* buffer, FILE* stream)
+void canEepromPrintVariableValue (canEepromVariable_t* variable, void* buffer, const char* indent, FILE* stream)
 {
-	fprintf (stream, "[");
 	for (uint16_t y = 0; y < variable->height; ++y)
 	{
-		fprintf (stream, "[");
-
 		for (uint16_t x = 0; x < variable->width; ++x)
 		{
-			switch (variable->type)
-			{
-			case CAN_EEPROM_TYPE_UINT8_T:
-				fprintf (stream, "%u", *((uint8_t*) buffer));
-				break;
-			case CAN_EEPROM_TYPE_UINT16_T:
-				fprintf (stream, "%u", *((uint16_t*) buffer));
-				break;
-			case CAN_EEPROM_TYPE_UINT32_T:
-				fprintf (stream, "%u", *((uint32_t*) buffer));
-				break;
-			case CAN_EEPROM_TYPE_FLOAT:
-				fprintf (stream, "%f", *((float*) buffer));
-				break;
-			}
-
+			printPrimativeValue (variable, buffer, stream);
 			buffer += VARIABLE_SIZES [variable->type];
 
 			if (x != variable->width - 1)
 				fprintf (stream, ", ");
 		}
 
-		fprintf (stream, "]");
-
 		if (y != variable->height - 1)
-			fprintf (stream, ", ");
+			fprintf (stream, "\n%s", indent);
 	}
-	fprintf (stream, "]");
+
+	fprintf (stream, "\n");
 }
 
 int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
@@ -433,7 +411,8 @@ int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 		else
 			fprintf (stream, "%23s", VARIABLE_TYPE_NAMES [variable->type]);
 		fprintf (stream, " | ");
-		printVariableValue (variable, eeprom->buffer, "                         |                         | ", stream);
+		canEepromPrintVariableValue (variable, eeprom->buffer,
+			"                         |                         | ", stream);
 	}
 
 	fprintf (stream, "\n");
@@ -502,7 +481,7 @@ void printPrimativeValue (canEepromVariable_t* variable, void* buffer, FILE* str
 		fprintf (stream, "%u", *((uint32_t*) buffer));
 		break;
 	case CAN_EEPROM_TYPE_FLOAT:
-		fprintf (stream, "%f", *((float*) buffer));
+		fprintf (stream, "%.3f", *((float*) buffer));
 		break;
 	}
 }
@@ -515,24 +494,4 @@ void printVariableIndex (canEepromVariable_t* variable, FILE* stream, uint16_t x
 		fprintf (stream, "%s [%u]", VARIABLE_TYPE_NAMES [variable->type], x);
 	else
 		fprintf (stream, "%s", VARIABLE_TYPE_NAMES [variable->type]);
-}
-
-void printVariableValue (canEepromVariable_t* variable, void* buffer, const char* indent, FILE* stream)
-{
-	for (uint16_t y = 0; y < variable->height; ++y)
-	{
-		for (uint16_t x = 0; x < variable->width; ++x)
-		{
-			printPrimativeValue (variable, buffer, stream);
-			buffer += VARIABLE_SIZES [variable->type];
-
-			if (x != variable->width - 1)
-				fprintf (stream, ", ");
-		}
-
-		if (y != variable->height - 1)
-			fprintf (stream, "\n%s", indent);
-	}
-
-	fprintf (stream, "\n");
 }

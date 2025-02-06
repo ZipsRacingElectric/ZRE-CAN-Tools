@@ -132,6 +132,13 @@
 			"address":	"0x64",
 			"name":		"SAS_DEADZONE_RANGE",
 			"type":		"float"
+		},
+		{
+			"address":	"0x100",
+			"name":		"CHATFIELD_LUT",
+			"type":		"float",
+			"width":	"21",
+			"height":	"31"
 		}
 	]
 }

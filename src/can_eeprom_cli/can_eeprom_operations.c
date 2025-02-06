@@ -21,11 +21,11 @@
 #define EEPROM_RESPONSE_MESSAGE_IS_VALID(word)				(((word) & 0b00000100) == 0b00000100)
 #define EEPROM_RESPONSE_MESSAGE_DATA_COUNT(word)			((((word) & 0b00001100) >> 2) + 1)
 
-#define RESPONSE_ATTEMPT_COUNT 7
+#define RESPONSE_ATTEMPT_COUNT 500
 static const struct timeval RESPONSE_ATTEMPT_TIMEOUT =
 {
 	.tv_sec		= 0,
-	.tv_usec	= 200000
+	.tv_usec	= 1000
 };
 
 // Function Prototypes --------------------------------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ int canEepromValidate (uint16_t canId, canSocket_t* socket, bool isValid)
 	struct can_frame commandFrame = validateMessageEncode (canId, isValid);
 
 	bool readIsValid;
-	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
+	for (uint16_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
 		canSocketTransmit (socket, &commandFrame);
 		if (canEepromIsValid (canId, socket, &readIsValid) != 0)
@@ -113,7 +113,7 @@ int canEepromIsValid (uint16_t canId, canSocket_t* socket, bool* isValid)
 {
 	struct can_frame commandFrame = isValidMessageEncode (canId);
 
-	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
+	for (uint16_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
 		if (canSocketTransmit (socket, &commandFrame) != 0)
 			return errno;
@@ -240,7 +240,7 @@ int writeSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t 
 
 	uint8_t bufferRead [4];
 
-	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
+	for (uint16_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
 		canSocketTransmit (socket, &commandFrame);
 		if (readSingle (canId, socket, address, count, bufferRead) != 0)
@@ -258,7 +258,7 @@ int readSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t c
 {
 	struct can_frame commandFrame = readMessageEncode (canId, address, count);
 
-	for (uint8_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
+	for (uint16_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
 		if (canSocketTransmit (socket, &commandFrame) != 0)
 			return errno;

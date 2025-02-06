@@ -29,8 +29,8 @@
 			"program": "${workspaceFolder}/bin/can-eeprom-cli",
 			"args":
 			[
-				"-p=${workspaceFolder}/config/vcu_data.json",
-				"vcan",
+				// "-p=${workspaceFolder}/config/vcu_data.json",
+				"can0",
 				"${workspaceFolder}/config/vcu_config.json",
 			],
 			"stopAtEntry": false,

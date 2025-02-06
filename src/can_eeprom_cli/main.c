@@ -213,9 +213,8 @@ int main (int argc, char** argv)
 				 	printf ("Failed to read variable from EEPROM: %s.\n", errorMessage (errno));
 				else
 				{
-					printf ("Read:\n");
-					canEepromPrintVariable (variable, eeprom.buffer, stdout);
-					printf ("\n");
+					printf ("Read: ");
+					canEepromPrintVariableValue (variable, eeprom.buffer, "      ", stdout);
 				}
 				break;
 
