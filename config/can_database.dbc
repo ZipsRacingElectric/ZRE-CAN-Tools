@@ -56,6 +56,12 @@ BO_ 256 VCU_STATUS: 4 Vector__XXX
  SG_ GPS_VALID : 20|1@1+ (1,0) [0|0] "Bool" Vector__XXX
  SG_ GLV_BATTERY_VOLTAGE : 24|8@1+ (0.070588235294,0) [0|18] "V" Vector__XXX
 
+BO_ 1874 VCU_DEBUG_MESSAGE: 8 Vector__XXX
+ SG_ VCU_DEBUG_0 : 0|16@1- (0.01,0) [0|0] "" Vector__XXX
+ SG_ VCU_DEBUG_1 : 16|16@1- (0.01,0) [0|0] "" Vector__XXX
+ SG_ VCU_DEBUG_2 : 32|16@1- (0.01,0) [0|0] "" Vector__XXX
+ SG_ VCU_DEBUG_3 : 48|16@1- (0.01,0) [0|0] "" Vector__XXX
+
 BO_ 1536 VCU_SENSOR_INPUT_PERCENT: 8 VCU
  SG_ APPS_1_PERCENT : 0|12@1+ (0.02442002442002442,0) [0|100] "%" Vector__XXX
  SG_ APPS_2_PERCENT : 12|12@1+ (0.02442002442002442,0) [0|100] "%" Vector__XXX
@@ -379,13 +385,13 @@ BO_ 890 MOTEC_RESERVED_6: 0 Vector__XXX
  SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
 
 BO_ 894 MOTEC_RESERVED_7: 0 Vector__XXX
- SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
 
 CM_ SG_ 1280 RL_TEMPERATURE_EXTERNAL "TODO(Barach): No documented scale factor";
 CM_ SG_ 1280 RL_TEMPERATURE_SENSOR_MOTOR "TODO(Barach): No documented scale factor";
 
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+
 
 
 

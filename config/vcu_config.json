@@ -105,12 +105,12 @@
 		},
 		{
 			"address":	"0x54",
-			"name":		"SAS_POSITIVE_SAMPLE",
+			"name":		"SAS_SAMPLE_OFFSET",
 			"type":		"uint16_t"
 		},
 		{
 			"address":	"0x56",
-			"name":		"SAS_ZERO_SAMPLE",
+			"name":		"SAS_POSITIVE_SAMPLE",
 			"type":		"uint16_t"
 		},
 		{
