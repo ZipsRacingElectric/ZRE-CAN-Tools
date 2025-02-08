@@ -136,7 +136,7 @@ int main (int argc, char** argv)
 		fprintf (stderr, "Failed to open CAN socket '%s': %s.\n", deviceName, errorMessage (code));
 		return code;
 	}
-	if (canSocketSetTimeout (&socket, 100) != 0)
+	if (canSocketSetTimeout (&socket, 1) != 0)
 	{
 		int code = errno;
 		fprintf (stderr, "Failed to set CAN socket timeout: %s\n", errorMessage (code));
