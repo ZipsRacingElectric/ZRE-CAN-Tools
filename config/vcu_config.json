@@ -5,131 +5,189 @@
 	[
 		{
 			"address":	"0x10",
-			"name":		"APPS_1_MIN",
-			"type":		"uint16_t"
+			"name":		"APPS_1_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of APPS-1. Any lower indicates a fault condition."
 		},
 		{
 			"address":	"0x12",
-			"name":		"APPS_1_MAX",
-			"type":		"uint16_t"
+			"name":		"APPS_1_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample at which APPS-1 begins requesting torque."
 		},
 		{
 			"address":	"0x14",
-			"name":		"APPS_2_MIN",
-			"type":		"uint16_t"
+			"name":		"APPS_1_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample at which APPS-1 stops requesting torque."
 		},
 		{
 			"address":	"0x16",
-			"name":		"APPS_2_MAX",
-			"type":		"uint16_t"
+			"name":		"APPS_1_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of APPS-1. Any higher indicates a fault condition."
 		},
 		{
 			"address":	"0x18",
-			"name":		"BSE_F_MIN",
-			"type":		"uint16_t"
+			"name":		"APPS_2_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of APPS-2. Any lower indicates a fault condition."
 		},
 		{
 			"address":	"0x1A",
-			"name":		"BSE_F_MAX",
-			"type":		"uint16_t"
+			"name":		"APPS_2_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample at which APPS-2 begins requesting torque."
 		},
 		{
 			"address":	"0x1C",
-			"name":		"BSE_R_MIN",
-			"type":		"uint16_t"
+			"name":		"APPS_2_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample at which APPS-2 stops requesting torque."
 		},
 		{
 			"address":	"0x1E",
-			"name":		"BSE_R_MAX",
-			"type":		"uint16_t"
+			"name":		"APPS_2_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of APPS-2. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x20",
+			"name":		"BSE_F_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of BSE-F. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x22",
+			"name":		"BSE_F_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample of the linear range of BSE-F."
+		},
+		{
+			"address":	"0x24",
+			"name":		"BSE_F_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample of the linear range of BSE-F."
+		},
+		{
+			"address":	"0x26",
+			"name":		"BSE_F_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of BSE-F. Any higher indicates a fault condition."
 		},
 		{
 			"address":	"0x28",
+			"name":		"BSE_R_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of BSE-R. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x2A",
+			"name":		"BSE_R_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample of the linear range of BSE-R."
+		},
+		{
+			"address":	"0x2C",
+			"name":		"BSE_R_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample of the linear range of BSE-R."
+		},
+		{
+			"address":	"0x2E",
+			"name":		"BSE_R_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of BSE-R. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x30",
 			"name":		"DRIVING_TORQUE_LIMIT",
 			"type":		"float"
 		},
 		{
-			"address":	"0x2C",
+			"address":	"0x34",
 			"name":		"DRIVING_TORQUE_BIAS",
 			"type":		"float"
 		},
 		{
-			"address":	"0x30",
+			"address":	"0x38",
 			"name":		"REGEN_TORQUE_LIMIT",
 			"type":		"float"
 		},
 		{
-			"address":	"0x34",
+			"address":	"0x3C",
 			"name":		"REGEN_TORQUE_BIAS",
 			"type":		"float"
 		},
 		{
-			"address":	"0x38",
+			"address":	"0x40",
 			"name":		"TORQUE_ALGORITHM_INDEX",
 			"type":		"uint16_t"
 		},
 		{
-			"address":	"0x3C",
+			"address":	"0x44",
 			"name":		"POWER_LIMIT",
 			"type":		"float"
 		},
 		{
-			"address":	"0x40",
+			"address":	"0x48",
 			"name":		"POWER_LIMIT_PID_KP",
 			"type":		"float"
 		},
 		{
-			"address":	"0x44",
+			"address":	"0x4C",
 			"name":		"POWER_LIMIT_PID_KI",
 			"type":		"float"
 		},
 		{
-			"address":	"0x48",
+			"address":	"0x50",
 			"name":		"POWER_LIMIT_PID_KD",
 			"type":		"float"
 		},
 		{
-			"address":	"0x4C",
+			"address":	"0x54",
 			"name":		"POWER_LIMIT_PID_A",
 			"type":		"float"
 		},
 		{
-			"address":	"0x50",
+			"address":	"0x58",
 			"name":		"GLV_BATTERY_SAMPLE_11V5",
-			"type":		"uint16_t"
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the GLV battery at 11.5V."
 		},
 		{
-			"address":	"0x52",
+			"address":	"0x5A",
 			"name":		"GLV_BATTERY_SAMPLE_14V4",
-			"type":		"uint16_t"
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the GLV battery at 14.4V."
 		},
 		{
-			"address":	"0x54",
+			"address":	"0x5C",
 			"name":		"SAS_SAMPLE_OFFSET",
 			"type":		"uint16_t"
 		},
 		{
-			"address":	"0x56",
-			"name":		"SAS_POSITIVE_SAMPLE",
+			"address":	"0x5E",
+			"name":		"SAS_SAMPLE_NEGATIVE",
 			"type":		"uint16_t"
-		},
-		{
-			"address":	"0x58",
-			"name":		"SAS_NEGATIVE_SAMPLE",
-			"type":		"uint16_t"
-		},
-		{
-			"address":	"0x5C",
-			"name":		"SAS_POSITIVE_ANGLE",
-			"type":		"float"
 		},
 		{
 			"address":	"0x60",
-			"name":		"SAS_NEGATIVE_ANGLE",
-			"type":		"float"
+			"name":		"SAS_SAMPLE_POSITIVE",
+			"type":		"uint16_t"
 		},
 		{
 			"address":	"0x64",
+			"name":		"SAS_ANGLE_NEGATIVE",
+			"type":		"float"
+		},
+		{
+			"address":	"0x68",
+			"name":		"SAS_ANGLE_POSITIVE",
+			"type":		"float"
+		},
+		{
+			"address":	"0x6C",
 			"name":		"SAS_DEADZONE_RANGE",
 			"type":		"float"
 		},
