@@ -197,6 +197,42 @@
 			"type":		"float",
 			"width":	"21",
 			"height":	"31"
+		},
+		{
+			"address":	"0x1000",
+			"name":		"APPS_1_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x1004",
+			"name":		"APPS_2_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x1008",
+			"name":		"BSE_F_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x100C",
+			"name":		"BSE_R_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x1010",
+			"name":		"SAS_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x1014",
+			"name":		"GLV_BATTERY_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
 		}
 	]
 }

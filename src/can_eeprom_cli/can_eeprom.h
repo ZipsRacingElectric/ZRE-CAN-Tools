@@ -28,11 +28,19 @@ typedef enum
 	CAN_EEPROM_TYPE_FLOAT		= 3,
 } canEepromType_t;
 
+typedef enum
+{
+	CAN_EEPROM_MODE_READ_WRITE	= 0,
+	CAN_EEPROM_MODE_READ_ONLY	= 1,
+	CAN_EEPROM_MODE_WRITE_ONLY	= 2
+} canEepromMode_t;
+
 typedef struct
 {
 	char*			name;
 	uint16_t		address;
 	canEepromType_t	type;
+	canEepromMode_t	mode;
 	uint16_t		width;
 	uint16_t		height;
 } canEepromVariable_t;

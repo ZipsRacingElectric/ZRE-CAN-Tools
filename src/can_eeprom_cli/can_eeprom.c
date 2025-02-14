@@ -95,6 +95,21 @@ int canEepromInit (canEeprom_t* eeprom, cJSON* configJson)
 			return errno;
 		}
 
+		char* variableMode = "read_write";
+		jsonGetString (element, "mode", &variableMode);
+
+		if (strcmp (variableMode, "read_write") == 0)
+			variable->mode = CAN_EEPROM_MODE_READ_WRITE;
+		else if (strcmp (variableMode, "read_only") == 0)
+			variable->mode = CAN_EEPROM_MODE_READ_ONLY;
+		else if (strcmp (variableMode, "write_only") == 0)
+			variable->mode = CAN_EEPROM_MODE_WRITE_ONLY;
+		else
+		{
+			errno = ERRNO_CAN_EEPROM_INVALID_MODE;
+			return errno;
+		};
+
 		// Check whether the variable is a matrix.
 		if (jsonGetUint16_t (element, "width", &variable->width) == 0)
 		{
@@ -115,12 +130,24 @@ int canEepromInit (canEeprom_t* eeprom, cJSON* configJson)
 
 int canEepromWriteVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer)
 {
+	if (variable->mode == CAN_EEPROM_MODE_READ_ONLY)
+	{
+		errno = ERRNO_CAN_EEPROM_READ_ONLY;
+		return errno;
+	}
+
 	uint16_t count = VARIABLE_SIZES [variable->type] * variable->width * variable->height;
 	return canEepromWrite (eeprom->canId, socket, variable->address, count, buffer);
 }
 
 int canEepromReadVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer)
 {
+	if (variable->mode == CAN_EEPROM_MODE_WRITE_ONLY)
+	{
+		errno = ERRNO_CAN_EEPROM_WRITE_ONLY;
+		return errno;
+	}
+
 	uint16_t count = VARIABLE_SIZES [variable->type] * variable->width * variable->height;
 	return canEepromRead (eeprom->canId, socket, variable->address, count, buffer);
 }
@@ -230,8 +257,13 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 	// Traverse each variable
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
-		// Read the variable's value
 		canEepromVariable_t* variable = eeprom->variables + index;
+
+		// Skip write-only variables
+		if (variable->mode == CAN_EEPROM_MODE_WRITE_ONLY)
+			continue;
+
+		// Read the variable's value
 		void* buffer = eeprom->buffer;
 		if (canEepromReadVariable (eeprom, socket, variable, buffer) != 0)
 			return errno;

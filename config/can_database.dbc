@@ -363,28 +363,20 @@ BO_ 1873 VCU_EEPROM_RESPONSE: 8 Vector__XXX
  SG_ VCU_EEPROM_COMMAND_ADDRESS : 16|16@1+ (0,0) [0|0] "" Vector__XXX
  SG_ VCU_EEPROM_COMMAND_DATA : 32|32@1+ (0,0) [0|0] "" Vector__XXX
 
-BO_ 233 MOTEC_RESERVED_0: 0 Vector__XXX
  SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
 
-BO_ 864 MOTEC_RESERVED_1: 0 Vector__XXX
  SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
 
-BO_ 865 MOTEC_RESERVED_2: 0 Vector__XXX
  SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
 
-BO_ 866 MOTEC_RESERVED_3: 0 Vector__XXX
  SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
 
-BO_ 879 MOTEC_RESERVED_4: 0 Vector__XXX
  SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
 
-BO_ 889 MOTEC_RESERVED_5: 0 Vector__XXX
  SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
 
-BO_ 890 MOTEC_RESERVED_6: 0 Vector__XXX
  SG_  : 0|0@1+ (0,0) [0|0] "" Vector__XXX
 
-BO_ 894 MOTEC_RESERVED_7: 0 Vector__XXX
 
 CM_ SG_ 1280 RL_TEMPERATURE_EXTERNAL "TODO(Barach): No documented scale factor";
 CM_ SG_ 1280 RL_TEMPERATURE_SENSOR_MOTOR "TODO(Barach): No documented scale factor";
