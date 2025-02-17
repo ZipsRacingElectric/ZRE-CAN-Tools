@@ -36,8 +36,6 @@ cJSON* jsonLoad (const char* path)
 
 cJSON* jsonRead (FILE* stream)
 {
-	// TODO(Barach): Buffer overflow
-
 	char buffer [JSON_SIZE_MAX];
 	int c;
 
