@@ -102,52 +102,62 @@
 		{
 			"address":	"0x30",
 			"name":		"DRIVING_TORQUE_LIMIT",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The cumulative driving (positive) torque limit, in Nm."
 		},
 		{
 			"address":	"0x34",
 			"name":		"DRIVING_TORQUE_BIAS",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The front to rear bias of the driving torque. 0 => 100% rear, 1 => 100% front. Note that not all algorithms may respect this."
 		},
 		{
 			"address":	"0x38",
 			"name":		"REGEN_TORQUE_LIMIT",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The cumulative regenerative (negative) torque limit, in Nm."
 		},
 		{
 			"address":	"0x3C",
 			"name":		"REGEN_TORQUE_BIAS",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The front to rear bias of the regenerative torque. 0 => 100% rear, 1 => 100% front. Note that not all algorithms may respect this."
 		},
 		{
 			"address":	"0x40",
 			"name":		"TORQUE_ALGORITHM_INDEX",
-			"type":		"uint16_t"
+			"type":		"uint16_t",
+			"comment":	"The index of the torque-vectoring algorithm to use."
 		},
 		{
 			"address":	"0x44",
 			"name":		"POWER_LIMIT",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The cumulative power limit of the vehicle, in W."
 		},
 		{
 			"address":	"0x48",
 			"name":		"POWER_LIMIT_PID_KP",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The proportional coefficient of the power limit PID, in 1/W."
 		},
 		{
 			"address":	"0x4C",
 			"name":		"POWER_LIMIT_PID_KI",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The integral coefficient of the power limit PID, in 1/Ws."
 		},
 		{
 			"address":	"0x50",
 			"name":		"POWER_LIMIT_PID_KD",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The derivative coefficient of the power limit PID, in s/W."
 		},
 		{
 			"address":	"0x54",
 			"name":		"POWER_LIMIT_PID_A",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The measurement gain of the power limit PID, in range [0, 1)"
 		},
 		{
 			"address":	"0x58",
@@ -164,32 +174,62 @@
 		{
 			"address":	"0x5C",
 			"name":		"SAS_SAMPLE_OFFSET",
-			"type":		"uint16_t"
+			"type":		"uint16_t",
+			"comment":	"The sample of the steering angle sensor at the zero position, minus 2048."
 		},
 		{
 			"address":	"0x5E",
 			"name":		"SAS_SAMPLE_NEGATIVE",
-			"type":		"uint16_t"
+			"type":		"uint16_t",
+			"comment":	"The sample of the steering angle sensor at the negative-most position."
 		},
 		{
 			"address":	"0x60",
 			"name":		"SAS_SAMPLE_POSITIVE",
-			"type":		"uint16_t"
+			"type":		"uint16_t",
+			"comment":	"The sample of the steering angle sensor at the positive-most position."
 		},
 		{
 			"address":	"0x64",
 			"name":		"SAS_ANGLE_NEGATIVE",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The steering angle of the vehicle at the negative-most position."
 		},
 		{
 			"address":	"0x68",
 			"name":		"SAS_ANGLE_POSITIVE",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The steering angle of the vehicle at the positive-most position."
 		},
 		{
 			"address":	"0x6C",
 			"name":		"SAS_DEADZONE_RANGE",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The range of the steering angle deadzone, centered around the zero position."
+		},
+		{
+			"address":	"0x70",
+			"name":		"DEBUG_ADDRESS_0",
+			"type":		"uint16_t",
+			"comment":	"The address of the first readonly variable to print in the VCU debug message."
+		},
+		{
+			"address":	"0x72",
+			"name":		"DEBUG_ADDRESS_1",
+			"type":		"uint16_t",
+			"comment":	"The address of the second readonly variable to print in the VCU debug message."
+		},
+		{
+			"address":	"0x74",
+			"name":		"DEBUG_ADDRESS_2",
+			"type":		"uint16_t",
+			"comment":	"The address of the third readonly variable to print in the VCU debug message."
+		},
+		{
+			"address":	"0x76",
+			"name":		"DEBUG_ADDRESS_3",
+			"type":		"uint16_t",
+			"comment":	"The address of the fourth readonly variable to print in the VCU debug message."
 		},
 		{
 			"address":	"0x100",
@@ -202,37 +242,71 @@
 			"address":	"0x1000",
 			"name":		"APPS_1_SAMPLE",
 			"type":		"uint16_t",
-			"mode":		"read_only"
+			"mode":		"read_only",
+			"comment":	"The raw sample of APPS-1."
+		},
+		{
+			"address":	"0x1002",
+			"name":		"APPS_2_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of APPS-2."
 		},
 		{
 			"address":	"0x1004",
-			"name":		"APPS_2_SAMPLE",
+			"name":		"BSE_F_SAMPLE",
 			"type":		"uint16_t",
-			"mode":		"read_only"
+			"mode":		"read_only",
+			"comment":	"The raw sample of BSE-F."
+		},
+		{
+			"address":	"0x1006",
+			"name":		"BSE_R_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of BSE-R."
 		},
 		{
 			"address":	"0x1008",
-			"name":		"BSE_F_SAMPLE",
+			"name":		"SAS_SAMPLE",
 			"type":		"uint16_t",
-			"mode":		"read_only"
+			"mode":		"read_only",
+			"comment":	"The raw sample of the SAS. Note the offset is applied."
+		},
+		{
+			"address":	"0x100A",
+			"name":		"GLV_BATTERY_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of the GLV battery ADC."
 		},
 		{
 			"address":	"0x100C",
-			"name":		"BSE_R_SAMPLE",
-			"type":		"uint16_t",
-			"mode":		"read_only"
+			"name":		"TORQUE_REQUEST_RL",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The torque to be requested of the rear-left inverter."
 		},
 		{
 			"address":	"0x1010",
-			"name":		"SAS_SAMPLE",
-			"type":		"uint16_t",
-			"mode":		"read_only"
+			"name":		"TORQUE_REQUEST_RR",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The torque to be requested of the rear-right inverter."
 		},
 		{
 			"address":	"0x1014",
-			"name":		"GLV_BATTERY_SAMPLE",
-			"type":		"uint16_t",
-			"mode":		"read_only"
+			"name":		"TORQUE_REQUEST_FL",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The torque to be requested of the front-left inverter."
+		},
+		{
+			"address":	"0x1018",
+			"name":		"TORQUE_REQUEST_FR",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The torque to be requested of the front-right inverter."
 		}
 	]
 }
