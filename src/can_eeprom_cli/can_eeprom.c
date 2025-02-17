@@ -259,8 +259,8 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 	{
 		canEepromVariable_t* variable = eeprom->variables + index;
 
-		// Skip write-only variables
-		if (variable->mode == CAN_EEPROM_MODE_WRITE_ONLY)
+		// Skip read-only / write-only variables
+		if (variable->mode != CAN_EEPROM_MODE_READ_WRITE)
 			continue;
 
 		// Read the variable's value
