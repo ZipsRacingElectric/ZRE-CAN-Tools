@@ -18,6 +18,7 @@
 #define ERRNO_CJSON_EOF							1280
 #define ERRNO_CJSON_PARSE_FAIL					1281
 #define ERRNO_CJSON_MISSING_KEY					1282
+#define ERRNO_CJSON_MAX_SIZE					1283
 
 #define ERRNO_CAN_EEPROM_INVALID_TYPE			1536
 #define ERRNO_CAN_EEPROM_INVALID_MODE			1537
@@ -42,6 +43,7 @@
 #define ERRMSG_CJSON_EOF						"Unexpected end of JSON data"
 #define ERRMSG_CJSON_PARSE_FAIL					"Invalid JSON data"
 #define ERRMSG_CJSON_MISSING_KEY				"Missing JSON key"
+#define ERRMSG_CJSON_MAX_SIZE					"The JSON file exceeds the maximum size"
 
 #define ERRMSG_CAN_EEPROM_INVALID_TYPE			"Invalid EEPROM variable type"
 #define ERRMSG_CAN_EEPROM_INVALID_MODE			"Invalid EEPROM variable mode"
@@ -75,6 +77,8 @@ static inline const char* errorMessage (int errorCode)
 		return ERRMSG_CJSON_PARSE_FAIL;
 	case ERRNO_CJSON_MISSING_KEY:
 		return ERRMSG_CJSON_MISSING_KEY;
+	case ERRNO_CJSON_MAX_SIZE:
+		return ERRMSG_CJSON_MAX_SIZE;
 	case ERRNO_CAN_EEPROM_INVALID_TYPE:
 		return ERRMSG_CAN_EEPROM_INVALID_TYPE;
 	case ERRNO_CAN_EEPROM_INVALID_MODE:

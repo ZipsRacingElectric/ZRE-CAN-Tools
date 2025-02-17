@@ -12,7 +12,7 @@
 // Constants ------------------------------------------------------------------------------------------------------------------
 
 /// @brief The maximum size of a json file to load, in bytes.
-#define JSON_SIZE_MAX 8192
+#define JSON_SIZE_MAX 16384
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
@@ -36,6 +36,8 @@ cJSON* jsonLoad (const char* path)
 
 cJSON* jsonRead (FILE* stream)
 {
+	// TODO(Barach): Buffer overflow
+
 	char buffer [JSON_SIZE_MAX];
 	int c;
 
@@ -67,6 +69,12 @@ cJSON* jsonRead (FILE* stream)
 
 		*head = c;
 		++head;
+
+		if (head - buffer == JSON_SIZE_MAX)
+		{
+			errno = ERRNO_CJSON_MAX_SIZE;
+			return NULL;
+		}
 
 		// Count the number of brackets
 		if (c == '{')
