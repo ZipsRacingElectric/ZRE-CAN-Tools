@@ -152,16 +152,6 @@ int canEepromReadVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVa
 	return canEepromRead (eeprom->canId, socket, variable->address, count, buffer);
 }
 
-int canEepromWriteValid (canEeprom_t* eeprom, canSocket_t* socket, bool isValid)
-{
-	return canEepromValidate (eeprom->canId, socket, isValid);
-}
-
-int canEepromReadValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid)
-{
-	return canEepromIsValid (eeprom->canId, socket, isValid);
-}
-
 int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJson)
 {
 	size_t keyCount = cJSON_GetArraySize (dataJson);
@@ -419,11 +409,7 @@ void canEepromPrintVariableValue (canEepromVariable_t* variable, void* buffer, c
 
 int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 {
-	bool isValid;
-	if (canEepromIsValid (eeprom->canId, socket, &isValid) != 0)
-		return errno;
-
-	fprintf (stream, "%s Memory Map: %s\n", eeprom->name, isValid ? "Valid" : "Invalid");
+	fprintf (stream, "%s Memory Map:\n", eeprom->name);
 	fprintf (stream, "----------------------------------------------------------------\n");
 	fprintf (stream, "%24s | %23s | %10s\n", "Variable", "Type", "Value");
 	fprintf (stream, "-------------------------|-------------------------|------------\n");

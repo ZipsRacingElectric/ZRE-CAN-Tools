@@ -8,7 +8,8 @@
 //
 // TODO(Barach):
 // - '-h' & '-v' options.
-// - Implement matrices.
+// - Write-only data implementation is bugged, as it cannot be properly validated (can't read). The overall handshake needs
+//   rev'd to include a response to all commands, not only read commands.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -225,24 +226,6 @@ int main (int argc, char** argv)
 
 			case 'e':
 				canEepromPrintEmptyMap (&eeprom, stdout);
-				break;
-
-			case 'v':
-				if (canEepromWriteValid (&eeprom, &socket, true) != 0)
-					printf ("Failed to validate EEPROM: %s.\n", errorMessage (errno));
-				break;
-
-			case 'i':
-				if (canEepromWriteValid (&eeprom, &socket, false) != 0)
-					printf ("Failed to invalidate EEPROM: %s.\n", errorMessage (errno));
-				break;
-
-			case 'c':
-				bool isValid;
-				if (canEepromReadValid (&eeprom, &socket, &isValid) != 0)
-				 	printf ("Failed to check EEPROM validity: %s.\n", errorMessage (errno));
-				else
-					printf ("%s.\n", isValid ? "Valid" : "Invalid");
 				break;
 
 			default:

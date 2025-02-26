@@ -6,7 +6,8 @@
 // Author: Cole Barach
 // Date created: 2025.01.09
 //
-// Description: Object and functions for interacting with a device's EEPROM through a CAN bus.
+// Description: Object and functions for interacting with a device's EEPROM through a CAN bus. See the 'can_eeprom_operations'
+//   module for a low-level description of the CAN interface a device must implement.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -88,24 +89,6 @@ int canEepromWriteVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromV
  * @return 0 if successful, the error code otherwise.
  */
 int canEepromReadVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer);
-
-/**
- * @brief Writes a validation command to an EEPROM.
- * @param eeprom The EEPROM to validate/invalidate.
- * @param socket The CAN socket to negotiate with.
- * @param isValid The validity to write. True => valid, false => invalid.
- * @return 0 if successful, the error code otherwise.
- */
-int canEepromWriteValid (canEeprom_t* eeprom, canSocket_t* socket, bool isValid);
-
-/**
- * @brief Reads the validity of an EEPROM.
- * @param eeprom The EEPROM to check the validity of.
- * @param socket The CAN socket to negotiate with.
- * @param isValid Written to contain the validity of the EEPROM.
- * @return 0 if successful, the error code otherwise.
- */
-int canEepromReadValid (canEeprom_t* eeprom, canSocket_t* socket, bool* isValid);
 
 /**
  * @brief Writes the contents of a data JSON to the EEPROM.

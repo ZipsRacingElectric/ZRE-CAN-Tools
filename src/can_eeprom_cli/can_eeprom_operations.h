@@ -10,62 +10,46 @@
 //   use, higher level interactions should be done using the 'can_eeprom' module. In order to use this, a device must
 //   implement the below interface.
 //
-// Command Message:               Response Message:
-//   ---------------------------    ---------------------------
-//   | Byte | Meaning          |    | Byte | Meaning          |
-//   |------|------------------|    |------|------------------|
-//   |  7   |                  |    |  7   |                  |
-//   |  6   | Data Word        |    |  6   | Data Word        |
-//   |  5   | (32-bit)         |    |  5   | (32-bit)         |
-//   |  4   |                  |    |  4   |                  |
-//   |------|------------------|    |------|------------------|
-//   |  3   | Data Address     |    |  3   | Data Address     |
-//   |  2   | (16-bit)         |    |  2   | (16-bit)         |
-//   |------|------------------|    |------|------------------|
-//   |  1   | Reserved         |    |  1   | Reserved         |
-//   |------|------------------|    |------|------------------|
-//   |  0   | Instruction Byte |    |  0   | Instruction Byte |
-//   ---------------------------    ---------------------------
-//   ID: eeprom.canId               ID: eeprom.canId + 1
+// Command Message:                                   Response Message:
+//   ----------------------------------------------     ----------------------------------------------
+//   | Bit/Byte |  7  | 6 | 5 | 4 | 3 | 2 | 1 | 0 |     | Bit/Byte |  7  | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+//   |----------|---------------------------------|     |----------|---------------------------------|
+//   |    5     |           Data Byte 3           |     |    5     |           Data Byte 3           |
+//   |----------|---------------------------------|     |----------|---------------------------------|
+//   |    4     |           Data Byte 2           |     |    4     |           Data Byte 2           |
+//   |----------|---------------------------------|     |----------|---------------------------------|
+//   |    3     |           Data Byte 1           |     |    3     |           Data Byte 1           |
+//   |----------|---------------------------------|     |----------|---------------------------------|
+//   |    2     |           Data Byte 0           |     |    2     |           Data Byte 0           |
+//   |----------|---------------------------------|     |----------|---------------------------------|
+//   |    1     | R/W |   Data Address HI         |     |    1     | R/W |   Data Address HI         |
+//   |----------|---------------------------------|     |----------|---------------------------------|
+//   |    0     |         Data Address LO         |     |    0     |         Data Address LO         |
+//   ----------------------------------------------     ----------------------------------------------
+//   ID: eeprom.canId                                   ID: eeprom.canId + 1
 //
-//   Data Word (data write command only): The data to write to the EEPROM.
-//   Data Word (data read response only): The data read from the EEPROM.
-//   Data Address (data command only): The address to read from / write to.
-//   Data Address (data response only): The address that was read from.
-//   Instruction Byte: Indicates the type of command/reponse, see below.
+// The DLC of the command and response frames indicates the size of the data payload.
+//   DLC = 6 => 4 data bytes, DLC = 3 => 1 data bytes
 //
-//   Responses should only be given to read commands.
+// Data Address: The 15-bit byte address to read/write to.
 //
-// Instruction Byte (Data Message):
-//       -------------------------------------------------
-//   Bit |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
-//       |-----------------------------------|-----|-----|
-//   Var |           Reserved    |     DC    | D/V | R/W |
-//       -------------------------------------------------
+// R/W: Indicates whether the operation is a read operation or write operation.
+//   1 => Read, 0 => Write
 //
-// Instruction Byte (Validation Message):
-//       -------------------------------------------------
-//   Bit |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
-//       |-----------------------------|-----|-----|-----|
-//   Var |           Reserved          |  IV | D/V | R/W |
-//       -------------------------------------------------
+// Write Operation:
+//   To write to a memory address, a command message with the address, data, and R/W = 0 should be sent. For writes less than 4
+//   bytes, the DLC of the command should be shortened to end the frame with the last data byte.
 //
-// Instruction Byte Variables:
-//   R/W: Read / Not Write
-//     0 => Write Command
-//     1 => Read Command
-//   D/V: Data / Not Validation
-//     0 => Interpret as Validation Message
-//     1 => Interpret as Data Message
-//   DC: Data Count (data message only). Indicates the number of bytes to read/write.
-//     0x0 => 1 Byte
-//     0x1 => 2 Bytes
-//     0x2 => 3 Bytes
-//     0x3 => 4 Bytes
-//   IV: Is Valid (validation message only). In a write command, indicates the validity to be written. In a read response,
-//     indicates the validity that was read.
-//     0 => Invalid
-//     1 => Valid
+//   In response, the EEPROM will send a response message with the same address, data, R/W, and DLC. If any field of the
+//   response does not match that of the command, or no response is received at all, the operation should be assumed to have
+//   failed.
+//
+// Read Operation:
+//   To read from a memory address, a command message with the address and R/W = 1 should be sent. The DLC of the command
+//   should indicate the amount of data to be read. The in the data field of the command is irrelevant.
+//
+//   In response, the EEPROM will send a response message with the same address, R/W, and DLC. The data field will be populated
+//   with the data that was read.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -95,23 +79,5 @@ int canEepromWrite (uint16_t canId, canSocket_t* socket, uint16_t address, uint1
  * @return 0 if successful, the error code otherwise.
  */
 int canEepromRead (uint16_t canId, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer);
-
-/**
- * @brief Writes a validation command to the EEPROM.
- * @param canId The EEPROM's base CAN ID.
- * @param socket The CAN socket to negotiate with.
- * @param isValid The validity to write. True => valid, false => invalid.
- * @return 0 if successful, the error code otherwise.
- */
-int canEepromValidate (uint16_t canId, canSocket_t* socket, bool isValid);
-
-/**
- * @brief Reads the validity of the EEPROM.
- * @param canId The EEPROM's base CAN ID.
- * @param socket The CAN socket to negotiate with.
- * @param isValid Written to contain the validity of the EEPROM.
- * @return 0 if successful, the error code otherwise.
- */
-int canEepromIsValid (uint16_t canId, canSocket_t* socket, bool* isValid);
 
 #endif // CAN_EEPROM_OPERATIONS_H
