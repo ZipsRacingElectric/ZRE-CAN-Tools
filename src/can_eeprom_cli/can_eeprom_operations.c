@@ -13,6 +13,7 @@
 
 #define EEPROM_COMMAND_MESSAGE_RW(rnw)		(((uint16_t) (rnw))	<< 15)
 #define EEPROM_RESPONSE_MESSAGE_RW(word)	((((word) >> 15) & 0b1) == 0b1)
+#define EEPROM_RESPONSE_MESSAGE_ADDR(word)	((word) & 0x7FFF)
 
 #define RESPONSE_ATTEMPT_COUNT 500
 static const struct timeval RESPONSE_ATTEMPT_TIMEOUT =
@@ -30,7 +31,7 @@ struct can_frame writeCommandEncode (uint16_t canId, uint16_t address, uint8_t c
 struct can_frame readCommandEncode (uint16_t canId, uint16_t address, uint8_t count);
 
 /// @brief Parses a CAN frame to check whether it is the response to a specific command.
-int responseParse (uint16_t canId, struct can_frame* frame, uint16_t address, uint8_t count);
+int responseParse (uint16_t canId, struct can_frame* frame, bool rw, uint16_t address, uint8_t count);
 
 /// @brief Performs a single write operation on the EEPROM.
 int writeSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t count, void* buffer);
@@ -111,7 +112,7 @@ struct can_frame readCommandEncode (uint16_t canId, uint16_t address, uint8_t co
 	return frame;
 }
 
-int responseParse (uint16_t canId, struct can_frame* frame, uint16_t address, uint8_t count)
+int responseParse (uint16_t canId, struct can_frame* frame, bool rw, uint16_t address, uint8_t count)
 {
 	// Check message ID is correct
 	if (frame->can_id != (uint16_t) (canId + 1))
@@ -122,11 +123,13 @@ int responseParse (uint16_t canId, struct can_frame* frame, uint16_t address, ui
 
 	// Check message is a read response
 	uint16_t responseAddress = frame->data [0] | (frame->data [1] << 8);
-	if (!EEPROM_RESPONSE_MESSAGE_RW (responseAddress))
+	if (EEPROM_RESPONSE_MESSAGE_RW (responseAddress) != rw)
 	{
 		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
 		return errno;
 	}
+
+	responseAddress = EEPROM_RESPONSE_MESSAGE_ADDR (address);
 
 	// Check message is the correct address
 	if (responseAddress != address)
@@ -168,7 +171,7 @@ int writeSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t 
 
 			// Read the response frame, ignore all others.
 			struct can_frame response;
-			if (canSocketReceive (socket, &response) != 0 || responseParse (canId, &response, address, count) != 0)
+			if (canSocketReceive (socket, &response) != 0 || responseParse (canId, &response, false, address, count) != 0)
 				continue;
 
 			// If the response contains the incorrect data, retransmit the command.
@@ -207,7 +210,7 @@ int readSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t c
 
 			// Read the response frame, ignore all others.
 			struct can_frame response;
-			if (canSocketReceive (socket, &response) != 0 || responseParse (canId, &response, address, count) != 0)
+			if (canSocketReceive (socket, &response) != 0 || responseParse (canId, &response, true, address, count) != 0)
 				continue;
 
 			// If we got a response, copy the data into the buffer.

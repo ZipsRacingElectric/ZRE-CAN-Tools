@@ -244,6 +244,8 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 	// Start of JSON
 	fprintf (stream, "{\n");
 
+	bool firstVariable = true;
+
 	// Traverse each variable
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
@@ -252,6 +254,12 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 		// Skip read-only / write-only variables
 		if (variable->mode != CAN_EEPROM_MODE_READ_WRITE)
 			continue;
+
+		// JSON separator
+		if (!firstVariable)
+			fprintf (stream, ",\n");
+		else
+			firstVariable = false;
 
 		// Read the variable's value
 		void* buffer = eeprom->buffer;
@@ -299,10 +307,6 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 		// End of matrix
 		if (variable->height != 1)
 			fprintf (stream, "\n\t]");
-
-		// JSON separator
-		if (index != eeprom->variableCount - 1)
-			fprintf (stream, ",\n");
 	}
 
 	// End of JSON

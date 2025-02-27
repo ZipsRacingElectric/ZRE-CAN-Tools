@@ -307,6 +307,62 @@
 			"type":		"float",
 			"mode":		"read_only",
 			"comment":	"The torque to be requested of the front-right inverter."
+		},
+		{
+			"address":	"0x2000",
+			"name":		"SAS_CONFIG_REG_0",
+			"type":		"uint16_t",
+			"comment":	"The steering angle sensor's first configuration register (register address 0)."
+		},
+		{
+			"address":	"0x2002",
+			"name":		"SAS_CONFIG_REG_1",
+			"type":		"uint16_t",
+			"comment":	"The steering angle sensor's second configuration register (register address 1)."
+		},
+		{
+			"address":	"0x2004",
+			"name":		"SAS_CONFIG_REG_2",
+			"type":		"uint16_t",
+			"comment":	"The steering angle sensor's third configuration register (register address 2)."
+		},
+		{
+			"address":	"0x2006",
+			"name":		"SAS_CONFIG_REG_3",
+			"type":		"uint16_t",
+			"comment":	"The steering angle sensor's fourth configuration register (register address 3)."
+		},
+		{
+
+			"address":	"0x2020",
+			"name":		"SAS_RELATIVE_POS_REG",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The steering angle sensor's relative position output register (register address 32)."
+		},
+		{
+
+			"address":	"0x2022",
+			"name":		"SAS_ABSOLUTE_POS_REG",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The steering angle sensor's absolute position output register (register address 33)."
+		},
+		{
+
+			"address":	"0x2024",
+			"name":		"SAS_STATUS_REG",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The steering angle sensor's status output register (register address 34)."
+		},
+		{
+
+			"address":	"0x2026",
+			"name":		"SAS_TACHO_REG",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The steering angle sensor's tachometer output register (register address 35)."
 		}
 	]
 }
