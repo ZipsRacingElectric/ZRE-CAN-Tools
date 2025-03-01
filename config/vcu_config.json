@@ -4,229 +4,235 @@
 	"variables":
 	[
 		{
-			"address":	"0x10",
+			"address":	"0x000",
+			"name":		"EEPROM_STATUS",
+			"type":		"uint8_t",
+			"comment":	"The status of the VCU's EEPROM. 0 => Hardware failure, 1 => Memory invalid, 3 => Memory valid."
+		},
+		{
+			"address":	"0x010",
 			"name":		"APPS_1_ABS_MIN",
 			"type":		"uint16_t",
 			"comment":	"The absolute minimum plausible sample of APPS-1. Any lower indicates a fault condition."
 		},
 		{
-			"address":	"0x12",
+			"address":	"0x012",
 			"name":		"APPS_1_REQ_MIN",
 			"type":		"uint16_t",
 			"comment":	"The starting sample at which APPS-1 begins requesting torque."
 		},
 		{
-			"address":	"0x14",
+			"address":	"0x014",
 			"name":		"APPS_1_REQ_MAX",
 			"type":		"uint16_t",
 			"comment":	"The ending sample at which APPS-1 stops requesting torque."
 		},
 		{
-			"address":	"0x16",
+			"address":	"0x016",
 			"name":		"APPS_1_ABS_MAX",
 			"type":		"uint16_t",
 			"comment":	"The absolute maximum plausible sample of APPS-1. Any higher indicates a fault condition."
 		},
 		{
-			"address":	"0x18",
+			"address":	"0x018",
 			"name":		"APPS_2_ABS_MIN",
 			"type":		"uint16_t",
 			"comment":	"The absolute minimum plausible sample of APPS-2. Any lower indicates a fault condition."
 		},
 		{
-			"address":	"0x1A",
+			"address":	"0x01A",
 			"name":		"APPS_2_REQ_MIN",
 			"type":		"uint16_t",
 			"comment":	"The starting sample at which APPS-2 begins requesting torque."
 		},
 		{
-			"address":	"0x1C",
+			"address":	"0x01C",
 			"name":		"APPS_2_REQ_MAX",
 			"type":		"uint16_t",
 			"comment":	"The ending sample at which APPS-2 stops requesting torque."
 		},
 		{
-			"address":	"0x1E",
+			"address":	"0x01E",
 			"name":		"APPS_2_ABS_MAX",
 			"type":		"uint16_t",
 			"comment":	"The absolute maximum plausible sample of APPS-2. Any higher indicates a fault condition."
 		},
 		{
-			"address":	"0x20",
+			"address":	"0x020",
 			"name":		"BSE_F_ABS_MIN",
 			"type":		"uint16_t",
 			"comment":	"The absolute minimum plausible sample of BSE-F. Any lower indicates a fault condition."
 		},
 		{
-			"address":	"0x22",
+			"address":	"0x022",
 			"name":		"BSE_F_REQ_MIN",
 			"type":		"uint16_t",
 			"comment":	"The starting sample of the linear range of BSE-F."
 		},
 		{
-			"address":	"0x24",
+			"address":	"0x024",
 			"name":		"BSE_F_REQ_MAX",
 			"type":		"uint16_t",
 			"comment":	"The ending sample of the linear range of BSE-F."
 		},
 		{
-			"address":	"0x26",
+			"address":	"0x026",
 			"name":		"BSE_F_ABS_MAX",
 			"type":		"uint16_t",
 			"comment":	"The absolute maximum plausible sample of BSE-F. Any higher indicates a fault condition."
 		},
 		{
-			"address":	"0x28",
+			"address":	"0x028",
 			"name":		"BSE_R_ABS_MIN",
 			"type":		"uint16_t",
 			"comment":	"The absolute minimum plausible sample of BSE-R. Any lower indicates a fault condition."
 		},
 		{
-			"address":	"0x2A",
+			"address":	"0x02A",
 			"name":		"BSE_R_REQ_MIN",
 			"type":		"uint16_t",
 			"comment":	"The starting sample of the linear range of BSE-R."
 		},
 		{
-			"address":	"0x2C",
+			"address":	"0x02C",
 			"name":		"BSE_R_REQ_MAX",
 			"type":		"uint16_t",
 			"comment":	"The ending sample of the linear range of BSE-R."
 		},
 		{
-			"address":	"0x2E",
+			"address":	"0x02E",
 			"name":		"BSE_R_ABS_MAX",
 			"type":		"uint16_t",
 			"comment":	"The absolute maximum plausible sample of BSE-R. Any higher indicates a fault condition."
 		},
 		{
-			"address":	"0x30",
+			"address":	"0x030",
 			"name":		"DRIVING_TORQUE_LIMIT",
 			"type":		"float",
 			"comment":	"The cumulative driving (positive) torque limit, in Nm."
 		},
 		{
-			"address":	"0x34",
+			"address":	"0x034",
 			"name":		"DRIVING_TORQUE_BIAS",
 			"type":		"float",
 			"comment":	"The front to rear bias of the driving torque. 0 => 100% rear, 1 => 100% front. Note that not all algorithms may respect this."
 		},
 		{
-			"address":	"0x38",
+			"address":	"0x038",
 			"name":		"REGEN_TORQUE_LIMIT",
 			"type":		"float",
 			"comment":	"The cumulative regenerative (negative) torque limit, in Nm."
 		},
 		{
-			"address":	"0x3C",
+			"address":	"0x03C",
 			"name":		"REGEN_TORQUE_BIAS",
 			"type":		"float",
 			"comment":	"The front to rear bias of the regenerative torque. 0 => 100% rear, 1 => 100% front. Note that not all algorithms may respect this."
 		},
 		{
-			"address":	"0x40",
+			"address":	"0x040",
 			"name":		"TORQUE_ALGORITHM_INDEX",
 			"type":		"uint16_t",
 			"comment":	"The index of the torque-vectoring algorithm to use."
 		},
 		{
-			"address":	"0x44",
+			"address":	"0x044",
 			"name":		"POWER_LIMIT",
 			"type":		"float",
 			"comment":	"The cumulative power limit of the vehicle, in W."
 		},
 		{
-			"address":	"0x48",
+			"address":	"0x048",
 			"name":		"POWER_LIMIT_PID_KP",
 			"type":		"float",
 			"comment":	"The proportional coefficient of the power limit PID, in 1/W."
 		},
 		{
-			"address":	"0x4C",
+			"address":	"0x04C",
 			"name":		"POWER_LIMIT_PID_KI",
 			"type":		"float",
 			"comment":	"The integral coefficient of the power limit PID, in 1/Ws."
 		},
 		{
-			"address":	"0x50",
+			"address":	"0x050",
 			"name":		"POWER_LIMIT_PID_KD",
 			"type":		"float",
 			"comment":	"The derivative coefficient of the power limit PID, in s/W."
 		},
 		{
-			"address":	"0x54",
+			"address":	"0x054",
 			"name":		"POWER_LIMIT_PID_A",
 			"type":		"float",
 			"comment":	"The measurement gain of the power limit PID, in range [0, 1)"
 		},
 		{
-			"address":	"0x58",
+			"address":	"0x058",
 			"name":		"GLV_BATTERY_SAMPLE_11V5",
 			"type":		"uint16_t",
 			"comment":	"The ADC sample of the GLV battery at 11.5V."
 		},
 		{
-			"address":	"0x5A",
+			"address":	"0x05A",
 			"name":		"GLV_BATTERY_SAMPLE_14V4",
 			"type":		"uint16_t",
 			"comment":	"The ADC sample of the GLV battery at 14.4V."
 		},
 		{
-			"address":	"0x5C",
+			"address":	"0x05C",
 			"name":		"SAS_SAMPLE_OFFSET",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the zero position, minus 2048."
 		},
 		{
-			"address":	"0x5E",
+			"address":	"0x05E",
 			"name":		"SAS_SAMPLE_NEGATIVE",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the negative-most position."
 		},
 		{
-			"address":	"0x60",
+			"address":	"0x060",
 			"name":		"SAS_SAMPLE_POSITIVE",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the positive-most position."
 		},
 		{
-			"address":	"0x64",
+			"address":	"0x064",
 			"name":		"SAS_ANGLE_NEGATIVE",
 			"type":		"float",
 			"comment":	"The steering angle of the vehicle at the negative-most position."
 		},
 		{
-			"address":	"0x68",
+			"address":	"0x068",
 			"name":		"SAS_ANGLE_POSITIVE",
 			"type":		"float",
 			"comment":	"The steering angle of the vehicle at the positive-most position."
 		},
 		{
-			"address":	"0x6C",
+			"address":	"0x06C",
 			"name":		"SAS_DEADZONE_RANGE",
 			"type":		"float",
 			"comment":	"The range of the steering angle deadzone, centered around the zero position."
 		},
 		{
-			"address":	"0x70",
+			"address":	"0x070",
 			"name":		"DEBUG_ADDRESS_0",
 			"type":		"uint16_t",
 			"comment":	"The address of the first readonly variable to print in the VCU debug message."
 		},
 		{
-			"address":	"0x72",
+			"address":	"0x072",
 			"name":		"DEBUG_ADDRESS_1",
 			"type":		"uint16_t",
 			"comment":	"The address of the second readonly variable to print in the VCU debug message."
 		},
 		{
-			"address":	"0x74",
+			"address":	"0x074",
 			"name":		"DEBUG_ADDRESS_2",
 			"type":		"uint16_t",
 			"comment":	"The address of the third readonly variable to print in the VCU debug message."
 		},
 		{
-			"address":	"0x76",
+			"address":	"0x076",
 			"name":		"DEBUG_ADDRESS_3",
 			"type":		"uint16_t",
 			"comment":	"The address of the fourth readonly variable to print in the VCU debug message."
