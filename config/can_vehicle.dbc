@@ -38,8 +38,8 @@ BO_ 256 VCU_STATUS: 4 Vector__XXX
  SG_ VEHICLE_STATE : 0|2@1+ (1,0) [0|3] "Enum" Vector__XXX
  SG_ TORQUE_PLAUSIBLE : 2|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ PEDALS_PLAUSIBLE : 3|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ TORQUE_DERATING : 4|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ VCU_EEPROM_STATE : 5|2@1+ (1,0) [0|0] "Enum" Vector__XXX
+ SG_ TORQUE_DERATING : 4|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ VCU_EEPROM_STATE : 5|2@1+ (1,0) [0|1] "Enum" Vector__XXX
  SG_ CAN_PLAUSIBLE : 7|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ APPS_1_PLAUSIBLE : 8|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ APPS_1_CONFIG_PLAUSIBLE : 9|1@1+ (1,0) [0|1] "Bool" Vector__XXX
@@ -49,11 +49,11 @@ BO_ 256 VCU_STATUS: 4 Vector__XXX
  SG_ BSE_F_CONFIG_PLAUSIBLE : 13|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BSE_R_PLAUSIBLE : 14|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BSE_R_CONFIG_PLAUSIBLE : 15|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ AMK_RL_VALID : 16|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ AMK_RR_VALID : 17|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ AMK_FL_VALID : 18|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ AMK_FR_VALID : 19|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ GPS_VALID : 20|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ AMK_RL_VALID : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ AMK_RR_VALID : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ AMK_FL_VALID : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ AMK_FR_VALID : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ GPS_VALID : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ GLV_BATTERY_VOLTAGE : 24|8@1+ (0.070588235294,0) [0|18] "V" Vector__XXX
 
 BO_ 1536 VCU_SENSOR_INPUT: 8 VCU
@@ -70,32 +70,32 @@ BO_ 1617 VCU_DEBUG_MESSAGE: 8 Vector__XXX
  SG_ VCU_DEBUG_3 : 48|16@1- (0.01,0) [-327.68|327.67] "" Vector__XXX
 
 BO_ 1284 AMK_RL_ERRORS_1: 8 AMK_RL
- SG_ RL_DIAGNOSTIC_NUMBER : 0|32@1+ (1,0) [0|0] "Word" Vector__XXX
- SG_ RL_ERROR_INFO_1 : 32|32@1+ (1,0) [0|0] "Word" Vector__XXX
+ SG_ RL_DIAGNOSTIC_NUMBER : 0|32@1+ (1,0) [0|4294967295] "Word" Vector__XXX
+ SG_ RL_ERROR_INFO_1 : 32|32@1+ (1,0) [0|4294967295] "Word" Vector__XXX
 
 BO_ 1288 AMK_RL_ERRORS_2: 8 AMK_RL
- SG_ RL_ERROR_INFO_2 : 0|32@1+ (1,0) [0|0] "Word" Vector__XXX
- SG_ RL_ERROR_INFO_3 : 32|32@1+ (1,0) [0|0] "Word" Vector__XXX
+ SG_ RL_ERROR_INFO_2 : 0|32@1+ (1,0) [0|4294967295] "Word" Vector__XXX
+ SG_ RL_ERROR_INFO_3 : 32|32@1+ (1,0) [0|4294967295] "Word" Vector__XXX
 
 
 BO_ 512 AMK_RL_MOTOR_REQUEST: 8 AMK_RL
- SG_ RL_INVERTER_ENABLE : 8|1@1+ (1,0) [0|0] "" Vector__XXX
- SG_ RL_DC_ENABLE : 9|1@1+ (1,0) [0|0] "" Vector__XXX
- SG_ RL_DRIVER_ENABLE : 10|1@1+ (1,0) [0|0] "" Vector__XXX
- SG_ RL_ERROR_RESET : 11|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ RL_INVERTER_ENABLE : 8|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ RL_DC_ENABLE : 9|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ RL_DRIVER_ENABLE : 10|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ RL_ERROR_RESET : 11|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ RL_TORQUE_SETPOINT : 16|16@1- (0.0098,0) [-21|21] "Nm" Vector__XXX
  SG_ RL_POSITIVE_TORQUE_LIMIT : 32|16@1- (0.0098,0) [0|21] "Nm" Vector__XXX
  SG_ RL_NEGATIVE_TORQUE_LIMIT : 48|16@1- (0.0098,0) [0|21] "Nm" Vector__XXX
 
 BO_ 516 AMK_RL_MOTOR_FEEDBACK: 8 AMK_RL
- SG_ RL_SYSTEM_READY : 8|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ RL_ERROR : 9|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ RL_WARNING : 10|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ RL_QUIT_DC_ON : 11|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ RL_DC_ON : 12|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ RL_QUIT_INVERTER : 13|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ RL_INVERTER_ON : 14|1@1+ (1,0) [0|0] "Bool" Vector__XXX
- SG_ RL_DERATING : 15|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ RL_SYSTEM_READY : 8|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ RL_ERROR : 9|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ RL_WARNING : 10|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ RL_QUIT_DC_ON : 11|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ RL_DC_ON : 12|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ RL_QUIT_INVERTER : 13|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ RL_INVERTER_ON : 14|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ RL_DERATING : 15|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ RL_ACTUAL_TORQUE_VALUE : 16|16@1- (0.0098,0) [0|0] "Nm" Vector__XXX
  SG_ RL_ACTUAL_SPEED_VALUE : 32|32@1- (0.00001,0) [0|0] "RPM" Vector__XXX
 
@@ -389,8 +389,8 @@ BO_ 1816 BMS_TEMPERATURES_0_12: 8 BMS
  SG_ SENSE_LINE_11_TEMPERATURE : 24|12@1+ (4,0) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_7_TEMPERATURE : 36|12@1+ (4,0) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_3_TEMPERATURE : 48|12@1+ (4,0) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_0_12_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_0_12_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_0_12_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_0_12_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1817 BMS_TEMPERATURES_12_24: 8 BMS
  SG_ SENSE_LINE_13_TEMPERATURE : 0|12@1+ (4,0) [-106|150] "C" Vector__XXX
@@ -398,8 +398,8 @@ BO_ 1817 BMS_TEMPERATURES_12_24: 8 BMS
  SG_ SENSE_LINE_21_TEMPERATURE : 24|12@1+ (4,0) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_16_TEMPERATURE : 36|12@1+ (4,0) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_20_TEMPERATURE : 48|12@1+ (4,0) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_12_24_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_12_24_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_12_24_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_12_24_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1818 BMS_TEMPERATURES_24_36: 8 BMS
  SG_ SENSE_LINE_28_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -407,8 +407,8 @@ BO_ 1818 BMS_TEMPERATURES_24_36: 8 BMS
  SG_ SENSE_LINE_35_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_31_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_27_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_24_36_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_24_36_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_24_36_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_24_36_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1819 BMS_TEMPERATURES_36_48: 8 BMS
  SG_ SENSE_LINE_37_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -416,8 +416,8 @@ BO_ 1819 BMS_TEMPERATURES_36_48: 8 BMS
  SG_ SENSE_LINE_45_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_40_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_44_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_36_48_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_36_48_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_36_48_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_36_48_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1820 BMS_TEMPERATURES_48_60: 8 BMS
  SG_ SENSE_LINE_52_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -425,8 +425,8 @@ BO_ 1820 BMS_TEMPERATURES_48_60: 8 BMS
  SG_ SENSE_LINE_59_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_55_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_51_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_48_60_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_48_60_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_48_60_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_48_60_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1821 BMS_TEMPERATURES_60_72: 8 BMS
  SG_ SENSE_LINE_61_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -434,8 +434,8 @@ BO_ 1821 BMS_TEMPERATURES_60_72: 8 BMS
  SG_ SENSE_LINE_69_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_64_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_68_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_60_72_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_60_72_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_60_72_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_60_72_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1822 BMS_TEMPERATURES_72_84: 8 BMS
  SG_ SENSE_LINE_76_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -443,8 +443,8 @@ BO_ 1822 BMS_TEMPERATURES_72_84: 8 BMS
  SG_ SENSE_LINE_83_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_79_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_75_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_72_84_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_72_84_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_72_84_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_72_84_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1823 BMS_TEMPERATURES_84_96: 8 BMS
  SG_ SENSE_LINE_85_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -452,8 +452,8 @@ BO_ 1823 BMS_TEMPERATURES_84_96: 8 BMS
  SG_ SENSE_LINE_93_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_88_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_92_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_84_96_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_84_96_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_84_96_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_84_96_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1824 BMS_TEMPERATURES_96_108: 8 BMS
  SG_ SENSE_LINE_100_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -461,8 +461,8 @@ BO_ 1824 BMS_TEMPERATURES_96_108: 8 BMS
  SG_ SENSE_LINE_107_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_103_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_99_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_96_108_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_96_108_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_96_108_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_96_108_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1825 BMS_TEMPERATURES_108_120: 8 BMS
  SG_ SENSE_LINE_109_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -470,8 +470,8 @@ BO_ 1825 BMS_TEMPERATURES_108_120: 8 BMS
  SG_ SENSE_LINE_117_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_112_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_116_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_108_120_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_108_120_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_108_120_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_108_120_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1826 BMS_TEMPERATURES_120_132: 8 BMS
  SG_ SENSE_LINE_124_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -479,8 +479,8 @@ BO_ 1826 BMS_TEMPERATURES_120_132: 8 BMS
  SG_ SENSE_LINE_131_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_127_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_123_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_120_132_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_120_132_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_120_132_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_120_132_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1827 BMS_TEMPERATURES_132_144: 8 BMS
  SG_ SENSE_LINE_133_TEMPERATURE : 0|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
@@ -488,8 +488,8 @@ BO_ 1827 BMS_TEMPERATURES_132_144: 8 BMS
  SG_ SENSE_LINE_141_TEMPERATURE : 24|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_136_TEMPERATURE : 36|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
  SG_ SENSE_LINE_140_TEMPERATURE : 48|12@1+ (0.0625,-106) [-106|150] "C" Vector__XXX
- SG_ SENSE_LINES_132_144_UNDERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINES_132_144_OVERTEMPERATURE : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_132_144_UNDERTEMP : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINES_132_144_OVERTEMP : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1828 BMS_SENSE_LINE_STATUSES_0_48: 8 Vector__XXX
  SG_ SENSE_LINE_0_HI_OPEN : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
@@ -508,42 +508,42 @@ BO_ 1828 BMS_SENSE_LINE_STATUSES_0_48: 8 Vector__XXX
  SG_ SENSE_LINE_12_HI_OPEN : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_13_OPEN : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_14_OPEN : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINE_15_OPEN : 19|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_16_OPEN : 20|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_17_OPEN : 21|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_18_OPEN : 22|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_19_OPEN : 23|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_20_OPEN : 24|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_21_OPEN : 25|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_22_OPEN : 26|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_23_OPEN : 27|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_24_LO_OPEN : 28|1@1+ (0,0) [0|0] "Bool" Vector__XXX
+ SG_ SENSE_LINE_15_OPEN : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_16_OPEN : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_17_OPEN : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_18_OPEN : 22|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_19_OPEN : 23|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_20_OPEN : 24|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_21_OPEN : 25|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_22_OPEN : 26|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_23_OPEN : 27|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_24_LO_OPEN : 28|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_24_HI_OPEN : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_25_OPEN : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_26_OPEN : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINE_27_OPEN : 35|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_28_OPEN : 36|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_29_OPEN : 37|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_30_OPEN : 38|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_31_OPEN : 39|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_32_OPEN : 40|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_33_OPEN : 41|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_34_OPEN : 42|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_35_OPEN : 43|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_36_LO_OPEN : 44|1@1+ (0,0) [0|0] "Bool" Vector__XXX
+ SG_ SENSE_LINE_27_OPEN : 35|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_28_OPEN : 36|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_29_OPEN : 37|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_30_OPEN : 38|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_31_OPEN : 39|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_32_OPEN : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_33_OPEN : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_34_OPEN : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_35_OPEN : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_36_LO_OPEN : 44|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_36_HI_OPEN : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_37_OPEN : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_38_OPEN : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINE_39_OPEN : 51|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_40_OPEN : 52|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_41_OPEN : 53|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_42_OPEN : 54|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_43_OPEN : 55|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_44_OPEN : 56|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_45_OPEN : 57|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_46_OPEN : 58|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_47_OPEN : 59|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_48_LO_OPEN : 60|1@1+ (0,0) [0|0] "Bool" Vector__XXX
+ SG_ SENSE_LINE_39_OPEN : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_40_OPEN : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_41_OPEN : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_42_OPEN : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_43_OPEN : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_44_OPEN : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_45_OPEN : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_46_OPEN : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_47_OPEN : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_48_LO_OPEN : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1829 BMS_SENSE_LINE_STATUSES_48_96: 8 Vector__XXX
  SG_ SENSE_LINE_48_HI_OPEN : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
@@ -562,42 +562,42 @@ BO_ 1829 BMS_SENSE_LINE_STATUSES_48_96: 8 Vector__XXX
  SG_ SENSE_LINE_60_HI_OPEN : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_61_OPEN : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_62_OPEN : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINE_63_OPEN : 19|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_64_OPEN : 20|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_65_OPEN : 21|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_66_OPEN : 22|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_67_OPEN : 23|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_68_OPEN : 24|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_69_OPEN : 25|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_70_OPEN : 26|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_71_OPEN : 27|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_72_LO_OPEN : 28|1@1+ (0,0) [0|0] "Bool" Vector__XXX
+ SG_ SENSE_LINE_63_OPEN : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_64_OPEN : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_65_OPEN : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_66_OPEN : 22|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_67_OPEN : 23|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_68_OPEN : 24|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_69_OPEN : 25|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_70_OPEN : 26|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_71_OPEN : 27|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_72_LO_OPEN : 28|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_72_HI_OPEN : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_73_OPEN : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_74_OPEN : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINE_75_OPEN : 35|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_76_OPEN : 36|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_77_OPEN : 37|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_78_OPEN : 38|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_79_OPEN : 39|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_80_OPEN : 40|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_81_OPEN : 41|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_82_OPEN : 42|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_83_OPEN : 43|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_84_LO_OPEN : 44|1@1+ (0,0) [0|0] "Bool" Vector__XXX
+ SG_ SENSE_LINE_75_OPEN : 35|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_76_OPEN : 36|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_77_OPEN : 37|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_78_OPEN : 38|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_79_OPEN : 39|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_80_OPEN : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_81_OPEN : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_82_OPEN : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_83_OPEN : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_84_LO_OPEN : 44|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_84_HI_OPEN : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_85_OPEN : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_86_OPEN : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINE_87_OPEN : 51|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_88_OPEN : 52|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_89_OPEN : 53|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_90_OPEN : 54|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_91_OPEN : 55|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_92_OPEN : 56|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_93_OPEN : 57|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_94_OPEN : 58|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_95_OPEN : 59|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_96_LO_OPEN : 60|1@1+ (0,0) [0|0] "Bool" Vector__XXX
+ SG_ SENSE_LINE_87_OPEN : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_88_OPEN : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_89_OPEN : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_90_OPEN : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_91_OPEN : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_92_OPEN : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_93_OPEN : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_94_OPEN : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_95_OPEN : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_96_LO_OPEN : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1830 BMS_SENSE_LINE_STATUSES_96_144: 8 Vector__XXX
  SG_ SENSE_LINE_96_HI_OPEN : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
@@ -616,52 +616,52 @@ BO_ 1830 BMS_SENSE_LINE_STATUSES_96_144: 8 Vector__XXX
  SG_ SENSE_LINE_108_HI_OPEN : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_109_OPEN : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_110_OPEN : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINE_111_OPEN : 19|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_112_OPEN : 20|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_113_OPEN : 21|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_114_OPEN : 22|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_115_OPEN : 23|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_116_OPEN : 24|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_117_OPEN : 25|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_118_OPEN : 26|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_119_OPEN : 27|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_120_LO_OPEN : 28|1@1+ (0,0) [0|0] "Bool" Vector__XXX
+ SG_ SENSE_LINE_111_OPEN : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_112_OPEN : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_113_OPEN : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_114_OPEN : 22|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_115_OPEN : 23|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_116_OPEN : 24|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_117_OPEN : 25|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_118_OPEN : 26|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_119_OPEN : 27|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_120_LO_OPEN : 28|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_120_HI_OPEN : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_121_OPEN : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_122_OPEN : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINE_123_OPEN : 35|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_124_OPEN : 36|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_125_OPEN : 37|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_126_OPEN : 38|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_127_OPEN : 39|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_128_OPEN : 40|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_129_OPEN : 41|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_130_OPEN : 42|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_131_OPEN : 43|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_132_LO_OPEN : 44|1@1+ (0,0) [0|0] "Bool" Vector__XXX
+ SG_ SENSE_LINE_123_OPEN : 35|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_124_OPEN : 36|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_125_OPEN : 37|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_126_OPEN : 38|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_127_OPEN : 39|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_128_OPEN : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_129_OPEN : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_130_OPEN : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_131_OPEN : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_132_LO_OPEN : 44|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_132_HI_OPEN : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_133_OPEN : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SENSE_LINE_134_OPEN : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SENSE_LINE_135_OPEN : 51|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_136_OPEN : 52|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_137_OPEN : 53|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_138_OPEN : 54|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_139_OPEN : 55|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_140_OPEN : 56|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_141_OPEN : 57|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_142_OPEN : 58|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_143_OPEN : 59|1@1+ (0,0) [0|0] "Bool" Vector__XXX
- SG_ SENSE_LINE_144_LO_OPEN : 60|1@1+ (0,0) [0|0] "Bool" Vector__XXX
+ SG_ SENSE_LINE_135_OPEN : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_136_OPEN : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_137_OPEN : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_138_OPEN : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_139_OPEN : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_140_OPEN : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_141_OPEN : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_142_OPEN : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_143_OPEN : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SENSE_LINE_144_LO_OPEN : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1872 VCU_EEPROM_COMMAND: 8 Vector__XXX
- SG_ VCU_EEPROM_COMMAND_INSTRUCTION : 0|16@1+ (1,0) [0|0] "" Vector__XXX
- SG_ VCU_EEPROM_COMMAND_ADDRESS : 16|16@1+ (1,0) [0|0] "" Vector__XXX
- SG_ VCU_EEPROM_COMMAND_DATA : 32|32@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ VCU_EEPROM_COMMAND_INSTRUCTION : 0|16@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ VCU_EEPROM_COMMAND_ADDRESS : 16|16@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ VCU_EEPROM_COMMAND_DATA : 32|32@1+ (1,0) [0|1] "" Vector__XXX
 
 BO_ 1873 VCU_EEPROM_RESPONSE: 8 Vector__XXX
- SG_ VCU_EEPROM_COMMAND_INSTRUCTION : 0|16@1+ (1,0) [0|0] "" Vector__XXX
- SG_ VCU_EEPROM_COMMAND_ADDRESS : 16|16@1+ (1,0) [0|0] "" Vector__XXX
- SG_ VCU_EEPROM_COMMAND_DATA : 32|32@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ VCU_EEPROM_COMMAND_INSTRUCTION : 0|16@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ VCU_EEPROM_COMMAND_ADDRESS : 16|16@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ VCU_EEPROM_COMMAND_DATA : 32|32@1+ (1,0) [0|1] "" Vector__XXX
 
 BO_ 1831 BMS_STATUS: 6 Vector__XXX
  SG_ BMS_UNDERVOLTAGE_FAULT : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
