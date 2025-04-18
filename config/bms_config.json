@@ -110,6 +110,13 @@
 			"name":		"CURRENT_SENSOR_CHANNEL_1_SATURATION_CURRENT",
 			"type":		"float",
 			"comment":	"The current at which channel 1 of the current sensor saturates (positive and negative)."
+		},
+		{
+			"address":	"0x1000",
+			"name":		"WATCHDOG_TRIGGER",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Command for triggering the BMS's watchdog. The value written does not matter."
 		}
 	]
 }
