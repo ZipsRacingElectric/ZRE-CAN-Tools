@@ -696,11 +696,16 @@ BO_ 1831 BMS_STATUS: 6 Vector__XXX
  SG_ BMS_SEGMENT_5_LO_SELF_TEST_FAULT : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_SEGMENT_5_HI_SELF_TEST_FAULT : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
+BO_ 1832 BMS_POWER_CONSUMPTION: 4 Vector__XXX
+ SG_ PACK_VOLTAGE : 0|16@1+ (0.0125,0) [0|819.2] "V" Vector__XXX
+ SG_ PACK_CURRENT : 16|16@1- (0.019073486328125,0) [-625|625] "A" Vector__XXX
+
 CM_ SG_ 1280 RL_TEMPERATURE_EXTERNAL "TODO(Barach): No documented scale factor";
 CM_ SG_ 1280 RL_TEMPERATURE_SENSOR_MOTOR "TODO(Barach): No documented scale factor";
 
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+
 
 
 
