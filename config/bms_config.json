@@ -113,6 +113,18 @@
 		},
 		{
 			"address":	"0x1000",
+			"name":		"CURRENT_SENSOR_CHANNEL_1_SAMPLE",
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the current sensor's channel 1."
+		},
+		{
+			"address":	"0x1002",
+			"name":		"CURRENT_SENSOR_CHANNEL_2_SAMPLE",
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the current sensor's channel 2."
+		},
+		{
+			"address":	"0x1000",
 			"name":		"WATCHDOG_TRIGGER",
 			"type":		"uint8_t",
 			"mode":		"write_only",
