@@ -414,18 +414,22 @@ void canEepromPrintVariableValue (canEepromVariable_t* variable, void* buffer, c
 int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 {
 	fprintf (stream, "%s Memory Map:\n", eeprom->name);
-	fprintf (stream, "----------------------------------------------------------------\n");
-	fprintf (stream, "%24s | %23s | %10s\n", "Variable", "Type", "Value");
-	fprintf (stream, "-------------------------|-------------------------|------------\n");
+	fprintf (stream, "----------------------------------------------------------------------------------------\n");
+	fprintf (stream, "%48s | %23s | %10s\n", "Variable", "Type", "Value");
+	fprintf (stream, "-------------------------------------------------|-------------------------|------------\n");
 
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
 		canEepromVariable_t* variable = eeprom->variables + index;
 
+		// Skip write-only variables
+		if (variable->mode == CAN_EEPROM_MODE_WRITE_ONLY)
+			continue;
+
 		if (canEepromReadVariable (eeprom, socket, variable, eeprom->buffer) != 0)
 			return errno;
 
-		fprintf (stream, "%24s | ", variable->name);
+		fprintf (stream, "%48s | ", variable->name);
 		if (variable->height != 1)
 			fprintf (stream, "%10s [%4u][%4u]", VARIABLE_TYPE_NAMES [variable->type], variable->height, variable->width);
 		else if (variable->width != 1)
@@ -445,14 +449,14 @@ int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 void canEepromPrintEmptyMap (canEeprom_t* eeprom, FILE* stream)
 {
 	fprintf (stream, "%s Memory Map:\n", eeprom->name);
-	fprintf (stream, "------------------------------------------------------------------\n");
-	fprintf (stream, "%24s | %23s | %10s\n", "Variable", "Type", "Address");
-	fprintf (stream, "-------------------------|-------------------------|--------------\n");
+	fprintf (stream, "------------------------------------------------------------------------------------------\n");
+	fprintf (stream, "%48s | %23s | %10s\n", "Variable", "Type", "Address");
+	fprintf (stream, "-------------------------------------------------|-------------------------|--------------\n");
 
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
 		canEepromVariable_t* variable = eeprom->variables + index;
-		fprintf (stream, "%24s | ", variable->name);
+		fprintf (stream, "%48s | ", variable->name);
 		if (variable->height != 1)
 			fprintf (stream, "%10s [%4u][%4u]", VARIABLE_TYPE_NAMES [variable->type], variable->height, variable->width);
 		else if (variable->width != 1)
