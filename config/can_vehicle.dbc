@@ -706,11 +706,162 @@ BO_ 1875 BMS_EEPROM_RESPONSE: 6 Vector__XXX
  SG_ BMS_EEPROM_RESPONSE_DATA_ADDRESS : 0|16@1+ (1,0) [0|1] "" Vector__XXX
  SG_ BMS_EEPROM_RESPONSE_DATA : 16|32@1+ (1,0) [0|1] "" Vector__XXX
 
+BO_ 1833 BMS_CELL_BALANCINGS_0_47: 8 Vector__XXX
+ SG_ CELL_BALANCING_0 : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_1 : 1|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_2 : 2|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_3 : 3|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_4 : 4|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_5 : 5|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_6 : 6|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_7 : 7|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_8 : 8|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_9 : 9|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_10 : 10|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_11 : 11|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_12 : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_13 : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_14 : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_15 : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_16 : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_17 : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_18 : 22|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_19 : 23|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_20 : 24|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_21 : 25|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_22 : 26|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_23 : 27|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_24 : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_25 : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_26 : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_27 : 35|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_28 : 36|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_29 : 37|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_39 : 38|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_31 : 39|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_32 : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_33 : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_34 : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_35 : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_36 : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_37 : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_38 : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_39 : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_40 : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_41 : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_42 : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_43 : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_44 : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_45 : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_46 : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_47 : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+
+BO_ 1834 BMS_CELL_BALANCINGS_48_95: 8 Vector__XXX
+ SG_ CELL_BALANCING_48 : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_49 : 1|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_50 : 2|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_51 : 3|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_52 : 4|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_53 : 5|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_54 : 6|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_55 : 7|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_56 : 8|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_57 : 9|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_58 : 10|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_59 : 11|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_60 : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_61 : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_62 : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_63 : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_64 : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_65 : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_66 : 22|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_67 : 23|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_68 : 24|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_69 : 25|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_70 : 26|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_71 : 27|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_72 : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_73 : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_74 : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_75 : 35|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_76 : 36|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_77 : 37|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_78 : 38|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_79 : 39|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_80 : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_81 : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_82 : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_83 : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_84 : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_85 : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_86 : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_87 : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_88 : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_89 : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_90 : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_91 : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_92 : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_93 : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_94 : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_95 : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+
+BO_ 1835 BMS_CELL_BALANCINGS_96_143: 8 Vector__XXX
+ SG_ CELL_BALANCING_96 : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_97 : 1|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_98 : 2|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_99 : 3|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_100 : 4|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_101 : 5|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_102 : 6|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_103 : 7|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_104 : 8|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_105 : 9|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_106 : 10|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_107 : 11|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_108 : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_109 : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_110 : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_111 : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_112 : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_113 : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_114 : 22|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_115 : 23|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_116 : 24|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_117 : 25|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_118 : 26|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_119 : 27|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_120 : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_121 : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_122 : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_123 : 35|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_124 : 36|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_125 : 37|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_126 : 38|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_127 : 39|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_128 : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_129 : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_130 : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_131 : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_132 : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_133 : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_134 : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_135 : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_136 : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_137 : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_138 : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_139 : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_140 : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_141 : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_142 : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_143 : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+
 CM_ SG_ 1280 RL_TEMPERATURE_EXTERNAL "TODO(Barach): No documented scale factor";
 CM_ SG_ 1280 RL_TEMPERATURE_SENSOR_MOTOR "TODO(Barach): No documented scale factor";
 
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+
 
 
 
