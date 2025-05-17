@@ -129,6 +129,20 @@
 			"type":		"uint8_t",
 			"mode":		"write_only",
 			"comment":	"Command for triggering the BMS's watchdog. The value written does not matter."
+		},
+		{
+			"address":	"0x1002",
+			"name":		"CELL_DISCHARGE_DISABLE",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Command for disabling a cell's discharge resistor. Written value should be the index of the cell."
+		},
+		{
+			"address":	"0x1003",
+			"name":		"CELL_DISCHARGE_ENABLE",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Command for enabling a cell's discharge resistor. Written value should be the index of the cell."
 		}
 	]
 }
