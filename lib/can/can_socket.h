@@ -57,7 +57,7 @@ struct canMessage
 	canSignal_t*	signals;
 	size_t			signalCount;
 	char*			name;
-	uint16_t		id;
+	uint32_t		id;
 	uint8_t			dlc;
 };
 

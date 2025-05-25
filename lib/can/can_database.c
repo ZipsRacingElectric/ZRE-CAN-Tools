@@ -154,7 +154,8 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 		canMessage_t* message = NULL;
 		for (size_t index = 0; index < database->messageCount; ++index)
 		{
-			if (frame.can_id == database->messages [index].id)
+			// Mask out status bits for comparison.
+			if ((frame.can_id & 0x1FFFFFFF) == database->messages [index].id)
 			{
 				message = database->messages + index;
 				break;
@@ -165,7 +166,7 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 
 		#if CAN_DATABASE_RX_PRINT
 		RX_PRINTF ("Received CAN frame: ");
-		framePrint (&frame);
+		framePrint (stderr, &frame);
 		#endif // CAN_DATABASE_RX_PRINT
 
 		uint64_t payload = *((uint64_t*) frame.data);

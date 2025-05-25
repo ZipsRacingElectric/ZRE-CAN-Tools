@@ -120,7 +120,7 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 				strcpy (message->name, dataBuffer0);
 
 				// Copy message metadata
-				message->id = (uint16_t) messageId;
+				message->id = (uint32_t) messageId;
 				message->dlc = (uint8_t) messageDlc;
 			}
 		}
