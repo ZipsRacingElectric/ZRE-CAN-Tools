@@ -50,6 +50,18 @@ typedef struct
 
 	float** senseLinesOpen;
 	bool** senseLinesOpenValid;
+
+	float** ltcIsoSpiFaults;
+	bool** ltcIsoSpiFaultsValid;
+
+	float** ltcIsoSpiSelfTestFaults;
+	bool** ltcIsoSpiSelfTestFaultsValid;
+
+	float* packVoltage;
+	bool* packVoltageValid;
+
+	float* packCurrent;
+	bool* packCurrentValid;
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

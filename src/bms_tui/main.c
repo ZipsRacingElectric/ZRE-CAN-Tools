@@ -18,6 +18,172 @@
 
 // C Standard Library
 #include <errno.h>
+#include <math.h>
+
+// Constants ------------------------------------------------------------------------------------------------------------------
+
+#define COLOR_INVALID		1
+#define COLOR_VALID			2
+#define COLOR_BALANCING		3
+
+// Functions ------------------------------------------------------------------------------------------------------------------
+
+void printPowerStats (int row, int column, bms_t* bms)
+{
+	mvprintw (row + 0, column, "┌─");
+	mvprintw (row + 1, column, "│");
+	mvprintw (row + 2, column, "└─");
+	column += 2;
+
+	mvprintw (row + 0, column, "────────────────────────────────");
+
+	mvprintw (row + 2, column, "────────────────────────────────");
+	if (!*bms->packVoltageValid)
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 1, column, "Pack Voltage: -- V");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+	else
+	{
+		mvprintw (row + 1, column, "Pack Voltage: %f V", *bms->packVoltage);
+	}
+	column += 32;
+
+	mvprintw (row + 0, column, "────────────────────────────────");
+	
+	mvprintw (row + 2, column, "────────────────────────────────");
+	if (!*bms->packCurrentValid)
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 1, column, "Pack Current: -- A");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+	else
+	{
+		mvprintw (row + 1, column, "Pack Current: %f A", *bms->packCurrent);
+	}
+	column += 32;
+
+	mvprintw (row + 0, column, "────────────────────────────────");
+	
+	mvprintw (row + 2, column, "────────────────────────────────");
+	if (!*bms->packVoltageValid || !*bms->packCurrentValid)
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 1, column, "Pack Power: -- W");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+	else
+	{
+		mvprintw (row + 1, column, "Pack Power: %f W", *bms->packVoltage * *bms->packCurrent);
+	}
+	column += 32;
+
+	mvprintw (row + 0, column, "─┐");
+	mvprintw (row + 1, column, " │");
+	mvprintw (row + 2, column, "─┘");
+}
+
+void printVoltage (int row, int column, bms_t* bms, uint16_t index)
+{
+	if (!*bms->cellVoltagesValid [index] || !*bms->cellsDischargingValid [index])
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row, column, "--");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+		return;
+	}
+
+	float voltage = *bms->cellVoltages [index];
+	bool balancing = *bms->cellsDischarging [index];
+	bool voltageNominal = voltage >= bms->minCellVoltage && voltage <= bms->maxCellVoltage;
+	
+	NCURSES_PAIRS_T color = voltageNominal ? (balancing ? COLOR_BALANCING : COLOR_VALID) : COLOR_INVALID;
+
+	attron (COLOR_PAIR (color));
+	uint8_t voltageInt = (uint8_t) voltage;
+	uint8_t voltageFrac = (uint8_t) roundf ((voltage - voltageInt) * 100);
+	mvprintw (row, column, "%i.", voltageInt);
+	mvprintw (row + 1, column, "%02i", voltageFrac);
+	attroff (COLOR_PAIR (color));
+}
+
+void printTemperature (int row, int column, bms_t* bms, uint16_t index)
+{
+	if (bms->senseLineTemperatures [index] == NULL || bms->senseLineTemperaturesValid [index] == NULL)
+		return;
+
+	if (!*bms->senseLineTemperaturesValid [index])
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row, column, " --- ");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+		return;
+	}
+
+	float temperature = *bms->senseLineTemperatures [index];
+	bool temperatureNominal = temperature > bms->minTemperature && temperature < bms->maxTemperature;
+
+	NCURSES_PAIRS_T color = temperatureNominal ? COLOR_VALID : COLOR_INVALID;
+
+	attron (COLOR_PAIR (color));
+	mvprintw (row, column, "%.1fC", temperature);
+	attroff (COLOR_PAIR (color));
+}
+
+void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t index)
+{
+	if (!*bms->senseLinesOpenValid [index])
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row, column + 1, " - ");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+		return;
+	}
+
+	if (*bms->senseLinesOpen [index])
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row, column, " XXX ");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+}
+
+void printLtcIndex (int row, int column, bms_t* bms, uint16_t index)
+{
+	if (!*bms->ltcIsoSpiFaultsValid [index] || !*bms->ltcIsoSpiSelfTestFaultsValid [index])
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row, column, " LTC %i: CAN Timeout ", index);
+		attroff (COLOR_PAIR (COLOR_INVALID));
+		return;
+	}
+
+	if (*bms->ltcIsoSpiFaults [index])
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row, column, " LTC %i: IsoSPI Fault ", index);
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+	else if (*bms->ltcIsoSpiSelfTestFaults [index])
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row, column, " LTC %i: Self-Test Fault ", index);
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+	else
+	{
+		attron (COLOR_PAIR (COLOR_VALID));
+		mvprintw (row, column, " LTC %i: Comms Okay ", index);
+		attroff (COLOR_PAIR (COLOR_VALID));
+	}
+}
+
+void printCellIndex (int row, int column, bms_t* bms, uint16_t index)
+{
+	mvprintw (row, column, " %i ", index);
+}
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
@@ -70,147 +236,122 @@ int main (int argc, char** argv)
 	}
 
 	start_color ();
-	NCURSES_PAIRS_T colorRed = 1;
-	NCURSES_PAIRS_T colorGreen = 2;
-	NCURSES_PAIRS_T colorCyan = 3;
-	init_pair (colorRed, COLOR_RED, COLOR_BLACK);
-	init_pair (colorGreen, COLOR_GREEN, COLOR_BLACK);
-	init_pair (colorCyan, COLOR_CYAN, COLOR_BLACK);
+	init_pair (COLOR_INVALID,	COLOR_RED,		COLOR_BLACK);
+	init_pair (COLOR_VALID,		COLOR_GREEN,	COLOR_BLACK);
+	init_pair (COLOR_BALANCING,	COLOR_CYAN,		COLOR_BLACK);
 
 	while (true)
 	{
 		uint16_t row = 0;
-		uint16_t cellColumn = 0;
-		uint16_t senseLineColumn = 0;
+		uint16_t columnCell = 0;
+		uint16_t columnSense = 0;
+
+		printPowerStats (row, 0, &bms);
+		row += 4;
 
 		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
 		{
 			// Start of segment
-			mvprintw (row + 3, cellColumn, "├─");
-			mvprintw (row + 4, cellColumn, "│═");
-			mvprintw (row + 5, cellColumn, "│═");
-			mvprintw (row + 6, cellColumn, "└─");
-			cellColumn += 2;
+			mvprintw (row + 0, 0, "┌");
+			mvprintw (row + 1, 0, "├");
+			mvprintw (row + 2, 0, "│");
+			mvprintw (row + 3, 0, "├┬──");
+			mvprintw (row + 4, 0, "││  ");
+			mvprintw (row + 5, 0, "││  ");
+			mvprintw (row + 6, 0, "│└──");
+			mvprintw (row + 7, 0, "└───");
+			columnSense += 1;
+			columnCell += 3;
 
 			for (uint16_t ltcIndex = 0; ltcIndex < bms.ltcsPerSegment; ++ltcIndex)
 			{
-				for (uint16_t senseLineIndex = 0; senseLineIndex < bms.senseLinesPerLtc; ++senseLineIndex)
-				{
-					uint16_t increment;
-					if (senseLineIndex == bms.senseLinesPerLtc - 1 && ltcIndex != bms.ltcsPerSegment - 1)
-					{
-						mvprintw (row + 0, senseLineColumn, "┌────┬");
-						mvprintw (row + 1, senseLineColumn, "│    │");
-						mvprintw (row + 2, senseLineColumn, "│    │");
-						increment = 6;
-					}
-					else if (senseLineIndex == 0 && ltcIndex != 0)
-					{
-						mvprintw (row + 0, senseLineColumn, "────┐");
-						mvprintw (row + 1, senseLineColumn, "    │");
-						mvprintw (row + 2, senseLineColumn, "    │");
-						senseLineColumn -= 1;
-						increment = 7;
-					}
-					else
-					{
-						mvprintw (row + 0, senseLineColumn, "┌────┐");
-						mvprintw (row + 1, senseLineColumn, "│    │");
-						mvprintw (row + 2, senseLineColumn, "│    │");
-						increment = 7;
-					}
-
-					uint16_t index = LTC_TO_SENSE_LINE_INDEX (&bms, segmentIndex, ltcIndex, senseLineIndex);
-					
-					if (bms.senseLineTemperaturesValid [index] == NULL || !*bms.senseLineTemperaturesValid [index])
-					{
-						mvprintw (row + 1, senseLineColumn + 2, "--");
-					}
-					else
-					{
-						float temperature = *bms.senseLineTemperatures [index];
-						
-						NCURSES_PAIRS_T color = colorGreen;
-						if (temperature > bms.maxTemperature || temperature < bms.minTemperature)
-							color = colorRed;
-
-						attron (COLOR_PAIR (color));
-						mvprintw (row + 1, senseLineColumn + 1, "%.1f", temperature);
-						attroff (COLOR_PAIR (color));
-					}
-
-
-					if (*bms.senseLinesOpenValid [index])
-					{
-						if (signalToBool (*bms.senseLinesOpen [index]))
-						{
-							attron (COLOR_PAIR (colorRed));
-							mvprintw (row + 2, senseLineColumn + 2, "XX");
-							attroff (COLOR_PAIR (colorRed));
-						}
-					}
-					else
-					{
-						mvprintw (row + 2, senseLineColumn + 2, "--");
-					}
-
-					senseLineColumn += increment;
-				}
-
 				for (uint16_t cellIndex = 0; cellIndex < bms.cellsPerLtc; ++cellIndex)
 				{
-					mvprintw (row + 3, cellColumn, "┬──┴─┴─");
-					mvprintw (row + 4, cellColumn, "│      ");
-					mvprintw (row + 5, cellColumn, "│      ");
-					mvprintw (row + 6, cellColumn, "┴──────");
-
 					uint16_t index = LTC_TO_CELL_INDEX (&bms, segmentIndex, ltcIndex, cellIndex);
-					if (!*bms.cellVoltagesValid [index] || !*bms.cellsDischargingValid [index])
+
+					mvprintw (row + 3, columnCell, "┬──┘└──");
+					mvprintw (row + 4, columnCell, "│      ");
+					mvprintw (row + 5, columnCell, "│      ");
+					mvprintw (row + 6, columnCell, "┴──────");
+					mvprintw (row + 7, columnCell, "───────");
+
+					if (cellIndex == 0)
 					{
-						mvprintw (row + 4, cellColumn + 3, "--");
+						mvprintw (row + 3, columnCell, "─");
+						mvprintw (row + 4, columnCell, " ");
+						mvprintw (row + 5, columnCell, " ");
+						mvprintw (row + 6, columnCell, "─");
+						mvprintw (row + 7, columnCell, "─");
+					}
+
+					printVoltage (row + 4, columnCell + 3, &bms, index);
+					printCellIndex (row + 7, columnCell + 2, &bms, index);
+
+					columnCell += 7;
+				}
+
+				if (ltcIndex != bms.ltcsPerSegment - 1)
+				{
+					mvprintw (row + 3, columnCell,	"──┬┬┬─");
+					mvprintw (row + 4, columnCell,	"  │││ ");
+					mvprintw (row + 5, columnCell,	"  │││ ");
+					mvprintw (row + 6, columnCell,	"──┘│└─");
+					mvprintw (row + 7, columnCell,	"───┴──");
+					columnCell += 6;
+				}
+				else
+				{
+					mvprintw (row + 3, columnCell,	"──┬┤");
+					mvprintw (row + 4, columnCell,	"  ││");
+					mvprintw (row + 5, columnCell,	"  ││");
+					mvprintw (row + 6, columnCell,	"──┘│");
+					mvprintw (row + 7, columnCell,	"───┘");
+				}
+
+				for (uint16_t senseLineIndex = 0; senseLineIndex < bms.senseLinesPerLtc; ++senseLineIndex)
+				{
+					uint16_t index = LTC_TO_SENSE_LINE_INDEX (&bms, segmentIndex, ltcIndex, senseLineIndex);
+					uint16_t increment;
+
+					if (senseLineIndex != bms.senseLinesPerLtc - 1)
+					{
+						mvprintw (row + 0, columnSense, "───────");
+						mvprintw (row + 1, columnSense, "─────╮╭");
+						mvprintw (row + 2, columnSense, "     ├┤");
+						increment = 7;
 					}
 					else
 					{
-						float voltage = *bms.cellVoltages [index];
-						
-						NCURSES_PAIRS_T color = colorGreen;
-						if (voltage > bms.maxCellVoltage || voltage < bms.minCellVoltage)
-							color = colorRed;
-						else if (signalToBool (*bms.cellsDischarging [index]))
-							color = colorCyan;
-						
-						attron (COLOR_PAIR (color));
-
-						int voltageInt = (uint8_t) voltage;
-						int voltageFrac = (uint8_t) ((voltage - voltageInt) * 100);
-						mvprintw (row + 4, cellColumn + 3, "%i.", voltageInt);
-						mvprintw (row + 5, cellColumn + 3, "%02i", voltageFrac);
-
-						attroff (COLOR_PAIR (color));
+						mvprintw (row + 0, columnSense, "─────");
+						mvprintw (row + 1, columnSense, "─────");
+						mvprintw (row + 2, columnSense, "     ");
+						increment = 5;
 					}
 
-					cellColumn += 7;
+					if (senseLineIndex == 3)
+						printLtcIndex (row, columnSense - 20, &bms, ltcIndex + segmentIndex * bms.ltcsPerSegment);
+
+					printTemperature (row + 2, columnSense, &bms, index);
+					printSenseLineStatus (row + 3, columnSense, &bms, index);
+					columnSense += increment;
 				}
 
-				// Middle of LTCs
-				if (ltcIndex == bms.ltcsPerSegment - 1)
-					continue;
-				mvprintw (row + 3, cellColumn, "┬──┴─");
-				mvprintw (row + 4, cellColumn, "│════");
-				mvprintw (row + 5, cellColumn, "│════");
-				mvprintw (row + 6, cellColumn, "┴────");
-				cellColumn += 5;
+				if (ltcIndex != bms.ltcsPerSegment - 1)
+				{
+					mvprintw (row + 0, columnSense,	"┬");
+					mvprintw (row + 1, columnSense,	"┴");
+					mvprintw (row + 2, columnSense,	"┊");
+					columnSense += 1;
+				}
 			}
 
 			// End of segment
-			mvprintw (row + 3, cellColumn, "┬──┤");
-			mvprintw (row + 4, cellColumn, "│══│");
-			mvprintw (row + 5, cellColumn, "│══│");
-			mvprintw (row + 6, cellColumn, "┴──┘");
-
-			cellColumn = 0;
-			senseLineColumn = 0;
-			row += 8;
+			mvprintw (row + 0, columnSense,	"┐");
+			mvprintw (row + 1, columnSense,	"┤");
+			mvprintw (row + 2, columnSense,	"│");
+			columnSense = 0;
+			columnCell = 0;
+			row += 10;
 		}
 
 		refresh ();

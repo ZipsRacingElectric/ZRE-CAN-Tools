@@ -7,7 +7,7 @@
 // C Standard Library
 #include <errno.h>
 
-static size_t printCellIndex (uint16_t index, char* name)
+static size_t printIndex (uint16_t index, char* name)
 {
 	snprintf (name, 4, "%-3i", index);
 
@@ -91,7 +91,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	for (uint16_t index = 0; index < bms->cellCount; ++index)
 	{
 		char voltName [] = "CELL_VOLTAGE_###";
-		size_t offset = printCellIndex (index, voltName + 13);
+		size_t offset = printIndex (index, voltName + 13);
 		voltName [offset + 13] = '\0';
 
 		size_t signalIndex;
@@ -102,7 +102,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		bms->cellVoltagesValid [index]	= database->signalsValid + signalIndex;
 
 		char disName [] = "CELL_BALANCING_###";
-		offset = printCellIndex (index, disName + 15);
+		offset = printIndex (index, disName + 15);
 		disName [offset + 15] = '\0';
 
 		if (canDatabaseFindSignal (database, disName, &signalIndex) != 0)
@@ -154,6 +154,54 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			}
 		}
 	}
+
+	bms->ltcIsoSpiFaults = malloc (sizeof (float*) * bms->ltcsPerSegment * bms->segmentCount);
+	bms->ltcIsoSpiFaultsValid = malloc (sizeof (bool*) * bms->ltcsPerSegment * bms->segmentCount);
+
+	bms->ltcIsoSpiSelfTestFaults = malloc (sizeof (float*) * bms->ltcsPerSegment * bms->segmentCount);
+	bms->ltcIsoSpiSelfTestFaultsValid = malloc (sizeof (bool*) * bms->ltcsPerSegment * bms->segmentCount);
+
+	for (uint16_t segmentIndex = 0; segmentIndex < bms->segmentCount; ++segmentIndex)
+	{
+		for (uint16_t ltcIndex = 0; ltcIndex < bms->ltcsPerSegment; ++ltcIndex)
+		{
+			uint16_t index = ltcIndex + bms->ltcsPerSegment * segmentIndex;
+
+			char isoSpiName [] = "BMS_LTC_###_ISOSPI_FAULT";
+			uint16_t offset = printIndex (index, isoSpiName + 8);
+			snprintf (isoSpiName + 8 + offset, 14, "_ISOSPI_FAULT");
+
+			size_t signalIndex;
+			if (canDatabaseFindSignal (database, isoSpiName, &signalIndex) != 0)
+				return errno;
+
+			bms->ltcIsoSpiFaults [index]		= database->signalValues + signalIndex;
+			bms->ltcIsoSpiFaultsValid [index]	= database->signalsValid + signalIndex;
+
+			char selfTestName [] = "BMS_LTC_###_SELF_TEST_FAULT";
+			offset = printIndex (index, isoSpiName + 8);
+			snprintf (isoSpiName + 8 + offset, 17, "_SELF_TEST_FAULT");
+
+			if (canDatabaseFindSignal (database, isoSpiName, &signalIndex) != 0)
+				return errno;
+
+			bms->ltcIsoSpiSelfTestFaults [index]		= database->signalValues + signalIndex;
+			bms->ltcIsoSpiSelfTestFaultsValid [index]	= database->signalsValid + signalIndex;
+		}
+	}
+
+	size_t signalIndex;
+	if (canDatabaseFindSignal (database, "PACK_VOLTAGE", &signalIndex) != 0)
+		return errno;
+
+	bms->packVoltage = database->signalValues + signalIndex;
+	bms->packVoltageValid = database->signalsValid + signalIndex;
+
+	if (canDatabaseFindSignal (database, "PACK_CURRENT", &signalIndex) != 0)
+		return errno;
+
+	bms->packCurrent = database->signalValues + signalIndex;
+	bms->packCurrentValid = database->signalsValid + signalIndex;
 
 	return 0;
 }

@@ -661,30 +661,30 @@ BO_ 1831 BMS_STATUS: 6 Vector__XXX
  SG_ BMS_SENSE_LINE_FAULT : 4|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_ISOSPI_FAULT : 5|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_SELF_TEST_FAULT : 6|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_0_LO_ISOSPI_FAULT : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_0_HI_ISOSPI_FAULT : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_1_LO_ISOSPI_FAULT : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_1_HI_ISOSPI_FAULT : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_2_LO_ISOSPI_FAULT : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_2_HI_ISOSPI_FAULT : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_3_LO_ISOSPI_FAULT : 22|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_3_HI_ISOSPI_FAULT : 23|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_4_LO_ISOSPI_FAULT : 24|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_4_HI_ISOSPI_FAULT : 25|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_5_LO_ISOSPI_FAULT : 26|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_5_HI_ISOSPI_FAULT : 27|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_0_LO_SELF_TEST_FAULT : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_0_HI_SELF_TEST_FAULT : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_1_LO_SELF_TEST_FAULT : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_1_HI_SELF_TEST_FAULT : 35|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_2_LO_SELF_TEST_FAULT : 36|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_2_HI_SELF_TEST_FAULT : 37|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_3_LO_SELF_TEST_FAULT : 38|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_3_HI_SELF_TEST_FAULT : 39|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_4_LO_SELF_TEST_FAULT : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_4_HI_SELF_TEST_FAULT : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_5_LO_SELF_TEST_FAULT : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SEGMENT_5_HI_SELF_TEST_FAULT : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_0_ISOSPI_FAULT : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_1_ISOSPI_FAULT : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_2_ISOSPI_FAULT : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_3_ISOSPI_FAULT : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_4_ISOSPI_FAULT : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_5_ISOSPI_FAULT : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_6_ISOSPI_FAULT : 22|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_7_ISOSPI_FAULT : 23|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_8_ISOSPI_FAULT : 24|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_9_ISOSPI_FAULT : 25|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_10_ISOSPI_FAULT : 26|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_11_ISOSPI_FAULT : 27|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_0_SELF_TEST_FAULT : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_1_SELF_TEST_FAULT : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_2_SELF_TEST_FAULT : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_3_SELF_TEST_FAULT : 35|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_4_SELF_TEST_FAULT : 36|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_5_SELF_TEST_FAULT : 37|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_6_SELF_TEST_FAULT : 38|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_7_SELF_TEST_FAULT : 39|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_8_SELF_TEST_FAULT : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_9_SELF_TEST_FAULT : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_10_SELF_TEST_FAULT : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_11_SELF_TEST_FAULT : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1832 BMS_POWER_CONSUMPTION: 4 Vector__XXX
  SG_ PACK_VOLTAGE : 0|16@1+ (0.0125,0) [0|819.2] "V" Vector__XXX
