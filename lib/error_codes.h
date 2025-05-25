@@ -15,6 +15,8 @@
 #define ERRNO_CAN_DBC_SIGNAL_COUNT				1025
 #define ERRNO_CAN_DBC_MESSAGE_MISSING			1026
 
+#define ERRNO_CAN_DATABASE_SIGNAL_MISSING		1048
+
 #define ERRNO_CJSON_EOF							1280
 #define ERRNO_CJSON_PARSE_FAIL					1281
 #define ERRNO_CJSON_MISSING_KEY					1282
@@ -37,6 +39,8 @@
 #define ERRMSG_CAN_DBC_MESSAGE_COUNT			"The DBC file exceeds the maximum number of CAN messages"
 #define ERRMSG_CAN_DBC_SIGNAL_COUNT				"The DBC file exceeds the maximum number of CAN signals"
 #define ERRMSG_CAN_DBC_MESSAGE_MISSING			"The DBC file contains a signal before the first message"
+
+#define ERRMSG_CAN_DATABASE_SIGNAL_MISSING		"No such signal in database"
 
 #define ERRMSG_CJSON_EOF						"Unexpected end of JSON data"
 #define ERRMSG_CJSON_PARSE_FAIL					"Invalid JSON data"
@@ -67,6 +71,8 @@ static inline const char* errorMessage (int errorCode)
 		return ERRMSG_CAN_DBC_SIGNAL_COUNT;
 	case ERRNO_CAN_DBC_MESSAGE_MISSING:
 		return ERRMSG_CAN_DBC_MESSAGE_MISSING;
+	case ERRNO_CAN_DATABASE_SIGNAL_MISSING:
+		return ERRMSG_CAN_DATABASE_SIGNAL_MISSING;
 	case ERRNO_CJSON_EOF:
 		return ERRMSG_CJSON_EOF;
 	case ERRNO_CJSON_PARSE_FAIL:

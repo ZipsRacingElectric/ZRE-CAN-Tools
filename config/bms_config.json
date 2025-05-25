@@ -1,13 +1,20 @@
 {
 	"name":				"BMS",
 	"canId":			"0x752",
+	"segmentCount":		"6",
+	"ltcsPerSegment":	"2",
+	"cellsPerLtc":		"12",
+	"minCellVoltage":	"3.0",
+	"maxCellVoltage":	"4.16",
+	"minTemperature":	"-10",
+	"maxTemperature":	"60",
 	"variables":
 	[
 		{
 			"address":	"0x0000",
 			"name":		"EEPROM_STATUS",
 			"type":		"uint8_t",
-			"comment":	"The status of the VCU's EEPROM. 0 => Hardware failure, 1 => Memory invalid, 3 => Memory valid."
+			"comment":	"The status of the BMS's EEPROM. 0 => Hardware failure, 1 => Memory invalid, 3 => Memory valid."
 		},
 		{
 			"address":	"0x0010",

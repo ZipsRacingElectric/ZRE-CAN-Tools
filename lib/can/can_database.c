@@ -5,6 +5,7 @@
 
 // Includes
 #include "can_dbc.h"
+#include "error_codes.h"
 
 // C Standard Library
 #include <errno.h>
@@ -177,4 +178,19 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 			database->signalsValid [signalOffset + index] = true;
 		}
 	}
+}
+
+int canDatabaseFindSignal (canDatabase_t* database, const char* name, size_t* index)
+{
+	for (uint16_t signalIndex = 0; signalIndex < database->signalCount; ++signalIndex)
+	{
+		if (strcmp (name, database->signals [signalIndex].name) == 0)
+		{
+			*index = signalIndex;
+			return 0;
+		}
+	}
+
+	errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
+	return errno;
 }

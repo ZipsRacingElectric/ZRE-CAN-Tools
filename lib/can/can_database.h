@@ -19,6 +19,7 @@
 
 // C Standard Library
 #include <stdio.h>
+#include <float.h>
 
 // Debugging ------------------------------------------------------------------------------------------------------------------
 
@@ -93,5 +94,19 @@ void canDatabaseMessageValuePrint (FILE* stream, canDatabase_t* database, size_t
  * @return A frame encoding the message's data.
  */
 struct can_frame canDatabaseMessageValuePrompt (canDatabase_t* database, size_t index);
+
+/**
+ * @brief Finds a signal's index based off name.
+ * @param database The database to search from.
+ * @param name The name of the signal to find.
+ * @param index If successful, written to contain the index of the signal.
+ * @return 0 if successful, the error code otherwise.
+ */
+int canDatabaseFindSignal (canDatabase_t* database, const char* name, size_t* index);
+
+inline static bool signalToBool (float value)
+{
+	return value >= 0.0f + FLT_EPSILON || value <= 0.0f - FLT_EPSILON;
+}
 
 #endif // CAN_DATABASE_H

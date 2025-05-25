@@ -746,7 +746,7 @@ BO_ 1833 BMS_CELL_BALANCINGS_0_47: 8 Vector__XXX
  SG_ CELL_BALANCING_36 : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CELL_BALANCING_37 : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CELL_BALANCING_38 : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_39 : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_30 : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CELL_BALANCING_40 : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CELL_BALANCING_41 : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CELL_BALANCING_42 : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX

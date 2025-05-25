@@ -126,3 +126,16 @@ int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value)
 	*value = strtol (cJSON_GetStringValue (item), NULL, 0);
 	return 0;
 }
+
+int jsonGetFloat (cJSON* json, const char* key, float* value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
+	}
+
+	*value = strtof (cJSON_GetStringValue (item), NULL);
+	return 0;
+}

@@ -32,4 +32,6 @@ int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value);
 
 int jsonGetUint32_t (cJSON* json, const char* key, uint32_t* value);
 
+int jsonGetFloat (cJSON* json, const char* key, float* value);
+
 #endif // CJSON_UTIL_H
