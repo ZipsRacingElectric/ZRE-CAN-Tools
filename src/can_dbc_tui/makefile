@@ -7,4 +7,4 @@ SRC 	:= main.c
 
 $(BIN): $(SRC)
 	mkdir -p $(BIN_DIR)
-	gcc $(SRC) $(CC_FLAGS) -lncurses $(BIN_DIR)/can.a -I../../lib/ -o $(BIN) -lm
+	gcc $(SRC) $(CC_FLAGS) $(BIN_DIR)/can.a -I../../lib/ -o $(BIN) -lm -lncurses
