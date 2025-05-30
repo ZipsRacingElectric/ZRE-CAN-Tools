@@ -119,6 +119,12 @@
 			"comment":	"The current at which channel 1 of the current sensor saturates (positive and negative)."
 		},
 		{
+			"address":	"0x004C",
+			"name":		"CURRENT_SENSOR_DEADZONE_CURRENT",
+			"type":		"float",
+			"comment":	"The magnitude of current below which to clamp to the output 0A."
+		},
+		{
 			"address":	"0x1000",
 			"name":		"CURRENT_SENSOR_CHANNEL_1_SAMPLE",
 			"type":		"uint16_t",

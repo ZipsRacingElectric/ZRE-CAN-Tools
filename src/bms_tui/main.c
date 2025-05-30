@@ -46,7 +46,7 @@ void printPowerStats (int row, int column, bms_t* bms)
 	}
 	else
 	{
-		mvprintw (row + 1, column, "Pack Voltage: %f V", *bms->packVoltage);
+		mvprintw (row + 1, column, "Pack Voltage: %8.2f V", *bms->packVoltage);
 	}
 	column += 32;
 
@@ -61,7 +61,7 @@ void printPowerStats (int row, int column, bms_t* bms)
 	}
 	else
 	{
-		mvprintw (row + 1, column, "Pack Current: %f A", *bms->packCurrent);
+		mvprintw (row + 1, column, "Pack Current: %8.2f A", *bms->packCurrent);
 	}
 	column += 32;
 
@@ -76,7 +76,7 @@ void printPowerStats (int row, int column, bms_t* bms)
 	}
 	else
 	{
-		mvprintw (row + 1, column, "Pack Power: %f W", *bms->packVoltage * *bms->packCurrent);
+		mvprintw (row + 1, column, "Pack Power: %8.2f W", *bms->packVoltage * *bms->packCurrent);
 	}
 	column += 32;
 
