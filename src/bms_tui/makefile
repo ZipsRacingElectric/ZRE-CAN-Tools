@@ -8,4 +8,4 @@ SRC 	:=	main.c	\
 
 $(BIN): $(SRC)
 	mkdir -p $(BIN_DIR)
-	gcc $(SRC) $(CC_FLAGS) -lm -lncurses $(BIN_DIR)/can.a $(BIN_DIR)/cjson.a -I../../lib/ -o $(BIN)
+	gcc $(SRC) $(CC_FLAGS) -lncurses $(BIN_DIR)/can.a $(BIN_DIR)/cjson.a -I../../lib/ -o $(BIN) -lm
