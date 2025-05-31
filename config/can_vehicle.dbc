@@ -685,6 +685,10 @@ BO_ 1831 BMS_STATUS: 6 Vector__XXX
  SG_ BMS_LTC_9_SELF_TEST_FAULT : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_10_SELF_TEST_FAULT : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_11_SELF_TEST_FAULT : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_CHARGING : 7|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_BALANCING : 8|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SHUTDOWN_CLOSED : 9|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ PRECHARGE_COMPLETE : 10|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1832 BMS_POWER_CONSUMPTION: 4 Vector__XXX
  SG_ PACK_VOLTAGE : 0|16@1+ (0.0125,0) [0|819.2] "V" Vector__XXX
