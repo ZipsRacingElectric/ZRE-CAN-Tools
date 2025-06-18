@@ -38,6 +38,7 @@ typedef struct
 	float maxCellVoltage;
 	float minTemperature;
 	float maxTemperature;
+	float maxLtcTemperature;
 
 	float** cellVoltages;
 	bool** cellVoltagesValid;
@@ -54,8 +55,11 @@ typedef struct
 	float** ltcIsoSpiFaults;
 	bool** ltcIsoSpiFaultsValid;
 
-	float** ltcIsoSpiSelfTestFaults;
-	bool** ltcIsoSpiSelfTestFaultsValid;
+	float** ltcSelfTestFaults;
+	bool** ltcSelfTestFaultsValid;
+
+	float** ltcTemperatures;
+	bool** ltcTemperaturesValid;
 
 	float* packVoltage;
 	bool* packVoltageValid;

@@ -1,13 +1,14 @@
 {
-	"name":				"BMS",
-	"canId":			"0x752",
-	"segmentCount":		"6",
-	"ltcsPerSegment":	"2",
-	"cellsPerLtc":		"12",
-	"minCellVoltage":	"3.0",
-	"maxCellVoltage":	"4.16",
-	"minTemperature":	"-10",
-	"maxTemperature":	"60",
+	"name":					"BMS",
+	"canId":				"0x752",
+	"segmentCount":			"6",
+	"ltcsPerSegment":		"2",
+	"cellsPerLtc":			"12",
+	"minCellVoltage":		"3.0",
+	"maxCellVoltage":		"4.16",
+	"minTemperature":		"-10",
+	"maxTemperature":		"60",
+	"maxLtcTemperature":	"80",
 	"variables":
 	[
 		{
@@ -163,6 +164,12 @@
 		{
 			"address":	"0x0064",
 			"name":		"BALANCING_THRESHOLD",
+			"type":		"float",
+			"comment":	""
+		},
+		{
+			"address":	"0x0068",
+			"name":		"LTC_TEMPERATURE_MAX",
 			"type":		"float",
 			"comment":	""
 		},

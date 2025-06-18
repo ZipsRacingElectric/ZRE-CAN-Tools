@@ -40,7 +40,7 @@ static size_t printSenseLineIndex (bms_t* bms, uint16_t segmentIndex, uint16_t l
 		snprintf (name + offset, 4, "_HI");
 		return offset + 3;
 	}
-	
+
 	// LO suffix
 	if (senseLineIndex == bms->senseLinesPerLtc - 1)
 	{
@@ -74,6 +74,9 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		return errno;
 
 	if (jsonGetFloat (config, "maxTemperature", &bms->maxTemperature) != 0)
+		return errno;
+
+	if (jsonGetFloat (config, "maxLtcTemperature", &bms->maxLtcTemperature) != 0)
 		return errno;
 
 	bms->senseLinesPerLtc = bms->cellsPerLtc + 1;
@@ -114,7 +117,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 
 	bms->senseLineTemperatures = malloc (sizeof (float*) * bms->senseLineCount);
 	bms->senseLineTemperaturesValid = malloc (sizeof (bool*) * bms->senseLineCount);
-	
+
 	bms->senseLinesOpen = malloc (sizeof (float*) * bms->senseLineCount);
 	bms->senseLinesOpenValid = malloc (sizeof (bool*) * bms->senseLineCount);
 
@@ -158,8 +161,11 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	bms->ltcIsoSpiFaults = malloc (sizeof (float*) * bms->ltcsPerSegment * bms->segmentCount);
 	bms->ltcIsoSpiFaultsValid = malloc (sizeof (bool*) * bms->ltcsPerSegment * bms->segmentCount);
 
-	bms->ltcIsoSpiSelfTestFaults = malloc (sizeof (float*) * bms->ltcsPerSegment * bms->segmentCount);
-	bms->ltcIsoSpiSelfTestFaultsValid = malloc (sizeof (bool*) * bms->ltcsPerSegment * bms->segmentCount);
+	bms->ltcSelfTestFaults = malloc (sizeof (float*) * bms->ltcsPerSegment * bms->segmentCount);
+	bms->ltcSelfTestFaultsValid = malloc (sizeof (bool*) * bms->ltcsPerSegment * bms->segmentCount);
+
+	bms->ltcTemperatures = malloc (sizeof (float*) * bms->ltcsPerSegment * bms->segmentCount);
+	bms->ltcTemperaturesValid = malloc (sizeof (bool*) * bms->ltcsPerSegment * bms->segmentCount);
 
 	for (uint16_t segmentIndex = 0; segmentIndex < bms->segmentCount; ++segmentIndex)
 	{
@@ -179,14 +185,24 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			bms->ltcIsoSpiFaultsValid [index]	= database->signalsValid + signalIndex;
 
 			char selfTestName [] = "BMS_LTC_###_SELF_TEST_FAULT";
-			offset = printIndex (index, isoSpiName + 8);
-			snprintf (isoSpiName + 8 + offset, 17, "_SELF_TEST_FAULT");
+			offset = printIndex (index, selfTestName + 8);
+			snprintf (selfTestName + 8 + offset, 17, "_SELF_TEST_FAULT");
 
-			if (canDatabaseFindSignal (database, isoSpiName, &signalIndex) != 0)
+			if (canDatabaseFindSignal (database, selfTestName, &signalIndex) != 0)
 				return errno;
 
-			bms->ltcIsoSpiSelfTestFaults [index]		= database->signalValues + signalIndex;
-			bms->ltcIsoSpiSelfTestFaultsValid [index]	= database->signalsValid + signalIndex;
+			bms->ltcSelfTestFaults [index]		= database->signalValues + signalIndex;
+			bms->ltcSelfTestFaultsValid [index]	= database->signalsValid + signalIndex;
+
+			char temperatureName [] = "BMS_LTC_###_TEMPERATURE";
+			offset = printIndex (index, temperatureName + 8);
+			snprintf (temperatureName + 8 + offset, 13, "_TEMPERATURE");
+
+			if (canDatabaseFindSignal (database, temperatureName, &signalIndex) != 0)
+				return errno;
+
+			bms->ltcTemperatures [index]		= database->signalValues + signalIndex;
+			bms->ltcTemperaturesValid [index]	= database->signalsValid + signalIndex;
 		}
 	}
 

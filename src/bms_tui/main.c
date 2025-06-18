@@ -51,7 +51,7 @@ void printPowerStats (int row, int column, bms_t* bms)
 	column += 32;
 
 	mvprintw (row + 0, column, "────────────────────────────────");
-	
+
 	mvprintw (row + 2, column, "────────────────────────────────");
 	if (!*bms->packCurrentValid)
 	{
@@ -66,7 +66,7 @@ void printPowerStats (int row, int column, bms_t* bms)
 	column += 32;
 
 	mvprintw (row + 0, column, "────────────────────────────────");
-	
+
 	mvprintw (row + 2, column, "────────────────────────────────");
 	if (!*bms->packVoltageValid || !*bms->packCurrentValid)
 	{
@@ -78,6 +78,45 @@ void printPowerStats (int row, int column, bms_t* bms)
 	{
 		mvprintw (row + 1, column, "Pack Power: %8.2f W", *bms->packVoltage * *bms->packCurrent);
 	}
+	column += 32;
+
+	bool tempsValid = false;
+	size_t count = 0;
+	float min = INFINITY;
+	float max = -INFINITY;
+	float avg = 0;
+	for (size_t index = 0; index < bms->senseLinesPerLtc * bms->ltcsPerSegment * bms->segmentCount; ++index)
+	{
+		if (bms->senseLineTemperatures [index] == NULL || !*bms->senseLineTemperaturesValid [index])
+			continue;
+
+		tempsValid = true;
+
+		++count;
+		float temp = *bms->senseLineTemperatures [index];
+		if (temp > max)
+			max = temp;
+		if (temp < min)
+			min = temp;
+		avg += temp;
+	}
+	avg /= count;
+
+	mvprintw (row + 0, column, "────────────────────────────────");
+	if (tempsValid)
+		mvprintw (row + 1, column, "Min: %0.2f C", min);
+	mvprintw (row + 2, column, "────────────────────────────────");
+	column += 32;
+
+	mvprintw (row + 0, column, "────────────────────────────────");
+	if (tempsValid)
+		mvprintw (row + 1, column, "Max: %0.2f C", max);
+	mvprintw (row + 2, column, "────────────────────────────────");
+	column += 32;
+
+	mvprintw (row + 0, column, "────────────────────────────────");
+	mvprintw (row + 1, column, "Avg: %0.2f C", avg);
+	mvprintw (row + 2, column, "────────────────────────────────");
 	column += 32;
 
 	mvprintw (row + 0, column, "─┐");
@@ -98,7 +137,7 @@ void printVoltage (int row, int column, bms_t* bms, uint16_t index)
 	float voltage = *bms->cellVoltages [index];
 	bool balancing = *bms->cellsDischarging [index];
 	bool voltageNominal = voltage >= bms->minCellVoltage && voltage <= bms->maxCellVoltage;
-	
+
 	NCURSES_PAIRS_T color = voltageNominal ? (balancing ? COLOR_BALANCING : COLOR_VALID) : COLOR_INVALID;
 
 	attron (COLOR_PAIR (color));
@@ -152,31 +191,47 @@ void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t index)
 
 void printLtcIndex (int row, int column, bms_t* bms, uint16_t index)
 {
-	if (!*bms->ltcIsoSpiFaultsValid [index] || !*bms->ltcIsoSpiSelfTestFaultsValid [index])
+	if (!*bms->ltcIsoSpiFaultsValid [index] || !*bms->ltcSelfTestFaultsValid [index])
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
 		mvprintw (row, column, " LTC %i: CAN Timeout ", index);
 		attroff (COLOR_PAIR (COLOR_INVALID));
-		return;
-	}
-
-	if (*bms->ltcIsoSpiFaults [index])
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " LTC %i: IsoSPI Fault ", index);
-		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-	else if (*bms->ltcIsoSpiSelfTestFaults [index])
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " LTC %i: Self-Test Fault ", index);
-		attroff (COLOR_PAIR (COLOR_INVALID));
 	}
 	else
 	{
-		attron (COLOR_PAIR (COLOR_VALID));
-		mvprintw (row, column, " LTC %i: Comms Okay ", index);
-		attroff (COLOR_PAIR (COLOR_VALID));
+		if (*bms->ltcIsoSpiFaults [index])
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (row, column, " LTC %i: IsoSPI Fault ", index);
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
+		else if (*bms->ltcSelfTestFaults [index])
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (row, column, " LTC %i: Self-Test Fault ", index);
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_VALID));
+			mvprintw (row, column, " LTC %i: Comms Okay ", index);
+			attroff (COLOR_PAIR (COLOR_VALID));
+		}
+	}
+
+	if (!*bms->ltcTemperaturesValid [index])
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		printw ("(-- C) ");
+		attron (COLOR_PAIR (COLOR_INVALID));
+	}
+	else
+	{
+		bool temperatureNominal = *bms->ltcTemperatures [index] < bms->maxLtcTemperature;
+		NCURSES_PAIRS_T color = temperatureNominal ? COLOR_VALID : COLOR_INVALID;
+		attron (COLOR_PAIR (color));
+		printw ("(%4.2f C) ", *bms->ltcTemperatures [index]);
+		attroff (COLOR_PAIR (color));
 	}
 }
 
@@ -328,8 +383,8 @@ int main (int argc, char** argv)
 						increment = 5;
 					}
 
-					if (senseLineIndex == 3)
-						printLtcIndex (row, columnSense - 20, &bms, ltcIndex + segmentIndex * bms.ltcsPerSegment);
+					if (senseLineIndex == 5)
+						printLtcIndex (row, columnSense - 34, &bms, ltcIndex + segmentIndex * bms.ltcsPerSegment);
 
 					printTemperature (row + 2, columnSense, &bms, index);
 					printSenseLineStatus (row + 3, columnSense, &bms, index);
