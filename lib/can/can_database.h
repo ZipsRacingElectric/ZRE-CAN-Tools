@@ -106,7 +106,7 @@ int canDatabaseFindSignal (canDatabase_t* database, const char* name, size_t* in
 
 inline static bool signalToBool (float value)
 {
-	return value >= 0.0f + FLT_EPSILON || value <= 0.0f - FLT_EPSILON;
+	return value >= FLT_EPSILON || value <= -FLT_EPSILON;
 }
 
 #endif // CAN_DATABASE_H
