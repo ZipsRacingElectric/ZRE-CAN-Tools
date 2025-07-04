@@ -203,7 +203,8 @@ int readSingle (uint16_t canId, canDevice_t* device, uint16_t address, uint8_t c
 	for (uint16_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
 		// Flush any messages that accumulated in the down-time.
-		canFlushRx (device);
+		if (canFlushRx (device) != 0)
+			return errno;
 
 		// Transmit the command message
 		if (canTransmit (device, &command) != 0)

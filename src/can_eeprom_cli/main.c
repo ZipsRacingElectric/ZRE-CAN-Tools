@@ -193,9 +193,6 @@ int main (int argc, char** argv)
 			printf (" r - Read from the EEPROM.\n");
 			printf (" m - Print a map of the EEPROM's memory.\n");
 			printf (" e - Print an empty map of the EEPROM.\n");
-			printf (" v - Validate the EEPROM.\n");
-			printf (" i - Invalidate the EEPROM.\n");
-			printf (" c - Check the EEPROM's validity.\n");
 			printf (" q - Quit the program.\n");
 
 			char selection;

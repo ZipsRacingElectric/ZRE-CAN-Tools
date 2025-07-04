@@ -24,6 +24,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+// TODO(Barach)
+#include <errno.h>
+#include <stdio.h>
+
 #endif // __unix__
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
@@ -104,6 +108,14 @@ canDevice_t* socketCanInit (const char* name)
 	#endif // __unix__
 }
 
+int socketCanDealloc (void* device)
+{
+	// TODO(Barach):
+	(void) device;
+	errno = ERRNO_OS_NOT_SUPPORTED;
+	return errno;
+}
+
 int socketCanTransmit (void* device, canFrame_t* frame)
 {
 	#if defined (__unix__)
@@ -176,11 +188,9 @@ int socketCanFlushRx (void* device)
 	if (fcntl (socket->descriptor, F_SETFL, flags) != 0)
 		return errno;
 
-	// TODO(Barach): Check errors?
-
 	// Read all available data from the socket.
 	struct can_frame frame;
-	while (read (socket->descriptor, &frame, sizeof (struct can_frame)) == 0);
+	while (read (socket->descriptor, &frame, sizeof (struct can_frame)) == sizeof (struct can_frame));
 
 	// Make the socket blocking again.
 	flags &= ~O_NONBLOCK;

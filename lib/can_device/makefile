@@ -15,4 +15,4 @@ $(BIN): $(OBJ)
 
 $(OBJ_DIR)/%.o: %.c %.h
 	mkdir -p $(OBJ_DIR)
-	gcc $(CC_FLAGS) -I.. -c $< -o $@
+	gcc $(CC_FLAGS) -I.. -I$(BIN_DIR)/include -c $< -o $@

@@ -36,16 +36,8 @@ int main (int argc, char** argv)
 	const char* deviceName = argv [1];
 	const char* dbcPath = argv [2];
 
-	canDevice_t* tx = canInit (deviceName);
-	if (tx == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
-		return code;
-	}
-
-	canDevice_t* rx = canInit (deviceName);
-	if (rx == NULL)
+	canDevice_t* device = canInit (deviceName);
+	if (device == NULL)
 	{
 		int code = errno;
 		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
@@ -54,7 +46,7 @@ int main (int argc, char** argv)
 
 	// Initialize the database.
 	canDatabase_t database;
-	if (canDatabaseInit (&database, tx, rx, dbcPath) != 0)
+	if (canDatabaseInit (&database, device, dbcPath) != 0)
 	{
 		int code = errno;
 		fprintf (stderr, "Failed to initialize CAN database: %s.\n", errorMessage (code));
@@ -77,7 +69,7 @@ int main (int argc, char** argv)
 		case 't':
 			messageIndex = canDatabaseMessageNamePrompt (&database);
 			canFrame_t frame = messagePrompt (database.messages + messageIndex);
-			if (canTransmit (database.tx, &frame) == 0)
+			if (canTransmit (database.device, &frame) == 0)
 				printf ("Success.\n");
 			else
 			 	printf ("Error: %s.\n", errorMessage (errno));

@@ -15,10 +15,9 @@
 
 void* canDatabaseRxThreadEntrypoint (void* arg);
 
-int canDatabaseInit (canDatabase_t* database, canDevice_t* tx, canDevice_t* rx, const char* dbcPath)
+int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* dbcPath)
 {
-	database->tx = tx;
-	database->rx = rx;
+	database->device = device;
 
 	// Parse the DBC file.
 	database->messageCount	= CAN_DATABASE_MESSAGE_COUNT_MAX;
@@ -119,7 +118,7 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 	while (true)
 	{
 		canFrame_t frame;
-		if (canReceive (database->rx, &frame) != 0)
+		if (canReceive (database->device, &frame) != 0)
 			continue;
 
 		canMessage_t* message = NULL;

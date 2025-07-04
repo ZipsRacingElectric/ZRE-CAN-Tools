@@ -10,6 +10,7 @@ LIB		:=						\
 	$(LIB_DIR)/can_device.a		\
 	$(LIB_DIR)/can_database.a	\
 	$(LIB_DIR)/cjson.a			\
+	$(LIB_DIR)/serial_can.a		\
 	$(LIB_DIR)/bms.a
 
 $(BIN): $(SRC)

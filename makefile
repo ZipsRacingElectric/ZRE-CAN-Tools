@@ -1,51 +1,57 @@
 # Directories
 BIN_DIR := bin
+LIB_DIR := $(BIN_DIR)/lib
 
 # Libraries
-CAN_DEVICE_LIB := $(BIN_DIR)/can_device.a
-CAN_DATABASE_LIB := $(BIN_DIR)/can_database.a
-CAN_EEPROM_LIB := $(BIN_DIR)/can_eeprom.a
-CJSON_LIB := $(BIN_DIR)/cjson.a
-BMS_LIB := $(BIN_DIR)/bms.a
+CAN_DEVICE_LIB := $(LIB_DIR)/can_device.a
+CAN_DATABASE_LIB := $(LIB_DIR)/can_database.a
+CAN_EEPROM_LIB := $(LIB_DIR)/can_eeprom.a
+CJSON_LIB := $(LIB_DIR)/cjson.a
+BMS_LIB := $(LIB_DIR)/bms.a
+SERIAL_CAN_LIB := $(LIB_DIR)/serial_can.a
 
 # Applications
+CAN_DEV_CLI		:= $(BIN_DIR)/can-dev-cli
 CAN_DBC_CLI		:= $(BIN_DIR)/can-dbc-cli
 CAN_DBC_TUI		:= $(BIN_DIR)/can-dbc-tui
 CAN_EEPROM_CLI	:= $(BIN_DIR)/can-eeprom-cli
 BMS_TUI			:= $(BIN_DIR)/bms-tui
 
-all: $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(TV_DUMMY_PROG) $(BMS_TUI) shell
+all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(TV_DUMMY_PROG) $(BMS_TUI) shell
 
 # Libraries
-$(CAN_DEVICE_LIB): FORCE
+$(SERIAL_CAN_LIB): FORCE
+	make -B -C lib/serial_can
+
+$(CAN_DEVICE_LIB): $(SERIAL_CAN_LIB) FORCE
 	make -C lib/can_device
 
 $(CAN_DATABASE_LIB): FORCE
 	make -C lib/can_database
 
-$(CAN_EEPROM_LIB): $(CAN_DEVICE_LIB) $(CJSON_LIB) FORCE
+$(CAN_EEPROM_LIB): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CJSON_LIB) FORCE
 	make -C lib/can_eeprom
 
 $(CJSON_LIB): FORCE
 	make -C lib/cjson
 
-$(BMS_LIB): $(CAN_DEVICE_LIB) $(CAN_DATABASE_LIB) $(CJSON_LIB) FORCE
+$(BMS_LIB): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) $(CJSON_LIB) FORCE
 	make -C lib/bms
 
 # Applications
-$(CAN_DBC_CLI): $(CAN_DEVICE_LIB) $(CAN_DATABASE_LIB) FORCE
+$(CAN_DEV_CLI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) FORCE
+	make -C src/can_dev_cli
+
+$(CAN_DBC_CLI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) FORCE
 	make -C src/can_dbc_cli
 
-$(CAN_DBC_TUI): $(CAN_DEVICE_LIB) $(CAN_DATABASE_LIB) FORCE
+$(CAN_DBC_TUI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) FORCE
 	make -C src/can_dbc_tui
 
-$(CAN_EEPROM_CLI): $(CAN_EEPROM_LIB) FORCE
+$(CAN_EEPROM_CLI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_EEPROM_LIB) FORCE
 	make -C src/can_eeprom_cli
 
-$(TV_DUMMY_PROG): FORCE
-	make -C src/tv_chatfield_dummy_prog
-
-$(BMS_TUI): $(CAN_DEVICE_LIB) $(CAN_DATABASE_LIB) $(BMS_LIB) FORCE
+$(BMS_TUI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) $(BMS_LIB) FORCE
 	make -C src/bms_tui
 
 shell: FORCE

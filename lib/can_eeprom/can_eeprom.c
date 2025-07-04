@@ -405,7 +405,7 @@ void canEepromPrintVariableValue (canEepromVariable_t* variable, void* buffer, c
 
 int canEepromPrintMap (canEeprom_t* eeprom, canDevice_t* device, FILE* stream)
 {
-	fprintf (stream, "%s Memory Map:\n", eeprom->name);
+	fprintf (stream, "%s EEPROM Map:\n", eeprom->name);
 	fprintf (stream, "----------------------------------------------------------------------------------------\n");
 	fprintf (stream, "%48s | %23s | %10s\n", "Variable", "Type", "Value");
 	fprintf (stream, "-------------------------------------------------|-------------------------|------------\n");

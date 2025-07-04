@@ -31,8 +31,7 @@
 
 struct canDatabase
 {
-	canDevice_t*	tx;
-	canDevice_t*	rx;
+	canDevice_t*	device;
 	pthread_t		rxThread;
 	canMessage_t	messages [CAN_DATABASE_MESSAGE_COUNT_MAX];
 	size_t			messageCount;
@@ -52,7 +51,7 @@ typedef struct canDatabase canDatabase_t;
  * @param dbcPath The database file to import from.
  * @return 0 if successful, the error code otherwise.
  */
-int canDatabaseInit (canDatabase_t* database, canDevice_t* tx, canDevice_t* rx, const char* dbcPath);
+int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* dbcPath);
 
 /**
  * @brief Prints all of the data of a database.
