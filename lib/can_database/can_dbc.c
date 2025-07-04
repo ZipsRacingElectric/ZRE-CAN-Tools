@@ -9,15 +9,6 @@
 #include <stdio.h>
 #include <string.h>
 
-// Debugging ------------------------------------------------------------------------------------------------------------------
-
-#if CAN_DBC_DEBUG_INFO
-	#include <stdio.h>
-	#define INFO_PRINTF(...) fprintf (stderr, __VA_ARGS__)
-#else
-	#define INFO_PRINTF(...) while (false)
-#endif // CAN_DBC_DEBUG_INFO
-
 // DBC Keywords ---------------------------------------------------------------------------------------------------------------
 
 #define DBC_KEYWORD_NETWORK_NODE	"BU_:"			// CAN ECU
@@ -38,8 +29,6 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 	char dataBuffer0 [CAN_DBC_LINE_LENGTH_MAX];
 	char dataBuffer1 [CAN_DBC_LINE_LENGTH_MAX];
 	char dataBuffer2 [CAN_DBC_LINE_LENGTH_MAX];
-
-	INFO_PRINTF ("Parsing DBC file '%s'...\n", path);
 
 	size_t maxMessages = *messageCount;
 	size_t maxSignals = *signalCount;
@@ -98,15 +87,11 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 			// Validate input
 			if (code != 4)
 			{
-				INFO_PRINTF ("Failed to parse DBC message '%s': Invalid format.\n", dataBuffer0);
-
 				// Ignore remainder of line
 				fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 			}
 			else
 			{
-				INFO_PRINTF ("Message name: %s, ID: %u, DLC: %u, ECU: %s\n", dataBuffer0, messageId, messageDlc, dataBuffer1);
-
 				// Add message to array
 				message = messages + *messageCount;
 				++(*messageCount);
@@ -160,15 +145,11 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 			// Validate input
 			if(code != 11)
 			{
-				INFO_PRINTF ("Failed to parse DBC signal '%s': Invalid format.\n", dataBuffer0);
-
 				// Ignore remainder of line
 				fgets(dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 			}
 			else
 			{
-				INFO_PRINTF ("Signal name: %s, Bit Pos: %i, Bit Len: %i, Endianness: %i, Sign: %c, Scale: %f, Offset: %f, Min: %f, Max: %f, Unit: %s, ECU: %s\n", dataBuffer0, bitPosition, bitLength, endianness, signedness, scaleFactor, offset, min, max, dataBuffer1, dataBuffer2);
-
 				// Add signal to array
 				canSignal_t* signal = signals + *signalCount;
 				++(*signalCount);
@@ -203,17 +184,13 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 		else if (strcmp (dataBuffer0, DBC_KEYWORD_ENV_VARIABLE) == 0)
 		{
 			// TODO(Barach): Figure out format
-			INFO_PRINTF ("Environment variables are not implemented. Ignoring...\n");
 		}
 		else if (strcmp(dataBuffer0, DBC_KEYWORD_SIG_GROUP) == 0)
 		{
 			// TODO(Barach): Figure out format
-			INFO_PRINTF ("Signal groups are not implemented. Ignoring...\n");
 		}
 		else if (strcmp (dataBuffer0, DBC_KEYWORD_VAL_TABLE) == 0)
 		{
-			INFO_PRINTF ("Value tables are not implemented. Ignoring...\n");
-
 			// Ignore remainder of line
 			fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 		}
@@ -258,8 +235,6 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 		}
 		else
 		{
-			INFO_PRINTF ("Unknown keyword '%s'. Ignoring line...\n", dataBuffer0);
-
 			// Ignore remainder of line
 			fgets (dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);
 		}
@@ -268,8 +243,6 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 		if(feof(file))
 			break;
 	}
-
-	INFO_PRINTF ("Finished parsing DBC file '%s'.\n", path);
 
 	// Close the file
 	if(file != NULL)

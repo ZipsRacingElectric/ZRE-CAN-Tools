@@ -16,7 +16,8 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can/can_database.h"
+#include "can_database/can_database.h"
+#include "can_device/can_device.h"
 #include "error_codes.h"
 
 // C Standard Library
@@ -35,9 +36,25 @@ int main (int argc, char** argv)
 	const char* deviceName = argv [1];
 	const char* dbcPath = argv [2];
 
+	canDevice_t* tx = canInit (deviceName);
+	if (tx == NULL)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
+		return code;
+	}
+
+	canDevice_t* rx = canInit (deviceName);
+	if (rx == NULL)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
+		return code;
+	}
+
 	// Initialize the database.
 	canDatabase_t database;
-	if (canDatabaseInit (&database, deviceName, dbcPath) != 0)
+	if (canDatabaseInit (&database, tx, rx, dbcPath) != 0)
 	{
 		int code = errno;
 		fprintf (stderr, "Failed to initialize CAN database: %s.\n", errorMessage (code));
@@ -54,18 +71,16 @@ int main (int argc, char** argv)
 		printf (" q - Quit the program.\n");
 
 		size_t messageIndex;
-		struct can_frame frame;
-
 		fscanf (stdin, "%c%*1[\n]", &selection);
 		switch (selection)
 		{
 		case 't':
 			messageIndex = canDatabaseMessageNamePrompt (&database);
-			frame = canDatabaseMessageValuePrompt (&database, messageIndex);
-			if (canSocketTransmit (&database.txSocket, &frame) != 0)
+			canFrame_t frame = messagePrompt (database.messages + messageIndex);
+			if (canTransmit (database.tx, &frame) == 0)
 				printf ("Success.\n");
 			else
-			 	printf ("Failure.\n");
+			 	printf ("Error: %s.\n", errorMessage (errno));
 			break;
 		case 'r':
 			messageIndex = canDatabaseMessageNamePrompt (&database);

@@ -4,7 +4,7 @@ BIN_DIR := ../../bin
 OBJ_DIR := $(BIN_DIR)/obj
 LIB_DIR := $(BIN_DIR)/lib
 
-BIN := $(LIB_DIR)/cjson.a
+BIN := $(LIB_DIR)/can_eeprom.a
 
 SRC := $(wildcard *.c)
 OBJ := $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC))

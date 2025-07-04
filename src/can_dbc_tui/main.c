@@ -8,7 +8,8 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can/can_database.h"
+#include "can_database/can_database.h"
+#include "can_device/can_device.h"
 #include "error_codes.h"
 
 // NCurses
@@ -32,9 +33,25 @@ int main (int argc, char** argv)
 	const char* deviceName = argv [1];
 	const char* dbcPath = argv [2];
 
+	canDevice_t* tx = canInit (deviceName);
+	if (tx == NULL)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
+		return code;
+	}
+
+	canDevice_t* rx = canInit (deviceName);
+	if (rx == NULL)
+	{
+		int code = errno;
+		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
+		return code;
+	}
+
 	// Initialize the database.
 	canDatabase_t database;
-	if (canDatabaseInit (&database, deviceName, dbcPath) != 0)
+	if (canDatabaseInit (&database, tx, rx, dbcPath) != 0)
 	{
 		int code = errno;
 		fprintf (stderr, "Failed to initialize CAN database: %s.\n", errorMessage (code));

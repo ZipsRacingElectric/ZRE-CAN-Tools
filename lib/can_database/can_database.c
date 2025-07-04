@@ -11,41 +11,20 @@
 #include <errno.h>
 #include <string.h>
 
-// Debugging ------------------------------------------------------------------------------------------------------------------
-
-#if CAN_DATABASE_DEBUG
-	#include <stdio.h>
-	#define DEBUG_PRINTF(...) fprintf (stderr, __VA_ARGS__)
-#else
-	#define DEBUG_PRINTF(...) while (false)
-#endif // CAN_DATABASE_DEBUG
-
-#if CAN_DATABASE_RX_PRINT
-	#include <stdio.h>
-	#define RX_PRINTF(...) fprintf (stderr, __VA_ARGS__)
-#else
-	#define RX_PRINTF(...) while (false)
-#endif // CAN_DATABASE_RX_PRINT
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 void* canDatabaseRxThreadEntrypoint (void* arg);
 
-int canDatabaseInit (canDatabase_t* database, const char* deviceName, const char* dbcPath)
+int canDatabaseInit (canDatabase_t* database, canDevice_t* tx, canDevice_t* rx, const char* dbcPath)
 {
+	database->tx = tx;
+	database->rx = rx;
+
 	// Parse the DBC file.
 	database->messageCount	= CAN_DATABASE_MESSAGE_COUNT_MAX;
 	database->signalCount	= CAN_DATABASE_SIGNAL_COUNT_MAX;
 
 	if (dbcFileParse (dbcPath, database->messages, &database->messageCount, database->signals, &database->signalCount) != 0)
-		return errno;
-
-	// Initialize the TX socket.
-	if (canSocketInit (&database->txSocket, deviceName) != 0)
-		return errno;
-
-	// Initialize the RX socket.
-	if (canSocketInit (&database->rxSocket, deviceName) != 0)
 		return errno;
 
 	// Start the RX thread.
@@ -133,29 +112,20 @@ void canDatabaseMessageValuePrint (FILE* stream, canDatabase_t* database, size_t
 		fprintf (stream, "%s: %f\n", message->signals [index].name, signalValues [index]);
 }
 
-struct can_frame canDatabaseMessageValuePrompt (canDatabase_t* database, size_t index)
-{
-	return messagePrompt (database->messages + index);
-}
-
 void* canDatabaseRxThreadEntrypoint (void* arg)
 {
 	canDatabase_t* database = (canDatabase_t*) arg;
 
 	while (true)
 	{
-		struct can_frame frame;
-		if (canSocketReceive (&database->rxSocket, &frame) != 0)
-		{
-			DEBUG_PRINTF ("CAN RX thread failed to receive frame.\n");
+		canFrame_t frame;
+		if (canReceive (database->rx, &frame) != 0)
 			continue;
-		}
 
 		canMessage_t* message = NULL;
 		for (size_t index = 0; index < database->messageCount; ++index)
 		{
-			// Mask out status bits for comparison.
-			if ((frame.can_id & 0x1FFFFFFF) == database->messages [index].id)
+			if (frame.id == database->messages [index].id)
 			{
 				message = database->messages + index;
 				break;

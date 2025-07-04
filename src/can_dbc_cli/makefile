@@ -1,10 +1,15 @@
 CC_FLAGS := -Wall -Wextra -g
 
 BIN_DIR	:= ../../bin
+LIB_DIR := $(BIN_DIR)/lib
 BIN		:= $(BIN_DIR)/can-dbc-cli
 
 SRC 	:=	main.c
 
+LIB		:=						\
+	$(LIB_DIR)/can_device.a		\
+	$(LIB_DIR)/can_database.a
+
 $(BIN): $(SRC)
 	mkdir -p $(BIN_DIR)
-	gcc $(SRC) $(CC_FLAGS) $(BIN_DIR)/can.a -I../../lib/ -o $(BIN) -lm
+	gcc $(SRC) $(CC_FLAGS) $(LIB) -I../../lib/ -o $(BIN) -lm

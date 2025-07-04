@@ -54,30 +54,30 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can/can_socket.h"
+#include "can_device/can_device.h"
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief Writes a block of data to the EEPROM from a block of memory.
  * @param canId The EEPROM's base CAN ID.
- * @param socket The CAN socket to negotiate with.
+ * @param device The CAN device to negotiate with.
  * @param address The memory address to begin the write at.
  * @param count The number of bytes to write.
  * @param buffer The buffer containing the data to write.
  * @return 0 if successful, the error code otherwise.
  */
-int canEepromWrite (uint16_t canId, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer);
+int canEepromWrite (uint16_t canId, canDevice_t* device, uint16_t address, uint16_t count, void* buffer);
 
 /**
  * @brief Reads a block of data from the EEPROM into a block of memory.
  * @param canId The EEPROM's base CAN ID.
- * @param socket The CAN socket to negotiate with.
+ * @param device The CAN device to negotiate with.
  * @param address The memory address to begin the read at.
  * @param count The number of bytes to read.
  * @param buffer The buffer to write the read data into.
  * @return 0 if successful, the error code otherwise.
  */
-int canEepromRead (uint16_t canId, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer);
+int canEepromRead (uint16_t canId, canDevice_t* device, uint16_t address, uint16_t count, void* buffer);
 
 #endif // CAN_EEPROM_OPERATIONS_H

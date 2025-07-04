@@ -15,6 +15,9 @@
 #define ERRNO_CAN_DBC_SIGNAL_COUNT				1025
 #define ERRNO_CAN_DBC_MESSAGE_MISSING			1026
 
+#define ERRNO_OS_NOT_SUPPORTED					1030
+#define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1031
+
 #define ERRNO_CAN_DATABASE_SIGNAL_MISSING		1048
 
 #define ERRNO_CJSON_EOF							1280
@@ -39,6 +42,9 @@
 #define ERRMSG_CAN_DBC_MESSAGE_COUNT			"The DBC file exceeds the maximum number of CAN messages"
 #define ERRMSG_CAN_DBC_SIGNAL_COUNT				"The DBC file exceeds the maximum number of CAN signals"
 #define ERRMSG_CAN_DBC_MESSAGE_MISSING			"The DBC file contains a signal before the first message"
+
+#define ERRMSG_OS_NOT_SUPPORTED					"The attempted operation is not supported on this operating system"
+#define ERRMSG_CAN_DEVICE_UNKNOWN_NAME			"The device name does not belong to any known CAN device"
 
 #define ERRMSG_CAN_DATABASE_SIGNAL_MISSING		"No such signal in database"
 
@@ -71,6 +77,10 @@ static inline const char* errorMessage (int errorCode)
 		return ERRMSG_CAN_DBC_SIGNAL_COUNT;
 	case ERRNO_CAN_DBC_MESSAGE_MISSING:
 		return ERRMSG_CAN_DBC_MESSAGE_MISSING;
+	case ERRNO_OS_NOT_SUPPORTED:
+		return ERRMSG_OS_NOT_SUPPORTED;
+	case ERRNO_CAN_DEVICE_UNKNOWN_NAME:
+		return ERRMSG_CAN_DEVICE_UNKNOWN_NAME;
 	case ERRNO_CAN_DATABASE_SIGNAL_MISSING:
 		return ERRMSG_CAN_DATABASE_SIGNAL_MISSING;
 	case ERRNO_CJSON_EOF:

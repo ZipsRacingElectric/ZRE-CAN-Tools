@@ -4,19 +4,12 @@
 // Includes
 #include "error_codes.h"
 #include "can_eeprom_operations.h"
+#include "cjson/cjson_util.h"
 
 // C Standard Library
 #include <errno.h>
 #include <stdbool.h>
-
-// Macros ---------------------------------------------------------------------------------------------------------------------
-
-#if CAN_EEPROM_DEBUG
-	#include <stdio.h>
-	#define DEBUG_PRINTF(...) fprintf (stderr, __VA_ARGS__)
-#else
-	#define DEBUG_PRINTF(...) while (false)
-#endif // CAN_DATABASE_DEBUG
+#include <stdlib.h>
 
 // Constants ------------------------------------------------------------------------------------------------------------------
 
@@ -49,16 +42,16 @@ void printVariableIndex (canEepromVariable_t* variable, FILE* stream, uint16_t x
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-int canEepromInit (canEeprom_t* eeprom, cJSON* configJson)
+int canEepromInit (canEeprom_t* eeprom, cJSON* config)
 {
-	if (jsonGetString (configJson, "name", &eeprom->name) != 0)
+	if (jsonGetString (config, "name", &eeprom->name) != 0)
 		return errno;
 
-	if (jsonGetUint16_t (configJson, "canId", &eeprom->canId) != 0)
+	if (jsonGetUint16_t (config, "canId", &eeprom->canId) != 0)
 		return errno;
 
 	cJSON* variables;
-	if (jsonGetObject (configJson, "variables", &variables) != 0)
+	if (jsonGetObject (config, "variables", &variables) != 0)
 		return errno;
 
 	eeprom->variableCount = cJSON_GetArraySize (variables);
@@ -128,7 +121,7 @@ int canEepromInit (canEeprom_t* eeprom, cJSON* configJson)
 	return (eeprom->buffer != NULL) ? 0 : errno;
 }
 
-int canEepromWriteVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer)
+int canEepromWriteVariable (canEeprom_t* eeprom, canDevice_t* device, canEepromVariable_t* variable, void* buffer)
 {
 	if (variable->mode == CAN_EEPROM_MODE_READ_ONLY)
 	{
@@ -137,10 +130,10 @@ int canEepromWriteVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromV
 	}
 
 	uint16_t count = VARIABLE_SIZES [variable->type] * variable->width * variable->height;
-	return canEepromWrite (eeprom->canId, socket, variable->address, count, buffer);
+	return canEepromWrite (eeprom->canId, device, variable->address, count, buffer);
 }
 
-int canEepromReadVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer)
+int canEepromReadVariable (canEeprom_t* eeprom, canDevice_t* device, canEepromVariable_t* variable, void* buffer)
 {
 	if (variable->mode == CAN_EEPROM_MODE_WRITE_ONLY)
 	{
@@ -149,10 +142,10 @@ int canEepromReadVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVa
 	}
 
 	uint16_t count = VARIABLE_SIZES [variable->type] * variable->width * variable->height;
-	return canEepromRead (eeprom->canId, socket, variable->address, count, buffer);
+	return canEepromRead (eeprom->canId, device, variable->address, count, buffer);
 }
 
-int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJson)
+int canEepromWriteJson (canEeprom_t* eeprom, canDevice_t* device, cJSON* dataJson)
 {
 	size_t keyCount = cJSON_GetArraySize (dataJson);
 
@@ -220,7 +213,7 @@ int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJso
 			}
 
 			// After the buffer has been filled, write the data to the EEPROM.
-			if (canEepromWriteVariable (eeprom, socket, variable, eeprom->buffer) != 0)
+			if (canEepromWriteVariable (eeprom, device, variable, eeprom->buffer) != 0)
 				return errno;
 
 			break;
@@ -229,7 +222,6 @@ int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJso
 		// If the key was not matched to a variable, exit early.
 		if (variableIndex == eeprom->variableCount)
 		{
-			DEBUG_PRINTF ("canEepromProgram failed: Unknown key '%s'.\n", key->string);
 			errno = ERRNO_CAN_EEPROM_BAD_KEY;
 			return errno;
 		}
@@ -239,7 +231,7 @@ int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJso
 	return 0;
 }
 
-int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
+int canEepromReadJson (canEeprom_t* eeprom, canDevice_t* device, FILE* stream)
 {
 	// Start of JSON
 	fprintf (stream, "{\n");
@@ -263,7 +255,7 @@ int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 
 		// Read the variable's value
 		void* buffer = eeprom->buffer;
-		if (canEepromReadVariable (eeprom, socket, variable, buffer) != 0)
+		if (canEepromReadVariable (eeprom, device, variable, buffer) != 0)
 			return errno;
 
 		// Print variable key
@@ -411,7 +403,7 @@ void canEepromPrintVariableValue (canEepromVariable_t* variable, void* buffer, c
 	fprintf (stream, "\n");
 }
 
-int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
+int canEepromPrintMap (canEeprom_t* eeprom, canDevice_t* device, FILE* stream)
 {
 	fprintf (stream, "%s Memory Map:\n", eeprom->name);
 	fprintf (stream, "----------------------------------------------------------------------------------------\n");
@@ -426,7 +418,7 @@ int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream)
 		if (variable->mode == CAN_EEPROM_MODE_WRITE_ONLY)
 			continue;
 
-		if (canEepromReadVariable (eeprom, socket, variable, eeprom->buffer) != 0)
+		if (canEepromReadVariable (eeprom, device, variable, eeprom->buffer) != 0)
 			return errno;
 
 		fprintf (stream, "%48s | ", variable->name);

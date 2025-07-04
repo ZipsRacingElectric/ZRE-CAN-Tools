@@ -6,6 +6,7 @@
 
 // C Standard Library
 #include <errno.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/time.h>
 
@@ -15,7 +16,7 @@
 #define EEPROM_RESPONSE_MESSAGE_RW(word)	((((word) >> 15) & 0b1) == 0b1)
 #define EEPROM_RESPONSE_MESSAGE_ADDR(word)	((word) & 0x7FFF)
 
-#define RESPONSE_ATTEMPT_COUNT 500
+#define RESPONSE_ATTEMPT_COUNT 10
 static const struct timeval RESPONSE_ATTEMPT_TIMEOUT =
 {
 	.tv_sec		= 0,
@@ -25,28 +26,28 @@ static const struct timeval RESPONSE_ATTEMPT_TIMEOUT =
 // Function Prototypes --------------------------------------------------------------------------------------------------------
 
 /// @brief Encodes the command frame for a write operation.
-struct can_frame writeCommandEncode (uint16_t canId, uint16_t address, uint8_t count, void* buffer);
+canFrame_t writeCommandEncode (uint16_t canId, uint16_t address, uint8_t count, void* buffer);
 
 /// @brief Encodes the command frame for a read operation.
-struct can_frame readCommandEncode (uint16_t canId, uint16_t address, uint8_t count);
+canFrame_t readCommandEncode (uint16_t canId, uint16_t address, uint8_t count);
 
 /// @brief Parses a CAN frame to check whether it is the response to a specific command.
-int responseParse (uint16_t canId, struct can_frame* frame, bool rw, uint16_t address, uint8_t count);
+int responseParse (uint16_t canId, canFrame_t* frame, bool rw, uint16_t address, uint8_t count);
 
 /// @brief Performs a single write operation on the EEPROM.
-int writeSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t count, void* buffer);
+int writeSingle (uint16_t canId, canDevice_t* device, uint16_t address, uint8_t count, void* buffer);
 
 /// @brief Performs a single read operation on the EEPROM.
-int readSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t count, void* buffer);
+int readSingle (uint16_t canId, canDevice_t* device, uint16_t address, uint8_t count, void* buffer);
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-int canEepromWrite (uint16_t canId, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer)
+int canEepromWrite (uint16_t canId, canDevice_t* device, uint16_t address, uint16_t count, void* buffer)
 {
 	// Write all of the full messages
 	while (count > 4)
 	{
-		if (writeSingle (canId, socket, address, 4, buffer) != 0)
+		if (writeSingle (canId, device, address, 4, buffer) != 0)
 			return errno;
 
 		buffer += 4;
@@ -55,15 +56,15 @@ int canEepromWrite (uint16_t canId, canSocket_t* socket, uint16_t address, uint1
 	}
 
 	// Write the last message
-	return writeSingle (canId, socket, address, count, buffer);
+	return writeSingle (canId, device, address, count, buffer);
 }
 
-int canEepromRead (uint16_t canId, canSocket_t* socket, uint16_t address, uint16_t count, void* buffer)
+int canEepromRead (uint16_t canId, canDevice_t* device, uint16_t address, uint16_t count, void* buffer)
 {
 	// Read all of the full messages
 	while (count > 4)
 	{
-		if (readSingle (canId, socket, address, 4, buffer) != 0)
+		if (readSingle (canId, device, address, 4, buffer) != 0)
 			return errno;
 
 		buffer += 4;
@@ -72,18 +73,18 @@ int canEepromRead (uint16_t canId, canSocket_t* socket, uint16_t address, uint16
 	}
 
 	// Read the last message
-	return readSingle (canId, socket, address, count, buffer);
+	return readSingle (canId, device, address, count, buffer);
 }
 
-struct can_frame writeCommandEncode (uint16_t canId, uint16_t address, uint8_t count, void* buffer)
+canFrame_t writeCommandEncode (uint16_t canId, uint16_t address, uint8_t count, void* buffer)
 {
 	address |= EEPROM_COMMAND_MESSAGE_RW (false);
 
-	struct can_frame frame =
+	canFrame_t frame =
 	{
-		.can_id		= canId,
-		.can_dlc	= count + sizeof (address),
-		.data		=
+		.id		= canId,
+		.dlc	= count + sizeof (address),
+		.data	=
 		{
 			address,
 			address >> 8
@@ -94,15 +95,15 @@ struct can_frame writeCommandEncode (uint16_t canId, uint16_t address, uint8_t c
 	return frame;
 }
 
-struct can_frame readCommandEncode (uint16_t canId, uint16_t address, uint8_t count)
+canFrame_t readCommandEncode (uint16_t canId, uint16_t address, uint8_t count)
 {
 	address |= EEPROM_COMMAND_MESSAGE_RW (true);
 
-	struct can_frame frame =
+	canFrame_t frame =
 	{
-		.can_id		= canId,
-		.can_dlc	= count + sizeof (address),
-		.data		=
+		.id		= canId,
+		.dlc	= count + sizeof (address),
+		.data	=
 		{
 			address,
 			address >> 8
@@ -112,10 +113,10 @@ struct can_frame readCommandEncode (uint16_t canId, uint16_t address, uint8_t co
 	return frame;
 }
 
-int responseParse (uint16_t canId, struct can_frame* frame, bool rw, uint16_t address, uint8_t count)
+int responseParse (uint16_t canId, canFrame_t* frame, bool rw, uint16_t address, uint8_t count)
 {
 	// Check message ID is correct
-	if (frame->can_id != (uint16_t) (canId + 1))
+	if (frame->id != (uint16_t) (canId + 1))
 	{
 		errno = ERRNO_CAN_EEPROM_BAD_RESPONSE_ID;
 		return errno;
@@ -139,7 +140,7 @@ int responseParse (uint16_t canId, struct can_frame* frame, bool rw, uint16_t ad
 	}
 
 	// Check count is correct
-	uint8_t responseCount = frame->len - 2;
+	uint8_t responseCount = frame->dlc - 2;
 	if (responseCount != count)
 	{
 		errno = ERRNO_CAN_EEPROM_MALFORMED_RESPONSE;
@@ -149,14 +150,18 @@ int responseParse (uint16_t canId, struct can_frame* frame, bool rw, uint16_t ad
 	return 0;
 }
 
-int writeSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t count, void* buffer)
+int writeSingle (uint16_t canId, canDevice_t* device, uint16_t address, uint8_t count, void* buffer)
 {
-	struct can_frame command = writeCommandEncode (canId, address, count, buffer);
+	canFrame_t command = writeCommandEncode (canId, address, count, buffer);
 
 	for (uint16_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
+		// Flush any messages that accumulated in the down-time.
+		if (canFlushRx (device) != 0)
+			return errno;
+
 		// Transmit the command message
-		if (canSocketTransmit (socket, &command) != 0)
+		if (canTransmit (device, &command) != 0)
 			return errno;
 
 		// Track the response timeout
@@ -170,8 +175,11 @@ int writeSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t 
 			gettimeofday (&timeCurrent, NULL);
 
 			// Read the response frame, ignore all others.
-			struct can_frame response;
-			if (canSocketReceive (socket, &response) != 0 || responseParse (canId, &response, false, address, count) != 0)
+			canFrame_t response;
+			if (canReceive (device, &response) != 0)
+				continue;
+
+			if (responseParse (canId, &response, false, address, count) != 0)
 				continue;
 
 			// If the response contains the incorrect data, retransmit the command.
@@ -188,14 +196,17 @@ int writeSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t 
 	return errno;
 }
 
-int readSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t count, void* buffer)
+int readSingle (uint16_t canId, canDevice_t* device, uint16_t address, uint8_t count, void* buffer)
 {
-	struct can_frame command = readCommandEncode (canId, address, count);
+	canFrame_t command = readCommandEncode (canId, address, count);
 
 	for (uint16_t attempt = 0; attempt < RESPONSE_ATTEMPT_COUNT; ++attempt)
 	{
+		// Flush any messages that accumulated in the down-time.
+		canFlushRx (device);
+
 		// Transmit the command message
-		if (canSocketTransmit (socket, &command) != 0)
+		if (canTransmit (device, &command) != 0)
 			return errno;
 
 		// Track the response timeout
@@ -209,8 +220,11 @@ int readSingle (uint16_t canId, canSocket_t* socket, uint16_t address, uint8_t c
 			gettimeofday (&timeCurrent, NULL);
 
 			// Read the response frame, ignore all others.
-			struct can_frame response;
-			if (canSocketReceive (socket, &response) != 0 || responseParse (canId, &response, true, address, count) != 0)
+			canFrame_t response;
+			if (canReceive (device, &response) != 0)
+				continue;
+
+			if (responseParse (canId, &response, true, address, count) != 0)
 				continue;
 
 			// If we got a response, copy the data into the buffer.

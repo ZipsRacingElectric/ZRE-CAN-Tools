@@ -12,12 +12,11 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can/can_socket.h"
-#include "cjson/cjson_util.h"
+#include "can_device/can_device.h"
+#include "cjson/cjson.h"
 
-// Debugging ------------------------------------------------------------------------------------------------------------------
-
-#define CAN_EEPROM_DEBUG 1
+// C Standard Library
+#include <stdio.h>
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -65,50 +64,50 @@ typedef struct
 /**
  * @brief Initializes the EEPROM by importing the structure's data from a configuration JSON.
  * @param eeprom The EEPROM to initialize.
- * @param configJson The configuration JSON to load the data from.
+ * @param config The configuration JSON to load the data from.
  * @return 0 if successful, the error code otherwise.
  */
-int canEepromInit (canEeprom_t* eeprom, cJSON* configJson);
+int canEepromInit (canEeprom_t* eeprom, cJSON* config);
 
 /**
  * @brief Writes a variable's value into an EEPROM.
  * @param eeprom The EEPROM to write to.
- * @param socket The CAN socket to negotiate with.
+ * @param device The CAN device to negotiate with.
  * @param variable The variable to write.
  * @param buffer The buffer to read the data from.
  * @return 0 if successful, the error code otherwise.
  */
-int canEepromWriteVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer);
+int canEepromWriteVariable (canEeprom_t* eeprom, canDevice_t* device, canEepromVariable_t* variable, void* buffer);
 
 /**
  * @brief Reads a variable's value from an EEPROM.
  * @param eeprom The EEPROM to read from.
- * @param socket The CAN socket to negotiate with.
+ * @param device The CAN device to negotiate with.
  * @param variable The variable to read.
  * @param buffer The buffer to write the read data into.
  * @return 0 if successful, the error code otherwise.
  */
-int canEepromReadVariable (canEeprom_t* eeprom, canSocket_t* socket, canEepromVariable_t* variable, void* buffer);
+int canEepromReadVariable (canEeprom_t* eeprom, canDevice_t* device, canEepromVariable_t* variable, void* buffer);
 
 /**
  * @brief Writes the contents of a data JSON to the EEPROM.
  * @param eeprom The EEPROM to write to.
- * @param socket The CAN socket to negotiate with.
+ * @param device The CAN device to negotiate with.
  * @param dataJson The data JSON file to write from.
  * @return 0 if successful, the error code otherwise.
  */
-int canEepromWriteJson (canEeprom_t* eeprom, canSocket_t* socket, cJSON* dataJson);
+int canEepromWriteJson (canEeprom_t* eeprom, canDevice_t* device, cJSON* dataJson);
 
 /**
  * @brief Reads the contents of the EEPROM into a data JSON.
  * TODO(Barach): This function should write into a @c cJSON struct, not to an I/O stream. This is difficult and not really
  * worth it right now, but it'd be a lot more graceful than the current method.
  * @param eeprom The EEPROM to read from.
- * @param socket The CAN socket to negotiate with.
+ * @param device The CAN device to negotiate with.
  * @param stream The stream to print the JSON to.
  * @return 0 if successful, the error code otherwise.
  */
-int canEepromReadJson (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream);
+int canEepromReadJson (canEeprom_t* eeprom, canDevice_t* device, FILE* stream);
 
 /**
  * @brief Allocates a buffer large enough to store the data of the largest variable in an EEPROM.
@@ -149,11 +148,11 @@ void canEepromPrintVariableValue (canEepromVariable_t* variable, void* buffer, c
 /**
  * @brief Reads and prints all the contents of an EEPROM's memory to a table.
  * @param eeprom The EEPROM to read from.
- * @param socket The CAN socket to negotiate with.
+ * @param device The CAN device to negotiate with.
  * @param stream The stream to print to.
  * @return 0 if successful, the error code otherwise.
  */
-int canEepromPrintMap (canEeprom_t* eeprom, canSocket_t* socket, FILE* stream);
+int canEepromPrintMap (canEeprom_t* eeprom, canDevice_t* device, FILE* stream);
 
 /**
  * @brief Prints a list of an EEPROM's variables, excluding values.

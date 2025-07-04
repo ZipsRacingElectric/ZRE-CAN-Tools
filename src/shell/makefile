@@ -1,23 +1,11 @@
 BIN_DIR := ../../bin
 
-all: $(BIN_DIR)/bms $(BIN_DIR)/can-dbc $(BIN_DIR)/setup-charger $(BIN_DIR)/setup-vehicle
+SH := $(wildcard *.sh)
+EXEC := $(patsubst %.sh, $(BIN_DIR)/%, $(SH))
 
-$(BIN_DIR)/bms: bms.sh
-	mkdir -p $(BIN_DIR)
-	cp $< $@
-	chmod a+x $@
+all: $(EXEC)
 
-$(BIN_DIR)/can-dbc: can_dbc.sh
-	mkdir -p $(BIN_DIR)
-	cp $< $@
-	chmod a+x $@
-
-$(BIN_DIR)/setup-charger: setup_charger.sh
-	mkdir -p $(BIN_DIR)
-	cp $< $@
-	chmod a+x $@
-
-$(BIN_DIR)/setup-vehicle: setup_vehicle.sh
+$(BIN_DIR)/%: %.sh
 	mkdir -p $(BIN_DIR)
 	cp $< $@
 	chmod a+x $@

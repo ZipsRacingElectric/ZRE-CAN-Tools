@@ -12,7 +12,8 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_socket.h"
+#include "can_device/can_device.h"
+#include "can_signals.h"
 
 // POSIX Libraries
 #include <pthread.h>
@@ -20,11 +21,6 @@
 // C Standard Library
 #include <stdio.h>
 #include <float.h>
-
-// Debugging ------------------------------------------------------------------------------------------------------------------
-
-#define CAN_DATABASE_DEBUG		0
-#define CAN_DATABASE_RX_PRINT	0
 
 // Constants ------------------------------------------------------------------------------------------------------------------
 
@@ -35,8 +31,8 @@
 
 struct canDatabase
 {
-	canSocket_t		txSocket;
-	canSocket_t		rxSocket;
+	canDevice_t*	tx;
+	canDevice_t*	rx;
 	pthread_t		rxThread;
 	canMessage_t	messages [CAN_DATABASE_MESSAGE_COUNT_MAX];
 	size_t			messageCount;
@@ -50,13 +46,13 @@ typedef struct canDatabase canDatabase_t;
 
 // Function -------------------------------------------------------------------------------------------------------------------
 
+// TODO(Barach): Docs
 /**
  * @brief Initializes a CAN database bound to the specified device using the specified database file.
- * @param deviceName The CAN device to bind to.
  * @param dbcPath The database file to import from.
  * @return 0 if successful, the error code otherwise.
  */
-int canDatabaseInit (canDatabase_t* database, const char* deviceName, const char* dbcPath);
+int canDatabaseInit (canDatabase_t* database, canDevice_t* tx, canDevice_t* rx, const char* dbcPath);
 
 /**
  * @brief Prints all of the data of a database.
@@ -86,14 +82,6 @@ void canDatabaseMessagesPrint (FILE* stream, canDatabase_t* database);
  * @param index The index of the message to print.
  */
 void canDatabaseMessageValuePrint (FILE* stream, canDatabase_t* database, size_t index);
-
-/**
- * @brief Prompts the user to input data for the given message.
- * @param database The database to search from.
- * @param index The index of the message to prompt for.
- * @return A frame encoding the message's data.
- */
-struct can_frame canDatabaseMessageValuePrompt (canDatabase_t* database, size_t index);
 
 /**
  * @brief Finds a signal's index based off name.

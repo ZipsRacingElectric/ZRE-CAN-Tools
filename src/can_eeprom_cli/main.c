@@ -14,11 +14,14 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_eeprom.h"
+#include "can_device/can_device.h"
+#include "can_eeprom/can_eeprom.h"
+#include "cjson/cjson_util.h"
 #include "error_codes.h"
 
 // C Standard Library
 #include <errno.h>
+#include <stdbool.h>
 
 // Global Data ----------------------------------------------------------------------------------------------------------------
 
@@ -130,17 +133,17 @@ int main (int argc, char** argv)
 	const char* deviceName = argv [argc - 2];
 	const char* configJsonPath = argv [argc - 1];
 
-	canSocket_t socket;
-	if (canSocketInit (&socket, deviceName) != 0)
+	canDevice_t* device = canInit (deviceName);
+	if (device == NULL)
 	{
 		int code = errno;
-		fprintf (stderr, "Failed to open CAN socket '%s': %s.\n", deviceName, errorMessage (code));
+		fprintf (stderr, "Failed to open CAN device '%s': %s.\n", deviceName, errorMessage (code));
 		return code;
 	}
-	if (canSocketSetTimeout (&socket, 1) != 0)
+	if (canSetTimeout (device, 1) != 0)
 	{
 		int code = errno;
-		fprintf (stderr, "Failed to set CAN socket timeout: %s\n", errorMessage (code));
+		fprintf (stderr, "Failed to set CAN device timeout: %s\n", errorMessage (code));
 		return errno;
 	}
 
@@ -161,7 +164,7 @@ int main (int argc, char** argv)
 
 	if (mode == MODE_PROGRAM)
 	{
-		if (canEepromWriteJson (&eeprom, &socket, programDataJson) != 0)
+		if (canEepromWriteJson (&eeprom, device, programDataJson) != 0)
 		{
 			int code = errno;
 			fprintf (stderr, "Failed to program EEPROM: %s.\n", errorMessage (code));
@@ -170,7 +173,7 @@ int main (int argc, char** argv)
 	}
 	else if (mode == MODE_RECOVER)
 	{
-		if (canEepromReadJson (&eeprom, &socket, recoverStream) != 0)
+		if (canEepromReadJson (&eeprom, device, recoverStream) != 0)
 		{
 			fclose (recoverStream);
 
@@ -204,13 +207,13 @@ int main (int argc, char** argv)
 			case 'w':
 				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
 				canEepromPromptValue (variable, eeprom.buffer, stdin, stdout);
-				if (canEepromWriteVariable (&eeprom, &socket, variable, eeprom.buffer) != 0)
+				if (canEepromWriteVariable (&eeprom, device, variable, eeprom.buffer) != 0)
 					printf ("Failed to write to EEPROM: %s.\n", errorMessage (errno));
 				break;
 
 			case 'r':
 				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
-				if (canEepromReadVariable (&eeprom, &socket, variable, eeprom.buffer) != 0)
+				if (canEepromReadVariable (&eeprom, device, variable, eeprom.buffer) != 0)
 				 	printf ("Failed to read variable from EEPROM: %s.\n", errorMessage (errno));
 				else
 				{
@@ -220,7 +223,7 @@ int main (int argc, char** argv)
 				break;
 
 			case 'm':
-				if (canEepromPrintMap (&eeprom, &socket, stdout) != 0)
+				if (canEepromPrintMap (&eeprom, device, stdout) != 0)
 					printf ("Failed to print EEPROM map: %s.\n", errorMessage (errno));
 				break;
 
