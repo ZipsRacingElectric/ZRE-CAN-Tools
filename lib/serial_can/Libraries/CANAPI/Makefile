@@ -136,7 +136,7 @@ endif
 
 ifeq ($(current_OS),$(filter $(current_OS),Linux Cygwin)) # linux - libuvcanslc.so.1
 
-LIBRARY = serial_can_uvcanslc
+LIBRARY = serial_can
 
 SONAME  = $(LIBRARY).so.1
 TARGET  = $(SONAME).$(VERSION)

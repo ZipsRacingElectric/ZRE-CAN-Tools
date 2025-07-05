@@ -45,21 +45,15 @@
 #	along with SerialCAN.  If not, see <https://www.gnu.org/licenses/>.
 #
 all:
-	@./build_no.sh
-	@echo "\033[1mBuilding SerialCAN...\033[0m"
-	$(MAKE) -C Libraries/SerialCAN $@
 	$(MAKE) -C Libraries/CANAPI $@
 
 clean:
-	$(MAKE) -C Libraries/SerialCAN $@
 	$(MAKE) -C Libraries/CANAPI $@
 
 pristine:
-	$(MAKE) -C Libraries/SerialCAN $@
 	$(MAKE) -C Libraries/CANAPI $@
 
 install:
-	$(MAKE) -C Libraries/SerialCAN $@
 	$(MAKE) -C Libraries/CANAPI $@
 
 build_no:
