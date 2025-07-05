@@ -48,7 +48,11 @@ void messagePrint (FILE* stream, canMessage_t* message, uint8_t* data)
 
 canFrame_t messagePrompt (canMessage_t* message)
 {
-	canFrame_t frame;
+	canFrame_t frame =
+	{
+		.id = message->id,
+		.dlc = message->dlc
+	};
 	uint64_t* payload = (uint64_t*) frame.data;
 
 	printf ("- Message %s (0x%X) -\n", message->name, message->id);

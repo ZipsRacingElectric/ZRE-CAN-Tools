@@ -53,6 +53,7 @@ This program is used to program a device's EEPROM via CAN bus.
 - Define the ```ZRE_CANTOOLS_DEV``` environment variable to the default value of ```<device name>``` (see 'Command-line Arguments' for details).
 - If you are using Windows, perform the 'For Windows' setup
 - Run ```make``` to compile all of the programs.
+- Add ```bin``` to your system path.
 
 ### For Windows
 Some dependicies of this project are not natively built for Windows. A solution to this is to use Cygwin, a POSIX compatibility layer that allows these programs to be run in Windows.
