@@ -50,7 +50,7 @@ This program is used to program a device's EEPROM via CAN bus.
 ## Setup
 - Clone this repo using github's SSH URL ```git clone <SSH URL>```
 - Define the ```ZRE_CANTOOLS_DIR``` environment variable to point to the location of this directory.
-- Define the ```ZRE_CANTOOLS_DEV``` environment variable to the default can device to use TODO(Barach).
+- Define the ```ZRE_CANTOOLS_DEV``` environment variable to the default value of ```<device name>``` (see 'Command-line Arguments' for details).
 - If you are using Windows, perform the 'For Windows' setup
 - Run ```make``` to compile all of the programs.
 
