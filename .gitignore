@@ -1,6 +1,6 @@
 bin
 .vscode/.cache
-*.o
+.objects/
 *.a
-*.so
-*.exe
+*.so*
+lib/serial_can/Sources/build_no.h

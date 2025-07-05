@@ -100,7 +100,7 @@ int main (int argc, char** argv)
 {
 	if (argc < 3)
 	{
-		fprintf (stderr, "Missing arguments, usage: 'can-eeprom-cli <options> <device> <json>'.\n");
+		fprintf (stderr, "Missing arguments, usage: 'can-eeprom-cli <options> <device name> <config JSON path>'.\n");
 		return EINVAL;
 	}
 

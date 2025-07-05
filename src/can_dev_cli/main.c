@@ -52,6 +52,16 @@ void printFrame (canFrame_t* frame)
 	printf ("\n");
 }
 
+unsigned long int promptTimeout ()
+{
+	char buffer [512];
+
+	printf ("Timeout (ms): ");
+	fgets (buffer, sizeof (buffer), stdin);
+	buffer [strcspn (buffer, "\r\n")] = '\0';
+	return strtol (buffer, NULL, 0);
+}
+
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
@@ -76,10 +86,13 @@ int main (int argc, char** argv)
 	{
 		canFrame_t frame;
 		char selection;
+		long unsigned int timeoutMs;
+
 		printf ("Enter an option:\n");
 		printf (" t - Transmit a CAN message.\n");
 		printf (" r - Receive a CAN message.\n");
 		printf (" f - Flush the receive buffer.\n");
+		printf (" m - Set the device's timeout.\n");
 		printf (" q - Quit the program.\n");
 
 		fscanf (stdin, "%c%*1[\n]", &selection);
@@ -100,6 +113,11 @@ int main (int argc, char** argv)
 			break;
 		case 'f':
 			if (canFlushRx (device) != 0)
+				printf ("Error: %s.\n", errorMessage (errno));
+			break;
+		case 'm':
+			timeoutMs = promptTimeout ();
+			if (canSetTimeout (device, timeoutMs) != 0)
 				printf ("Error: %s.\n", errorMessage (errno));
 			break;
 		case 'q':

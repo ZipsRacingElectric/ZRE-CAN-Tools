@@ -17,6 +17,7 @@
 
 #define ERRNO_OS_NOT_SUPPORTED					1030
 #define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1031
+#define ERRNO_CAN_DEVICE_BAD_TIMEOUT			1032
 
 #define ERRNO_CAN_DATABASE_SIGNAL_MISSING		1048
 
@@ -76,6 +77,7 @@
 
 #define ERRMSG_OS_NOT_SUPPORTED					"The attempted operation is not supported on this operating system"
 #define ERRMSG_CAN_DEVICE_UNKNOWN_NAME			"The device name does not belong to any known CAN device"
+#define ERRMSG_CAN_DEVICE_BAD_TIMEOUT			"The specified timeout is not possible"
 
 #define ERRMSG_CAN_DATABASE_SIGNAL_MISSING		"No such signal in database"
 
@@ -144,6 +146,8 @@ static inline const char* errorMessage (int errorCode)
 		return ERRMSG_OS_NOT_SUPPORTED;
 	case ERRNO_CAN_DEVICE_UNKNOWN_NAME:
 		return ERRMSG_CAN_DEVICE_UNKNOWN_NAME;
+	case ERRNO_CAN_DEVICE_BAD_TIMEOUT:
+		return ERRMSG_CAN_DEVICE_BAD_TIMEOUT;
 
 	case ERRNO_CAN_DATABASE_SIGNAL_MISSING:
 		return ERRMSG_CAN_DATABASE_SIGNAL_MISSING;

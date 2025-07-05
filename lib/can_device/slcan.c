@@ -43,7 +43,7 @@ canDevice_t* slcanInit (const char* name)
 	can_bitrate_t bitrate;
 	can_sio_param_t port;
 
-	port.name = (char*)name;
+	port.name = (char*) name;
 	port.attr.protocol = CANSIO_CANABLE;
 	port.attr.baudrate = CANSIO_BD57600;
 	port.attr.bytesize = CANSIO_8DATABITS;
@@ -59,13 +59,14 @@ canDevice_t* slcanInit (const char* name)
 
 	bitrate.index = CANBTR_INDEX_1M;
 
-	int code = can_start(handle, &bitrate);
+	int code = can_start (handle, &bitrate);
 	if (code < 0)
 	{
 		errno = code + 10000;
 		return NULL;
 	}
 
+	// Setup the CAN device
 	slcan_t* can = malloc (sizeof (slcan_t));
 	can->handle = handle;
 	can->name = name;
@@ -73,6 +74,10 @@ canDevice_t* slcanInit (const char* name)
 	can->vmt.receive = slcanReceive;
 	can->vmt.setTimeout = slcanSetTimeout;
 	can->vmt.flushRx = slcanFlushRx;
+
+	// Default to blocking.
+	canSetTimeout (can, 0);
+
 	return (canDevice_t*) can;
 }
 
@@ -137,11 +142,17 @@ int slcanFlushRx (void* device)
 int slcanSetTimeout (void* device, unsigned long timeoutMs)
 {
 	slcan_t* can = device;
-	if (timeoutMs == 0)
-		// For blocking operation, use 65535
-		can->timeoutMs = 65535;
-	else if (timeoutMs >= 65535)
-		can->timeoutMs = 65534;
 
+	if (timeoutMs >= 65535)
+	{
+		errno = ERRNO_CAN_DEVICE_BAD_TIMEOUT;
+		return errno;
+	}
+
+	// For blocking operation, use 65535
+	if (timeoutMs == 0)
+		timeoutMs = 65535;
+
+	can->timeoutMs = timeoutMs;
 	return 0;
 }

@@ -5,7 +5,7 @@
 #include "can_device.h"
 #include "error_codes.h"
 
-#if defined (__unix__)
+#if defined (__unix__) && !defined __CYGWIN__
 
 // SocketCAN Libraries
 #include <linux/can.h>
@@ -19,16 +19,12 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#endif // __unix__ && !__CYGWIN
+
 // C Standard Libraries
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
-
-// TODO(Barach)
-#include <errno.h>
-#include <stdio.h>
-
-#endif // __unix__
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -54,7 +50,7 @@ bool socketCanNameDomain (const char* name)
 
 canDevice_t* socketCanInit (const char* name)
 {
-	#if defined (__unix__)
+	#if defined (__unix__) && !defined __CYGWIN__
 
 	// Create the socket using the CAN protocol family and the raw CAN protol
 	int descriptor = socket (PF_CAN, SOCK_RAW, CAN_RAW);
@@ -102,6 +98,8 @@ canDevice_t* socketCanInit (const char* name)
 
 	#else // __unix__
 
+	(void) name;
+
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return NULL;
 
@@ -118,7 +116,7 @@ int socketCanDealloc (void* device)
 
 int socketCanTransmit (void* device, canFrame_t* frame)
 {
-	#if defined (__unix__)
+	#if defined (__unix__) && !defined __CYGWIN__
 
 	socketCan_t* socket = device;
 
@@ -137,6 +135,9 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 
 	#else // __unix__
 
+	(void) device;
+	(void) frame;
+
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return errno;
 
@@ -145,7 +146,7 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 
 int socketCanReceive (void* device, canFrame_t* frame)
 {
-	#if defined (__unix__)
+	#if defined (__unix__) && !defined __CYGWIN__
 
 	socketCan_t* socket = device;
 
@@ -166,6 +167,9 @@ int socketCanReceive (void* device, canFrame_t* frame)
 
 	#else // __unix__
 
+	(void) device;
+	(void) frame;
+
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return errno;
 
@@ -174,7 +178,7 @@ int socketCanReceive (void* device, canFrame_t* frame)
 
 int socketCanFlushRx (void* device)
 {
-	#if defined (__unix__)
+	#if defined (__unix__) && !defined __CYGWIN__
 
 	socketCan_t* socket = device;
 
@@ -201,6 +205,8 @@ int socketCanFlushRx (void* device)
 
 	#else // __unix__
 
+	(void) device;
+
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return errno;
 
@@ -209,7 +215,7 @@ int socketCanFlushRx (void* device)
 
 int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 {
-	#if defined (__unix__)
+	#if defined (__unix__) && !defined __CYGWIN__
 
 	socketCan_t* socket = device;
 
@@ -225,6 +231,9 @@ int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 	return 0;
 
 	#else // __unix__
+
+	(void) device;
+	(void) timeoutMs;
 
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return errno;
