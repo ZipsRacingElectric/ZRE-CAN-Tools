@@ -29,7 +29,7 @@
  */
 bool slcanNameDomain (const char* name);
 
-canDevice_t* slcanInit (const char* name);
+canDevice_t* slcanInit (char* name);
 
 int slcanDealloc (void* device);
 

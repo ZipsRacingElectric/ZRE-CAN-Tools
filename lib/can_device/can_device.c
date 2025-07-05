@@ -10,12 +10,13 @@
 #include <errno.h>
 #include <stdlib.h>
 
-canDevice_t* canInit (const char* name)
+canDevice_t* canInit (char* name)
 {
 	// Handle SocketCAN device
 	if (socketCanNameDomain (name))
 		return socketCanInit (name);
 
+	// Handle SLCAN device
 	if (slcanNameDomain (name))
 		return slcanInit(name);
 

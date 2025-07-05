@@ -251,9 +251,9 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
-	const char* deviceName = argv [1];
-	const char* dbcPath = argv [2];
-	const char* configPath = argv [3];
+	char* deviceName = argv [1];
+	char* dbcPath = argv [2];
+	char* configPath = argv [3];
 
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)

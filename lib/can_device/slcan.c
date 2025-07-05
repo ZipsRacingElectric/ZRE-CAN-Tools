@@ -38,17 +38,29 @@ bool slcanNameDomain (const char* name)
 	return false;
 }
 
-canDevice_t* slcanInit (const char* name)
+canDevice_t* slcanInit (char* name)
 {
-	can_bitrate_t bitrate;
-	can_sio_param_t port;
+	// Split the name into the device name and bitrate
+	char* bitrateParam = name;
+	strsep (&bitrateParam, ",");
+	if (bitrateParam == NULL)
+	{
+		errno = ERRNO_SLCAN_BAUDRATE;
+		return NULL;
+	}
 
-	port.name = (char*) name;
-	port.attr.protocol = CANSIO_CANABLE;
-	port.attr.baudrate = CANSIO_BD57600;
-	port.attr.bytesize = CANSIO_8DATABITS;
-	port.attr.parity = CANSIO_NOPARITY;
-	port.attr.stopbits = CANSIO_1STOPBIT;
+	can_sio_param_t port =
+	{
+		.name = (char*) name,
+		.attr =
+		{
+			.protocol = CANSIO_CANABLE,
+			.baudrate = CANSIO_BD57600,
+			.bytesize = CANSIO_8DATABITS,
+			.parity = CANSIO_NOPARITY,
+			.stopbits = CANSIO_1STOPBIT
+		}
+	};
 
 	int handle = can_init (CAN_BOARD (CANLIB_SERIALCAN, CANDEV_SERIAL), CANMODE_DEFAULT, (const void*) &port);
 	if (handle < 0)
@@ -57,7 +69,31 @@ canDevice_t* slcanInit (const char* name)
 		return NULL;
 	}
 
-	bitrate.index = CANBTR_INDEX_1M;
+	// Identify the baudrate
+	can_bitrate_t bitrate;
+	if (strcmp (bitrateParam, "1000000") == 0)
+		bitrate.index = CANBTR_INDEX_1M;
+	else if (strcmp (bitrateParam, "800000") == 0)
+		bitrate.index = CANBTR_INDEX_800K;
+	else if (strcmp (bitrateParam, "500000") == 0)
+		bitrate.index = CANBTR_INDEX_500K;
+	else if (strcmp (bitrateParam, "250000") == 0)
+		bitrate.index = CANBTR_INDEX_250K;
+	else if (strcmp (bitrateParam, "125000") == 0)
+		bitrate.index = CANBTR_INDEX_125K;
+	else if (strcmp (bitrateParam, "100000") == 0)
+		bitrate.index = CANBTR_INDEX_100K;
+	else if (strcmp (bitrateParam, "50000") == 0)
+		bitrate.index = CANBTR_INDEX_50K;
+	else if (strcmp (bitrateParam, "20000") == 0)
+		bitrate.index = CANBTR_INDEX_20K;
+	else if (strcmp (bitrateParam, "10000") == 0)
+		bitrate.index = CANBTR_INDEX_10K;
+	else
+	{
+		errno = ERRNO_SLCAN_BAUDRATE;
+		return NULL;
+	}
 
 	int code = can_start (handle, &bitrate);
 	if (code < 0)

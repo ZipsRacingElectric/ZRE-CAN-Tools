@@ -33,8 +33,8 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
-	const char* deviceName = argv [1];
-	const char* dbcPath = argv [2];
+	char* deviceName = argv [1];
+	char* dbcPath = argv [2];
 
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)

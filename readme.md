@@ -1,5 +1,13 @@
 # CAN Tools - Zips Racing 2025
 ## Usage
+### ZR25 Shell Scripts
+A set of shell scripts are provided to simplify usage of the applications.
+ - ```. glory-init-vehicle``` - Initializes a CAN device connected to the CAN bus of ZR25.
+ - ```. glory-init-charger``` - Initializes a CAN device connected to the charger of ZR25.
+ - ```glory-bms``` - Opens the BMS TUI configured for the BMS of ZR25.
+ - ```glory-vehicle``` - Opens the CAN DBC TUI configured for the vehicle CAN bus of ZR25.
+ - ```glory-charger``` - Opens the CAN DBC TUI configured for the charger CAN bus of ZR25.
+
 ### CAN DBC CLI
 ```can-dbc-cli <device name> <DBC file path>```
 This program is used to interact with a CAN node in real-time. Received messages are parsed and stored in a relational database which can be queried. Arbitrary messages can be transmitted by the user.
@@ -34,11 +42,11 @@ This program is used to program a device's EEPROM via CAN bus.
 ```
 <device name>         - The adapter-specific identity of the CAN device.
     can*              - SocketCAN device, must be already initialized and
-                        setup.
+                        setup. Ex. 'can0'.
     vcan*             - Virtual SocketCAN device, must be already initialized
                         and setup.
-    /dev/tty*         - SLCAN device, must be a CANable device.
-    COM*              - SLCAN device, must be a CANable device.
+    /dev/tty*,<baud>  - SLCAN device, must be a CANable device. CAN baudrate is
+                        indicated by the baud field. Ex '/dev/ttyS2,1000000'.
 <DBC file path>       - The path to the DBC file to use.
 <config JSON path>    - The configuration JSON file to use. Configuration files
                         indicate the identity and unit-specific parameters of

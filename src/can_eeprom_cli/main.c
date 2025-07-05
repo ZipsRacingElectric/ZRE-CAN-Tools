@@ -130,8 +130,8 @@ int main (int argc, char** argv)
 		}
 	}
 
-	const char* deviceName = argv [argc - 2];
-	const char* configJsonPath = argv [argc - 1];
+	char* deviceName = argv [argc - 2];
+	char* configJsonPath = argv [argc - 1];
 
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)

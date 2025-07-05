@@ -44,6 +44,6 @@ typedef struct
 #define canSetTimeout(device, timeoutMs)				\
 	(device)->vmt.setTimeout (device, timeoutMs)
 
-canDevice_t* canInit (const char* name);
+canDevice_t* canInit (char* name);
 
 #endif // CAN_DEVICE_H
