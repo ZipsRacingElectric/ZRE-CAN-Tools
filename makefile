@@ -3,6 +3,7 @@ BIN_DIR := bin
 LIB_DIR := $(BIN_DIR)/lib
 
 # Libraries
+LIB := $(LIB_DIR)/lib.a
 CAN_DEVICE_LIB := $(LIB_DIR)/can_device.a
 CAN_DATABASE_LIB := $(LIB_DIR)/can_database.a
 CAN_EEPROM_LIB := $(LIB_DIR)/can_eeprom.a
@@ -17,25 +18,28 @@ CAN_DBC_TUI		:= $(BIN_DIR)/can-dbc-tui
 CAN_EEPROM_CLI	:= $(BIN_DIR)/can-eeprom-cli
 BMS_TUI			:= $(BIN_DIR)/bms-tui
 
-all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(TV_DUMMY_PROG) $(BMS_TUI) shell
+all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(BMS_TUI) shell
 
 # Libraries
-$(SERIAL_CAN_LIB): FORCE
+$(LIB): FORCE
+	make -C lib
+
+$(SERIAL_CAN_LIB): $(LIB) FORCE
 	make -B -C lib/serial_can
 
-$(CAN_DEVICE_LIB): $(SERIAL_CAN_LIB) FORCE
+$(CAN_DEVICE_LIB): $(LIB) $(SERIAL_CAN_LIB) FORCE
 	make -C lib/can_device
 
-$(CAN_DATABASE_LIB): FORCE
+$(CAN_DATABASE_LIB): $(LIB) FORCE
 	make -C lib/can_database
 
-$(CAN_EEPROM_LIB): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CJSON_LIB) FORCE
+$(CAN_EEPROM_LIB): $(LIB) $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CJSON_LIB) FORCE
 	make -C lib/can_eeprom
 
-$(CJSON_LIB): FORCE
+$(CJSON_LIB): $(LIB) FORCE
 	make -C lib/cjson
 
-$(BMS_LIB): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) $(CJSON_LIB) FORCE
+$(BMS_LIB): $(LIB) $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) $(CJSON_LIB) FORCE
 	make -C lib/bms
 
 # Applications

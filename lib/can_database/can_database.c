@@ -5,6 +5,7 @@
 
 // Includes
 #include "can_dbc.h"
+#include "debug.h"
 #include "error_codes.h"
 
 // C Standard Library
@@ -161,6 +162,7 @@ int canDatabaseFindSignal (canDatabase_t* database, const char* name, size_t* in
 		}
 	}
 
+	ERROR_PRINTF ("Could not find signal '%s' in CAN database.\n", name);
 	errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
 	return errno;
 }

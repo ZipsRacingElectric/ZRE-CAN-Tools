@@ -173,7 +173,7 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 				signal->signedness  = (signedness == '-');
 				signal->endianness  = (endianness == 1);
 
-				// Handle BE
+				// Handle motorola format
 				if (!endianness)
 					signal->bitPosition -= 7;
 

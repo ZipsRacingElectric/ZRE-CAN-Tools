@@ -8,6 +8,7 @@
 
 uint64_t signalEncode (canSignal_t* signal, float value)
 {
+	// TODO(Barach): This doesn't respect endianness
 	uint64_t buffer = roundf (value - signal->offset) / signal->scaleFactor;
 	buffer &= signal->bitmask;
 	buffer <<= signal->bitPosition;
@@ -18,6 +19,15 @@ float signalDecode (canSignal_t* signal, uint64_t payload)
 {
 	payload >>= signal->bitPosition;
 	payload &= signal->bitmask;
+
+	// Reverse signal bytes if motorola formatting
+	if (!signal->endianness)
+	{
+		uint64_t reversed = 0;
+		for (int index = 0; index < signal->bitLength / 8; ++index)
+			reversed |= ((payload >> (index * 8)) & 0xFF) << (signal->bitLength - 8 - index * 8);
+		payload = reversed;
+	}
 
 	// Perform sign extension
 	bool negative = payload >> (signal->bitLength - 1) && signal->signedness;

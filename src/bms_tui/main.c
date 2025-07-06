@@ -12,6 +12,7 @@
 #include "can_device/can_device.h"
 #include "cjson/cjson_util.h"
 #include "error_codes.h"
+#include "debug.h"
 
 // NCurses
 #include <ncurses.h>
@@ -192,7 +193,11 @@ void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t index)
 
 void printLtcIndex (int row, int column, bms_t* bms, uint16_t index)
 {
-	if (!*bms->ltcIsoSpiFaultsValid [index] || !*bms->ltcSelfTestFaultsValid [index])
+	if (bms->ltcIsoSpiFaults [index] == NULL)
+	{
+		mvprintw (row, column, "LTC %i", index);
+	}
+	else if (!*bms->ltcIsoSpiFaultsValid [index] || !*bms->ltcSelfTestFaultsValid [index])
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
 		mvprintw (row, column, " LTC %i: CAN Timeout ", index);
@@ -220,19 +225,22 @@ void printLtcIndex (int row, int column, bms_t* bms, uint16_t index)
 		}
 	}
 
-	if (!*bms->ltcTemperaturesValid [index])
+	if (bms->ltcTemperatures [index] != NULL)
 	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		printw ("(-- C) ");
-		attron (COLOR_PAIR (COLOR_INVALID));
-	}
-	else
-	{
-		bool temperatureNominal = *bms->ltcTemperatures [index] < bms->maxLtcTemperature;
-		NCURSES_PAIRS_T color = temperatureNominal ? COLOR_VALID : COLOR_INVALID;
-		attron (COLOR_PAIR (color));
-		printw ("(%4.2f C) ", *bms->ltcTemperatures [index]);
-		attroff (COLOR_PAIR (color));
+		if (!*bms->ltcTemperaturesValid [index])
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			printw ("(-- C) ");
+			attron (COLOR_PAIR (COLOR_INVALID));
+		}
+		else
+		{
+			bool temperatureNominal = *bms->ltcTemperatures [index] < bms->maxLtcTemperature;
+			NCURSES_PAIRS_T color = temperatureNominal ? COLOR_VALID : COLOR_INVALID;
+			attron (COLOR_PAIR (color));
+			printw ("(%4.2f C) ", *bms->ltcTemperatures [index]);
+			attroff (COLOR_PAIR (color));
+		}
 	}
 }
 

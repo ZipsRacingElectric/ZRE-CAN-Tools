@@ -11,7 +11,6 @@
 // To do:
 // - This is a pretty poor implementation, error handling is a big issue. A better approach would be to read lines in all at
 //   once then parse them.
-// - Endianness is not implemented correctly, I really don't understand the logic of DBC file endianness.
 // - This should accept a string input, rather than a file.
 //
 // References:

@@ -179,31 +179,46 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			snprintf (isoSpiName + 8 + offset, 14, "_ISOSPI_FAULT");
 
 			size_t signalIndex;
-			if (canDatabaseFindSignal (database, isoSpiName, &signalIndex) != 0)
-				return errno;
-
-			bms->ltcIsoSpiFaults [index]		= database->signalValues + signalIndex;
-			bms->ltcIsoSpiFaultsValid [index]	= database->signalsValid + signalIndex;
+			if (canDatabaseFindSignal (database, isoSpiName, &signalIndex) == 0)
+			{
+				bms->ltcIsoSpiFaults [index]		= database->signalValues + signalIndex;
+				bms->ltcIsoSpiFaultsValid [index]	= database->signalsValid + signalIndex;
+			}
+			else
+			{
+				bms->ltcIsoSpiFaults [index]		= NULL;
+				bms->ltcIsoSpiFaultsValid [index]	= NULL;
+			}
 
 			char selfTestName [] = "BMS_LTC_###_SELF_TEST_FAULT";
 			offset = printIndex (index, selfTestName + 8);
 			snprintf (selfTestName + 8 + offset, 17, "_SELF_TEST_FAULT");
 
-			if (canDatabaseFindSignal (database, selfTestName, &signalIndex) != 0)
-				return errno;
-
-			bms->ltcSelfTestFaults [index]		= database->signalValues + signalIndex;
-			bms->ltcSelfTestFaultsValid [index]	= database->signalsValid + signalIndex;
+			if (canDatabaseFindSignal (database, selfTestName, &signalIndex) == 0)
+			{
+				bms->ltcSelfTestFaults [index]		= database->signalValues + signalIndex;
+				bms->ltcSelfTestFaultsValid [index]	= database->signalsValid + signalIndex;
+			}
+			else
+			{
+				bms->ltcSelfTestFaults [index]		= NULL;
+				bms->ltcSelfTestFaultsValid [index]	= NULL;
+			}
 
 			char temperatureName [] = "BMS_LTC_###_TEMPERATURE";
 			offset = printIndex (index, temperatureName + 8);
 			snprintf (temperatureName + 8 + offset, 13, "_TEMPERATURE");
 
-			if (canDatabaseFindSignal (database, temperatureName, &signalIndex) != 0)
-				return errno;
-
-			bms->ltcTemperatures [index]		= database->signalValues + signalIndex;
-			bms->ltcTemperaturesValid [index]	= database->signalsValid + signalIndex;
+			if (canDatabaseFindSignal (database, temperatureName, &signalIndex) == 0)
+			{
+				bms->ltcTemperatures [index]		= database->signalValues + signalIndex;
+				bms->ltcTemperaturesValid [index]	= database->signalsValid + signalIndex;
+			}
+			else
+			{
+				bms->ltcTemperatures [index]		= NULL;
+				bms->ltcTemperaturesValid [index]	= NULL;
+			}
 		}
 	}
 

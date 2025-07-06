@@ -6,11 +6,13 @@ BIN		:= $(BIN_DIR)/can-eeprom-cli
 
 SRC 	:=	main.c
 
+# Note libraries must be in reverse order of dependencies, that is a dependency must be placed after its dependents.
 LIB		:=						\
-	$(LIB_DIR)/can_device.a		\
 	$(LIB_DIR)/can_eeprom.a		\
 	$(LIB_DIR)/cjson.a			\
-	$(LIB_DIR)/serial_can.a
+	$(LIB_DIR)/can_device.a		\
+	$(LIB_DIR)/serial_can.a		\
+	$(LIB_DIR)/lib.a
 
 $(BIN): $(SRC)
 	mkdir -p $(BIN_DIR)
