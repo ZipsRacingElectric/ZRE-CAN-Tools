@@ -2,11 +2,14 @@
 ## Usage
 ### ZR25 Shell Scripts
 A set of shell scripts are provided to simplify usage of the applications.
- - ```. glory-init-vehicle``` - Initializes a CAN device connected to the CAN bus of ZR25.
- - ```. glory-init-charger``` - Initializes a CAN device connected to the charger of ZR25.
- - ```glory-bms``` - Opens the BMS TUI configured for the BMS of ZR25.
- - ```glory-vehicle``` - Opens the CAN DBC TUI configured for the vehicle CAN bus of ZR25.
- - ```glory-charger``` - Opens the CAN DBC TUI configured for the charger CAN bus of ZR25.
+ - ```glory-bms-vehicle``` - Opens the BMS TUI for the BMS of ZR25, configured for the vehicle's CAN bus.
+ - ```glory-bms-charger``` - Opens the BMS TUI for the BMS of ZR25, configured for the charger's CAN bus.
+ - ```glory-can-vehicle``` - Opens the CAN DBC TUI configured for the vehicle CAN bus of ZR25.
+ - ```glory-can-charger``` - Opens the CAN DBC TUI configured for the charger CAN bus of ZR25.
+
+### ZRE24 Shell Scripts
+ - ```cross-bms``` - Opens the BMS TUI for the BMS of ZRE24.
+ - ```cross-can``` - Opens the CAN DBC TUI configured for the CAN bus of ZRE24.
 
 ### CAN DBC CLI
 ```can-dbc-cli <device name> <DBC file path>```
@@ -55,7 +58,14 @@ This program is used to program a device's EEPROM via CAN bus.
                         values of the unit-specific parameters of a CAN node.
 ```
 
-## Setup
+## Installation
+### Windows
+- Go the the [Releases](https://github.com/ZipsRacingElectric/CAN-Tools-2025/releases) section on github.
+- Download the latest version for Windows.
+- Extract the zip file to a permanent location, ex. ```C:/zre_cantools```.
+- Run the ```install.bat``` script.
+
+## Development Setup
 - Clone this repo using github's SSH URL ```git clone <SSH URL>```
 - Define the ```ZRE_CANTOOLS_DIR``` environment variable to point to the location of this directory.
 - Define the ```ZRE_CANTOOLS_DEV``` environment variable to the default value of ```<device name>``` (see 'Command-line Arguments' for details).

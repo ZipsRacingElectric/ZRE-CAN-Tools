@@ -18,7 +18,7 @@ CAN_DBC_TUI		:= $(BIN_DIR)/can-dbc-tui
 CAN_EEPROM_CLI	:= $(BIN_DIR)/can-eeprom-cli
 BMS_TUI			:= $(BIN_DIR)/bms-tui
 
-all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(BMS_TUI) shell
+all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(BMS_TUI) sh bat
 
 # Libraries
 $(LIB): FORCE
@@ -58,8 +58,11 @@ $(CAN_EEPROM_CLI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_EEPROM_LIB) FORCE
 $(BMS_TUI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) $(BMS_LIB) FORCE
 	make -C src/bms_tui
 
-shell: FORCE
-	make -C src/shell
+sh: FORCE
+	make -C src/sh
+
+bat: FORCE
+	make -C src/bat
 
 # Phony target, forces dependent targets to always be re-compiled
 FORCE:
