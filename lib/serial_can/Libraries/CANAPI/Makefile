@@ -45,11 +45,6 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SerialCAN.  If not, see <https://www.gnu.org/licenses/>.
 #
-current_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown OS')
-current_OS := $(patsubst CYGWIN%,Cygwin,$(current_OS))
-current_OS := $(patsubst MINGW%,MinGW,$(current_OS))
-current_OS := $(patsubst MSYS%,MinGW,$(current_OS))
-
 MAJOR = 0
 MINOR = 3
 PATCH = 0
@@ -87,55 +82,6 @@ HEADERS = -I$(SOURCE_DIR) \
 	-I$(SERIAL_DIR) \
 	-I$(WRAPPER_DIR)
 
-
-ifeq ($(current_OS),Darwin) # macOS - libUVCANSLC.dylib
-
-LIBRARY = serial_can_uvcanslc
-
-TARGET  = $(LIBRARY).$(VERSION).dylib
-STATIC  = $(LIBRARY).a
-
-INSTALL_NAME = $(TARGET)
-CURRENT_VERSION = $(MAJOR).$(MINOR).$(PATCH)
-COMPATIBILITY_VERSION = $(MAJOR).$(MINOR).0
-
-INSTALL = /usr/local/lib
-
-DEFINES += -DOPTION_CANAPI_SERIALCAN_DYLIB=1
-
-CFLAGS += -O2 -Wall -Wextra -Wno-parentheses \
-	-fno-strict-aliasing \
-	$(DEFINES) \
-	$(HEADERS)
-
-CXXFLAGS += -O2 -g -Wall -Wextra -pthread \
-	$(DEFINES) \
-	$(HEADERS)
-
-LDFLAGS += -nostartfiles -dynamiclib -fvisibility=hidden \
-	-Wl,-install_name,@rpath/$(INSTALL_NAME) \
-	-Wl,-current_version,$(CURRENT_VERSION) \
-	-Wl,-compatibility_version,$(COMPATIBILITY_VERSION)
-
-LTFLAGS += -static
-
-ifeq ($(BINARY),UNIVERSAL)
-CFLAGS += -arch arm64 -arch x86_64
-CXXFLAGS += -arch arm64 -arch x86_64
-LDFLAGS += -arch arm64 -arch x86_64
-endif
-
-LIBRARIES = -lpthread
-
-CXX = clang++
-CC = clang
-LD = clang
-LT = libtool
-endif
-
-
-ifeq ($(current_OS),$(filter $(current_OS),Linux Cygwin)) # linux - libuvcanslc.so.1
-
 LIBRARY = serial_can
 
 SONAME  = $(LIBRARY).so.1
@@ -155,17 +101,18 @@ CXXFLAGS += -fPIC -O2 -g -Wall -Wextra -pthread\
 	$(DEFINES) \
 	$(HEADERS)
 
-LDFLAGS  += --shared -Wl,-soname,$(SONAME) -lc
+# TODO(Barach): removed '-lc'
+LDFLAGS  += --shared -Wl,-soname,$(SONAME)
 
 ARFLAGS = r
 
-LIBRARIES = -lc -lpthread
+# TODO(Barach): removed '-lc'
+LIBRARIES = -lpthread
 
 CXX = g++
 CC = gcc
 LD = gcc
 AR = ar
-endif
 
 
 RM = rm -f
@@ -205,26 +152,15 @@ clean:
 	@-$(RM) $(TARGET) $(STATIC) $(OUTDIR)/*.o $(OUTDIR)/*.d
 
 pristine:
-ifeq ($(current_OS),Darwin)
-	@-$(RM) *.dylib *.a $(OUTDIR)/*.o $(OUTDIR)/*.d
-	@-$(RM) $(BINDIR)/*.dylib $(BINDIR)/*.a
-endif
-ifeq ($(current_OS),$(filter $(current_OS),Linux Cygwin))
 	@-$(RM) *.so.* *.a $(OUTDIR)/*.o $(OUTDIR)/*.d
 	@-$(RM) $(BINDIR)/*.so.* $(BINDIR)/*.a
-endif
 	@-$(RM) $(INCDIR)/*.h
 
 install:
 	@echo "Copying library file..."
 	$(RM) $(INSTALL)/$(TARGET); $(CP) $(TARGET) $(INSTALL)
-ifeq ($(current_OS),Darwin)
-	$(RM) $(INSTALL)/$(LIBRARY).dylib ; $(LN) $(INSTALL)/$(TARGET) $(INSTALL)/$(LIBRARY).dylib
-endif
-ifeq ($(current_OS),$(filter $(current_OS),Linux Cygwin))
 	$(RM) $(INSTALL)/$(SONAME) ; ln -s $(INSTALL)/$(TARGET) $(INSTALL)/$(SONAME)
 	$(RM) $(INSTALL)/$(LIBRARY).so ; ln -s $(INSTALL)/$(SONAME) $(INSTALL)/$(LIBRARY).so
-endif
 
 
 $(OUTDIR)/can_api.o: $(WRAPPER_DIR)/can_api.c
@@ -253,20 +189,11 @@ $(OUTDIR)/logger.o: $(SERIAL_DIR)/logger.c $(SERIAL_DIR)/logger_p.c
 
 
 $(STATIC): $(OBJECTS)
-ifeq ($(current_OS),Darwin)
-	$(LT) $(LTFLAGS) -o $@ $(OBJECTS)
-	@lipo -archs $@
-endif
-ifeq ($(current_OS),$(filter $(current_OS),Linux Cygwin))
 	$(AR) $(ARFLAGS) $@ $(OBJECTS)
-endif
 	$(CP) $@ $(BINDIR)
 	@echo "\033[1mTarget '"$@"' successfully build\033[0m"
 
 $(TARGET): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBRARIES)
-ifeq ($(current_OS),Darwin)
-	@lipo -archs $@
-endif
 	$(CP) $@ $(BINDIR)
 	@echo "\033[1mTarget '"$@"' successfully build\033[0m"

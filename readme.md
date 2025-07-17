@@ -65,6 +65,13 @@ This program is used to program a device's EEPROM via CAN bus.
 - Extract the zip file to a permanent location, ex. ```C:/zre_cantools```.
 - Run the ```install.bat``` script.
 
+### Linux
+- Go the the [Releases](https://github.com/ZipsRacingElectric/CAN-Tools-2025/releases) section on github.
+- Download the latest version for Linux.
+- Extract the zip file to a permanent location, ex. ```~/zre-cantools```.
+- Define the ```ZRE_CANTOOLS_DIR``` environment variable to point to the location of this directory.
+- Define the ```ZRE_CANTOOLS_DEV``` environment variable to the default value of ```<device name>``` (see 'Command-line Arguments' for details).
+
 ## Development Setup
 - Clone this repo using github's SSH URL ```git clone <SSH URL>```
 - Define the ```ZRE_CANTOOLS_DIR``` environment variable to point to the location of this directory.
@@ -73,19 +80,23 @@ This program is used to program a device's EEPROM via CAN bus.
 - Run ```make``` to compile all of the programs.
 - Add ```bin``` to your system path.
 
+### Dependencies
+- libnursesw-dev (NCurses development library with wide character support)
+
 ### For Windows
 Some dependicies of this project are not natively built for Windows. A solution to this is to use Cygwin, a POSIX compatibility layer that allows these programs to be run in Windows.
 
-#### Cygwin
-- Download and install Cygwin from https://cygwin.com/.
-- Install the following packages:
-    ```Base```
-    ```Devel/gcc-core```
-    ```Devel/gcc-g++```
-    ```Devel/Make```
-    ```Devel/libncurses-devel```
-- Add ```C:\cygwin64\bin\``` to your system path.
-- From a command-line, run ```bash --version``` to validate Cygwin has been installed.
+#### MinGW
+// TODO(Barach)
+- Install the following packages (note some may already be selected):
+    ```mingw32-base```
+	```msys-base```
+	```mingw-developer-toolkit```
+	```mingw32-make (dev class)```
+    ```mingw32-libncurses (dev class)```
+	```mingw32-libncurses (dll class)```
+	```mingw32-libpthreadgc (dev class)```
+	```mingw32-libpthreadgc (dll class)```
 
 #### Make
 - Make should be installed with Cygwin.

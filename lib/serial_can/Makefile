@@ -44,16 +44,13 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SerialCAN.  If not, see <https://www.gnu.org/licenses/>.
 #
-all:
+all: build_no
 	$(MAKE) -C Libraries/CANAPI $@
 
 clean:
 	$(MAKE) -C Libraries/CANAPI $@
 
 pristine:
-	$(MAKE) -C Libraries/CANAPI $@
-
-install:
 	$(MAKE) -C Libraries/CANAPI $@
 
 build_no:
