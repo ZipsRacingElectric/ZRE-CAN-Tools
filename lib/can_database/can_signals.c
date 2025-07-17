@@ -21,7 +21,7 @@ float signalDecode (canSignal_t* signal, uint64_t payload)
 	payload &= signal->bitmask;
 
 	// Reverse signal bytes if motorola formatting
-	if (!signal->endianness)
+	if (!signal->endianness && signal->bitLength > 8)
 	{
 		uint64_t reversed = 0;
 		for (int index = 0; index < signal->bitLength / 8; ++index)

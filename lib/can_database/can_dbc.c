@@ -175,7 +175,12 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 
 				// Handle motorola format
 				if (!endianness)
-					signal->bitPosition -= 7;
+				{
+					if (signal->bitLength >= 8)
+						signal->bitPosition -= 7;
+					else
+						signal->bitPosition -= signal->bitLength - 1;
+				}
 
 				// Populate bitmask
 				signal->bitmask = ((uint64_t) 1 << signal->bitLength) - 1;
