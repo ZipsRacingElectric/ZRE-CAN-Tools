@@ -62,6 +62,46 @@ BO_ 419385573 CHARGER_RESPONSE: 8 Charger
  SG_ CHARGER_S2_SWITCH_CONTROL : 55|1@0+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CHARGER_TEMPERATURE : 63|8@0+ (1,-40) [-40|205] "C" Vector__XXX
 
+BO_ 1831 BMS_STATUS: 6 Vector__XXX
+ SG_ BMS_UNDERVOLTAGE_FAULT : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_OVERVOLTAGE_FAULT : 1|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_UNDERTEMPERATURE_FAULT : 2|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_OVERTEMPERATURE_FAULT : 3|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_SENSE_LINE_FAULT : 4|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_ISOSPI_FAULT : 5|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_SELF_TEST_FAULT : 6|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_0_ISOSPI_FAULT : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_1_ISOSPI_FAULT : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_2_ISOSPI_FAULT : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_3_ISOSPI_FAULT : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_4_ISOSPI_FAULT : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_5_ISOSPI_FAULT : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_6_ISOSPI_FAULT : 22|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_7_ISOSPI_FAULT : 23|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_8_ISOSPI_FAULT : 24|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_9_ISOSPI_FAULT : 25|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_10_ISOSPI_FAULT : 26|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_11_ISOSPI_FAULT : 27|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_0_SELF_TEST_FAULT : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_1_SELF_TEST_FAULT : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_2_SELF_TEST_FAULT : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_3_SELF_TEST_FAULT : 35|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_4_SELF_TEST_FAULT : 36|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_5_SELF_TEST_FAULT : 37|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_6_SELF_TEST_FAULT : 38|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_7_SELF_TEST_FAULT : 39|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_8_SELF_TEST_FAULT : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_9_SELF_TEST_FAULT : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_10_SELF_TEST_FAULT : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_LTC_11_SELF_TEST_FAULT : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_CHARGING : 7|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_BALANCING : 8|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SHUTDOWN_CLOSED : 9|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ PRECHARGE_COMPLETE : 10|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SHUTDOWN_LOOP_BLIP : 11|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_RELAY_STATUS : 12|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ IMD_RELAY_STATUS : 13|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
 
