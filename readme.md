@@ -58,7 +58,7 @@ This program is used to program a device's EEPROM via CAN bus.
                         values of the unit-specific parameters of a CAN node.
 ```
 
-## Installation
+## Installation (For General Usage)
 ### Windows
 - Go the the [Releases](https://github.com/ZipsRacingElectric/CAN-Tools-2025/releases) section on github.
 - Download the latest version for Windows.
@@ -72,39 +72,38 @@ This program is used to program a device's EEPROM via CAN bus.
 - Define the ```ZRE_CANTOOLS_DIR``` environment variable to point to the location of this directory.
 - Define the ```ZRE_CANTOOLS_DEV``` environment variable to the default value of ```<device name>``` (see 'Command-line Arguments' for details).
 
-## Development Setup
+## Installation (For Development)
 - Clone this repo using github's SSH URL ```git clone <SSH URL>```
 - Define the ```ZRE_CANTOOLS_DIR``` environment variable to point to the location of this directory.
 - Define the ```ZRE_CANTOOLS_DEV``` environment variable to the default value of ```<device name>``` (see 'Command-line Arguments' for details).
 - If you are using Windows, perform the 'For Windows' setup
+- If you are using linux, perform the 'For Linux' setup.
 - Run ```make``` to compile all of the programs.
 - Add ```bin``` to your system path.
 
-### Dependencies
+### For Linux
+Install all of the following dependencies, if not already installed:
 - libnursesw-dev (NCurses development library with wide character support)
 
 ### For Windows
 Some dependicies of this project are not natively built for Windows. A solution to this is to use Cygwin, a POSIX compatibility layer that allows these programs to be run in Windows.
 
 #### MinGW
-// TODO(Barach)
-- Install the following packages (note some may already be selected):
-    ```mingw32-base```
-	```msys-base```
-	```mingw-developer-toolkit```
-	```mingw32-make (dev class)```
-    ```mingw32-libncurses (dev class)```
-	```mingw32-libncurses (dll class)```
-	```mingw32-libpthreadgc (dev class)```
-	```mingw32-libpthreadgc (dll class)```
+Install the following packages (note some may already be selected):
+ - ```mingw32-base```
+ - ```msys-base```
+ - ```mingw-developer-toolkit```
+ - ```mingw32-make (dev class)```
+ - ```mingw32-libncurses (dev class)```
+ - ```mingw32-libncurses (dll class)```
+ - ```mingw32-libpthreadgc (dev class)```
+ - ```mingw32-libpthreadgc (dll class)```
 
-#### Make
-- Make should be installed with Cygwin.
-- From a command-line, run ```make -v``` to validate make has been installed.
-
-### Compilation
+## Compilation
 Use ```make``` to compile all of the programs.
+
 Use ```make bin\<executable file>``` to compile a specific program.
+
 Use ```make -B``` to re-compile all of the programs. Note that this may be required after making library modifications.
 
 ## Directory Structure

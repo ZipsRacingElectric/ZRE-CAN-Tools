@@ -8,6 +8,9 @@
 //
 // Description: Object and functions for interacting with a device's EEPROM through a CAN bus. See the 'can_eeprom_operations'
 //   module for a low-level description of the CAN interface a device must implement.
+//
+// TODO(Barach):
+// - PrintMap operations intermittently become misaligned, printing invalid data. LLD ought to prevent such a situation.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
