@@ -12,8 +12,12 @@
 #include "can_device/can_device.h"
 #include "error_codes.h"
 
-// NCurses
-#include <ncurses.h>
+// Curses
+#ifdef __unix__
+#include <curses.h>
+#else // __unix__
+#include <ncurses/curses.h>
+#endif // __unix__
 
 // C Standard Library
 #include <errno.h>

@@ -11,6 +11,9 @@ if "%~1" == "" (
     )
 )
 
+: Set minimum terminal width
+mode 160, 53
+
 echo Using CAN device: !ZRE_CANTOOLS_DEV!
 %ZRE_CANTOOLS_DIR%/bin/can-dbc-tui.exe !ZRE_CANTOOLS_DEV! %ZRE_CANTOOLS_DIR%/config/cross/can.dbc
 

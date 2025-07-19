@@ -5,7 +5,7 @@
 #include "can_device.h"
 #include "error_codes.h"
 
-#if defined (__unix__) && !defined __CYGWIN__
+#if defined (__unix__)
 
 // SocketCAN Libraries
 #include <linux/can.h>
@@ -19,7 +19,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#endif // __unix__ && !__CYGWIN
+#endif // __unix__
 
 // C Standard Libraries
 #include <errno.h>
@@ -50,7 +50,7 @@ bool socketCanNameDomain (const char* name)
 
 canDevice_t* socketCanInit (const char* name)
 {
-	#if defined (__unix__) && !defined __CYGWIN__
+	#if defined (__unix__)
 
 	// Create the socket using the CAN protocol family and the raw CAN protol
 	int descriptor = socket (PF_CAN, SOCK_RAW, CAN_RAW);
@@ -116,7 +116,7 @@ int socketCanDealloc (void* device)
 
 int socketCanTransmit (void* device, canFrame_t* frame)
 {
-	#if defined (__unix__) && !defined __CYGWIN__
+	#if defined (__unix__)
 
 	socketCan_t* socket = device;
 
@@ -146,7 +146,7 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 
 int socketCanReceive (void* device, canFrame_t* frame)
 {
-	#if defined (__unix__) && !defined __CYGWIN__
+	#if defined (__unix__)
 
 	socketCan_t* socket = device;
 
@@ -178,7 +178,7 @@ int socketCanReceive (void* device, canFrame_t* frame)
 
 int socketCanFlushRx (void* device)
 {
-	#if defined (__unix__) && !defined __CYGWIN__
+	#if defined (__unix__)
 
 	socketCan_t* socket = device;
 
@@ -215,7 +215,7 @@ int socketCanFlushRx (void* device)
 
 int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 {
-	#if defined (__unix__) && !defined __CYGWIN__
+	#if defined (__unix__)
 
 	socketCan_t* socket = device;
 

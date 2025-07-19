@@ -11,6 +11,9 @@ if "%~1" == "" (
     )
 )
 
+: Set minimum terminal width
+mode 196, 64
+
 echo Using CAN device: !ZRE_CANTOOLS_DEV!
 %ZRE_CANTOOLS_DIR%/bin/bms-tui.exe !ZRE_CANTOOLS_DEV! %ZRE_CANTOOLS_DIR%/config/glory/can_vehicle.dbc %ZRE_CANTOOLS_DIR%/config/glory/bms_config.json
 

@@ -10,6 +10,20 @@
 #include <string.h>
 #include <sys/time.h>
 
+#ifndef __unix__
+/// @brief timeradd implementation, as windows does not define it.
+#define timeradd(a, b, result)								\
+	do {													\
+		(result)->tv_sec = (a)->tv_sec + (b)->tv_sec;		\
+		(result)->tv_usec = (a)->tv_usec + (b)->tv_usec;	\
+		if ((result)->tv_usec >= 1000000)					\
+		{													\
+			++(result)->tv_sec;								\
+			(result)->tv_usec -= 1000000;					\
+		}													\
+	} while (0)
+#endif // __unix__
+
 // Macros / Constants ---------------------------------------------------------------------------------------------------------
 
 #define EEPROM_COMMAND_MESSAGE_RW(rnw)		(((uint16_t) (rnw))	<< 15)

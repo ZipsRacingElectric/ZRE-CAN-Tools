@@ -15,4 +15,4 @@ LIB		:=						\
 
 $(BIN): $(SRC)
 	mkdir -p $(BIN_DIR)
-	gcc $(SRC) $(CC_FLAGS) $(LIB) -I../../lib/ -o $(BIN) -lm -lncurses
+	gcc $(SRC) $(CC_FLAGS) $(LIB) -I../../lib/ -o $(BIN) -lm -lncursesw
