@@ -8,6 +8,54 @@
             "name": "EEPROM_STATUS",
             "type": "uint8_t",
             "comment": "The status of the DRS's EEPROM. 0 => Hardware failure, 1 => Memory invalid, 3 => Memory valid."
+        },
+        {
+            "address": "0x0010",
+            "name": "THETA_MIN",
+            "type": "float",
+            "comment": "The absolute minimum angle that the servo can go to."
+        },
+        {
+            "address": "0x0014",
+            "name": "THETA_MAX",
+            "type": "float",
+            "comment": "The absolute maximum angle that the servo can go to."
+        },
+        {
+            "address": "0x0018",
+            "name": "THETA_STEP",
+            "type": "float",
+            "comment": "The incremental angular step that the servo takes each loop."
+        },
+        {
+            "address": "0x001C",
+            "name": "THETA_B",
+            "type": "float",
+            "comment": "The real world initial start position of the servo, we use this to predict where the servo is in relation to what the code may say."
+        },
+        {
+            "address": "0x0020",
+            "name": "THETA_BACKOFF",
+            "type": "float",
+            "comment": "The angular amount that the servo takes in the opposite direction when a stall condition is met to prevent getting caught on debris."
+        },
+        {
+            "address": "0x0024",
+            "name": "THETA_TARGET",
+            "type": "float",
+            "comment": "The calculated next position that the servo will take."
+        },
+        {
+            "address": "0x0028",
+            "name": "THETA_OPEN",
+            "type": "float",
+            "comment": "The angular position where the wing is 'open.'"
+        },
+        {
+            "address": "0x002C",
+            "name": "THETA_CLOSED",
+            "type": "float",
+            "comment": "The angular position where the wing is 'closed.'"
         }
     ]
 }
