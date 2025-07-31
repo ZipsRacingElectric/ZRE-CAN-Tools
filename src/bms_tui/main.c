@@ -35,98 +35,176 @@
 
 void printPowerStats (int row, int column, bms_t* bms)
 {
+	float cellMin, cellMax, cellAvg;
+	bool cellsValid = bmsGetCellVoltageStats(bms, &cellMin, &cellMax, &cellAvg);
+
+	float deltaMax, deltaAvg;
+	bool deltasValid = bmsGetCellDeltaStats (bms, &deltaMax, &deltaAvg);
+
+	float tempMin, tempMax, tempAvg;
+	bool tempsValid = bmsGetTemperatureStats (bms, &tempMin, &tempMax, &tempAvg);
+
 	mvprintw (row + 0, column, "┌─");
 	mvprintw (row + 1, column, "│");
-	mvprintw (row + 2, column, "└─");
+	mvprintw (row + 2, column, "│");
+	mvprintw (row + 3, column, "│");
+	mvprintw (row + 4, column, "└─");
 	column += 2;
 
-	mvprintw (row + 0, column, "────────────────────────────────");
+	mvprintw (row + 0, column, "────────────────────");
 
-	mvprintw (row + 2, column, "────────────────────────────────");
+	mvprintw (row + 4, column, "────────────────────");
 	if (!*bms->packVoltageValid)
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 1, column, "Pack Voltage: -- V");
+		mvprintw (row + 2, column, "Voltage: -- V");
 		attroff (COLOR_PAIR (COLOR_INVALID));
 	}
 	else
 	{
-		mvprintw (row + 1, column, "Pack Voltage: %8.2f V", *bms->packVoltage);
+		mvprintw (row + 2, column, "Voltage: %-.2f V", *bms->packVoltage);
 	}
-	column += 32;
 
-	mvprintw (row + 0, column, "────────────────────────────────");
+	if (cellsValid)
+	{
+		mvprintw (row + 3, column, "Min Cell: %-.2f V", cellMin);
+	}
+	else
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 3, column, "Min Cell: -- V");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
 
-	mvprintw (row + 2, column, "────────────────────────────────");
+	column += 20;
+
+	mvprintw (row + 0, column, "────────────────────");
+
+	mvprintw (row + 4, column, "────────────────────");
 	if (!*bms->packCurrentValid)
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 1, column, "Pack Current: -- A");
+		mvprintw (row + 2, column, "Current: -- A");
 		attroff (COLOR_PAIR (COLOR_INVALID));
 	}
 	else
 	{
-		mvprintw (row + 1, column, "Pack Current: %8.2f A", *bms->packCurrent);
+		mvprintw (row + 2, column, "Current: %-.2f A", *bms->packCurrent);
 	}
-	column += 32;
 
-	mvprintw (row + 0, column, "────────────────────────────────");
+	if (cellsValid)
+	{
+		mvprintw (row + 3, column, "Max Cell: %-.2f V", cellMax);
+	}
+	else
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 3, column, "Max Cell: -- V");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+	column += 20;
 
-	mvprintw (row + 2, column, "────────────────────────────────");
+	mvprintw (row + 0, column, "────────────────────");
+
+	mvprintw (row + 4, column, "────────────────────");
+
 	if (!*bms->packVoltageValid || !*bms->packCurrentValid)
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 1, column, "Pack Power: -- W");
+		mvprintw (row + 2, column, "Power: -- W");
 		attroff (COLOR_PAIR (COLOR_INVALID));
 	}
 	else
 	{
-		mvprintw (row + 1, column, "Pack Power: %8.2f W", *bms->packVoltage * *bms->packCurrent);
+		mvprintw (row + 2, column, "Power: %-.2f W", *bms->packVoltage * *bms->packCurrent);
 	}
-	column += 32;
 
-	bool tempsValid = false;
-	size_t count = 0;
-	float min = INFINITY;
-	float max = -INFINITY;
-	float avg = 0;
-	for (size_t index = 0; index < bms->senseLinesPerLtc * bms->ltcsPerSegment * bms->segmentCount; ++index)
+	if (cellsValid)
 	{
-		if (bms->senseLineTemperatures [index] == NULL || !*bms->senseLineTemperaturesValid [index])
-			continue;
-
-		tempsValid = true;
-
-		++count;
-		float temp = *bms->senseLineTemperatures [index];
-		if (temp > max)
-			max = temp;
-		if (temp < min)
-			min = temp;
-		avg += temp;
+		mvprintw (row + 3, column, "Avg Cell: %-.2f V", cellMax);
 	}
-	avg /= count;
+	else
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 3, column, "Avg Cell: -- V");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
 
-	mvprintw (row + 0, column, "────────────────────────────────");
+	column += 20;
+
+	mvprintw (row + 0, column, "────────────────────");
 	if (tempsValid)
-		mvprintw (row + 1, column, "Min: %0.2f C", min);
-	mvprintw (row + 2, column, "────────────────────────────────");
-	column += 32;
+	{
+		mvprintw (row + 2, column, "Min Temp: %-.2f C", tempMin);
+	}
+	else
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 2, column, "Min Temp: -- C");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
 
-	mvprintw (row + 0, column, "────────────────────────────────");
+	if (deltasValid)
+	{
+		mvprintw (row + 3, column, "Max Delta: %-.2f V", deltaMax);
+	}
+	else
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 3, column, "Max Delta: -- V");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+
+	mvprintw (row + 4, column, "────────────────────");
+	column += 20;
+
+	mvprintw (row + 0, column, "────────────────────");
 	if (tempsValid)
-		mvprintw (row + 1, column, "Max: %0.2f C", max);
-	mvprintw (row + 2, column, "────────────────────────────────");
-	column += 32;
+	{
+		mvprintw (row + 2, column, "Max Temp: %-.2f C", tempMax);
+	}
+	else
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 2, column, "Max Temp: -- C");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
 
-	mvprintw (row + 0, column, "────────────────────────────────");
-	mvprintw (row + 1, column, "Avg: %0.2f C", avg);
-	mvprintw (row + 2, column, "────────────────────────────────");
-	column += 32;
+	if (deltasValid)
+	{
+		mvprintw (row + 3, column, "Avg Delta: %-.2f V", deltaAvg);
+	}
+	else
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 3, column, "Avg Delta: -- V");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+
+	mvprintw (row + 4, column, "────────────────────");
+	column += 20;
+
+	mvprintw (row + 0, column, "────────────────────");
+
+	if (tempsValid)
+	{
+		mvprintw (row + 2, column, "Avg Temp: %-.2f C", tempAvg);
+	}
+	else
+	{
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row + 2, column, "Avg Temp: -- C");
+		attroff (COLOR_PAIR (COLOR_INVALID));
+	}
+
+	mvprintw (row + 4, column, "────────────────────");
+	column += 20;
 
 	mvprintw (row + 0, column, "─┐");
 	mvprintw (row + 1, column, " │");
-	mvprintw (row + 2, column, "─┘");
+	mvprintw (row + 2, column, " │");
+	mvprintw (row + 3, column, " │");
+	mvprintw (row + 4, column, "─┘");
 }
 
 void printVoltage (int row, int column, bms_t* bms, uint16_t index)
@@ -327,8 +405,10 @@ int main (int argc, char** argv)
 		uint16_t columnCell = 0;
 		uint16_t columnSense = 0;
 
+		clear ();
+
 		printPowerStats (row, 0, &bms);
-		row += 4;
+		row += 6;
 
 		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
 		{
@@ -436,7 +516,7 @@ int main (int argc, char** argv)
 		}
 
 		refresh ();
-		napms(1);
+		napms(16);
 	}
 
 	endwin ();

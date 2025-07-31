@@ -9,11 +9,14 @@
 // Description: An database-oriented interface for CAN bus communication. Received messages are parsed using a DBC file and
 //   stored in a relational database for random access.
 
+// TODO(Barach): Docs are pretty poor.
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
 #include "can_device/can_device.h"
 #include "can_signals.h"
+#include "time_port.h"
 
 // POSIX Libraries
 #include <pthread.h>
@@ -39,13 +42,13 @@ struct canDatabase
 	size_t			signalCount;
 	float			signalValues [CAN_DATABASE_SIGNAL_COUNT_MAX];
 	bool			signalsValid [CAN_DATABASE_SIGNAL_COUNT_MAX];
+	struct timeval	messageDeadlines [CAN_DATABASE_MESSAGE_COUNT_MAX];
 };
 
 typedef struct canDatabase canDatabase_t;
 
 // Function -------------------------------------------------------------------------------------------------------------------
 
-// TODO(Barach): Docs
 /**
  * @brief Initializes a CAN database bound to the specified device using the specified database file.
  * @param dbcPath The database file to import from.

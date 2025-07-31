@@ -72,4 +72,10 @@ typedef struct
 
 int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database);
 
+bool bmsGetCellVoltageStats (bms_t* bms, float* min, float* max, float* avg);
+
+bool bmsGetCellDeltaStats (bms_t* bms, float* max, float* avg);
+
+bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
+
 #endif // BMS_H

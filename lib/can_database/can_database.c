@@ -12,9 +12,18 @@
 #include <errno.h>
 #include <string.h>
 
+/// @brief The amount of time a message's data is considered valid before timing out.
+const struct timeval CAN_MESSAGE_TIMEOUT =
+{
+	.tv_sec = 1,
+	.tv_usec = 0
+};
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 void* canDatabaseRxThreadEntrypoint (void* arg);
+
+void canDatabaseCheckTimeouts (canDatabase_t* database);
 
 int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* dbcPath)
 {
@@ -26,6 +35,9 @@ int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* d
 
 	if (dbcFileParse (dbcPath, database->messages, &database->messageCount, database->signals, &database->signalCount) != 0)
 		return errno;
+
+	// Set the RX timeout (required for RX thread)
+	canSetTimeout (device, 100);
 
 	// Start the RX thread.
 	int code = pthread_create (&database->rxThread, NULL, canDatabaseRxThreadEntrypoint, database);
@@ -118,26 +130,36 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 
 	while (true)
 	{
+		// Try to read a CAN frame (will timeout so we can check message timeouts).
 		canFrame_t frame;
-		if (canReceive (database->device, &frame) != 0)
+		int code = canReceive (database->device, &frame);
+
+		// Check if any messages have timed out.
+		canDatabaseCheckTimeouts (database);
+
+		// If no frame was received, try reading again.
+		if (code != 0)
 			continue;
 
+		// Try to identify the message, if unrecognized ignore.
 		canMessage_t* message = NULL;
+		struct timeval* deadline = NULL;
 		for (size_t index = 0; index < database->messageCount; ++index)
 		{
 			if (frame.id == database->messages [index].id)
 			{
 				message = database->messages + index;
+				deadline = database->messageDeadlines + index;
 				break;
 			}
 		}
 		if (message == NULL)
 			continue;
 
-		#if CAN_DATABASE_RX_PRINT
-		RX_PRINTF ("Received CAN frame: ");
-		framePrint (stderr, &frame);
-		#endif // CAN_DATABASE_RX_PRINT
+		// Postpone the message's timeout deadline.
+		struct timeval timeCurrent;
+		gettimeofday (&timeCurrent, NULL);
+		timeradd (&timeCurrent, &CAN_MESSAGE_TIMEOUT, deadline);
 
 		uint64_t payload = *((uint64_t*) frame.data);
 		size_t signalOffset = message->signals - database->signals;
@@ -165,4 +187,28 @@ int canDatabaseFindSignal (canDatabase_t* database, const char* name, size_t* in
 	ERROR_PRINTF ("Could not find signal '%s' in CAN database.\n", name);
 	errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
 	return errno;
+}
+
+void canDatabaseCheckTimeouts (canDatabase_t* database)
+{
+	struct timeval timeCurrent;
+	gettimeofday (&timeCurrent, NULL);
+
+	// TODO(Barach): This should use a stack to only check valid messages and in the order they are expected to expire.
+	for (uint16_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
+	{
+		// TODO(Barach): This indexing is terrible.
+		canMessage_t* message = database->messages + messageIndex;
+		size_t signalOffset = message->signals - database->signals;
+
+		// If the message is already invalid, skip the timeout check.
+		// TODO(Barach): This isn't foolproof. Should move the validity into the message itself.
+		if (message->signalCount == 0 || !database->signalsValid [signalOffset])
+			continue;
+
+		// If the deadline has expired, invalidate all the signals.
+		if (timercmp (&timeCurrent, database->messageDeadlines + messageIndex, >))
+			for (uint16_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
+				database->signalsValid [signalOffset + signalIndex] = false;
+	}
 }

@@ -237,3 +237,119 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 
 	return 0;
 }
+
+bool bmsGetCellVoltageStats (bms_t* bms, float* min, float* max, float* avg)
+{
+	bool valid = false;
+	size_t count = 0;
+
+	if (min != NULL)
+		*min = INFINITY;
+
+	if (max != NULL)
+		*max = -INFINITY;
+
+	if (avg != NULL)
+		*avg = 0;
+
+	for (size_t index = 0; index < bms->cellsPerLtc * bms->ltcsPerSegment * bms->segmentCount; ++index)
+	{
+		if (!*bms->cellVoltagesValid [index])
+			continue;
+
+		valid = true;
+		++count;
+		float cell = *bms->cellVoltages [index];
+
+		if (min != NULL && cell < *min)
+			*min = cell;
+
+		if (max != NULL && cell > *max)
+			*max = cell;
+
+		if (avg != NULL)
+			*avg += cell;
+	}
+
+	if (avg != NULL)
+		*avg /= count;
+
+	return valid;
+}
+
+bool bmsGetCellDeltaStats (bms_t* bms, float* max, float* avg)
+{
+	size_t count = 0;
+
+	if (max != NULL)
+		*max = -INFINITY;
+
+	if (avg != NULL)
+		*avg = 0;
+
+	float min;
+	bool valid = bmsGetCellVoltageStats (bms, &min, NULL, NULL);
+	if (!valid)
+		return false;
+	valid = false;
+
+	for (size_t index = 0; index < bms->cellsPerLtc * bms->ltcsPerSegment * bms->segmentCount; ++index)
+	{
+		if (!*bms->cellVoltagesValid [index])
+			continue;
+
+		valid = true;
+		++count;
+		float delta = *bms->cellVoltages [index] - min;
+
+		if (max != NULL && delta > *max)
+			*max = delta;
+
+		if (avg != NULL)
+			*avg += delta;
+	}
+
+	if (avg != NULL)
+		*avg /= count;
+
+	return valid;
+}
+
+bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg)
+{
+	bool valid = false;
+	size_t count = 0;
+
+	if (min != NULL)
+		*min = INFINITY;
+
+	if (max != NULL)
+		*max = -INFINITY;
+
+	if (avg != NULL)
+		*avg = 0;
+
+	for (size_t index = 0; index < bms->senseLinesPerLtc * bms->ltcsPerSegment * bms->segmentCount; ++index)
+	{
+		if (bms->senseLineTemperatures [index] == NULL || !*bms->senseLineTemperaturesValid [index])
+			continue;
+
+		valid = true;
+		++count;
+		float temp = *bms->senseLineTemperatures [index];
+
+		if (min != NULL && temp < *min)
+			*min = temp;
+
+		if (max != NULL && temp > *max)
+			*max = temp;
+
+		if (avg != NULL)
+			*avg += temp;
+	}
+
+	if (avg != NULL)
+		*avg /= count;
+
+	return valid;
+}

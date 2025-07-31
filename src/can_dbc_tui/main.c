@@ -63,12 +63,14 @@ int main (int argc, char** argv)
 
 	uint16_t offset = 0;
 
-	int row, col;
-	getmaxyx(stdscr, row, col);
-	(void) col;
-
 	while (true)
 	{
+		clear ();
+
+		int row, col;
+		getmaxyx(stdscr, row, col);
+		(void) col;
+
 		mvprintw (0, 0, "");
 
 		int ret = getch ();
@@ -84,7 +86,7 @@ int main (int argc, char** argv)
 			printTuiDatabaseLine (&database, index + offset);
 
 		refresh ();
-		napms(1);
+		napms(16);
 	}
 
 	endwin ();
