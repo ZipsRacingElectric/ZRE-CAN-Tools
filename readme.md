@@ -106,14 +106,14 @@ Use ```make -B``` to re-compile all of the programs. Note that this may be requi
 ├── bin                        - Output directory for compilation. Final
 │                                applications will be placed in here.
 ├── config                     - Application-specific configuration files.
-│   ├── cross                  - Configuration files for ZRE24, 'Christine'
-│   └── glory                  - Configuration files for ZR25, 'Gloria'
+│   ├── zre24_cross            - Configuration files for ZRE24, 'Christine'.
+│   └── zr25_glory             - Configuration files for ZR25, 'Gloria'.
 ├── lib                        - Libraries that are dependencies of the
 │   │                            different applications. Some custom, some
 │   │                            external.
 │   ├── bms                    - Library for interacting with BMS can nodes.
 │   ├── can_database           - Library for defining a CAN database from a DBC
-│   │                            file
+│   │                            file.
 │   ├── can_device             - Library for abstracting different CAN
 │   │                            adapters.
 │   ├── can_eeprom             - Library for interacting with a device's EEPROM

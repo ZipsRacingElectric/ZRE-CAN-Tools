@@ -15,7 +15,7 @@ if "%~1" == "" (
 mode 160, 53
 
 echo Using CAN device: !ZRE_CANTOOLS_DEV!
-%ZRE_CANTOOLS_DIR%/bin/can-dbc-tui.exe !ZRE_CANTOOLS_DEV! %ZRE_CANTOOLS_DIR%/config/glory/can_charger.dbc
+%ZRE_CANTOOLS_DIR%/bin/can-dbc-tui.exe !ZRE_CANTOOLS_DEV! %ZRE_CANTOOLS_DIR%/config/zr25_glory/can_charger.dbc
 
 echo Press enter to close...
 pause >nul

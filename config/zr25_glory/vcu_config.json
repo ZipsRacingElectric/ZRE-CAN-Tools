@@ -268,6 +268,16 @@
 			"type":		"float"
 		},
 		{
+			"address":	"0x0090",
+			"name":		"LINEAR_SAS_BIAS_MAX_SLALOM",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0094",
+			"name":		"DRIVING_TORQUE_BIAS_OPEN_THROTTLE",
+			"type":		"float"
+		},
+		{
 			"address":	"0x0500",
 			"name":		"CAMBER_FRONT",
 			"type":		"float"
