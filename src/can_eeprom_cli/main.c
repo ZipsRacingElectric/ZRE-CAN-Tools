@@ -104,32 +104,6 @@ int main (int argc, char** argv)
 		return EINVAL;
 	}
 
-	for (int index = 1; index < argc - 2; ++index)
-	{
-		if (argv [index][0] == '-')
-		{
-			switch (argv [index][1])
-			{
-			case MODE_PROGRAM:
-				if (parseOptionProgram (argv [index]) != 0)
-					return -1;
-				break;
-			case MODE_RECOVER:
-				if (parseOptionRecover (argv [index]) != 0)
-					return -1;
-				break;
-			default:
-				fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
-				return -1;
-			}
-		}
-		else
-		{
-			fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
-			return -1;
-		}
-	}
-
 	char* deviceName = argv [argc - 2];
 	char* configJsonPath = argv [argc - 1];
 
@@ -160,6 +134,32 @@ int main (int argc, char** argv)
 		int code = errno;
 		fprintf (stderr, "Failed to initialize CAN EEPROM: %s.\n", errorMessage (code));
 		return code;
+	}
+
+	for (int index = 1; index < argc - 2; ++index)
+	{
+		if (argv [index][0] == '-')
+		{
+			switch (argv [index][1])
+			{
+			case MODE_PROGRAM:
+				if (parseOptionProgram (argv [index]) != 0)
+					return -1;
+				break;
+			case MODE_RECOVER:
+				if (parseOptionRecover (argv [index]) != 0)
+					return -1;
+				break;
+			default:
+				fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
+				return -1;
+			}
+		}
+		else
+		{
+			fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
+			return -1;
+		}
 	}
 
 	if (mode == MODE_PROGRAM)
