@@ -15,7 +15,7 @@ if "%~1" == "" (
 mode 196, 53
 
 echo Using CAN device: !ZRE_CANTOOLS_DEV!
-%ZRE_CANTOOLS_DIR%/bin/bms-tui.exe !ZRE_CANTOOLS_DEV! %ZRE_CANTOOLS_DIR%/config/cross/can.dbc %ZRE_CANTOOLS_DIR%/config/cross/bms_config.json
+%ZRE_CANTOOLS_DIR%/bin/bms-tui.exe !ZRE_CANTOOLS_DEV! %ZRE_CANTOOLS_DIR%/config/zre24_cross/can.dbc %ZRE_CANTOOLS_DIR%/config/zre24_cross/bms_config.json
 
 echo Press enter to close...
 pause >nul
