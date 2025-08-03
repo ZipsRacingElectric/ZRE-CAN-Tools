@@ -121,7 +121,7 @@ void printPowerStats (int row, int column, bms_t* bms)
 
 	if (cellsValid)
 	{
-		mvprintw (row + 3, column, "Avg Cell: %-.2f V", cellMax);
+		mvprintw (row + 3, column, "Avg Cell: %-.2f V", cellAvg);
 	}
 	else
 	{
@@ -224,8 +224,9 @@ void printVoltage (int row, int column, bms_t* bms, uint16_t index)
 	NCURSES_PAIRS_T color = voltageNominal ? (balancing ? COLOR_BALANCING : COLOR_VALID) : COLOR_INVALID;
 
 	attron (COLOR_PAIR (color));
-	uint8_t voltageInt = (uint8_t) voltage;
-	uint8_t voltageFrac = (uint8_t) roundf ((voltage - voltageInt) * 100);
+	uint16_t voltageRounded = (uint16_t) roundf (voltage * 100);
+	uint8_t voltageInt = voltageRounded / 100;
+	uint8_t voltageFrac = voltageRounded % 100;
 	mvprintw (row, column, "%i.", voltageInt);
 	mvprintw (row + 1, column, "%02i", voltageFrac);
 	attroff (COLOR_PAIR (color));

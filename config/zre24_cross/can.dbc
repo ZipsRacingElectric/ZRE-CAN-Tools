@@ -90,7 +90,7 @@ BO_ 256 Status_AMS_2: 8 AMS
  SG_ Error_AMS_Temperature_Fault : 40|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
  SG_ Error_AMS_Sense_Line_Fault : 44|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
  SG_ Error_AMS_Self_Test_Fault : 42|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
- SG_ PACK_CURRENT : 48|16@1+ (0.01,0) [0|655.35] "Amperes" Vector__XXX
+ SG_ PACK_CURRENT : 48|16@1- (0.01,0) [0|655.35] "Amperes" Vector__XXX
 
 BO_ 1331 Calibrate_APPS_Range: 8 Dashboard
  SG_ APPS_2_Real_Min : 32|10@1+ (1,0) [0|1023] "ADC" Vector__XXX
