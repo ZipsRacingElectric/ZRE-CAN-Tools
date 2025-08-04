@@ -1,9 +1,16 @@
 #!/bin/bash
 
-if [[ $1 == "" ]]; then
-	. init-can 1000000
-else
-	. init-can $1
+# Default to 1MBaud
+BAUD=$1
+if [[ $BAUD == "" ]]; then
+	BAUD=1000000
 fi
 
-$ZRE_CANTOOLS_DIR/bin/can-dbc-tui $ZRE_CANTOOLS_DEV $ZRE_CANTOOLS_DIR/config/zre24_cross/can.dbc
+# Initialize the CAN device
+DEVICE=$(init-can $BAUD $ZRE_CANTOOLS_DEV)
+if [[ $? != 0 ]]; then
+	exit $?
+fi
+
+# Start the application
+$ZRE_CANTOOLS_DIR/bin/can-dbc-tui $DEVICE $ZRE_CANTOOLS_DIR/config/zre24_cross/can.dbc

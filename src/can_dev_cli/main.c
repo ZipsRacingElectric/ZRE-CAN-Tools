@@ -3,7 +3,7 @@
 // Author: Cole Barach
 // Date Created: 2025.07.04
 //
-// Description: TODO(Barach):
+// Description: Command-line interface for controlling a CAN adapter.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -66,13 +66,25 @@ unsigned long int promptTimeout ()
 
 int main (int argc, char** argv)
 {
-	if (argc != 2)
+	if (argc < 2)
 	{
 		fprintf (stderr, "Format: can-dev-cli <device name>\n");
 		return -1;
 	}
 
-	char* deviceName = argv [1];
+	char* deviceName = argv [argc - 1];
+
+	// Check for query mode
+	// TODO(Barach): This is pretty messy.
+	bool queryMode = false;
+	for (int index = 1; index < argc - 1; ++ index)
+	{
+		if (strcmp (argv [index], "-q") == 0)
+		{
+			queryMode = true;
+			break;
+		}
+	}
 
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
@@ -81,6 +93,10 @@ int main (int argc, char** argv)
 		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
 		return code;
 	}
+
+	// If this is query mode, return successful
+	if (queryMode)
+		return 0;
 
 	while (true)
 	{

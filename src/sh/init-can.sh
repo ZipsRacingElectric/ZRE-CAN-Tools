@@ -1,30 +1,67 @@
 #!/bin/bash
 
-# SocketCAN devices
-if [[ $ZRE_CANTOOLS_DEV == can* ]] || [[ $ZRE_CANTOOLS_DEV == vcan* ]]; then
+# Helper for printing to stderr (stdout is used for return value).
+echoerr() { printf "%s\n" "$*" >&2; }
 
-	if [[ $1 == "" ]]; then
-		BAUD=1000000
-	else
-		BAUD=$1
-	fi
+# Check args
+if [[ $1 == "" || $2 == "" ]]; then
+	echoerr "Invalid arguments. Usage:"
+	echoerr "  init-can <Baud> <Device>"
+	exit -1
+fi
 
-	# Bring up can0 at 1Mbit
-	if [[ $(/usr/bin/id -u) -ne 0 ]]; then
-		# User permissions, use sudo
-		sudo ip link set down $ZRE_CANTOOLS_DEV
-		sudo ip link set up $ZRE_CANTOOLS_DEV type can bitrate $1
-	else
-		# Root permissions
-		ip link set down $ZRE_CANTOOLS_DEV
-		ip link set up $ZRE_CANTOOLS_DEV type can bitrate $1
-	fi
+# No device specified, attempt SLCAN enumeration
+if [[ $2 == "" ]]; then
+
+	# Enumerate all potential serial devices
+	DEVICES=$(ls /dev | grep 'ttyACM.\|ttyUSB.\|ttyS.')
+
+	for DEVICE in $DEVICES; do
+		# Query the CAN device, checking the return code. If successful, print
+		# the name and exit.
+		# The '2>/dev/null' suppresses standard error output
+		can-dev-cli -q $DEVICE@$1 2>/dev/null && echo $DEVICE@$1 && exit 0
+	done
+
+	# No device found, exit
+	echoerr "No CAN device was detected."
+	exit -1
 
 # SLCAN devices
-elif [[ $ZRE_CANTOOLS_DEV == /dev/tty* ]]; then
-	if [[ $1 != "" ]]; then
-		# Split baudrate from device name
-		arrDev=(${ZRE_CANTOOLS_DEV//,/ })
-		export ZRE_CANTOOLS_DEV=$(echo ${arrDev[0]}),$1
+elif [[ $2 == /dev/tty* ]]; then
+
+	# Postfix baudrate to device name
+	echo $2@$1
+	exit 0
+
+# SocketCAN devices
+elif [[ $2 == can* ]] || [[ $2 == vcan* ]]; then
+
+	# Check user permissions, root is required
+	if [[ $(/usr/bin/id -u) -ne 0 ]]; then
+		# Standard permissions, use sudo
+		IP_CMD="sudo ip"
+	else
+		# Root permissions
+		IP_CMD="ip"
 	fi
+
+	# Determine device arguments
+	if [[ $2 == can* ]]; then
+		IP_ARGS="type can bitrate $1"
+	else
+		IP_ARGS=""
+	fi
+
+	# Bring down the device if it is currently online
+	$IP_CMD link set down $2 || exit $?
+
+	# Bring up the device using the specified baudrate
+	$IP_CMD link set up $2 $IP_ARGS || exit $?
+
+	echo $2
+	exit 0
 fi
+
+echoerr "Unrecognized CAN device '$2'"
+exit -1

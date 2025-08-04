@@ -1,18 +1,24 @@
 #!/bin/bash
 
+# Check a config was specified
 if [[ $1 == "" ]]; then
 	echo Must specify a driver config.
 	exit -1
 fi
 
-if [[ $2 == "" ]]; then
-	. init-can 1000000
-else
-	. init-can $1
+CONFIG=$ZRE_CANTOOLS_DIR/config/drivers/$1.json
+
+# Default to 1MBaud
+BAUD=$2
+if [[ $BAUD == "" ]]; then
+	BAUD=1000000
 fi
 
-DRIVER_CONFIG=$ZRE_CANTOOLS_DIR/config/drivers/$1.json
+# Initialize the CAN device
+DEVICE=$(init-can $BAUD $ZRE_CANTOOLS_DEV)
+if [[ $? != 0 ]]; then
+	exit $?
+fi
 
-echo Using driver config: \'$DRIVER_CONFIG\'
-echo Using CAN device: $ZRE_CANTOOLS_DEV
-$ZRE_CANTOOLS_DIR/bin/can-eeprom-cli -r=$DRIVER_CONFIG $ZRE_CANTOOLS_DEV $ZRE_CANTOOLS_DIR/config/zr25_glory/vcu_config.json
+# Start the application
+$ZRE_CANTOOLS_DIR/bin/can-eeprom-cli -r=$DRIVER_CONFIG $DEVICE $ZRE_CANTOOLS_DIR/config/zr25_glory/vcu_config.json

@@ -167,7 +167,7 @@ int main (int argc, char** argv)
 		if (canEepromWriteJson (&eeprom, device, programDataJson) != 0)
 		{
 			int code = errno;
-			fprintf (stderr, "Failed to program EEPROM: %s.\n", errorMessage (code));
+			fprintf (stderr, "Failed to program '%s': %s.\n", eeprom.name, errorMessage (code));
 			return code;
 		}
 	}
@@ -178,7 +178,7 @@ int main (int argc, char** argv)
 			fclose (recoverStream);
 
 			int code = errno;
-			fprintf (stderr, "Failed to recover EEPROM: %s.\n", errorMessage (code));
+			fprintf (stderr, "Failed to recover '%s': %s.\n", eeprom.name, errorMessage (code));
 			return code;
 		}
 

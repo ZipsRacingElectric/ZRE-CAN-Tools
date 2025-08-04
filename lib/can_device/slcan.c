@@ -40,10 +40,10 @@ bool slcanNameDomain (const char* name)
 
 canDevice_t* slcanInit (char* name)
 {
-	// Split the name into the device name and bitrate
-	// TODO(Barach): I hate this function.
-	char* bitrateParam = strtok (name, ",");
-	bitrateParam = strtok (NULL, ",");
+	// Split the name into the device name and bitrate: Format <device>@<baud>
+	char* savePtr;
+	strtok_r (name, "@", &savePtr);
+	char* bitrateParam = strtok_r (NULL, "@", &savePtr);
 	if (bitrateParam == NULL)
 	{
 		errno = ERRNO_SLCAN_BAUDRATE;
