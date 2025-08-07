@@ -4,7 +4,7 @@
 echoerr() { printf "%s\n" "$*" >&2; }
 
 # Check args
-if [[ $1 == "" || $2 == "" ]]; then
+if [[ $1 == "" ]]; then
 	echoerr "Invalid arguments. Usage:"
 	echoerr "  init-can <Baud> <Device>"
 	exit -1
@@ -20,7 +20,7 @@ if [[ $2 == "" ]]; then
 		# Query the CAN device, checking the return code. If successful, print
 		# the name and exit.
 		# The '2>/dev/null' suppresses standard error output
-		can-dev-cli -q $DEVICE@$1 2>/dev/null && echo $DEVICE@$1 && exit 0
+		can-dev-cli -q /dev/$DEVICE@$1 2>/dev/null && echo /dev/$DEVICE@$1 && exit 0
 	done
 
 	# No device found, exit

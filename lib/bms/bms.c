@@ -7,6 +7,7 @@
 // C Standard Library
 #include <errno.h>
 #include <stdlib.h>
+#include <math.h>
 
 static size_t printIndex (uint16_t index, char* name)
 {

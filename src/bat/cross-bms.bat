@@ -1,21 +1,20 @@
-@echo off
+@echo on
 setlocal enabledelayedexpansion
 
-if "%~1" == "" (
-    for /F "tokens=* usebackq" %%F IN (`call %ZRE_CANTOOLS_DIR%/bin/init-can 1000000`) do (
-        set ZRE_CANTOOLS_DEV=%%F
-    )
-) else (
-    for /F "tokens=* usebackq" %%F IN (`call %ZRE_CANTOOLS_DIR%/bin/init-can "%~1"`) do (
-        set ZRE_CANTOOLS_DEV=%%F
-    )
+:: Default to 1MBaud
+set "BAUD=%~1"
+if [!BAUD!] == [] (
+	set "BAUD=1000000"
 )
 
-: Set minimum terminal width
+:: Initialize the CAN device
+for /f %%i in ('init-can !BAUD! %ZRE_CANTOOLS_DEV%') do set "DEVICE=%%i"
+
+:: Set minimum terminal width
 mode 196, 53
 
-echo Using CAN device: !ZRE_CANTOOLS_DEV!
-%ZRE_CANTOOLS_DIR%/bin/bms-tui.exe !ZRE_CANTOOLS_DEV! %ZRE_CANTOOLS_DIR%/config/zre24_cross/can.dbc %ZRE_CANTOOLS_DIR%/config/zre24_cross/bms_config.json
+:: Start the application
+%ZRE_CANTOOLS_DIR%/bin/bms-tui.exe !DEVICE! %ZRE_CANTOOLS_DIR%/config/zre24_cross/can.dbc %ZRE_CANTOOLS_DIR%/config/zre24_cross/bms_config.json
 
 echo Press enter to close...
 pause >nul
