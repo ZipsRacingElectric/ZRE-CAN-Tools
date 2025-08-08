@@ -1,6 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: Force execution in cmd.exe instead of WindowsTerminal, the latter does not respect terminal size commands and breaks everything.
+set id=%random%
+title %id%
+tasklist /v /fo csv | findstr "%id%" | findstr "cmd.exe"
+if %errorlevel% == 1 start conhost "%~f0" & GOTO :EOF
+
 :: Default to 500kBaud
 set "BAUD=%~1"
 if [!BAUD!] == [] (

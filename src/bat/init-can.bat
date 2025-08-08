@@ -10,8 +10,8 @@ if "%~1"=="" (
 
 if "%~2"=="" (
 	for /f "tokens=1* delims==" %%I in ('wmic path win32_pnpentity get caption /format:list ^| find "COM"') do (
-    		call :setCOM "%%~J"
-		can-dev-cli -q !DEVICE!@%~1 2> nul && echo !DEVICE!@%~1 && exit /b 0
+			call :setCOM "%%~J"
+		%ZRE_CANTOOLS_DIR%/bin/can-dev-cli -q !DEVICE!@%~1 2> nul && echo !DEVICE!@%~1 && exit /b 0
 	)
 
 	:: No device found, exit

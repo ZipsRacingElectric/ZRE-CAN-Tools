@@ -1,6 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: Force execution in cmd.exe instead of WindowsTerminal, the latter does not respect terminal size commands and breaks everything.
+set id=%random%
+title %id%
+tasklist /v /fo csv | findstr "%id%" | findstr "cmd.exe"
+if %errorlevel% == 1 start conhost "%~f0" & GOTO :EOF
+
 :: Default to 500kBaud
 set "BAUD=%~1"
 if [!BAUD!] == [] (
@@ -16,7 +22,7 @@ if [!DEVICE!]==[] (
 )
 
 :: Set minimum terminal width
-mode 196, 64
+mode 181, 64
 
 :: Start the application
 %ZRE_CANTOOLS_DIR%/bin/bms-tui.exe !DEVICE! %ZRE_CANTOOLS_DIR%/config/zr25_glory/can_vehicle.dbc %ZRE_CANTOOLS_DIR%/config/zr25_glory/bms_config.json
