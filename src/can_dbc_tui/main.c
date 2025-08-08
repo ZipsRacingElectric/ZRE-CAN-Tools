@@ -65,7 +65,9 @@ int main (int argc, char** argv)
 
 	while (true)
 	{
+		#ifdef __unix__
 		clear ();
+		#endif
 
 		int row, col;
 		getmaxyx(stdscr, row, col);
@@ -77,16 +79,16 @@ int main (int argc, char** argv)
 		if (ret != ERR)
 		{
 			if (ret == KEY_UP)
-				--offset;
+				offset -= 4;
 			else if (ret == KEY_DOWN)
-				++offset;
+				offset += 4;
 		}
 
 		for (uint16_t index = 0; index < row; ++index)
 			printTuiDatabaseLine (&database, index + offset);
 
 		refresh ();
-		napms(16);
+		napms (48);
 	}
 
 	endwin ();

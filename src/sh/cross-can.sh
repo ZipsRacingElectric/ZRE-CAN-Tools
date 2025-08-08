@@ -7,7 +7,7 @@ if [[ $BAUD == "" ]]; then
 fi
 
 # Initialize the CAN device
-DEVICE=$(init-can $BAUD $ZRE_CANTOOLS_DEV)
+DEVICE=$($ZRE_CANTOOLS_DIR/bin/init-can $BAUD $ZRE_CANTOOLS_DEV)
 if [[ $? != 0 ]]; then
 	exit $?
 fi

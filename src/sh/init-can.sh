@@ -17,10 +17,21 @@ if [[ $2 == "" ]]; then
 	DEVICES=$(ls /dev | grep 'ttyACM.\|ttyUSB.\|ttyS.')
 
 	for DEVICE in $DEVICES; do
+
+		# Based on the OS, get the device name
+		if [[ $OSTYPE == "msys" ]]; then
+			# Windows, convert ttyS* to COM*
+			DEVICE=$(echo $DEVICE | tr -d -c 0-9)
+			DEVICE=COM$(($DEVICE + 1))
+		else
+			# POSIX, convert ttyS* to /dev/ttyS*
+			DEVICE=/dev/$DEVICE
+		fi
+
 		# Query the CAN device, checking the return code. If successful, print
 		# the name and exit.
 		# The '2>/dev/null' suppresses standard error output
-		can-dev-cli -q /dev/$DEVICE@$1 2>/dev/null && echo /dev/$DEVICE@$1 && exit 0
+		can-dev-cli -q $DEVICE@$1 2>/dev/null && echo $DEVICE@$1 && exit 0
 	done
 
 	# No device found, exit

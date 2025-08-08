@@ -406,7 +406,9 @@ int main (int argc, char** argv)
 		uint16_t columnCell = 0;
 		uint16_t columnSense = 0;
 
+		#ifdef __unix__
 		clear ();
+		#endif
 
 		printPowerStats (row, 0, &bms);
 		row += 6;
@@ -517,7 +519,7 @@ int main (int argc, char** argv)
 		}
 
 		refresh ();
-		napms(16);
+		napms (48);
 	}
 
 	endwin ();
