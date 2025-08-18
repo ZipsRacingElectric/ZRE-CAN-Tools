@@ -2,10 +2,13 @@
 ## Usage
 ### ZR25 Shell Scripts
 A set of shell scripts are provided to simplify usage of the applications.
- - ```glory-bms-vehicle``` - Opens the BMS TUI for the BMS of ZR25, configured for the vehicle's CAN bus.
- - ```glory-bms-charger``` - Opens the BMS TUI for the BMS of ZR25, configured for the charger's CAN bus.
+ - ```glory-bms-view-vehicle``` - Opens the BMS TUI for the BMS of ZR25, configured for the vehicle's CAN bus.
+ - ```glory-bms-view-charger``` - Opens the BMS TUI for the BMS of ZR25, configured for the charger's CAN bus.
  - ```glory-can-vehicle``` - Opens the CAN DBC TUI configured for the vehicle CAN bus of ZR25.
  - ```glory-can-charger``` - Opens the CAN DBC TUI configured for the charger CAN bus of ZR25.
+ - ```glory-bms-eeprom-vehicle``` - Opens the EEPROM CLI for the BMS of ZR25, configured for the vehicle's CAN bus.
+ - ```glory-bms-eeprom-charger``` - Opens the EEPROM CLI for the BMS of ZR25, configured for the charger's CAN bus.
+ - ```glory-vcu-vehicle``` - Opens the EEPROM CLI for the VCU of ZR25, configured for the charger's CAN bus.
 
 ### ZRE24 Shell Scripts
  - ```cross-bms``` - Opens the BMS TUI for the BMS of ZRE24.

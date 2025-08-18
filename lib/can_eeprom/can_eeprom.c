@@ -88,6 +88,9 @@ int canEepromInit (canEeprom_t* eeprom, cJSON* config)
 			return errno;
 		}
 
+		variable->comment = NULL;
+		jsonGetString (element, "comment", &variable->comment);
+
 		char* variableMode = "read_write";
 		jsonGetString (element, "mode", &variableMode);
 
@@ -399,16 +402,14 @@ void canEepromPrintVariableValue (canEepromVariable_t* variable, void* buffer, c
 		if (y != variable->height - 1)
 			fprintf (stream, "\n%s", indent);
 	}
-
-	fprintf (stream, "\n");
 }
 
 int canEepromPrintMap (canEeprom_t* eeprom, canDevice_t* device, FILE* stream)
 {
 	fprintf (stream, "%s EEPROM Map:\n", eeprom->name);
-	fprintf (stream, "----------------------------------------------------------------------------------------\n");
-	fprintf (stream, "%48s | %23s | %10s\n", "Variable", "Type", "Value");
-	fprintf (stream, "-------------------------------------------------|-------------------------|------------\n");
+	fprintf (stream, "--------------------------------------------------------------------------------------------------\n");
+	fprintf (stream, "%48s | %23s | %10s | %s\n", "Variable", "Type", "Value", "Comment");
+	fprintf (stream, "-------------------------------------------------|-------------------------|----------------------\n");
 
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
@@ -431,6 +432,11 @@ int canEepromPrintMap (canEeprom_t* eeprom, canDevice_t* device, FILE* stream)
 		fprintf (stream, " | ");
 		canEepromPrintVariableValue (variable, eeprom->buffer,
 			"                         |                         | ", stream);
+		fprintf (stream, " | ");
+
+		if (variable->comment != NULL)
+			fprintf (stream, "%s", variable->comment);
+		fprintf (stream, "\n");
 	}
 
 	fprintf (stream, "\n");
@@ -441,9 +447,9 @@ int canEepromPrintMap (canEeprom_t* eeprom, canDevice_t* device, FILE* stream)
 void canEepromPrintEmptyMap (canEeprom_t* eeprom, FILE* stream)
 {
 	fprintf (stream, "%s Memory Map:\n", eeprom->name);
-	fprintf (stream, "------------------------------------------------------------------------------------------\n");
-	fprintf (stream, "%48s | %23s | %10s\n", "Variable", "Type", "Address");
-	fprintf (stream, "-------------------------------------------------|-------------------------|--------------\n");
+	fprintf (stream, "----------------------------------------------------------------------------------------------------\n");
+	fprintf (stream, "%48s | %23s | %10s | %s\n", "Variable", "Type", "Address", "Comment");
+	fprintf (stream, "-------------------------------------------------|-------------------------|------------------------\n");
 
 	for (uint16_t index = 0; index < eeprom->variableCount; ++index)
 	{
@@ -455,7 +461,11 @@ void canEepromPrintEmptyMap (canEeprom_t* eeprom, FILE* stream)
 			fprintf (stream, "%16s [%4u]", VARIABLE_TYPE_NAMES [variable->type], variable->width);
 		else
 			fprintf (stream, "%23s", VARIABLE_TYPE_NAMES [variable->type]);
-		fprintf (stream, " | 0x%04X\n", variable->address);
+		fprintf (stream, " | 0x%04X | ", variable->address);
+
+		if (variable->comment != NULL)
+			fprintf (stream, "%s", variable->comment);
+		fprintf (stream, "\n");
 	}
 
 	fprintf (stream, "\n");
@@ -490,16 +500,16 @@ void printPrimativeValue (canEepromVariable_t* variable, void* buffer, FILE* str
 	switch (variable->type)
 	{
 	case CAN_EEPROM_TYPE_UINT8_T:
-		fprintf (stream, "%u", *((uint8_t*) buffer));
+		fprintf (stream, "%10u", *((uint8_t*) buffer));
 		break;
 	case CAN_EEPROM_TYPE_UINT16_T:
-		fprintf (stream, "%u", *((uint16_t*) buffer));
+		fprintf (stream, "%10u", *((uint16_t*) buffer));
 		break;
 	case CAN_EEPROM_TYPE_UINT32_T:
-		fprintf (stream, "%u", *((uint32_t*) buffer));
+		fprintf (stream, "%10u", *((uint32_t*) buffer));
 		break;
 	case CAN_EEPROM_TYPE_FLOAT:
-		fprintf (stream, "%.3f", *((float*) buffer));
+		fprintf (stream, "%10.3f", *((float*) buffer));
 		break;
 	}
 }

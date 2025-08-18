@@ -46,6 +46,7 @@ typedef struct
 	canEepromMode_t	mode;
 	uint16_t		width;
 	uint16_t		height;
+	char*			comment;
 } canEepromVariable_t;
 
 typedef struct

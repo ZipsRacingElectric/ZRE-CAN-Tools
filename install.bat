@@ -4,14 +4,26 @@ setlocal
 :: Set the CANTOOLS directory environment variable
 setx ZRE_CANTOOLS_DIR %~dp0%
 
-:: Create the start menu shortcut directory if it doesn't exist
+:: Start menu directory for shortcuts
 set "FOLDER=%APPDATA%\Microsoft\Windows\Start Menu\Programs\ZRE"
-if not exist "%FOLDER%" mkdir "%FOLDER%"
+:: Delete the directory if it exists (removes old shortcuts).
+if exist "%FOLDER%" rd /s /q "%FOLDER%"
+:: Remake the directory
+mkdir "%FOLDER%"
 
 :: Create batch script shortcuts
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%\cross-bms.lnk');$s.TargetPath='%~dp0%/bin/cross-bms';$s.Save()"
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%\cross-can.lnk');$s.TargetPath='%~dp0%/bin/cross-can';$s.Save()"
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%\glory-bms-charger.lnk');$s.TargetPath='%~dp0%/bin/glory-bms-charger';$s.Save()"
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%\glory-bms-vehicle.lnk');$s.TargetPath='%~dp0%/bin/glory-bms-vehicle';$s.Save()"
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%\glory-can-charger.lnk');$s.TargetPath='%~dp0%/bin/glory-can-charger';$s.Save()"
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%\glory-can-vehicle.lnk');$s.TargetPath='%~dp0%/bin/glory-can-vehicle';$s.Save()"
+call :createMenuShortcut cross-bms
+call :createMenuShortcut cross-can
+call :createMenuShortcut glory-bms-eeprom-charger
+call :createMenuShortcut glory-bms-eeprom-vehicle
+call :createMenuShortcut glory-bms-view-charger
+call :createMenuShortcut glory-bms-view-vehicle
+call :createMenuShortcut glory-can-charger
+call :createMenuShortcut glory-can-vehicle
+call :createMenuShortcut glory-vcu-vehicle
+goto :eof
+
+:: Function for creating a shortcut
+:createMenuShortcut
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%\%~1.lnk');$s.TargetPath='%~dp0%/bin/%%~1';$s.Save()"
+goto :eof
