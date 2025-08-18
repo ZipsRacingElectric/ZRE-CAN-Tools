@@ -12,4 +12,4 @@ if [[ $? != 0 ]]; then
 	exit $?
 fi
 
-$ZRE_CANTOOLS_DIR/bin/can-eeprom-cli $DEVICE $ZRE_CANTOOLS_DIR/config/zr25_cross/vcu_config.json | octave $ZRE_CANTOOLS_DIR/bin/lss_steer_plot.m
+$ZRE_CANTOOLS_DIR/bin/can-eeprom-cli -r $DEVICE $ZRE_CANTOOLS_DIR/config/zr25_glory/vcu_config.json | octave $ZRE_CANTOOLS_DIR/bin/lss_steer_plot.m
