@@ -18,7 +18,7 @@ CAN_DBC_TUI		:= $(BIN_DIR)/can-dbc-tui
 CAN_EEPROM_CLI	:= $(BIN_DIR)/can-eeprom-cli
 BMS_TUI			:= $(BIN_DIR)/bms-tui
 
-all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(BMS_TUI) sh bat
+all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(BMS_TUI) sh bat plot
 
 # Libraries
 $(LIB): FORCE
@@ -63,6 +63,9 @@ sh: FORCE
 
 bat: FORCE
 	make -C src/bat
+
+plot: FORCE
+	make -C src/plot
 
 # Phony target, forces dependent targets to always be re-compiled
 FORCE:
