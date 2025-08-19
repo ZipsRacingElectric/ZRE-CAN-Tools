@@ -1,4 +1,4 @@
-# CAN Tools - Zips Racing 2025
+# CAN Tools - Zips Racing
 ## Usage
 ### ZR25 Shell Scripts
 A set of shell scripts are provided to simplify usage of the applications.
