@@ -22,7 +22,7 @@ if [!DEVICE!]==[] (
 )
 
 :: Set minimum terminal width
-mode 160, 53
+mode 190, 53
 
 :: Start the application
 %ZRE_CANTOOLS_DIR%/bin/can-eeprom-cli.exe !DEVICE! %ZRE_CANTOOLS_DIR%/config/zr25_glory/vcu_config.json

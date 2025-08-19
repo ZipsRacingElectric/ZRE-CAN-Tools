@@ -25,5 +25,5 @@ goto :eof
 
 :: Function for creating a shortcut
 :createMenuShortcut
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%\%~1.lnk');$s.TargetPath='%~dp0%/bin/%%~1';$s.Save()"
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%/%~1.lnk');$s.TargetPath='%~dp0bin\%~1.bat';$s.Save()"
 goto :eof
