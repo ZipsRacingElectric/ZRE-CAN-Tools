@@ -129,49 +129,49 @@
 			"address":	"0x0050",
 			"name":		"CHARGING_VOLTAGE_LIMIT",
 			"type":		"float",
-			"comment":	""
+			"comment":	"The voltage limit to set the charger to."
 		},
 		{
 			"address":	"0x0054",
 			"name":		"CHARGING_CURRENT_LIMIT",
 			"type":		"float",
-			"comment":	""
+			"comment":	"The current limit to set the charger to."
 		},
 		{
 			"address":	"0x0058",
 			"name":		"CHARGING_POWER_LIMIT",
 			"type":		"float",
-			"comment":	""
+			"comment":	"The power limit to apply to the charger."
 		},
 		{
 			"address":	"0x005C",
 			"name":		"CHARGING_THRESHOLD",
 			"type":		"float",
-			"comment":	""
+			"comment":	"The voltage threshold at which the is accumulator considered to be fully charged."
 		},
 		{
 			"address":	"0x0060",
 			"name":		"BALANCING_ENABLED",
 			"type":		"uint8_t",
-			"comment":	""
+			"comment":	"Indicates whether balancing is allowed. 0 => Off, 1 => On."
 		},
 		{
 			"address":	"0x0061",
 			"name":		"CHARGING_ENABLED",
 			"type":		"uint8_t",
-			"comment":	""
+			"comment":	"Indicates whether charging is allowed. 0 => Off, 1 => On."
 		},
 		{
 			"address":	"0x0064",
 			"name":		"BALANCING_THRESHOLD",
 			"type":		"float",
-			"comment":	""
+			"comment":	"The voltage threshold at which a cell is considered out of balance with the minimum cell."
 		},
 		{
 			"address":	"0x0068",
 			"name":		"LTC_TEMPERATURE_MAX",
 			"type":		"float",
-			"comment":	""
+			"comment":	"The die temperature at which an LTC is not allowed to exceed, in Celsius."
 		},
 		{
 			"address":	"0x1000",

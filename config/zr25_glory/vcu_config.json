@@ -210,97 +210,116 @@
 		{
 			"address":	"0x006C",
 			"name":		"LS_WHEEL_SPEED_BIAS_BEGIN",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The wheel speed at which the front-to-rear bias starts shifting from the beginning value."
 		},
 		{
 			"address":	"0x0070",
 			"name":		"LS_WHEEL_SPEED_BIAS_END",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The wheel speed at which the front-to-rear bias stops shifting to the end value."
 		},
 		{
 			"address":	"0x0074",
 			"name":		"LS_FR_BIAS_BEGIN",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The front-to-rear bias at the beginning wheel speed."
 		},
 		{
 			"address":	"0x0078",
 			"name":		"LS_FR_BIAS_END",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The front-to-rear bias at the ending wheel speed."
 		},
 		{
 			"address":	"0x007C",
 			"name":		"LS_STEERING_ANGLE_BEGIN",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
 		},
 		{
 			"address":	"0x0080",
 			"name":		"LS_STEERING_ANGLE_END",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
 		},
 		{
 			"address":	"0x0084",
 			"name":		"LS_LR_BIAS_END",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The left-to-right bias at the ending steering angle."
 		},
 		{
 			"address":	"0x0088",
 			"name":		"LSS_WHEEL_SPEED_BIAS_BEGIN",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The wheel speed at which the front-to-rear bias starts shifting from the beginning value."
 		},
 		{
 			"address":	"0x008C",
 			"name":		"LSS_WHEEL_SPEED_BIAS_END",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The wheel speed at which the front-to-rear bias stops shifting to the end value."
 		},
 		{
 			"address":	"0x0090",
 			"name":		"LSS_FR_BIAS_BEGIN",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The front-to-rear bias at the beginning wheel speed."
 		},
 		{
 			"address":	"0x0094",
 			"name":		"LSS_FR_BIAS_END",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The front-to-rear bias at the ending wheel speed."
 		},
 		{
 			"address":	"0x0098",
 			"name":		"LSS_STEERING_ANGLE_BEGIN",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
 		},
 		{
 			"address":	"0x009C",
 			"name":		"LSS_STEERING_ANGLE_END",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
 		},
 		{
 			"address":	"0x00A0",
 			"name":		"LSS_LR_BIAS_END",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The left-to-right bias at the ending steering angle."
 		},
 		{
 			"address":	"0x00A4",
 			"name":		"REGEN_LIGHT_REQUEST",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The ratio of regen to request when a single paddle is depressed."
 		},
 		{
 			"address":	"0x00A8",
 			"name":		"REGEN_HARD_REQUEST",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The ratio of regen to request when both paddles are depressed."
 		},
 		{
 			"address":	"0x00AC",
 			"name":		"REGEN_CUTOFF_THRESHOLD",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The pedal position at which to stop requesting regen."
 		},
 		{
 			"address":	"0x00B0",
 			"name":		"REGEN_DERATING_SPEED_END",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The wheel speed at which no regen should be requested."
 		},
 		{
 			"address":	"0x00B4",
 			"name":		"REGEN_DERATING_SPEED_START",
-			"type":		"float"
+			"type":		"float",
+			"comment":	"The wheel speed at which to start derating regen requests."
 		},
 		{
 			"address":	"0x1000",
