@@ -1,18 +1,20 @@
 # ZRE-CAN-Tools - Zips Racing
+ZRE-CAN-Tools is the application layer of Zips Racing's electrical systems. This project is a combination of libraries and applications that aim to simplify the interaction with firmware written by Zips Racing.
+
 ## Usage
 ### ZR25 Shell Scripts
 A set of shell scripts are provided to simplify usage of the applications.
- - ```glory-bms-view-vehicle``` - Opens the BMS TUI for the BMS of ZR25, configured for the vehicle's CAN bus.
- - ```glory-bms-view-charger``` - Opens the BMS TUI for the BMS of ZR25, configured for the charger's CAN bus.
- - ```glory-can-vehicle``` - Opens the CAN DBC TUI configured for the vehicle CAN bus of ZR25.
- - ```glory-can-charger``` - Opens the CAN DBC TUI configured for the charger CAN bus of ZR25.
- - ```glory-bms-eeprom-vehicle``` - Opens the EEPROM CLI for the BMS of ZR25, configured for the vehicle's CAN bus.
- - ```glory-bms-eeprom-charger``` - Opens the EEPROM CLI for the BMS of ZR25, configured for the charger's CAN bus.
- - ```glory-vcu-vehicle``` - Opens the EEPROM CLI for the VCU of ZR25, configured for the charger's CAN bus.
+ - ```glory-bms-view-vehicle``` - Application for monitoring the BMS of ZR25, configured for the vehicle's CAN bus.
+ - ```glory-bms-view-charger``` - Application for monitoring the BMS of ZR25, configured for the charger's CAN bus.
+ - ```glory-can-vehicle``` - Application for monitoring the vehicle CAN bus of ZR25.
+ - ```glory-can-charger``` - Application for monitoring the charger CAN bus of ZR25.
+ - ```glory-bms-eeprom-vehicle``` - Application for configuring the BMS of ZR25, configured for the vehicle's CAN bus.
+ - ```glory-bms-eeprom-charger``` - Application for configuring the BMS of ZR25, configured for the charger's CAN bus.
+ - ```glory-vcu-vehicle``` - Application for configuring the VCU of ZR25, configured for the vehicles's CAN bus.
 
 ### ZRE24 Shell Scripts
- - ```cross-bms``` - Opens the BMS TUI for the BMS of ZRE24.
- - ```cross-can``` - Opens the CAN DBC TUI configured for the CAN bus of ZRE24.
+ - ```cross-bms``` - Application for monitoring the BMS of ZRE24.
+ - ```cross-can``` - Application for monitoring the CAN bus of ZRE24.
 
 ### CAN DBC CLI
 ```can-dbc-cli <device name> <DBC file path>```
@@ -20,7 +22,7 @@ This program is used to interact with a CAN node in real-time. Received messages
 
 ### CAN DBC TUI
 ```can-dbc-tui <device name> <DBC file path>```
-This program is used to monitor the activity of a CAN bus in realtime.
+This program is used to monitor the activity of a CAN bus in real-time.
 
 ### CAN EEPROM CLI
 ```
@@ -43,6 +45,10 @@ Options:
 ```
 
 This program is used to program a device's EEPROM via CAN bus.
+
+### BMS TUI
+```bms-tui <device name> <DBC file path> <config JSON path>```
+This program is used to monitor a battery management system in real-time.
 
 ### Command-line Arguments
 ```
@@ -67,19 +73,19 @@ This program is used to program a device's EEPROM via CAN bus.
 - Download the latest version for Windows.
 - Extract the zip file to a permanent location, ex. ```C:/zre_cantools```.
 - Run the ```install.bat``` script.
-- When prompted, select a convenient directory to place the shortcuts, recommended Desktop or Downloads folder.
+- When complete, a folder named ZRE should appear on your start menu.
 
 ### Linux
 - Go the the [Releases](https://github.com/ZipsRacingElectric/CAN-Tools-2025/releases) section on Github.
 - Download the latest version for Linux.
 - Extract the zip file to a permanent location, ex. ```~/zre-cantools```.
 - Define the ```ZRE_CANTOOLS_DIR``` environment variable to point to the location of this directory.
-- Define the ```ZRE_CANTOOLS_DEV``` environment variable to the default value of ```<device name>``` (see 'Command-line Arguments' for details).
+- Add the ```bin/``` directory to your system path.
+- From a command-line, any of the above programs may now be run (Note that after modifying environment variables, the command-line will need closed and re-opened).
 
 ## Installation (For Development)
 - Clone this repo using Github's SSH URL ```git clone <SSH URL>```
 - Define the ```ZRE_CANTOOLS_DIR``` environment variable to point to the location of this directory.
-- Define the ```ZRE_CANTOOLS_DEV``` environment variable to the default value of ```<device name>``` (see 'Command-line Arguments' for details).
 - Perform the OS-specific steps setup below before continuing with these steps.
 - Run ```make``` to compile all of the programs.
 - Add the newly created ```bin``` directory to your system path.
@@ -99,22 +105,22 @@ Some dependencies of this project are not natively built for Windows. A solution
 ## Compilation
 Use ```make``` to compile all of the programs.
 
-Use ```make bin\<executable file>``` to compile a specific program.
-
 Use ```make -B``` to re-compile all of the programs. Note that this may be required after making library modifications.
 
-## Directory Structure
+## Project Structure
 ```
 .
 ├── bin                        - Output directory for compilation. Final
 │                                applications will be placed in here.
 ├── config                     - Application-specific configuration files.
+│   │                            These define the configurations that specific
+│   │                            vehicles or firmware use.
 │   ├── zre24_cross            - Configuration files for ZRE24, 'Christine'.
 │   └── zr25_glory             - Configuration files for ZR25, 'Gloria'.
 ├── lib                        - Libraries that are dependencies of the
 │   │                            different applications. Some custom, some
 │   │                            external.
-│   ├── bms                    - Library for interacting with BMS can nodes.
+│   ├── bms                    - Library for interacting with BMS firmware.
 │   ├── can_database           - Library for defining a CAN database from a DBC
 │   │                            file.
 │   ├── can_device             - Library for abstracting different CAN
@@ -130,8 +136,12 @@ Use ```make -B``` to re-compile all of the programs. Note that this may be requi
 ├── makefile                   - Project-level makefile for compiling all
 │                                applications.
 └── src                        - Application-specific source code.
+    ├── bat                    - Helper batch scripts for Windows usage.
+    ├── bms_tui                - Source code for the bms-tui application.
     ├── can_dbc_cli            - Source code for the can-dbc-cli application.
     ├── can_dbc_tui            - Source code for the can-dbc-tui application.
-    └── can_eeprom_cli         - Source code for the can-eeprom-cli
-                                 application.
+    ├── can_dev_cli            - Source code for the can-dev-cli application.
+    ├── can_eeprom_cli         - Source code for the can-eeprom-cli
+    │                            application.
+    └── sh                     - Helper shell scripts for Linux usage.
 ```
