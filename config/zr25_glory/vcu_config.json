@@ -322,6 +322,18 @@
 			"comment":	"The wheel speed at which to start derating regen requests."
 		},
 		{
+			"address":	"0x00B8",
+			"name":		"SAS_ENABLED",
+			"type":		"uint8_t",
+			"comment":	"Enables / disables the steering-angle sensor (0 => disabled, 1 => enabled)."
+		},
+		{
+			"address":	"0x00B9",
+			"name":		"SAS_ADDR",
+			"type":		"uint8_t",
+			"comment":	"The 7-bit I2C address of the steering-angle-sensor (default 0x00)."
+		},
+		{
 			"address":	"0x1000",
 			"name":		"APPS_1_SAMPLE",
 			"type":		"uint16_t",
