@@ -56,6 +56,42 @@
             "name": "THETA_CLOSED",
             "type": "float",
             "comment": "The angular position where the wing is 'closed.'"
+        },
+        {
+            "address": "0x0030",
+            "name": "HIGH_THRESHOLD",
+            "type": "float",
+            "comment": "The PWM frequency that gives the absolute maximum angle value in degrees"
+        },
+        {
+            "address": "0x0034",
+            "name": "LOW_THRESHOLD",
+            "type": "float",
+            "comment": "The PWM frequency that gives the absolute minimum angle value in degrees"
+        },
+        {
+            "address": "0x0038",
+            "name": "I_STALL",
+            "type": "float",
+            "comment": "The current in amps that any higher would represent a stall condition met"
+        },
+        {
+            "address": "0x003C",
+            "name": "STALL_MAX_COUNT",
+            "type": "uint8_t",
+            "comment": "Counter amount where if stall exceeds this number, stall conditions execute"
+        },
+        {
+            "address": "0x003D",
+            "name": "SERVO_PWM_MIN",
+            "type": "uint32_t",
+            "comment": "The PWM period that makes the absolute minimum angle for the servo"
+        },
+        {
+            "address": "0x0041",
+            "name": "SERVO_PWM_MAX",
+            "type": "uint32_t",
+            "comment": "The PWM period that makes the absolute maximum angle for the servo"
         }
     ]
 }
