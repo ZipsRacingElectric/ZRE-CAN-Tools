@@ -1,4 +1,3 @@
-@echo off
 setlocal
 
 :: Set the CANTOOLS directory environment variable
@@ -25,5 +24,5 @@ goto :eof
 
 :: Function for creating a shortcut
 :createMenuShortcut
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%/%~1.lnk');$s.TargetPath='%~dp0bin\%~1.bat';$s.Save()"
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%/%~1.lnk');$s.TargetPath='conhost';$s.Arguments='%~dp0bin\%~1.bat';$s.Save()"
 goto :eof
