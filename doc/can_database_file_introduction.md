@@ -1,5 +1,5 @@
 # Introduction to CAN Database Files - Zips Racing
-CAN database files (or DBC files) are Zips Racing's primary method of documenting CAN-bus messages. These files are responsible for describing the origin, meaning, and interpretation of every message broadcast in a CAN-bus. While they are text files, DBC files are not particularly easy to read. Typically a DBC editor is used for viewing and editing a DBC file's contents. A free and easy-to-use option is CSS electronic's online editor:
+CAN database files (or DBC files) are Zips Racing's primary method of documenting CAN bus messages. These files are responsible for describing the origin, meaning, and interpretation of every message broadcast in a CAN bus. While they are text files, DBC files are not particularly easy to read. Typically a DBC editor is used for viewing and editing a DBC file's contents. A free and easy-to-use option is CSS electronic's online editor:
 
 https://www.csselectronics.com/pages/dbc-editor-can-bus-database
 
