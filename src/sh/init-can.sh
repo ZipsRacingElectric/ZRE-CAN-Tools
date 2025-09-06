@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Helper for printing to stderr (stdout is used for return value).
 echoerr() { printf "%s\n" "$*" >&2; }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Check a config was specified
 if [[ $1 == "" ]]; then
