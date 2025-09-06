@@ -79,9 +79,9 @@ This program is used to monitor a battery management system in real-time.
 - Go the the [Releases](https://github.com/ZipsRacingElectric/CAN-Tools-2025/releases) section on Github.
 - Download the latest version for Linux.
 - Extract the zip file to a permanent location, ex. ```~/zre-cantools```.
-- Define the ```ZRE_CANTOOLS_DIR``` environment variable to point to the location of this directory.
-- Add the ```bin/``` directory to your system path.
-- From a command-line, any of the above programs may now be run (Note that after modifying environment variables, the command-line will need closed and re-opened).
+- Run the ```install.sh``` script.
+- Restart your system for the changes to take effect.
+- When complete, any of the shell scripts can be run from a command-line.
 
 ## Installation (For Development)
 - Clone this repo using Github's SSH URL ```git clone <SSH URL>```
@@ -100,6 +100,7 @@ Some dependencies of this project are not natively built for Windows. A solution
 - When finished, a terminal should open, if not, open one by searching 'MSYS2 UCRT64' from the start menu.
 - In said terminal, run ```pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain```. When prompted, select default (all) packages.
 - Add the ```msys64\ucrt64\bin``` and ```msys64\usr\bin``` directories to your system path.
+- Create the ```MSYS_BIN``` environment variable defined to the ```msys64\ucrt64\bin``` directory.
 - From this point, all commands can be run from a standard command prompt.
 
 ## Compilation
