@@ -31,6 +31,7 @@ vehicle itself (ends with "vehicle"), or the charging cart (ends with
  - glory-bms-eeprom-vehicle - Application for configuring the BMS (in vehicle).
  - glory-bms-eeprom-charger - Application for configuring the BMS (on charger).
  - glory-vcu-vehicle        - Application for configuring the VCU (in vehicle).
+ - glory-drs-vehicle        - Application for configuring the DRS (in vehicle).
 
 - ZRE24 "Christine" -----------------------------------------------------------
 

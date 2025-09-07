@@ -11,6 +11,7 @@ A set of shell scripts are provided to simplify usage of the applications.
  - ```glory-bms-eeprom-vehicle``` - Application for configuring the BMS of ZR25, configured for the vehicle's CAN bus.
  - ```glory-bms-eeprom-charger``` - Application for configuring the BMS of ZR25, configured for the charger's CAN bus.
  - ```glory-vcu-vehicle``` - Application for configuring the VCU of ZR25, configured for the vehicles's CAN bus.
+ - ```glory-drs-vehicle``` - Application for configuring the DRS of ZR25, configured for the vehicles's CAN bus.
 
 ### ZRE24 Shell Scripts
  - ```cross-bms``` - Application for monitoring the BMS of ZRE24.
