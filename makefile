@@ -34,10 +34,12 @@ BMS_TUI			:= $(BIN_DIR)/bms-tui
 # Installer script and readme file
 ifeq ($(DETECTED_OS), windows)
 	INSTALLER := install.bat
+	UNINSTALLER := uninstall.bat
 else
 	INSTALLER := install.sh
+	UNINSTALLER := uninstall.sh
 endif
-RELEASE_README := doc/readme_$(DETECTED_OS).txt
+RELEASE_README := doc/readme_release.txt
 
 # Command for copying the MSYS2 UCRT binaries into a release
 ifeq ($(DETECTED_OS), windows)
@@ -109,9 +111,11 @@ release: all FORCE
 	# MSYS binaries (windows only)
 	$(MSYS_UCRT_COPY_CMD)
 
-	# Install script
+	# Install / uninstall scripts
 	cp $(INSTALLER) $(RELEASE_DIR)/
 	chmod +x $(RELEASE_DIR)/$(INSTALLER)
+	cp $(UNINSTALLER) $(RELEASE_DIR)/
+	chmod +x $(RELEASE_DIR)/$(UNINSTALLER)
 
 	# Documentation
 	cp -r $(DOC_DIR) $(RELEASE_DIR)/

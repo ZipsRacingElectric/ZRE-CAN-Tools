@@ -4,17 +4,28 @@ simplify the interaction with firmware written by Zips Racing.
 
 - Installation ----------------------------------------------------------------
 
-To install this, double click the "install.bat" file. If you are updating from
-a previous version, all you need to do is delete the old folder then install
-this one normally.
+To install this, run the "install" file in this directory. If you are updating
+from a previous version, all you need to do is delete the old directory then
+install this one normally (no need to uninstall).
 
-After the installer has run, a new folder will appear in your start menu (under
-"All") called "ZRE". This folder contains all the applications that were
-installed.
+On Linux, the installer will need run with root permissions (use sudo). After
+the installer has completed, the system will need rebooted.
 
 - Uninstallation --------------------------------------------------------------
 
-To uninstall this, just delete the folder.
+To uninstall this, run the "uninstall" file in this directory. After it has
+run, you may delete this directory.
+
+On Linux, the uninstaller will need run with root permissions.
+
+- Usage -----------------------------------------------------------------------
+
+On Windows, after running the installed, a new folder will appear in your start
+menu (under "All") called "ZRE". This folder contains all the applications that
+were installed.
+
+On Linux, the installed applications are added to your system path. This means
+they can be run from a terminal.
 
 - ZR25 "Gloria" ---------------------------------------------------------------
 
