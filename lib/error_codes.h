@@ -38,6 +38,7 @@
 #define ERRNO_CAN_EEPROM_READ_ONLY				1545
 #define ERRNO_CAN_EEPROM_WRITE_ONLY				1546
 
+// These error codes are defined by the SerialCAN library.
 #define ERRNO_SLCAN_BOFF						9999
 #define ERRNO_SLCAN_EWRN						9998
 #define ERRNO_SLCAN_BERR						9997

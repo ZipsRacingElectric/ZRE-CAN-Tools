@@ -9,8 +9,6 @@
 // Description: An database-oriented interface for CAN bus communication. Received messages are parsed using a DBC file and
 //   stored in a relational database for random access.
 
-// TODO(Barach): Docs are pretty poor.
-
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -27,30 +25,51 @@
 
 // Constants ------------------------------------------------------------------------------------------------------------------
 
+/// @brief The maximum number of messages in the database.
 #define CAN_DATABASE_MESSAGE_COUNT_MAX	128
+
+/// @brief The maximum number of signals in the database.
 #define CAN_DATABASE_SIGNAL_COUNT_MAX	1024
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
-struct canDatabase
+/// @brief Structure representing a CAN database.
+typedef struct
 {
-	canDevice_t*	device;
-	pthread_t		rxThread;
-	canMessage_t	messages [CAN_DATABASE_MESSAGE_COUNT_MAX];
-	size_t			messageCount;
-	canSignal_t		signals [CAN_DATABASE_SIGNAL_COUNT_MAX];
-	size_t			signalCount;
-	float			signalValues [CAN_DATABASE_SIGNAL_COUNT_MAX];
-	bool			signalsValid [CAN_DATABASE_SIGNAL_COUNT_MAX];
-	struct timeval	messageDeadlines [CAN_DATABASE_MESSAGE_COUNT_MAX];
-};
+	/// @brief The CAN device to receive from.
+	canDevice_t* device;
 
-typedef struct canDatabase canDatabase_t;
+	/// @brief The thread for receiving CAN messages.
+	pthread_t rxThread;
+
+	/// @brief The array of CAN messages forming the database.
+	canMessage_t messages [CAN_DATABASE_MESSAGE_COUNT_MAX];
+
+	/// @brief The number of used elements in @c messages .
+	size_t messageCount;
+
+	/// @brief The array of CAN signals forming the database.
+	canSignal_t signals [CAN_DATABASE_SIGNAL_COUNT_MAX];
+
+	/// @brief The number of used elements in @c signals .
+	size_t signalCount;
+
+	/// @brief The array of values associated with each CAN signal.
+	float signalValues [CAN_DATABASE_SIGNAL_COUNT_MAX];
+
+	/// @brief The array indicating whether the value of each CAN signal is valid.
+	bool signalsValid [CAN_DATABASE_SIGNAL_COUNT_MAX];
+
+	/// @brief Array of deadlines for the values each CAN message's signals.
+	struct timeval messageDeadlines [CAN_DATABASE_MESSAGE_COUNT_MAX];
+} canDatabase_t;
 
 // Function -------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief Initializes a CAN database bound to the specified device using the specified database file.
+ * @param database The database to initialize.
+ * @param device The CAN device to bind to.
  * @param dbcPath The database file to import from.
  * @return 0 if successful, the error code otherwise.
  */
@@ -94,6 +113,11 @@ void canDatabaseMessageValuePrint (FILE* stream, canDatabase_t* database, size_t
  */
 int canDatabaseFindSignal (canDatabase_t* database, const char* name, size_t* index);
 
+/**
+ * @brief Converts a signal value into a boolean.
+ * @param value The value of the signal.
+ * @return The boolean interpretation of the signal.
+ */
 inline static bool signalToBool (float value)
 {
 	return value >= FLT_EPSILON || value <= -FLT_EPSILON;

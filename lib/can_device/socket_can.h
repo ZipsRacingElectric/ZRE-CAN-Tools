@@ -34,16 +34,30 @@
  */
 bool socketCanNameDomain (const char* name);
 
+/**
+ * @brief Initializes a SocketCAN device.
+ * @param name The name (handler) of the device.
+ * @return The initialized device if successful, @c NULL otherwise.
+ */
 canDevice_t* socketCanInit (const char* name);
 
+/**
+ * @brief De-allocates the memory owned by SocketCAN device.
+ * @param device The device to de-allocate.
+ * @return 0 if successful, the error code otherwise.
+ */
 int socketCanDealloc (void* device);
 
+/// @brief SocketCAN implementation of the @c canTransmit function.
 int socketCanTransmit (void* device, canFrame_t* frame);
 
+/// @brief SocketCAN implementation of the @c canReceive function.
 int socketCanReceive (void* device, canFrame_t* frame);
 
+/// @brief SocketCAN implementation of the @c canFlushRx function.
 int socketCanFlushRx (void* device);
 
+/// @brief SocketCAN implementation of the @c canSetTimeout function.
 int socketCanSetTimeout (void* device, unsigned long timeoutMs);
 
 #endif // SOCKET_CAN_H
