@@ -43,7 +43,11 @@ RELEASE_README := doc/readme_release.txt
 
 # Command for copying the MSYS2 UCRT binaries into a release
 ifeq ($(DETECTED_OS), windows)
-	MSYS_UCRT_COPY_CMD := cp -r $(MSYS_BIN) $(RELEASE_DIR)/
+	ifeq ($(MSYS_BIN), "")
+		MSYS_UCRT_COPY_CMD := echo Error: MSYS_BIN environment variable is not declared! && exit -1
+	else
+		MSYS_UCRT_COPY_CMD := cp -r $(MSYS_BIN) $(RELEASE_DIR)/
+	endif
 endif
 
 all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(BMS_TUI) sh bat plot
