@@ -21,10 +21,13 @@
 
 // C Standard Library
 #include <errno.h>
+#include <locale.h>
+
+// Functions ------------------------------------------------------------------------------------------------------------------
+
+void printTuiDatabase (canDatabase_t* database, size_t startRow, size_t endRow);
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
-
-void printTuiDatabaseLine (canDatabase_t* database, uint16_t lineIndex);
 
 int main (int argc, char** argv)
 {
@@ -54,14 +57,21 @@ int main (int argc, char** argv)
 		return code;
 	}
 
+	// Set OS-specific locale for wide character support
+	#ifdef __unix__
+	setlocale (LC_ALL, "");
+	#else
+	setlocale (LC_ALL, ".utf8");
+	#endif // __unix__
+
 	initscr ();
 
 	// Non-blocking input
 	cbreak ();
 	nodelay (stdscr, true);
-	keypad(stdscr, true);
+	keypad (stdscr, true);
 
-	uint16_t offset = 0;
+	int offset = 0;
 
 	while (true)
 	{
@@ -69,23 +79,51 @@ int main (int argc, char** argv)
 		clear ();
 		#endif
 
+		// Get terminal dimensions
 		int row, col;
-		getmaxyx(stdscr, row, col);
+		getmaxyx (stdscr, row, col);
 		(void) col;
 
-		mvprintw (0, 0, "");
+		// Print controls
+		mvprintw (0, 0, " Controls");
+		mvprintw (0, 32, "│ Space .... Refresh the screen");
+		mvprintw (0, 64, "│ Up/Down .............. Scroll");
+		mvprintw (0, 96, "│ Q ...................... Quit │");
+		for (int i = 0; i < col; ++i)
+		{
+			if (i % 32 == 0 && i > 0 && i <= 128)
+				mvprintw (1, i, "┴");
+			else
+				mvprintw (1, i, "─");
+		}
+		mvprintw (2, 0, "");
 
 		int ret = getch ();
 		if (ret != ERR)
 		{
+			// Space key should refresh the screen
+			if (ret == ' ')
+			{
+				endwin ();
+				refresh ();
+			}
+			// Up to scroll up
 			if (ret == KEY_UP)
+			{
 				offset -= 4;
+				if (offset < 0)
+					offset = 0;
+			}
+			// Down to scroll down
 			else if (ret == KEY_DOWN)
 				offset += 4;
+			// Q quits application
+			else if (ret == 'q')
+				break;
 		}
 
-		for (uint16_t index = 0; index < row; ++index)
-			printTuiDatabaseLine (&database, index + offset);
+		// Print the database (starts at row 2, ends at the end of screen)
+		printTuiDatabase (&database, offset, row + offset - 2);
 
 		refresh ();
 		napms (48);
@@ -96,66 +134,106 @@ int main (int argc, char** argv)
 	return 0;
 }
 
-void printTuiDatabaseLine (canDatabase_t* database, uint16_t lineIndex)
+// Functions ------------------------------------------------------------------------------------------------------------------
+
+void printTuiDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 {
-	size_t signalOffset = 0;
+	size_t currentRow = 0;
 
-	if (lineIndex == 0)
-	{
-		printw ("%32s | %10s | %8s | %10s | %12s | %12s | %12s | %9s | %6s\n\n",
-			"Signal Name", "Value", "Bit Mask", "Bit Length", "Bit Position",
-			"Scale Factor", "Offset", "Is Signed", "Endian");
-		return;
-	}
-
-	uint16_t currentIndex = 0;
 	for (size_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
 	{
 		canMessage_t* message = database->messages + messageIndex;
 
-		++currentIndex;
-		if (currentIndex == lineIndex)
+		// Print message name & ID
+		if (startRow <= currentRow && currentRow < endRow)
 		{
-			printw ("%s - ID: %3X\n", message->name, message->id);
-			return;
-		}
+			char buffer [130];
+			snprintf (buffer, sizeof (buffer) - 1, "%s - ID 0x%3X", message->name, message->id);
 
+			printw ("┌─ %s ", buffer);
+			for (size_t index = strlen (buffer) + 4; index < 138; ++index)
+			{
+				if (index == 35 || index == 48 || index == 59 || index == 72 || index == 87 || index == 102 || index == 117
+					|| index == 129)
+					printw ("┬");
+				else
+					printw ("─");
+			}
+			printw ("┐\n");
+		}
+		++currentRow;
+
+		// Print column titles
+		if (startRow <= currentRow && currentRow < endRow)
+			printw ("│ %32s │ %10s │ %8s │ %10s │ %12s │ %12s │ %12s │ %9s │ %6s │\n",
+				"Signal Name", "Value", "Bit Mask", "Bit Length", "Bit Position",
+				"Scale Factor", "Offset", "Is Signed", "Endian");
+		++currentRow;
+
+		// Print divider
+		if (startRow <= currentRow && currentRow < endRow)
+		{
+			printw ("│");
+			for (size_t index = 1; index < 138; ++index)
+			{
+				if (index == 35 || index == 48 || index == 59 || index == 72 || index == 87 || index == 102 || index == 117
+					|| index == 129)
+					printw ("│");
+				else
+					printw ("┄");
+			}
+			printw ("┤\n");
+		}
+		++currentRow;
+
+		// Print signals
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
-			++currentIndex;
-
 			canSignal_t* signal = message->signals + signalIndex;
-			bool valid = database->signalsValid [signalOffset + signalIndex];
-			float value = database->signalValues [signalOffset + signalIndex];
+			size_t signalOffset = signal - database->signals;
+			bool valid = database->signalsValid [signalOffset];
+			float value = database->signalValues [signalOffset];
 
-			if (currentIndex == lineIndex)
+			// Print signal name, value, and metadata
+			if (startRow <= currentRow && currentRow < endRow)
 			{
 				if (valid)
 				{
-					printw ("%32s | %10.3f | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n",
+					printw ("│ %32s │ %10.3f │ %8lX │ %10i │ %12i │ %12f │ %12f │ %9u │ %6u │\n",
 						signal->name, value, signal->bitmask, signal->bitLength, signal->bitPosition,
 						signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
-					return;
 				}
 				else
 				{
-					printw ("%32s | %10s | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n",
+					printw ("│ %32s │ %10s │ %8lX │ %10i │ %12i │ %12f │ %12f │ %9u │ %6u │\n",
 						signal->name, "--", signal->bitmask, signal->bitLength, signal->bitPosition,
 						signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
-					return;
 				}
 			}
+
+			++currentRow;
 		}
 
-		++currentIndex;
-		if (currentIndex == lineIndex)
+		// Print end of message divider
+		if (startRow <= currentRow && currentRow < endRow)
 		{
-			printw ("\n");
-			return;
+			printw ("└");
+			for (size_t index = 1; index < 138; ++index)
+			{
+				if (index == 35 || index == 48 || index == 59 || index == 72 || index == 87 || index == 102 || index == 117
+					|| index == 129)
+					printw ("┴");
+				else
+					printw ("─");
+			}
+			printw ("┘\n");
 		}
+		++currentRow;
 
-		signalOffset += message->signalCount;
+		// Print gap
+		if (startRow <= currentRow && currentRow < endRow)
+			printw ("\n");
+
+		++currentRow;
 	}
-
-	printw ("\n");
 }

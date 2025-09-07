@@ -400,6 +400,11 @@ int main (int argc, char** argv)
 	init_pair (COLOR_VALID,		COLOR_GREEN,	COLOR_BLACK);
 	init_pair (COLOR_BALANCING,	COLOR_CYAN,		COLOR_BLACK);
 
+	// Non-blocking keyboard input
+	cbreak ();
+	nodelay (stdscr, true);
+	keypad(stdscr, true);
+
 	while (true)
 	{
 		uint16_t row = 0;
@@ -516,6 +521,20 @@ int main (int argc, char** argv)
 			columnSense = 0;
 			columnCell = 0;
 			row += 10;
+		}
+
+		int ret = getch ();
+		if (ret != ERR)
+		{
+			// Space key should refresh the screen
+			if (ret == ' ')
+			{
+				endwin ();
+				refresh ();
+			}
+			// Q quits the application
+			else if (ret == 'q')
+				break;
 		}
 
 		refresh ();
