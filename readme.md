@@ -79,6 +79,7 @@ This program is used to monitor a battery management system in real-time.
 - Perform the OS-specific steps setup below before continuing with these steps.
 - Run `make` to compile all of the programs.
 - Run the `install` script to create the needed environment variables.
+  - Note that on Linux, you will need to logout and log back in after this.
 - On Windows, it is useful to add the `bin` directory to your system path (not needed, just conventient).
 
 ### For Linux
@@ -99,7 +100,7 @@ Use `make` to compile all of the programs.
 
 Use `make -B` to re-compile all of the programs. Note that this may be required after making library modifications.
 
-Use the `install` script to recreate the application shortcuts (Windows only).
+Use the `install` script to recreate the application shortcuts / setup environment variables.
 
 ## Project Structure
 ```
