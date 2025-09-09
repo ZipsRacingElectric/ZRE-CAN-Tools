@@ -28,6 +28,7 @@ SERIAL_CAN_LIB := $(LIB_DIR)/serial_can.a
 CAN_DEV_CLI		:= $(BIN_DIR)/can-dev-cli
 CAN_DBC_CLI		:= $(BIN_DIR)/can-dbc-cli
 CAN_DBC_TUI		:= $(BIN_DIR)/can-dbc-tui
+CAN_DUMP		:= $(BIN_DIR)/can-dump
 CAN_EEPROM_CLI	:= $(BIN_DIR)/can-eeprom-cli
 BMS_TUI			:= $(BIN_DIR)/bms-tui
 
@@ -50,7 +51,7 @@ ifeq ($(DETECTED_OS), windows)
 	endif
 endif
 
-all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_EEPROM_CLI) $(BMS_TUI) sh bat plot
+all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_DUMP) $(CAN_EEPROM_CLI) $(BMS_TUI) sh bat plot
 
 # Libraries
 $(LIB): FORCE
@@ -86,6 +87,9 @@ $(CAN_DBC_TUI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) FORCE
 
 $(CAN_EEPROM_CLI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_EEPROM_LIB) FORCE
 	make -C src/can_eeprom_cli
+
+$(CAN_DUMP): $(CAN_DEVICE_LIB) FORCE
+	make -C src/can_dump
 
 $(BMS_TUI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) $(BMS_LIB) FORCE
 	make -C src/bms_tui
