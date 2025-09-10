@@ -173,20 +173,64 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 	}
 }
 
-int canDatabaseFindSignal (canDatabase_t* database, const char* name, size_t* index)
+ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name)
 {
-	for (uint16_t signalIndex = 0; signalIndex < database->signalCount; ++signalIndex)
-	{
-		if (strcmp (name, database->signals [signalIndex].name) == 0)
-		{
-			*index = signalIndex;
-			return 0;
-		}
-	}
+	for (ssize_t index = 0; index < database->signalCount; ++index)
+		if (strcmp (name, database->signals [index].name) == 0)
+			return index;
 
 	ERROR_PRINTF ("Could not find signal '%s' in CAN database.\n", name);
 	errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
-	return errno;
+	return -1;
+}
+
+canDatabaseSignalState_t canDatabaseGetUint32 (canDatabase_t* database, ssize_t index, uint32_t* value)
+{
+	if (index < 0)
+		return CAN_DATABASE_MISSING;
+
+	if (!database->signalsValid [index])
+		return CAN_DATABASE_TIMEOUT;
+
+	*value = (uint32_t) database->signalValues [index];
+	return CAN_DATABASE_VALID;
+}
+
+canDatabaseSignalState_t canDatabaseGetInt32 (canDatabase_t* database, ssize_t index, int32_t* value)
+{
+	if (index < 0)
+		return CAN_DATABASE_MISSING;
+
+	if (!database->signalsValid [index])
+		return CAN_DATABASE_TIMEOUT;
+
+	*value = (int32_t) database->signalValues [index];
+	return CAN_DATABASE_VALID;
+}
+
+canDatabaseSignalState_t canDatabaseGetFloat (canDatabase_t* database, ssize_t index, float* value)
+{
+	if (index < 0)
+		return CAN_DATABASE_MISSING;
+
+	if (!database->signalsValid [index])
+		return CAN_DATABASE_TIMEOUT;
+
+	*value = database->signalValues [index];
+	return CAN_DATABASE_VALID;
+}
+
+canDatabaseSignalState_t canDatabaseGetBool (canDatabase_t* database, ssize_t index, bool* value)
+{
+	if (index < 0)
+		return CAN_DATABASE_MISSING;
+
+	if (!database->signalsValid [index])
+		return CAN_DATABASE_TIMEOUT;
+
+	// C-style bool definition. If value != 0, then true.
+	*value = database->signalValues [index] >= FLT_EPSILON || database->signalValues [index] <= -FLT_EPSILON;
+	return CAN_DATABASE_VALID;
 }
 
 void canDatabaseCheckTimeouts (canDatabase_t* database)

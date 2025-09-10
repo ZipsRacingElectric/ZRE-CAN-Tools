@@ -9,6 +9,8 @@
 // Description: An database-oriented interface for CAN bus communication. Received messages are parsed using a DBC file and
 //   stored in a relational database for random access.
 
+// TODO(Barach): Documentation
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -32,6 +34,13 @@
 #define CAN_DATABASE_SIGNAL_COUNT_MAX	1024
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
+
+typedef enum
+{
+	CAN_DATABASE_VALID = 0,
+	CAN_DATABASE_MISSING = 1,
+	CAN_DATABASE_TIMEOUT = 2
+} canDatabaseSignalState_t;
 
 /// @brief Structure representing a CAN database.
 typedef struct
@@ -76,11 +85,23 @@ typedef struct
 int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* dbcPath);
 
 /**
- * @brief Prints all of the data of a database.
- * @param stream The stream to write to.
- * @param database The database to print.
+ * @brief Finds a signal's index based off name.
+ * @param database The database to search from.
+ * @param name The name of the signal to find.
+ * @param index If successful, written to contain the index of the signal.
+ * @return The index if successful, -1 otherwise. Note errno is set on error.
  */
-void canDatabasePrint (FILE* stream, canDatabase_t* database);
+ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name);
+
+canDatabaseSignalState_t canDatabaseGetUint32 (canDatabase_t* database, ssize_t index, uint32_t* value);
+
+canDatabaseSignalState_t canDatabaseGetInt32 (canDatabase_t* database, ssize_t index, int32_t* value);
+
+canDatabaseSignalState_t canDatabaseGetFloat (canDatabase_t* database, ssize_t index, float* value);
+
+canDatabaseSignalState_t canDatabaseGetBool (canDatabase_t* database, ssize_t index, bool* value);
+
+// Standard I/O ---------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief Prompts the user to select a database message.
@@ -88,6 +109,13 @@ void canDatabasePrint (FILE* stream, canDatabase_t* database);
  * @return The index of the selected message.
  */
 size_t canDatabaseMessageNamePrompt (canDatabase_t* database);
+
+/**
+ * @brief Prints all of the data of a database.
+ * @param stream The stream to write to.
+ * @param database The database to print.
+ */
+void canDatabasePrint (FILE* stream, canDatabase_t* database);
 
 /**
  * @brief Prints the name of each message in the database.
@@ -103,24 +131,5 @@ void canDatabaseMessagesPrint (FILE* stream, canDatabase_t* database);
  * @param index The index of the message to print.
  */
 void canDatabaseMessageValuePrint (FILE* stream, canDatabase_t* database, size_t index);
-
-/**
- * @brief Finds a signal's index based off name.
- * @param database The database to search from.
- * @param name The name of the signal to find.
- * @param index If successful, written to contain the index of the signal.
- * @return 0 if successful, the error code otherwise.
- */
-int canDatabaseFindSignal (canDatabase_t* database, const char* name, size_t* index);
-
-/**
- * @brief Converts a signal value into a boolean.
- * @param value The value of the signal.
- * @return The boolean interpretation of the signal.
- */
-inline static bool signalToBool (float value)
-{
-	return value >= FLT_EPSILON || value <= -FLT_EPSILON;
-}
 
 #endif // CAN_DATABASE_H

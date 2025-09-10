@@ -24,8 +24,19 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
+typedef enum
+{
+	BMS_LTC_STATE_MISSING = CAN_DATABASE_MISSING,
+	BMS_LTC_STATE_TIMEOUT = CAN_DATABASE_TIMEOUT,
+	BMS_LTC_STATE_ISOSPI_FAULT,
+	BMS_LTC_STATE_SELF_TEST_FAULT,
+	BMS_LTC_STATE_OKAY
+} bmsLtcState_t;
+
 typedef struct
 {
+	canDatabase_t* database;
+
 	uint16_t segmentCount;
 
 	uint16_t cellCount;
@@ -40,37 +51,36 @@ typedef struct
 	float maxTemperature;
 	float maxLtcTemperature;
 
-	float** cellVoltages;
-	bool** cellVoltagesValid;
-
-	float** cellsDischarging;
-	bool** cellsDischargingValid;
-
-	float** senseLineTemperatures;
-	bool** senseLineTemperaturesValid;
-
-	float** senseLinesOpen;
-	bool** senseLinesOpenValid;
-
-	float** ltcIsoSpiFaults;
-	bool** ltcIsoSpiFaultsValid;
-
-	float** ltcSelfTestFaults;
-	bool** ltcSelfTestFaultsValid;
-
-	float** ltcTemperatures;
-	bool** ltcTemperaturesValid;
-
-	float* packVoltage;
-	bool* packVoltageValid;
-
-	float* packCurrent;
-	bool* packCurrentValid;
+	ssize_t* cellVoltageIndices;
+	ssize_t* cellsDischargingIndices;
+	ssize_t* senseLineTemperatureIndices;
+	ssize_t* senseLinesOpenIndices;
+	ssize_t* ltcIsoSpiFaultIndices;
+	ssize_t* ltcSelfTestFaultIndices;
+	ssize_t* ltcTemperatureIndices;
+	ssize_t packVoltageIndex;
+	ssize_t packCurrentIndex;
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database);
+
+canDatabaseSignalState_t bmsGetPackVoltage (bms_t* bms, float* voltage);
+
+canDatabaseSignalState_t bmsGetPackCurrent (bms_t* bms, float* current);
+
+canDatabaseSignalState_t bmsGetCellVoltage (bms_t* bms, size_t index, float* voltage);
+
+canDatabaseSignalState_t bmsGetCellDischarging (bms_t* bms, size_t index, bool* discharging);
+
+canDatabaseSignalState_t bmsGetSenseLineTemperature (bms_t* bms, size_t index, float* temperature);
+
+canDatabaseSignalState_t bmsGetSenseLineOpen (bms_t* bms, size_t index, bool* open);
+
+bmsLtcState_t bmsGetLtcState (bms_t* bms, size_t index);
+
+canDatabaseSignalState_t bmsGetLtcTemperature (bms_t* bms, size_t index, float* temperature);
 
 bool bmsGetCellVoltageStats (bms_t* bms, float* min, float* max, float* avg);
 
