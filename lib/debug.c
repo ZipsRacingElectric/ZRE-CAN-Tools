@@ -2,15 +2,22 @@
 #include "debug.h"
 
 // C Standard Library
-#include <execinfo.h>
 #include <signal.h>
 #include <stdlib.h>
 
+#if __unix__
+#include <execinfo.h>
+#endif // __unix__
+
 FILE* errorStream = NULL;
+
+// TODO(Barach): Figure this out for windows.
+#if __unix__
 
 static void segvHandler (int sig)
 {
 	fprintf (stderr, "\n\nSegmentation Fault Occurred!\n");
+
 	fprintf (stderr, "\n- BEGIN BACKTRACE --------------------------------------------------------------\n\n");
 
 	// Get the program's backtrace.
@@ -27,13 +34,19 @@ static void segvHandler (int sig)
 		printf ("%s\n", backtraceSymbols [index]);
 
 	free (backtraceSymbols);
+
 	fprintf (stderr, "\n- END BACKTRACE ----------------------------------------------------------------\n\n");
+
 
 	// End the program
 	exit (sig);
 }
 
+#endif // __unix__
+
 void debugInit ()
 {
+	#if __unix__
 	signal (SIGSEGV, segvHandler);
+	#endif // __unix__
 }
