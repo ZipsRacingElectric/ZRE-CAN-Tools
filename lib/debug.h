@@ -10,4 +10,6 @@
 
 extern FILE* errorStream;
 
+void debugInit ();
+
 #endif // DEBUG_H
