@@ -1,4 +1,4 @@
-CC_FLAGS := -Wall -Wextra -g
+CC_FLAGS := -Wall -Wextra -g -rdynamic
 
 BIN_DIR	:= ../../bin
 LIB_DIR := $(BIN_DIR)/lib

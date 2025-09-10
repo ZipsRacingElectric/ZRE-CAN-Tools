@@ -1,4 +1,4 @@
-CC_FLAGS := -Wall -Wextra -g
+CC_FLAGS := -Wall -Wextra -g -rdynamic
 
 BIN_DIR := ../../bin
 OBJ_DIR := $(BIN_DIR)/obj
