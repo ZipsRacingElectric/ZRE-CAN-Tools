@@ -9,8 +9,6 @@
 // Description: An database-oriented interface for CAN bus communication. Received messages are parsed using a DBC file and
 //   stored in a relational database for random access.
 
-// TODO(Barach): Documentation
-
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -22,7 +20,6 @@
 #include <pthread.h>
 
 // C Standard Library
-#include <stdio.h>
 #include <float.h>
 
 // Constants ------------------------------------------------------------------------------------------------------------------
@@ -35,10 +32,16 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
+/// @brief Enum indicating the possible states of a signal in a CAN database.
 typedef enum
 {
+	/// @brief Indicates the signal is present in the database and up to date.
 	CAN_DATABASE_VALID = 0,
+
+	/// @brief Indicates the signal is not present in the database.
 	CAN_DATABASE_MISSING = 1,
+
+	/// @brief Indicates the signal is present in the database, but out of date.
 	CAN_DATABASE_TIMEOUT = 2
 } canDatabaseSignalState_t;
 
@@ -66,14 +69,14 @@ typedef struct
 	/// @brief The array of values associated with each CAN signal.
 	float signalValues [CAN_DATABASE_SIGNAL_COUNT_MAX];
 
-	/// @brief The array indicating whether the value of each CAN signal is valid.
-	bool signalsValid [CAN_DATABASE_SIGNAL_COUNT_MAX];
+	/// @brief The array indicating whether the value of each CAN message is valid.
+	bool messagesValid [CAN_DATABASE_MESSAGE_COUNT_MAX];
 
 	/// @brief Array of deadlines for the values each CAN message's signals.
 	struct timeval messageDeadlines [CAN_DATABASE_MESSAGE_COUNT_MAX];
 } canDatabase_t;
 
-// Function -------------------------------------------------------------------------------------------------------------------
+// Functions ------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief Initializes a CAN database bound to the specified device using the specified database file.
@@ -85,51 +88,47 @@ typedef struct
 int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* dbcPath);
 
 /**
- * @brief Finds a signal's index based off name.
+ * @brief Finds the index of a signal based off its name.
  * @param database The database to search from.
  * @param name The name of the signal to find.
- * @param index If successful, written to contain the index of the signal.
  * @return The index if successful, -1 otherwise. Note errno is set on error.
  */
 ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name);
 
+/**
+ * @brief Gets the value of a signal in a CAN database, as a @c uint32_t .
+ * @param database The database to get from.
+ * @param index The index of the signal to get (as returned by @c canDatabaseFindSignal ).
+ * @param value Buffer to write the data into.
+ * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
+ */
 canDatabaseSignalState_t canDatabaseGetUint32 (canDatabase_t* database, ssize_t index, uint32_t* value);
 
+/**
+ * @brief Gets the value of a signal in a CAN database, as an @c int32_t .
+ * @param database The database to get from.
+ * @param index The index of the signal to get (as returned by @c canDatabaseFindSignal ).
+ * @param value Buffer to write the data into.
+ * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
+ */
 canDatabaseSignalState_t canDatabaseGetInt32 (canDatabase_t* database, ssize_t index, int32_t* value);
 
+/**
+ * @brief Gets the value of a signal in a CAN database, as a @c float .
+ * @param database The database to get from.
+ * @param index The index of the signal to get (as returned by @c canDatabaseFindSignal ).
+ * @param value Buffer to write the data into.
+ * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
+ */
 canDatabaseSignalState_t canDatabaseGetFloat (canDatabase_t* database, ssize_t index, float* value);
 
+/**
+ * @brief Gets the value of a signal in a CAN database, as a @c bool .
+ * @param database The database to get from.
+ * @param index The index of the signal to get (as returned by @c canDatabaseFindSignal ).
+ * @param value Buffer to write the data into.
+ * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
+ */
 canDatabaseSignalState_t canDatabaseGetBool (canDatabase_t* database, ssize_t index, bool* value);
-
-// Standard I/O ---------------------------------------------------------------------------------------------------------------
-
-/**
- * @brief Prompts the user to select a database message.
- * @param database The database to search from.
- * @return The index of the selected message.
- */
-size_t canDatabaseMessageNamePrompt (canDatabase_t* database);
-
-/**
- * @brief Prints all of the data of a database.
- * @param stream The stream to write to.
- * @param database The database to print.
- */
-void canDatabasePrint (FILE* stream, canDatabase_t* database);
-
-/**
- * @brief Prints the name of each message in the database.
- * @param stream The stream to print to.
- * @param database The database to search from.
- */
-void canDatabaseMessagesPrint (FILE* stream, canDatabase_t* database);
-
-/**
- * @brief Prints the last read values of a CAN message from the database.
- * @param stream The stream to print to.
- * @param database The database to read from.
- * @param index The index of the message to print.
- */
-void canDatabaseMessageValuePrint (FILE* stream, canDatabase_t* database, size_t index);
 
 #endif // CAN_DATABASE_H

@@ -25,7 +25,7 @@
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-void printTuiDatabase (canDatabase_t* database, size_t startRow, size_t endRow);
+void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow);
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ int main (int argc, char** argv)
 		}
 
 		// Print the database (starts at row 2, ends at the end of screen)
-		printTuiDatabase (&database, offset, row + offset - 2);
+		printDatabase (&database, offset, row + offset - 2);
 
 		refresh ();
 		napms (48);
@@ -136,10 +136,11 @@ int main (int argc, char** argv)
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-void printTuiDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
+void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 {
 	size_t currentRow = 0;
 
+	size_t signalOffset = 0;
 	for (size_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
 	{
 		canMessage_t* message = database->messages + messageIndex;
@@ -148,7 +149,7 @@ void printTuiDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 		if (startRow <= currentRow && currentRow < endRow)
 		{
 			char buffer [130];
-			snprintf (buffer, sizeof (buffer) - 1, "%s - ID 0x%3X", message->name, message->id);
+			snprintf (buffer, sizeof (buffer), "%s - ID 0x%3X", message->name, message->id);
 
 			printw ("┌─ %s ", buffer);
 			for (size_t index = strlen (buffer) + 4; index < 138; ++index)
@@ -166,8 +167,15 @@ void printTuiDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 		// Print column titles
 		if (startRow <= currentRow && currentRow < endRow)
 			printw ("│ %32s │ %10s │ %8s │ %10s │ %12s │ %12s │ %12s │ %9s │ %6s │\n",
-				"Signal Name", "Value", "Bit Mask", "Bit Length", "Bit Position",
-				"Scale Factor", "Offset", "Is Signed", "Endian");
+				"Signal Name",
+				"Value",
+				"Bit Mask",
+				"Bit Length",
+				"Bit Position",
+				"Scale Factor",
+				"Offset",
+				"Is Signed",
+				"Endian");
 		++currentRow;
 
 		// Print divider
@@ -189,26 +197,26 @@ void printTuiDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 		// Print signals
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
-			canSignal_t* signal = message->signals + signalIndex;
-			size_t signalOffset = signal - database->signals;
-			bool valid = database->signalsValid [signalOffset];
-			float value = database->signalValues [signalOffset];
+			canSignal_t* signal = &database->signals [signalIndex];
+
+			char buffer [11] = "--";
+			float value;
+			if (canDatabaseGetFloat (database, signalOffset, &value) == CAN_DATABASE_VALID)
+				snprintf (buffer, sizeof (buffer), "%.3f", value);
 
 			// Print signal name, value, and metadata
 			if (startRow <= currentRow && currentRow < endRow)
 			{
-				if (valid)
-				{
-					printw ("│ %32s │ %10.3f │ %8lX │ %10i │ %12i │ %12f │ %12f │ %9u │ %6u │\n",
-						signal->name, value, signal->bitmask, signal->bitLength, signal->bitPosition,
-						signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
-				}
-				else
-				{
-					printw ("│ %32s │ %10s │ %8lX │ %10i │ %12i │ %12f │ %12f │ %9u │ %6u │\n",
-						signal->name, "--", signal->bitmask, signal->bitLength, signal->bitPosition,
-						signal->scaleFactor, signal->offset, signal->signedness, signal->endianness);
-				}
+				printw ("│ %32s │ %10s │ %8lX │ %10i │ %12i │ %12f │ %12f │ %9u │ %6u │\n",
+					signal->name,
+					buffer,
+					signal->bitmask,
+					signal->bitLength,
+					signal->bitPosition,
+					signal->scaleFactor,
+					signal->offset,
+					signal->signedness,
+					signal->endianness);
 			}
 
 			++currentRow;
@@ -235,5 +243,6 @@ void printTuiDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 			printw ("\n");
 
 		++currentRow;
+		signalOffset += message->signalCount;
 	}
 }

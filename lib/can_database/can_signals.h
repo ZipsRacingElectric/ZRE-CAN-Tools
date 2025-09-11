@@ -10,9 +10,6 @@
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
-// Includes
-#include "can_device/can_device.h"
-
 // C Standard Library
 #include <stdbool.h>
 #include <stddef.h>
@@ -25,31 +22,59 @@
 typedef struct canSignal canSignal_t;
 
 /**
- * @brief Structure representing a message broadcast on a CAN bus.
+ * @brief Structure representing the encoding of a message broadcast on a CAN bus.
+ * @note This does not have a payload associated with it, just the encoding.
  */
 typedef struct
 {
-	canSignal_t*	signals;
-	size_t			signalCount;
-	char*			name;
-	uint32_t		id;
-	uint8_t			dlc;
+	/// @brief The array of signals present in this message.
+	canSignal_t* signals;
+
+	/// @brief The number of elements in @c signals .
+	size_t signalCount;
+
+	/// @brief The name of this message.
+	char* name;
+
+	/// @brief The CAN ID of this message.
+	uint32_t id;
+
+	/// @brief The DLC of this message.
+	uint8_t dlc;
 } canMessage_t;
 
 /**
- * @brief Structure representing a signal present in a CAN message.
+ * @brief Structure representing the encoding of a signal present in a CAN message.
+ * @note This does not have a value associated with it, just the encoding.
  */
 struct canSignal
 {
-	canMessage_t*	message;
-	char*			name;
-	uint8_t			bitPosition;
-	uint8_t			bitLength;
-	float			scaleFactor;
-	float			offset;
-	bool			signedness;
-	bool			endianness;
-	uint64_t		bitmask;
+	/// @brief The message this signal belongs to.
+	canMessage_t* message;
+
+	/// @brief The name of this signal.
+	char* name;
+
+	/// @brief The position of the starting bit of this signal.
+	uint8_t bitPosition;
+
+	/// @brief The length of this signal, in bits.
+	uint8_t bitLength;
+
+	/// @brief The scale factor to apply to this signal.
+	float scaleFactor;
+
+	/// @brief The offset to apply to this signal.
+	float offset;
+
+	/// @brief The signedness of this signal. True => signed, false => unsigned.
+	bool signedness;
+
+	/// @brief The endianness of this signal. True => Intel format, false => Motorola format.
+	bool endianness;
+
+	/// @brief Bitmask for isolating this signal.
+	uint64_t bitmask;
 };
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -69,31 +94,5 @@ uint64_t signalEncode (canSignal_t* signal, float value);
  * @return The decoded value.
  */
 float signalDecode (canSignal_t* signal, uint64_t payload);
-
-// Standard I/O ---------------------------------------------------------------------------------------------------------------
-
-// TODO(Barach): Docs
-void framePrint (FILE* stream, canFrame_t* frame);
-
-// TODO(Barach): Docs
-void messagePrint (FILE* stream, canMessage_t* message, uint8_t* data);
-
-// TODO(Barach): Docs
-canFrame_t messagePrompt (canMessage_t* message);
-
-/**
- * @brief Prints the decoded signal's data.
- * @param stream The stream to print to.
- * @param signal The signal to print.
- * @param payload The payload to decode from.
- */
-void signalPrint (FILE* stream, canSignal_t* signal, uint64_t payload);
-
-/**
- * @brief Prompts the user to input a value for the given signal.
- * @param signal The signal to prompt for.
- * @return The encoded payload.
- */
-uint64_t signalPrompt (canSignal_t* signal);
 
 #endif // CAN_SIGNALS_H
