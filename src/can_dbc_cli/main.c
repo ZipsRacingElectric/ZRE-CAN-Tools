@@ -198,12 +198,12 @@ void printDatabase (FILE* stream, canDatabase_t* database)
 
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
-			canSignal_t* signal = database->signals + signalIndex;
+			canSignal_t* signal = &database->signals [signalIndex];
 
 			char buffer [11] = "--";
 
 			float value;
-			if (canDatabaseGetFloat (database, signalOffset, &value) == CAN_DATABASE_VALID)
+			if (canDatabaseGetFloat (database, signalOffset + signalIndex, &value) == CAN_DATABASE_VALID)
 				snprintf (buffer, sizeof (buffer), "%.3f", value);
 
 			fprintf (stream, "%32s | %10s | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n",

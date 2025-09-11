@@ -197,11 +197,11 @@ void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 		// Print signals
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
-			canSignal_t* signal = &database->signals [signalIndex];
+			canSignal_t* signal = &message->signals [signalIndex];
 
 			char buffer [11] = "--";
 			float value;
-			if (canDatabaseGetFloat (database, signalOffset, &value) == CAN_DATABASE_VALID)
+			if (canDatabaseGetFloat (database, signalOffset + signalIndex, &value) == CAN_DATABASE_VALID)
 				snprintf (buffer, sizeof (buffer), "%.3f", value);
 
 			// Print signal name, value, and metadata
