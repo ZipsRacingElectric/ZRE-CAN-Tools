@@ -12,6 +12,7 @@ endif
 BIN_DIR := bin
 LIB_DIR := $(BIN_DIR)/lib
 CONFIG_DIR := config
+# TODO(Barach): This should include the architecture, as we are now deploying on ARM.
 RELEASE_DIR := release/zre_cantools_$(DETECTED_OS)_$(shell date +%Y.%m.%d)
 DOC_DIR := doc
 
