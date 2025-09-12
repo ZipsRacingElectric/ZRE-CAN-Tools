@@ -140,10 +140,9 @@ void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 {
 	size_t currentRow = 0;
 
-	size_t signalOffset = 0;
 	for (size_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
 	{
-		canMessage_t* message = database->messages + messageIndex;
+		canMessage_t* message = &database->messages [messageIndex];
 
 		// Print message name & ID
 		if (startRow <= currentRow && currentRow < endRow)
@@ -198,10 +197,11 @@ void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
 			canSignal_t* signal = &message->signals [signalIndex];
+			ssize_t globalIndex = canDatabaseGetGlobalIndex (database, messageIndex, signalIndex);
 
 			char buffer [11] = "--";
 			float value;
-			if (canDatabaseGetFloat (database, signalOffset + signalIndex, &value) == CAN_DATABASE_VALID)
+			if (canDatabaseGetFloat (database, globalIndex, &value) == CAN_DATABASE_VALID)
 				snprintf (buffer, sizeof (buffer), "%.3f", value);
 
 			// Print signal name, value, and metadata
@@ -243,6 +243,5 @@ void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 			printw ("\n");
 
 		++currentRow;
-		signalOffset += message->signalCount;
 	}
 }

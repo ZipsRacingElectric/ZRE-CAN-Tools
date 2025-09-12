@@ -189,7 +189,6 @@ void printDatabase (FILE* stream, canDatabase_t* database)
 		"Is Signed",
 		"Endian");
 
-	size_t signalOffset = 0;
 	for (size_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
 	{
 		canMessage_t* message = database->messages + messageIndex;
@@ -198,12 +197,13 @@ void printDatabase (FILE* stream, canDatabase_t* database)
 
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
-			canSignal_t* signal = &database->signals [signalIndex];
+			canSignal_t* signal = &message->signals [signalIndex];
+			ssize_t globalIndex = canDatabaseGetGlobalIndex (database, messageIndex, signalIndex);
 
 			char buffer [11] = "--";
 
 			float value;
-			if (canDatabaseGetFloat (database, signalOffset + signalIndex, &value) == CAN_DATABASE_VALID)
+			if (canDatabaseGetFloat (database, globalIndex, &value) == CAN_DATABASE_VALID)
 				snprintf (buffer, sizeof (buffer), "%.3f", value);
 
 			fprintf (stream, "%32s | %10s | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n",
@@ -220,8 +220,6 @@ void printDatabase (FILE* stream, canDatabase_t* database)
 		}
 
 		fprintf (stream, "\n");
-
-		signalOffset += message->signalCount;
 	}
 }
 

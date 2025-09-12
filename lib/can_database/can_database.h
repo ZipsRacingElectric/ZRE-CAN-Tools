@@ -88,7 +88,17 @@ typedef struct
 int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* dbcPath);
 
 /**
- * @brief Finds the index of a signal based off its name.
+ * @brief Converts a local signal index (index within a message) to a global signal index (index within the database).
+ * @param database Pointer to the database the signal belongs to.
+ * @param messageIndex The index of the message the signal belongs to.
+ * @param signalIndex The (local) index of the signal within the message.
+ * @return The global index of the signal.
+ */
+#define canDatabaseGetGlobalIndex(database, messageIndex, signalIndex)	\
+	((signalIndex) + ((database)->messages [messageIndex]).signals - (database)->signals)
+
+/**
+ * @brief Finds the global index of a signal based off its name.
  * @param database The database to search from.
  * @param name The name of the signal to find.
  * @return The index if successful, -1 otherwise. Note errno is set on error.
@@ -98,7 +108,8 @@ ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name);
 /**
  * @brief Gets the value of a signal in a CAN database, as a @c uint32_t .
  * @param database The database to get from.
- * @param index The index of the signal to get (as returned by @c canDatabaseFindSignal ).
+ * @param index The global index of the signal to get. Note that a local index can be transformed using the
+ *     @c canDatabaseGetGlobalIndex function.
  * @param value Buffer to write the data into.
  * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
  */
@@ -107,7 +118,8 @@ canDatabaseSignalState_t canDatabaseGetUint32 (canDatabase_t* database, ssize_t 
 /**
  * @brief Gets the value of a signal in a CAN database, as an @c int32_t .
  * @param database The database to get from.
- * @param index The index of the signal to get (as returned by @c canDatabaseFindSignal ).
+ * @param index The global index of the signal to get. Note that a local index can be transformed using the
+ *     @c canDatabaseGetGlobalIndex function.
  * @param value Buffer to write the data into.
  * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
  */
@@ -116,7 +128,8 @@ canDatabaseSignalState_t canDatabaseGetInt32 (canDatabase_t* database, ssize_t i
 /**
  * @brief Gets the value of a signal in a CAN database, as a @c float .
  * @param database The database to get from.
- * @param index The index of the signal to get (as returned by @c canDatabaseFindSignal ).
+ * @param index The global index of the signal to get. Note that a local index can be transformed using the
+ *     @c canDatabaseGetGlobalIndex function.
  * @param value Buffer to write the data into.
  * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
  */
@@ -125,7 +138,8 @@ canDatabaseSignalState_t canDatabaseGetFloat (canDatabase_t* database, ssize_t i
 /**
  * @brief Gets the value of a signal in a CAN database, as a @c bool .
  * @param database The database to get from.
- * @param index The index of the signal to get (as returned by @c canDatabaseFindSignal ).
+ * @param index The global index of the signal to get. Note that a local index can be transformed using the
+ *     @c canDatabaseGetGlobalIndex function.
  * @param value Buffer to write the data into.
  * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
  */
