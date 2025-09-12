@@ -8,10 +8,11 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
+#include "debug.h"
+#include "error_codes.h"
 #include "bms/bms.h"
 #include "can_device/can_device.h"
 #include "cjson/cjson_util.h"
-#include "error_codes.h"
 
 // Curses
 #ifdef __unix__
@@ -36,7 +37,7 @@
 void printPowerStats (int row, int column, bms_t* bms)
 {
 	float cellMin, cellMax, cellAvg;
-	bool cellsValid = bmsGetCellVoltageStats(bms, &cellMin, &cellMax, &cellAvg);
+	bool cellsValid = bmsGetCellVoltageStats (bms, &cellMin, &cellMax, &cellAvg);
 
 	float deltaMax, deltaAvg;
 	bool deltasValid = bmsGetCellDeltaStats (bms, &deltaMax, &deltaAvg);
@@ -54,15 +55,19 @@ void printPowerStats (int row, int column, bms_t* bms)
 	mvprintw (row + 0, column, "────────────────────");
 
 	mvprintw (row + 4, column, "────────────────────");
-	if (!*bms->packVoltageValid)
+
+	float packVoltage;
+	bool packVoltageValid = bmsGetPackVoltage (bms, &packVoltage) == CAN_DATABASE_VALID;
+
+	if (packVoltageValid)
+	{
+		mvprintw (row + 2, column, "Voltage: %-.2f V", packVoltage);
+	}
+	else
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
 		mvprintw (row + 2, column, "Voltage: -- V");
 		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-	else
-	{
-		mvprintw (row + 2, column, "Voltage: %-.2f V", *bms->packVoltage);
 	}
 
 	if (cellsValid)
@@ -81,15 +86,19 @@ void printPowerStats (int row, int column, bms_t* bms)
 	mvprintw (row + 0, column, "────────────────────");
 
 	mvprintw (row + 4, column, "────────────────────");
-	if (!*bms->packCurrentValid)
+
+	float packCurrent;
+	bool packCurrentValid = bmsGetPackCurrent (bms, &packCurrent) == CAN_DATABASE_VALID;
+
+	if (packCurrentValid)
+	{
+		mvprintw (row + 2, column, "Current: %-.2f A", packCurrent);
+	}
+	else
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
 		mvprintw (row + 2, column, "Current: -- A");
 		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-	else
-	{
-		mvprintw (row + 2, column, "Current: %-.2f A", *bms->packCurrent);
 	}
 
 	if (cellsValid)
@@ -108,15 +117,15 @@ void printPowerStats (int row, int column, bms_t* bms)
 
 	mvprintw (row + 4, column, "────────────────────");
 
-	if (!*bms->packVoltageValid || !*bms->packCurrentValid)
+	if (packVoltageValid && packCurrentValid)
+	{
+		mvprintw (row + 2, column, "Power: %-.2f W", packVoltage * packCurrent);
+	}
+	else
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
 		mvprintw (row + 2, column, "Power: -- W");
 		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-	else
-	{
-		mvprintw (row + 2, column, "Power: %-.2f W", *bms->packVoltage * *bms->packCurrent);
 	}
 
 	if (cellsValid)
@@ -209,7 +218,11 @@ void printPowerStats (int row, int column, bms_t* bms)
 
 void printVoltage (int row, int column, bms_t* bms, uint16_t index)
 {
-	if (!*bms->cellVoltagesValid [index] || !*bms->cellsDischargingValid [index])
+	float voltage;
+	bool discharging;
+
+	if (bmsGetCellVoltage (bms, index, &voltage) != CAN_DATABASE_VALID ||
+		bmsGetCellDischarging (bms, index, &discharging) != CAN_DATABASE_VALID)
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
 		mvprintw (row, column, "--");
@@ -217,11 +230,9 @@ void printVoltage (int row, int column, bms_t* bms, uint16_t index)
 		return;
 	}
 
-	float voltage = *bms->cellVoltages [index];
-	bool balancing = *bms->cellsDischarging [index];
 	bool voltageNominal = voltage >= bms->minCellVoltage && voltage <= bms->maxCellVoltage;
 
-	NCURSES_PAIRS_T color = voltageNominal ? (balancing ? COLOR_BALANCING : COLOR_VALID) : COLOR_INVALID;
+	NCURSES_PAIRS_T color = voltageNominal ? (discharging ? COLOR_BALANCING : COLOR_VALID) : COLOR_INVALID;
 
 	attron (COLOR_PAIR (color));
 	uint16_t voltageRounded = (uint16_t) roundf (voltage * 100);
@@ -234,95 +245,98 @@ void printVoltage (int row, int column, bms_t* bms, uint16_t index)
 
 void printTemperature (int row, int column, bms_t* bms, uint16_t index)
 {
-	if (bms->senseLineTemperatures [index] == NULL || bms->senseLineTemperaturesValid [index] == NULL)
-		return;
-
-	if (!*bms->senseLineTemperaturesValid [index])
+	float temperature;
+	switch (bmsGetSenseLineTemperature (bms, index, &temperature))
 	{
+	case CAN_DATABASE_MISSING:
+		break;
+
+	case CAN_DATABASE_TIMEOUT:
 		attron (COLOR_PAIR (COLOR_INVALID));
 		mvprintw (row, column, " --- ");
 		attroff (COLOR_PAIR (COLOR_INVALID));
-		return;
+		break;
+
+	case CAN_DATABASE_VALID:
+		bool temperatureNominal = temperature > bms->minTemperature && temperature < bms->maxTemperature;
+
+		NCURSES_PAIRS_T color = temperatureNominal ? COLOR_VALID : COLOR_INVALID;
+
+		attron (COLOR_PAIR (color));
+		mvprintw (row, column, "%.1fC", temperature);
+		attroff (COLOR_PAIR (color));
 	}
-
-	float temperature = *bms->senseLineTemperatures [index];
-	bool temperatureNominal = temperature > bms->minTemperature && temperature < bms->maxTemperature;
-
-	NCURSES_PAIRS_T color = temperatureNominal ? COLOR_VALID : COLOR_INVALID;
-
-	attron (COLOR_PAIR (color));
-	mvprintw (row, column, "%.1fC", temperature);
-	attroff (COLOR_PAIR (color));
 }
 
 void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t index)
 {
-	if (!*bms->senseLinesOpenValid [index])
+	bool open;
+	switch (bmsGetSenseLineOpen (bms, index, &open))
 	{
+	case CAN_DATABASE_MISSING:
+	case CAN_DATABASE_TIMEOUT:
 		attron (COLOR_PAIR (COLOR_INVALID));
 		mvprintw (row, column + 1, " - ");
 		attroff (COLOR_PAIR (COLOR_INVALID));
-		return;
-	}
+		break;
 
-	if (*bms->senseLinesOpen [index])
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " XXX ");
-		attroff (COLOR_PAIR (COLOR_INVALID));
+	case CAN_DATABASE_VALID:
+		if (open)
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (row, column, " XXX ");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
 }
 
 void printLtcIndex (int row, int column, bms_t* bms, uint16_t index)
 {
-	if (bms->ltcIsoSpiFaults [index] == NULL)
+	switch (bmsGetLtcState (bms, index))
 	{
-		mvprintw (row, column, "LTC %i", index);
-	}
-	else if (!*bms->ltcIsoSpiFaultsValid [index] || !*bms->ltcSelfTestFaultsValid [index])
-	{
+	case BMS_LTC_STATE_MISSING:
+		mvprintw (row, column, " LTC %i ", index);
+		break;
+	case BMS_LTC_STATE_TIMEOUT:
 		attron (COLOR_PAIR (COLOR_INVALID));
 		mvprintw (row, column, " LTC %i: CAN Timeout ", index);
 		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-	else
-	{
-		if (*bms->ltcIsoSpiFaults [index])
-		{
-			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (row, column, " LTC %i: IsoSPI Fault ", index);
-			attroff (COLOR_PAIR (COLOR_INVALID));
-		}
-		else if (*bms->ltcSelfTestFaults [index])
-		{
-			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (row, column, " LTC %i: Self-Test Fault ", index);
-			attroff (COLOR_PAIR (COLOR_INVALID));
-		}
-		else
-		{
-			attron (COLOR_PAIR (COLOR_VALID));
-			mvprintw (row, column, " LTC %i: Comms Okay ", index);
-			attroff (COLOR_PAIR (COLOR_VALID));
-		}
+		break;
+	case BMS_LTC_STATE_ISOSPI_FAULT:
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row, column, " LTC %i: IsoSPI Fault ", index);
+		attroff (COLOR_PAIR (COLOR_INVALID));
+		break;
+	case BMS_LTC_STATE_SELF_TEST_FAULT:
+		attron (COLOR_PAIR (COLOR_INVALID));
+		mvprintw (row, column, " LTC %i: Self-Test Fault ", index);
+		attroff (COLOR_PAIR (COLOR_INVALID));
+		break;
+	case BMS_LTC_STATE_OKAY:
+		attron (COLOR_PAIR (COLOR_VALID));
+		mvprintw (row, column, " LTC %i: Comms Okay ", index);
+		attroff (COLOR_PAIR (COLOR_VALID));
+		break;
 	}
 
-	if (bms->ltcTemperatures [index] != NULL)
+	float temperature;
+	switch (bmsGetLtcTemperature (bms, index, &temperature))
 	{
-		if (!*bms->ltcTemperaturesValid [index])
-		{
-			attron (COLOR_PAIR (COLOR_INVALID));
-			printw ("(-- C) ");
-			attron (COLOR_PAIR (COLOR_INVALID));
-		}
-		else
-		{
-			bool temperatureNominal = *bms->ltcTemperatures [index] < bms->maxLtcTemperature;
-			NCURSES_PAIRS_T color = temperatureNominal ? COLOR_VALID : COLOR_INVALID;
-			attron (COLOR_PAIR (color));
-			printw ("(%4.2f C) ", *bms->ltcTemperatures [index]);
-			attroff (COLOR_PAIR (color));
-		}
+	case CAN_DATABASE_MISSING:
+		break;
+
+	case CAN_DATABASE_TIMEOUT:
+		attron (COLOR_PAIR (COLOR_INVALID));
+		printw ("(-- C) ");
+		attron (COLOR_PAIR (COLOR_INVALID));
+		break;
+
+	case CAN_DATABASE_VALID:
+		bool temperatureNominal = temperature < bms->maxLtcTemperature;
+		NCURSES_PAIRS_T color = temperatureNominal ? COLOR_VALID : COLOR_INVALID;
+		attron (COLOR_PAIR (color));
+		printw ("(%4.2f C) ", temperature);
+		attroff (COLOR_PAIR (color));
 	}
 }
 
@@ -340,6 +354,8 @@ int main (int argc, char** argv)
 		fprintf (stderr, "Format: bms-tui <device name> <DBC file path> <config file path>\n");
 		return -1;
 	}
+
+	debugInit ();
 
 	char* deviceName = argv [1];
 	char* dbcPath = argv [2];

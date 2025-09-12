@@ -55,6 +55,8 @@ static size_t printSenseLineIndex (bms_t* bms, uint16_t segmentIndex, uint16_t l
 
 int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 {
+	bms->database = database;
+
 	// Get JSON config values
 
 	if (jsonGetUint16_t (config, "segmentCount", &bms->segmentCount) != 0)
@@ -87,11 +89,8 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 
 	// Get database references
 
-	bms->cellVoltages = malloc (sizeof (float*) * bms->cellCount);
-	bms->cellVoltagesValid = malloc (sizeof (bool*) * bms->cellCount);
-
-	bms->cellsDischarging = malloc (sizeof (float*) * bms->cellCount);
-	bms->cellsDischargingValid = malloc (sizeof (bool*) * bms->cellCount);
+	bms->cellVoltageIndices = malloc (sizeof (ssize_t) * bms->cellCount);
+	bms->cellsDischargingIndices = malloc (sizeof (ssize_t) * bms->cellCount);
 
 	for (uint16_t index = 0; index < bms->cellCount; ++index)
 	{
@@ -99,29 +98,21 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		size_t offset = printIndex (index, voltName + 13);
 		voltName [offset + 13] = '\0';
 
-		size_t signalIndex;
-		if (canDatabaseFindSignal (database, voltName, &signalIndex) != 0)
+		bms->cellVoltageIndices [index] = canDatabaseFindSignal (database, voltName);
+		if (bms->cellVoltageIndices [index] < 0)
 			return errno;
-
-		bms->cellVoltages [index]		= database->signalValues + signalIndex;
-		bms->cellVoltagesValid [index]	= database->signalsValid + signalIndex;
 
 		char disName [] = "CELL_BALANCING_###";
 		offset = printIndex (index, disName + 15);
 		disName [offset + 15] = '\0';
 
-		if (canDatabaseFindSignal (database, disName, &signalIndex) != 0)
+		bms->cellsDischargingIndices [index] = canDatabaseFindSignal (database, disName);
+		if (bms->cellsDischargingIndices [index] < 0)
 			return errno;
-
-		bms->cellsDischarging [index]		= database->signalValues + signalIndex;
-		bms->cellsDischargingValid [index]	= database->signalsValid + signalIndex;
 	}
 
-	bms->senseLineTemperatures = malloc (sizeof (float*) * bms->senseLineCount);
-	bms->senseLineTemperaturesValid = malloc (sizeof (bool*) * bms->senseLineCount);
-
-	bms->senseLinesOpen = malloc (sizeof (float*) * bms->senseLineCount);
-	bms->senseLinesOpenValid = malloc (sizeof (bool*) * bms->senseLineCount);
+	bms->senseLineTemperatureIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
+	bms->senseLinesOpenIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
 
 	for (uint16_t segmentIndex = 0; segmentIndex < bms->segmentCount; ++segmentIndex)
 	{
@@ -135,39 +126,22 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 				uint16_t offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, tempName + 11);
 				snprintf (tempName + 11 + offset, 13, "_TEMPERATURE");
 
-				size_t signalIndex;
-				if (canDatabaseFindSignal (database, tempName, &signalIndex) == 0)
-				{
-					bms->senseLineTemperatures [index]		= database->signalValues + signalIndex;
-					bms->senseLineTemperaturesValid [index] = database->signalsValid + signalIndex;
-				}
-				else
-				{
-					bms->senseLineTemperatures [index]		= NULL;
-					bms->senseLineTemperaturesValid [index]	= NULL;
-				}
+				bms->senseLineTemperatureIndices [index] = canDatabaseFindSignal (database, tempName);
 
 				char openName [] = "SENSE_LINE_###_##_OPEN";
 				offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, openName + 11);
 				snprintf (openName + 11 + offset, 6, "_OPEN");
 
-				if (canDatabaseFindSignal (database, openName, &signalIndex) != 0)
+				bms->senseLinesOpenIndices [index] = canDatabaseFindSignal (database, openName);
+				if (bms->senseLinesOpenIndices [index] < 0)
 					return errno;
-
-				bms->senseLinesOpen [index]			= database->signalValues + signalIndex;
-				bms->senseLinesOpenValid [index]	= database->signalsValid + signalIndex;
 			}
 		}
 	}
 
-	bms->ltcIsoSpiFaults = malloc (sizeof (float*) * bms->ltcsPerSegment * bms->segmentCount);
-	bms->ltcIsoSpiFaultsValid = malloc (sizeof (bool*) * bms->ltcsPerSegment * bms->segmentCount);
-
-	bms->ltcSelfTestFaults = malloc (sizeof (float*) * bms->ltcsPerSegment * bms->segmentCount);
-	bms->ltcSelfTestFaultsValid = malloc (sizeof (bool*) * bms->ltcsPerSegment * bms->segmentCount);
-
-	bms->ltcTemperatures = malloc (sizeof (float*) * bms->ltcsPerSegment * bms->segmentCount);
-	bms->ltcTemperaturesValid = malloc (sizeof (bool*) * bms->ltcsPerSegment * bms->segmentCount);
+	bms->ltcIsoSpiFaultIndices = malloc (sizeof (ssize_t) * bms->ltcsPerSegment * bms->segmentCount);
+	bms->ltcSelfTestFaultIndices = malloc (sizeof (ssize_t) * bms->ltcsPerSegment * bms->segmentCount);
+	bms->ltcTemperatureIndices = malloc (sizeof (ssize_t) * bms->ltcsPerSegment * bms->segmentCount);
 
 	for (uint16_t segmentIndex = 0; segmentIndex < bms->segmentCount; ++segmentIndex)
 	{
@@ -179,64 +153,89 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			uint16_t offset = printIndex (index, isoSpiName + 8);
 			snprintf (isoSpiName + 8 + offset, 14, "_ISOSPI_FAULT");
 
-			size_t signalIndex;
-			if (canDatabaseFindSignal (database, isoSpiName, &signalIndex) == 0)
-			{
-				bms->ltcIsoSpiFaults [index]		= database->signalValues + signalIndex;
-				bms->ltcIsoSpiFaultsValid [index]	= database->signalsValid + signalIndex;
-			}
-			else
-			{
-				bms->ltcIsoSpiFaults [index]		= NULL;
-				bms->ltcIsoSpiFaultsValid [index]	= NULL;
-			}
+			bms->ltcIsoSpiFaultIndices [index] = canDatabaseFindSignal (database, isoSpiName);
 
 			char selfTestName [] = "BMS_LTC_###_SELF_TEST_FAULT";
 			offset = printIndex (index, selfTestName + 8);
 			snprintf (selfTestName + 8 + offset, 17, "_SELF_TEST_FAULT");
 
-			if (canDatabaseFindSignal (database, selfTestName, &signalIndex) == 0)
-			{
-				bms->ltcSelfTestFaults [index]		= database->signalValues + signalIndex;
-				bms->ltcSelfTestFaultsValid [index]	= database->signalsValid + signalIndex;
-			}
-			else
-			{
-				bms->ltcSelfTestFaults [index]		= NULL;
-				bms->ltcSelfTestFaultsValid [index]	= NULL;
-			}
+			bms->ltcSelfTestFaultIndices [index] = canDatabaseFindSignal (database, selfTestName);
 
 			char temperatureName [] = "BMS_LTC_###_TEMPERATURE";
 			offset = printIndex (index, temperatureName + 8);
 			snprintf (temperatureName + 8 + offset, 13, "_TEMPERATURE");
 
-			if (canDatabaseFindSignal (database, temperatureName, &signalIndex) == 0)
-			{
-				bms->ltcTemperatures [index]		= database->signalValues + signalIndex;
-				bms->ltcTemperaturesValid [index]	= database->signalsValid + signalIndex;
-			}
-			else
-			{
-				bms->ltcTemperatures [index]		= NULL;
-				bms->ltcTemperaturesValid [index]	= NULL;
-			}
+			bms->ltcTemperatureIndices [index] = canDatabaseFindSignal (database, temperatureName);
 		}
 	}
 
-	size_t signalIndex;
-	if (canDatabaseFindSignal (database, "PACK_VOLTAGE", &signalIndex) != 0)
+	bms->packVoltageIndex = canDatabaseFindSignal (database, "PACK_VOLTAGE");
+	if (bms->packVoltageIndex < 0)
 		return errno;
 
-	bms->packVoltage = database->signalValues + signalIndex;
-	bms->packVoltageValid = database->signalsValid + signalIndex;
-
-	if (canDatabaseFindSignal (database, "PACK_CURRENT", &signalIndex) != 0)
+	bms->packCurrentIndex = canDatabaseFindSignal (database, "PACK_CURRENT");
+	if (bms->packCurrentIndex < 0)
 		return errno;
-
-	bms->packCurrent = database->signalValues + signalIndex;
-	bms->packCurrentValid = database->signalsValid + signalIndex;
 
 	return 0;
+}
+
+canDatabaseSignalState_t bmsGetPackVoltage (bms_t* bms, float* voltage)
+{
+	return canDatabaseGetFloat (bms->database, bms->packVoltageIndex, voltage);
+}
+
+canDatabaseSignalState_t bmsGetPackCurrent (bms_t* bms, float* current)
+{
+	return canDatabaseGetFloat (bms->database, bms->packCurrentIndex, current);
+}
+
+canDatabaseSignalState_t bmsGetCellVoltage (bms_t* bms, size_t index, float* voltage)
+{
+	return canDatabaseGetFloat (bms->database, bms->cellVoltageIndices [index], voltage);
+}
+
+canDatabaseSignalState_t bmsGetCellDischarging (bms_t* bms, size_t index, bool* discharging)
+{
+	return canDatabaseGetBool (bms->database, bms->cellsDischargingIndices [index], discharging);
+}
+
+canDatabaseSignalState_t bmsGetSenseLineTemperature (bms_t* bms, size_t index, float* temperature)
+{
+	return canDatabaseGetFloat (bms->database, bms->senseLineTemperatureIndices [index], temperature);
+}
+
+canDatabaseSignalState_t bmsGetSenseLineOpen (bms_t* bms, size_t index, bool* open)
+{
+	return canDatabaseGetBool (bms->database, bms->senseLinesOpenIndices [index], open);
+}
+
+bmsLtcState_t bmsGetLtcState (bms_t* bms, size_t index)
+{
+	bool isoSpiFault;
+	bool selfTestFault;
+
+	// TODO(Barach): How to manage this?
+
+	// If either fault signal has timed out, return timeout
+	if (canDatabaseGetBool (bms->database, bms->ltcIsoSpiFaultIndices [index], &isoSpiFault) != CAN_DATABASE_VALID)
+		return BMS_LTC_STATE_TIMEOUT;
+	if (canDatabaseGetBool (bms->database, bms->ltcSelfTestFaultIndices [index], &selfTestFault) != CAN_DATABASE_VALID)
+		return BMS_LTC_STATE_TIMEOUT;
+
+	// IsoSPI fault is higher importance than self-test fault.
+	if (isoSpiFault)
+		return BMS_LTC_STATE_ISOSPI_FAULT;
+	if (selfTestFault)
+		return BMS_LTC_STATE_SELF_TEST_FAULT;
+
+	// No faults
+	return BMS_LTC_STATE_OKAY;
+}
+
+canDatabaseSignalState_t bmsGetLtcTemperature (bms_t* bms, size_t index, float* temperature)
+{
+	return canDatabaseGetFloat (bms->database, bms->ltcTemperatureIndices [index], temperature);
 }
 
 bool bmsGetCellVoltageStats (bms_t* bms, float* min, float* max, float* avg)
@@ -255,12 +254,12 @@ bool bmsGetCellVoltageStats (bms_t* bms, float* min, float* max, float* avg)
 
 	for (size_t index = 0; index < bms->cellsPerLtc * bms->ltcsPerSegment * bms->segmentCount; ++index)
 	{
-		if (!*bms->cellVoltagesValid [index])
+		float cell;
+		if (canDatabaseGetFloat (bms->database, bms->cellVoltageIndices [index], &cell) != CAN_DATABASE_VALID)
 			continue;
 
 		valid = true;
 		++count;
-		float cell = *bms->cellVoltages [index];
 
 		if (min != NULL && cell < *min)
 			*min = cell;
@@ -296,12 +295,13 @@ bool bmsGetCellDeltaStats (bms_t* bms, float* max, float* avg)
 
 	for (size_t index = 0; index < bms->cellsPerLtc * bms->ltcsPerSegment * bms->segmentCount; ++index)
 	{
-		if (!*bms->cellVoltagesValid [index])
+		float cell;
+		if (canDatabaseGetFloat (bms->database, bms->cellVoltageIndices [index], &cell) != CAN_DATABASE_VALID)
 			continue;
 
+		float delta = cell - min;
 		valid = true;
 		++count;
-		float delta = *bms->cellVoltages [index] - min;
 
 		if (max != NULL && delta > *max)
 			*max = delta;
@@ -332,12 +332,12 @@ bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg)
 
 	for (size_t index = 0; index < bms->senseLinesPerLtc * bms->ltcsPerSegment * bms->segmentCount; ++index)
 	{
-		if (bms->senseLineTemperatures [index] == NULL || !*bms->senseLineTemperaturesValid [index])
+		float temp;
+		if (canDatabaseGetFloat (bms->database, bms->senseLineTemperatureIndices [index], &temp) != CAN_DATABASE_VALID)
 			continue;
 
 		valid = true;
 		++count;
-		float temp = *bms->senseLineTemperatures [index];
 
 		if (min != NULL && temp < *min)
 			*min = temp;
