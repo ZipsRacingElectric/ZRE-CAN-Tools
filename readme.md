@@ -58,8 +58,9 @@ This program is used to monitor a battery management system in real-time.
                         setup. Ex. 'can0'.
     vcan*             - Virtual SocketCAN device, must be already initialized
                         and setup.
-    COM*@<baud>       - SLCAN device, must be a CANable device. CAN baudrate is
-                        indicated by the baud field. Ex 'COM3@1000000'.
+    <port>@<baud>     - SLCAN device, must be a CANable device. CAN baudrate is
+                        indicated by the baud field. Ex 'COM3@1000000' for
+                        Windows and '/dev/ttyACM0@1000000' for Linux.
 <DBC file path>       - The path to the DBC file to use.
 <config JSON path>    - The configuration JSON file to use. Configuration files
                         indicate the identity and unit-specific parameters of
