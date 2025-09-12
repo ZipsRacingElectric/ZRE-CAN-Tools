@@ -4,14 +4,14 @@
 echoerr() { printf "%s\n" "$*" >&2; }
 
 # Check args
-if [[ $1 == "" ]]; then
+if [ "$1" = "" ]; then
 	echoerr "Invalid arguments. Usage:"
 	echoerr "  init-can <Baud> <Device>"
 	exit -1
 fi
 
 # No device specified, attempt SLCAN enumeration
-if [[ $2 == "" ]]; then
+if [ "$2" = "" ]; then
 
 	# Enumerate all potential serial devices
 	DEVICES=$(ls /dev | grep 'ttyACM.\|ttyUSB.\|ttyS.')
@@ -19,7 +19,7 @@ if [[ $2 == "" ]]; then
 	for DEVICE in $DEVICES; do
 
 		# Based on the OS, get the device name
-		if [[ $OSTYPE == "msys" ]]; then
+		if [ "$OS" = "Windows_NT" ]; then
 			# Windows, convert ttyS* to COM*
 			DEVICE=$(echo $DEVICE | tr -d -c 0-9)
 			DEVICE=COM$(($DEVICE + 1))
@@ -39,17 +39,17 @@ if [[ $2 == "" ]]; then
 	exit -1
 
 # SLCAN devices
-elif [[ $2 == /dev/tty* ]]; then
+elif [ "$2" = /dev/tty* ]; then
 
 	# Postfix baudrate to device name
 	echo $2@$1
 	exit 0
 
 # SocketCAN devices
-elif [[ $2 == can* ]] || [[ $2 == vcan* ]]; then
+elif [ "$2" == can* ] || [ "$2" == vcan* ]; then
 
 	# Check user permissions, root is required
-	if [[ $(/usr/bin/id -u) -ne 0 ]]; then
+	if [ $(/usr/bin/id -u) -ne 0 ]; then
 		# Standard permissions, use sudo
 		IP_CMD="sudo ip"
 	else
@@ -58,7 +58,7 @@ elif [[ $2 == can* ]] || [[ $2 == vcan* ]]; then
 	fi
 
 	# Determine device arguments
-	if [[ $2 == can* ]]; then
+	if [ "$2" == can* ]; then
 		IP_ARGS="type can bitrate $1"
 	else
 		IP_ARGS=""
