@@ -20,6 +20,7 @@ call :createMenuShortcut glory-bms-view-vehicle
 call :createMenuShortcut glory-can-charger
 call :createMenuShortcut glory-can-vehicle
 call :createMenuShortcut glory-vcu-vehicle
+call :createMenuShortcut glory-drs-vehicle
 goto :eof
 
 :: Function for creating a shortcut
