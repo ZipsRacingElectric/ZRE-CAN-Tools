@@ -1,6 +1,9 @@
 // Header
 #include "slcan.h"
 
+// Includes
+#include "error_codes.h"
+
 // SerialCAN
 #define OPTION_CANAPI_DRIVER  1
 #include "can_api.h"
@@ -11,9 +14,6 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
-// TODO(Barach)
-#include "error_codes.h"
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -29,9 +29,11 @@ typedef struct
 
 bool slcanNameDomain (const char* name)
 {
+	// POSIX device format
 	if (strncmp("/dev/tty", name, strlen ("/dev/tty")) == 0)
 		return true;
 
+	// Windows device format
 	if (strncmp("COM", name, strlen ("COM")) == 0)
 		return true;
 
@@ -66,6 +68,7 @@ canDevice_t* slcanInit (char* name)
 	int handle = can_init (CAN_BOARD (CANLIB_SERIALCAN, CANDEV_SERIAL), CANMODE_DEFAULT, (const void*) &port);
 	if (handle < 0)
 	{
+		// Offset the error code to match this project's convention.
 		errno = handle + 10000;
 		return NULL;
 	}
@@ -99,6 +102,7 @@ canDevice_t* slcanInit (char* name)
 	int code = can_start (handle, &bitrate);
 	if (code < 0)
 	{
+		// Offset the error code to match this project's convention.
 		errno = code + 10000;
 		return NULL;
 	}
@@ -140,6 +144,7 @@ int slcanTransmit (void* device, canFrame_t* frame)
 	int code = can_write (can->handle, &message, can->timeoutMs);
 	if (code != 0)
 	{
+		// Offset the error code to match this project's convention.
 		errno = code + 10000;
 		return errno;
 	}
@@ -155,6 +160,7 @@ int slcanReceive (void* device, canFrame_t* frame)
 	int code = can_read (can->handle, &message, can->timeoutMs);
 	if (code != 0)
 	{
+		// Offset the error code to match this project's convention.
 		errno = code + 10000;
 		return errno;
 	}

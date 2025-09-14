@@ -1,30 +1,55 @@
 #ifndef ERROR_CODES_H
 #define ERROR_CODES_H
 
-// Includes -------------------------------------------------------------------------------------------------------------------
-
-// C Standard Library
-#include <string.h>
-
 // Error Values ---------------------------------------------------------------------------------------------------------------
 
 // Note these must be mutally exclusive with errno values, and therefore start with an absurd offset (1024). While there is no
 // guarantee errno doesn't use these values, it is incredibly unlikely.
 
-#define ERRNO_CAN_DBC_MESSAGE_COUNT				1024
-#define ERRNO_CAN_DBC_SIGNAL_COUNT				1025
-#define ERRNO_CAN_DBC_MESSAGE_MISSING			1026
+// Includes -------------------------------------------------------------------------------------------------------------------
 
-#define ERRNO_OS_NOT_SUPPORTED					1030
-#define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1031
-#define ERRNO_CAN_DEVICE_BAD_TIMEOUT			1032
+// C Standard Library
+#include <string.h>
 
-#define ERRNO_CAN_DATABASE_SIGNAL_MISSING		1048
+// General Errors -------------------------------------------------------------------------------------------------------------
+
+#define ERRNO_OS_NOT_SUPPORTED					1024
+
+#define ERRMSG_OS_NOT_SUPPORTED					"The attempted operation is not supported on this operating system"
+
+// can_device Module ----------------------------------------------------------------------------------------------------------
+
+#define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1025
+#define ERRNO_CAN_DEVICE_BAD_TIMEOUT			1026
+
+#define ERRMSG_CAN_DEVICE_UNKNOWN_NAME			"The device name does not belong to any known CAN device"
+#define ERRMSG_CAN_DEVICE_BAD_TIMEOUT			"The specified timeout is not possible"
+
+// can_database Module --------------------------------------------------------------------------------------------------------
+
+#define ERRNO_CAN_DBC_MESSAGE_COUNT				1048
+#define ERRNO_CAN_DBC_SIGNAL_COUNT				1049
+#define ERRNO_CAN_DBC_MESSAGE_MISSING			1050
+#define ERRNO_CAN_DATABASE_SIGNAL_MISSING		1051
+
+#define ERRMSG_CAN_DBC_MESSAGE_COUNT			"The DBC file exceeds the maximum number of CAN messages"
+#define ERRMSG_CAN_DBC_SIGNAL_COUNT				"The DBC file exceeds the maximum number of CAN signals"
+#define ERRMSG_CAN_DBC_MESSAGE_MISSING			"The DBC file contains a signal before the first message"
+#define ERRMSG_CAN_DATABASE_SIGNAL_MISSING		"No such signal in database"
+
+// cjson Module ---------------------------------------------------------------------------------------------------------------
 
 #define ERRNO_CJSON_EOF							1280
 #define ERRNO_CJSON_PARSE_FAIL					1281
 #define ERRNO_CJSON_MISSING_KEY					1282
 #define ERRNO_CJSON_MAX_SIZE					1283
+
+#define ERRMSG_CJSON_EOF						"Unexpected end of JSON data"
+#define ERRMSG_CJSON_PARSE_FAIL					"Invalid JSON data"
+#define ERRMSG_CJSON_MISSING_KEY				"Missing JSON key"
+#define ERRMSG_CJSON_MAX_SIZE					"The JSON file exceeds the maximum size"
+
+// can_eeprom Module ----------------------------------------------------------------------------------------------------------
 
 #define ERRNO_CAN_EEPROM_INVALID_TYPE			1536
 #define ERRNO_CAN_EEPROM_INVALID_MODE			1537
@@ -38,7 +63,23 @@
 #define ERRNO_CAN_EEPROM_READ_ONLY				1545
 #define ERRNO_CAN_EEPROM_WRITE_ONLY				1546
 
-// These error codes are defined by the SerialCAN library.
+#define ERRMSG_CAN_EEPROM_INVALID_TYPE			"Invalid EEPROM variable type"
+#define ERRMSG_CAN_EEPROM_INVALID_MODE			"Invalid EEPROM variable mode"
+#define ERRMSG_CAN_EEPROM_READ_TIMEOUT			"EEPROM read operation timed out"
+#define ERRMSG_CAN_EEPROM_WRITE_TIMEOUT			"EEPROM write operation timed out"
+#define ERRMSG_CAN_EEPROM_MALFORMED_RESPONSE	"Received malformed EEPROM response"
+#define ERRMSG_CAN_EEPROM_BAD_RESPONSE_ID		"Received an EEPROM response with the incorrect message ID"
+#define ERRMSG_CAN_EEPROM_BAD_KEY				"EEPROM data JSON contains an invalid key"
+#define ERRMSG_CAN_EEPROM_BAD_VALUE				"EEPROM data JSON contains an invalid value"
+#define ERRMSG_CAN_EEPROM_BAD_DIMENSION			"EEPROM data JSON contains a matrix of the incorrect dimension"
+#define ERRMSG_CAN_EEPROM_READ_ONLY				"Attempting to write to a read-only variable"
+#define ERRMSG_CAN_EEPROM_WRITE_ONLY			"Attempting to read from a write-only variable"
+
+// serial_can Module ----------------------------------------------------------------------------------------------------------
+// - These error codes are all defined by the SerialCAN library, their values cannot be changed. Note that SerialCAN defines
+//   these as negative, however the can_device wrapper offsets these by 10000 to make the errors line up with standard errno
+//   values.
+
 #define ERRNO_SLCAN_BOFF						9999
 #define ERRNO_SLCAN_EWRN						9998
 #define ERRNO_SLCAN_BERR						9997
@@ -69,35 +110,6 @@
 #define ERRNO_SLCAN_NOTSUPP						9902
 #define ERRNO_SLCAN_FATAL						9901
 #define ERRNO_SLCAN_VENDOR						9900
-
-// Error Messages -------------------------------------------------------------------------------------------------------------
-
-#define ERRMSG_CAN_DBC_MESSAGE_COUNT			"The DBC file exceeds the maximum number of CAN messages"
-#define ERRMSG_CAN_DBC_SIGNAL_COUNT				"The DBC file exceeds the maximum number of CAN signals"
-#define ERRMSG_CAN_DBC_MESSAGE_MISSING			"The DBC file contains a signal before the first message"
-
-#define ERRMSG_OS_NOT_SUPPORTED					"The attempted operation is not supported on this operating system"
-#define ERRMSG_CAN_DEVICE_UNKNOWN_NAME			"The device name does not belong to any known CAN device"
-#define ERRMSG_CAN_DEVICE_BAD_TIMEOUT			"The specified timeout is not possible"
-
-#define ERRMSG_CAN_DATABASE_SIGNAL_MISSING		"No such signal in database"
-
-#define ERRMSG_CJSON_EOF						"Unexpected end of JSON data"
-#define ERRMSG_CJSON_PARSE_FAIL					"Invalid JSON data"
-#define ERRMSG_CJSON_MISSING_KEY				"Missing JSON key"
-#define ERRMSG_CJSON_MAX_SIZE					"The JSON file exceeds the maximum size"
-
-#define ERRMSG_CAN_EEPROM_INVALID_TYPE			"Invalid EEPROM variable type"
-#define ERRMSG_CAN_EEPROM_INVALID_MODE			"Invalid EEPROM variable mode"
-#define ERRMSG_CAN_EEPROM_READ_TIMEOUT			"EEPROM read operation timed out"
-#define ERRMSG_CAN_EEPROM_WRITE_TIMEOUT			"EEPROM write operation timed out"
-#define ERRMSG_CAN_EEPROM_MALFORMED_RESPONSE	"Received malformed EEPROM response"
-#define ERRMSG_CAN_EEPROM_BAD_RESPONSE_ID		"Received an EEPROM response with the incorrect message ID"
-#define ERRMSG_CAN_EEPROM_BAD_KEY				"EEPROM data JSON contains an invalid key"
-#define ERRMSG_CAN_EEPROM_BAD_VALUE				"EEPROM data JSON contains an invalid value"
-#define ERRMSG_CAN_EEPROM_BAD_DIMENSION			"EEPROM data JSON contains a matrix of the incorrect dimension"
-#define ERRMSG_CAN_EEPROM_READ_ONLY				"Attempting to write to a read-only variable"
-#define ERRMSG_CAN_EEPROM_WRITE_ONLY			"Attempting to read from a write-only variable"
 
 #define ERRMSG_SLCAN_BOFF						"CAN busoff status"
 #define ERRMSG_SLCAN_EWRN						"CAN error warning status"
@@ -136,23 +148,27 @@ static inline const char* errorMessage (int errorCode)
 {
 	switch (errorCode)
 	{
+	// General Errors
+	case ERRNO_OS_NOT_SUPPORTED:
+		return ERRMSG_OS_NOT_SUPPORTED;
+
+	// can_device module
+	case ERRNO_CAN_DEVICE_UNKNOWN_NAME:
+		return ERRMSG_CAN_DEVICE_UNKNOWN_NAME;
+	case ERRNO_CAN_DEVICE_BAD_TIMEOUT:
+		return ERRMSG_CAN_DEVICE_BAD_TIMEOUT;
+
+	// can_database module
 	case ERRNO_CAN_DBC_MESSAGE_COUNT:
 		return ERRMSG_CAN_DBC_MESSAGE_COUNT;
 	case ERRNO_CAN_DBC_SIGNAL_COUNT:
 		return ERRMSG_CAN_DBC_SIGNAL_COUNT;
 	case ERRNO_CAN_DBC_MESSAGE_MISSING:
 		return ERRMSG_CAN_DBC_MESSAGE_MISSING;
-
-	case ERRNO_OS_NOT_SUPPORTED:
-		return ERRMSG_OS_NOT_SUPPORTED;
-	case ERRNO_CAN_DEVICE_UNKNOWN_NAME:
-		return ERRMSG_CAN_DEVICE_UNKNOWN_NAME;
-	case ERRNO_CAN_DEVICE_BAD_TIMEOUT:
-		return ERRMSG_CAN_DEVICE_BAD_TIMEOUT;
-
 	case ERRNO_CAN_DATABASE_SIGNAL_MISSING:
 		return ERRMSG_CAN_DATABASE_SIGNAL_MISSING;
 
+	// cjson module
 	case ERRNO_CJSON_EOF:
 		return ERRMSG_CJSON_EOF;
 	case ERRNO_CJSON_PARSE_FAIL:
@@ -162,6 +178,7 @@ static inline const char* errorMessage (int errorCode)
 	case ERRNO_CJSON_MAX_SIZE:
 		return ERRMSG_CJSON_MAX_SIZE;
 
+	// can_eeprom module
 	case ERRNO_CAN_EEPROM_INVALID_TYPE:
 		return ERRMSG_CAN_EEPROM_INVALID_TYPE;
 	case ERRNO_CAN_EEPROM_INVALID_MODE:
@@ -185,6 +202,7 @@ static inline const char* errorMessage (int errorCode)
 	case ERRNO_CAN_EEPROM_WRITE_ONLY:
 		return ERRMSG_CAN_EEPROM_WRITE_ONLY;
 
+	// serial_can module
 	case ERRNO_SLCAN_BOFF:
 		return ERRMSG_SLCAN_BOFF;
 	case ERRNO_SLCAN_EWRN:
