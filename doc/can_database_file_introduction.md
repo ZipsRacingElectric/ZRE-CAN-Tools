@@ -19,3 +19,8 @@ If the value 0x190 was received, it would correlate to 400, which is then scaled
 The next signal, named "TEMP_1", starts immediately after the last signal at bit 10. Like the last signal, this one extends 10 bits, putting the end at bit 19. The remaining signals continue like this, up until bit 59, which is the last used bit of the payload.
 
 The "CAN signal preview" section of the CSS DBC editor lets you experiment with conversions. The "Data (HEX)" column lets you input different bytes representing the payload. The selected CAN signal is highlighted showing what portion of the payload it occupies. The raw value after masking the remainder of the payload is shown by the "Data = ..." field. The scale factor and offset conversion is shown by the "Physical value = ..." field.
+
+## Useful DBC Files
+All DBC files for Zips Racing's vehicles are located in the [../config](../config/) directory.
+
+For example the DBC file documenting the main CAN bus of ZR25 is located at [../config/zr25_glory/can_vehicle.dbc](../config/zr25_glory/can_vehicle.dbc)
