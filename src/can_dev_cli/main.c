@@ -80,10 +80,7 @@ int main (int argc, char** argv)
 	for (int index = 1; index < argc - 1; ++ index)
 	{
 		if (strcmp (argv [index], "-q") == 0)
-		{
 			queryMode = true;
-			break;
-		}
 	}
 
 	canDevice_t* device = canInit (deviceName);
