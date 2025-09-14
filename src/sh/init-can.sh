@@ -1,4 +1,5 @@
 #!/bin/sh
+# TODO(Barach): This likely isn't safe with spaces in path
 
 # Helper for printing to stderr (stdout is used for return value).
 echoerr() { printf "%s\n" "$*" >&2; }

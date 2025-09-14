@@ -1,5 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
+:: TODO(Barach): This isn't safe with spaces in path
 
 :: Check args
 if "%~1"=="" (
