@@ -113,222 +113,246 @@
 		},
 		{
 			"address":	"0x0034",
+			"name":		"REGEN_TORQUE_LIMIT",
+			"type":		"float",
+			"comment":	"The cumulative regenerative (negative) torque limit, in Nm."
+		},
+		{
+			"address":	"0x0038",
 			"name":		"TORQUE_ALGORITHM_INDEX",
 			"type":		"uint16_t",
 			"comment":	"The index of the torque-vectoring algorithm to use. 0 => Straight-diff, 1 => Linear-steering, 2 => Linear-steering Slalom, 3 => Single-tire-fire (left), 4 => Single-tire-fire (right)."
 		},
 		{
-			"address":	"0x0038",
+			"address":	"0x003C",
 			"name":		"POWER_LIMIT",
 			"type":		"float",
 			"comment":	"The cumulative power limit of the vehicle, in W."
 		},
 		{
-			"address":	"0x003C",
+			"address":	"0x0040",
 			"name":		"POWER_LIMIT_PID_KP",
 			"type":		"float",
 			"comment":	"The proportional coefficient of the power limit PID, in 1/W."
 		},
 		{
-			"address":	"0x0040",
+			"address":	"0x0044",
 			"name":		"POWER_LIMIT_PID_KI",
 			"type":		"float",
 			"comment":	"The integral coefficient of the power limit PID, in 1/Ws."
 		},
 		{
-			"address":	"0x0044",
+			"address":	"0x0048",
 			"name":		"POWER_LIMIT_PID_KD",
 			"type":		"float",
 			"comment":	"The derivative coefficient of the power limit PID, in s/W."
 		},
 		{
-			"address":	"0x0048",
+			"address":	"0x004C",
 			"name":		"POWER_LIMIT_PID_A",
 			"type":		"float",
 			"comment":	"The measurement gain of the power limit PID, in range [0, 1)"
 		},
 		{
-			"address":	"0x004C",
+			"address":	"0x0050",
 			"name":		"GLV_BATTERY_SAMPLE_11V5",
 			"type":		"uint16_t",
 			"comment":	"The ADC sample of the GLV battery at 11.5V."
 		},
 		{
-			"address":	"0x004E",
+			"address":	"0x0052",
 			"name":		"GLV_BATTERY_SAMPLE_14V4",
 			"type":		"uint16_t",
 			"comment":	"The ADC sample of the GLV battery at 14.4V."
 		},
 		{
-			"address":	"0x0050",
+			"address":	"0x0060",
 			"name":		"SAS_SAMPLE_OFFSET",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the zero position, minus 2048."
 		},
 		{
-			"address":	"0x0052",
+			"address":	"0x0062",
 			"name":		"SAS_SAMPLE_NEGATIVE",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the negative-most position."
 		},
 		{
-			"address":	"0x0054",
+			"address":	"0x0064",
 			"name":		"SAS_SAMPLE_POSITIVE",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the positive-most position."
 		},
 		{
-			"address":	"0x0058",
+			"address":	"0x0068",
 			"name":		"SAS_ANGLE_NEGATIVE",
 			"type":		"float",
 			"comment":	"The steering angle of the vehicle at the negative-most position."
 		},
 		{
-			"address":	"0x005C",
+			"address":	"0x006C",
 			"name":		"SAS_ANGLE_POSITIVE",
 			"type":		"float",
 			"comment":	"The steering angle of the vehicle at the positive-most position."
 		},
 		{
-			"address":	"0x0060",
+			"address":	"0x0070",
 			"name":		"SAS_DEADZONE_RANGE",
 			"type":		"float",
 			"comment":	"The range of the steering angle deadzone, centered around the zero position."
 		},
 		{
-			"address":	"0x0064",
-			"name":		"SD_FR_BIAS",
+			"address":	"0x0074",
+			"name":		"SD_DRIVING_FR_BIAS",
 			"type":		"float",
 			"comment":	"The front-to-rear bias of the straight-diff algorithm (1 => 100% rear, 0 => 100% front)."
 		},
 		{
-			"address":	"0x0068",
-			"name":		"SD_LR_BIAS",
+			"address":	"0x0078",
+			"name":		"SD_DRIVING_LR_BIAS",
 			"type":		"float",
 			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
 		},
 		{
-			"address":	"0x006C",
-			"name":		"LS_WHEEL_SPEED_BIAS_BEGIN",
+			"address":	"0x007C",
+			"name":		"SD_REGEN_FR_BIAS",
 			"type":		"float",
-			"comment":	"The wheel speed at which the front-to-rear bias starts shifting from the beginning value."
+			"comment":	"The front-to-rear bias of the straight-diff algorithm (1 => 100% rear, 0 => 100% front)."
 		},
 		{
-			"address":	"0x0070",
-			"name":		"LS_WHEEL_SPEED_BIAS_END",
+			"address":	"0x0080",
+			"name":		"SD_REGEN_LR_BIAS",
 			"type":		"float",
-			"comment":	"The wheel speed at which the front-to-rear bias stops shifting to the end value."
+			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
 		},
 		{
-			"address":	"0x0074",
+			"address":	"0x0084",
+			"name":		"LS_MOTOR_SPEED_BIAS_BEGIN",
+			"type":		"float",
+			"comment":	"The motor speed at which the front-to-rear bias starts shifting from the beginning value."
+		},
+		{
+			"address":	"0x0088",
+			"name":		"LS_MOTOR_SPEED_BIAS_END",
+			"type":		"float",
+			"comment":	"The motor speed at which the front-to-rear bias stops shifting to the end value."
+		},
+		{
+			"address":	"0x008C",
 			"name":		"LS_FR_BIAS_BEGIN",
 			"type":		"float",
-			"comment":	"The front-to-rear bias at the beginning wheel speed."
+			"comment":	"The front-to-rear bias at the beginning motor speed."
 		},
 		{
-			"address":	"0x0078",
+			"address":	"0x0090",
 			"name":		"LS_FR_BIAS_END",
 			"type":		"float",
-			"comment":	"The front-to-rear bias at the ending wheel speed."
+			"comment":	"The front-to-rear bias at the ending motor speed."
 		},
 		{
-			"address":	"0x007C",
+			"address":	"0x0094",
 			"name":		"LS_STEERING_ANGLE_BEGIN",
 			"type":		"float",
 			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
 		},
 		{
-			"address":	"0x0080",
+			"address":	"0x0098",
 			"name":		"LS_STEERING_ANGLE_END",
 			"type":		"float",
 			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
 		},
 		{
-			"address":	"0x0084",
+			"address":	"0x009C",
 			"name":		"LS_LR_BIAS_END",
 			"type":		"float",
 			"comment":	"The left-to-right bias at the ending steering angle."
 		},
 		{
-			"address":	"0x0088",
-			"name":		"LSS_WHEEL_SPEED_BIAS_BEGIN",
+			"address":	"0x00A0",
+			"name":		"LSS_MOTOR_SPEED_BIAS_BEGIN",
 			"type":		"float",
-			"comment":	"The wheel speed at which the front-to-rear bias starts shifting from the beginning value."
+			"comment":	"The motor speed at which the front-to-rear bias starts shifting from the beginning value."
 		},
 		{
-			"address":	"0x008C",
-			"name":		"LSS_WHEEL_SPEED_BIAS_END",
+			"address":	"0x00A4",
+			"name":		"LSS_MOTOR_SPEED_BIAS_END",
 			"type":		"float",
-			"comment":	"The wheel speed at which the front-to-rear bias stops shifting to the end value."
+			"comment":	"The motor speed at which the front-to-rear bias stops shifting to the end value."
 		},
 		{
-			"address":	"0x0090",
+			"address":	"0x00A8",
 			"name":		"LSS_FR_BIAS_BEGIN",
 			"type":		"float",
-			"comment":	"The front-to-rear bias at the beginning wheel speed."
+			"comment":	"The front-to-rear bias at the beginning motor speed."
 		},
 		{
-			"address":	"0x0094",
+			"address":	"0x00AC",
 			"name":		"LSS_FR_BIAS_END",
 			"type":		"float",
-			"comment":	"The front-to-rear bias at the ending wheel speed."
+			"comment":	"The front-to-rear bias at the ending motor speed."
 		},
 		{
-			"address":	"0x0098",
+			"address":	"0x00B0",
 			"name":		"LSS_STEERING_ANGLE_BEGIN",
 			"type":		"float",
 			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
 		},
 		{
-			"address":	"0x009C",
+			"address":	"0x00B4",
 			"name":		"LSS_STEERING_ANGLE_END",
 			"type":		"float",
 			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
 		},
 		{
-			"address":	"0x00A0",
+			"address":	"0x00B8",
 			"name":		"LSS_LR_BIAS_END",
 			"type":		"float",
 			"comment":	"The left-to-right bias at the ending steering angle."
 		},
 		{
-			"address":	"0x00A4",
+			"address":	"0x00E0",
 			"name":		"REGEN_LIGHT_REQUEST",
 			"type":		"float",
 			"comment":	"The ratio of regen to request when a single paddle is depressed."
 		},
 		{
-			"address":	"0x00A8",
+			"address":	"0x00E4",
 			"name":		"REGEN_HARD_REQUEST",
 			"type":		"float",
 			"comment":	"The ratio of regen to request when both paddles are depressed."
 		},
 		{
-			"address":	"0x00AC",
-			"name":		"REGEN_CUTOFF_THRESHOLD",
+			"address":	"0x00E8",
+			"name":		"REGEN_DERATING_THROTTLE_START",
 			"type":		"float",
-			"comment":	"The pedal position at which to stop requesting regen."
+			"comment":	"The throttle position at which regen should start to be derated."
 		},
 		{
-			"address":	"0x00B0",
+			"address":	"0x00EC",
+			"name":		"REGEN_DERATING_THROTTLE_END",
+			"type":		"float",
+			"comment":	"The throttle position past which no regen should be requested."
+		},
+		{
+			"address":	"0x00F0",
 			"name":		"REGEN_DERATING_SPEED_END",
 			"type":		"float",
-			"comment":	"The wheel speed at which no regen should be requested."
+			"comment":	"The motor speed at which no regen should be requested."
 		},
 		{
-			"address":	"0x00B4",
+			"address":	"0x00F4",
 			"name":		"REGEN_DERATING_SPEED_START",
 			"type":		"float",
-			"comment":	"The wheel speed at which to start derating regen requests."
+			"comment":	"The motor speed at which to start derating regen requests."
 		},
 		{
-			"address":	"0x00B8",
+			"address":	"0x00F8",
 			"name":		"SAS_ENABLED",
 			"type":		"uint8_t",
 			"comment":	"Enables / disables the steering-angle sensor (0 => disabled, 1 => enabled)."
 		},
 		{
-			"address":	"0x00B9",
+			"address":	"0x00F9",
 			"name":		"SAS_ADDR",
 			"type":		"uint8_t",
 			"comment":	"The 7-bit I2C address of the steering-angle-sensor (default 0x00)."
