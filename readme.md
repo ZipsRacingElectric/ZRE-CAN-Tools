@@ -72,7 +72,7 @@ This program is used to monitor a battery management system in real-time.
 ## Installation (For General Usage)
 - Go the the [Releases](https://github.com/ZipsRacingElectric/CAN-Tools-2025/releases) section on github.
 - Download the latest version for your OS.
-- Extract the archive to a permanent location, ex. `Documents` or `Downloads`.
+- Extract the archive to a permanent location, ex. `%userprofile%/ZRE`. Note this cannot be inside a OneDriver folder.
 - See the `readme.txt` file for installation & usage instructions.
 
 ## Installation (For Development)
