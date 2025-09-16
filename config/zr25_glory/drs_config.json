@@ -82,13 +82,13 @@
             "comment": "Counter amount where if stall exceeds this number, stall conditions execute"
         },
         {
-            "address": "0x003D",
+            "address": "0x0040",
             "name": "SERVO_PWM_MIN",
             "type": "uint32_t",
             "comment": "The PWM period that makes the absolute minimum angle for the servo"
         },
         {
-            "address": "0x0041",
+            "address": "0x0044",
             "name": "SERVO_PWM_MAX",
             "type": "uint32_t",
             "comment": "The PWM period that makes the absolute maximum angle for the servo"
