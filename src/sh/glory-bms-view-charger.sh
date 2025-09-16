@@ -1,13 +1,10 @@
 #!/bin/bash
 
-# Default to 500kBaud
-BAUD=$1
-if [ "$BAUD" = "" ]; then
-	BAUD=500000
-fi
+# Arguments:
+# - 1 - Device name (optional)
 
 # Initialize the CAN device
-DEVICE=$($ZRE_CANTOOLS_DIR/bin/init-can $BAUD $ZRE_CANTOOLS_DEV)
+DEVICE=$($ZRE_CANTOOLS_DIR/bin/can-init 1000000 $1)
 if [ "$?" != 0 ]; then
 	exit $?
 fi
