@@ -36,23 +36,23 @@ BS_:
 BU_: ECU AMS Dashboard Inverter Accelerometer
 
 BO_ 372 Accelerometer_1: 8 Vector__XXX
- SG_ Accel_Yaw : 0|16@1+ (0.005,-163.84) [0|1] "Rad/s" Vector__XXX
+ SG_ Accel_Yaw : 0|16@1+ (0.005,-163.84) [0|1] "deg/s" Vector__XXX
  SG_ Accel_Y : 32|16@1+ (0.0001274,-4.1746432) [0|1] "g" Vector__XXX
 
 BO_ 376 Accelerometer_2: 8 Vector__XXX
- SG_ Accel_Roll : 0|16@1+ (0.005,-163.84) [0|1] "Rad/s" Vector__XXX
+ SG_ Accel_Roll : 0|16@1+ (0.005,-163.84) [0|1] "deg/s" Vector__XXX
  SG_ Accel_X : 32|16@1+ (0.0001274,-4.1746432) [0|1] "g" Vector__XXX
 
 BO_ 380 Accelerometer_3: 8 Vector__XXX
  SG_ Accel_Z : 32|16@1+ (0.0001274,-4.1746432) [0|1] "g" Vector__XXX
 
 BO_ 500 GPS_Position: 8 Vector__XXX
- SG_ Latitude : 0|32@1- (0.0000001,0) [0|1] "Degrees" Vector__XXX
- SG_ Longitude : 32|32@1- (0.0000001,0) [0|1] "Degrees" Vector__XXX
+ SG_ Latitude : 0|32@1- (0.0000001,0) [0|1] "deg" Vector__XXX
+ SG_ Longitude : 32|32@1- (0.0000001,0) [0|1] "deg" Vector__XXX
 
 BO_ 501 GPS_Velocity: 8 Vector__XXX
  SG_ Speed : 0|32@1+ (0.0000001,0) [0|1] "KMPH" Vector__XXX
- SG_ Coarse : 32|32@1+ (0.0000001,0) [0|1] "Degrees" Vector__XXX
+ SG_ Coarse : 32|32@1+ (0.0000001,0) [0|1] "deg" Vector__XXX
 
 BO_ 1877 ACAN_Sensors: 8 Vector__XXX
  SG_ ACAN_Sensor4 : 48|16@1+ (1,0) [0|65535] "Hz" Vector__XXX
@@ -690,5 +690,6 @@ CM_ SG_ 5 APPS_2 "APPS-2 ADC Reading";
 CM_ SG_ 5 APPS_1 "APPS-1 ADC Reading";
 CM_ BO_ 144 "Steering Angle";
 
+BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","reserved","J1939PG";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";

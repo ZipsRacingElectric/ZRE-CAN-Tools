@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Check a config was specified
 if [ "$1" = "" ]; then

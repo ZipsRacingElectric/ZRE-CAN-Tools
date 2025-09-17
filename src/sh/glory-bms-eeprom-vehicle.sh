@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Default to 1MBaud
 BAUD=$1

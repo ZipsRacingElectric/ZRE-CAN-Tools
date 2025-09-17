@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Default to 500kBaud
 BAUD=$1
