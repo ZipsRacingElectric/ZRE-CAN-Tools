@@ -6,3 +6,4 @@ release
 *.so*
 lib/serial_can/Sources/build_no.h
 config/drivers
+DiBacco-notes
