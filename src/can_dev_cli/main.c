@@ -49,8 +49,8 @@ void displayHelp()
 
 void printFrame (canFrame_t* frame, uint32_t* canIds, size_t canIdLength, int numberOfIterations)
 {
-	// Base-10 representations: 512, 513, 514, 515, 1536, 1537
 	// r=[512][513][514][515][1536][1537]
+	// r=[0x200][0x201][0x202][0x203][0x600][0x601]
 	for (size_t i = 0; i < canIdLength; i++) {
 		if (canIds[i] == frame->id) {
 			printf ("0x%3X : ", frame->id);
@@ -61,7 +61,7 @@ void printFrame (canFrame_t* frame, uint32_t* canIds, size_t canIdLength, int nu
 
 			printf ("\n");
 			return;
-			
+
 		}
 	}
 }
@@ -172,8 +172,11 @@ int main (int argc, char** argv)
 
 			// Parse the CAN Ids from the user input
 			for (size_t i = 0; i < canIdLength -1; i++) {
+				int base = 10;
 				id = strtok (NULL, bracketCharacters);
-				canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, 10);
+				if (id[0] == '0' && (id[1] == 'x' || id[1] == 'X')) base = 16;
+				canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, base);
+				printf ("CAN ID: %u\n", canIds[canIdIndex]);
 				canIdIndex++;
 			}
 
