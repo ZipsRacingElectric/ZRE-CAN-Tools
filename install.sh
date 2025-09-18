@@ -4,6 +4,9 @@
 # system path.
 SCRIPT=/etc/profile.d/zre_cantools.sh
 
+# Escape any special characters in the directory's path
+SAFE_DIR=$(printf %q "$PWD")
+
 # Delete the script if it already exists
 rm -f $SCRIPT
 
@@ -11,7 +14,7 @@ rm -f $SCRIPT
 echo "#!/bin/bash" >> $SCRIPT
 
 # Define the ZRE_CANTOOLS_DIR variable
-echo "export ZRE_CANTOOLS_DIR=$PWD" >> $SCRIPT
+echo "export ZRE_CANTOOLS_DIR=$SAFE_DIR" >> $SCRIPT
 
 # Append the bin directory to the system path
-echo "export PATH=\$PATH:$PWD/bin" >> $SCRIPT
+echo "export PATH=\$PATH:$SAFE_DIR/bin" >> $SCRIPT

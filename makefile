@@ -52,7 +52,7 @@ ifeq ($(DETECTED_OS), windows)
 	endif
 endif
 
-all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_DUMP) $(CAN_EEPROM_CLI) $(BMS_TUI) sh bat plot
+all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_DUMP) $(CAN_EEPROM_CLI) $(BMS_TUI) sh bat
 
 # Libraries
 $(LIB): FORCE
@@ -100,9 +100,6 @@ sh: FORCE
 
 bat: FORCE
 	make -C src/bat
-
-plot: FORCE
-	make -C src/plot
 
 # Phony target, forces dependent targets to always be re-compiled
 FORCE:

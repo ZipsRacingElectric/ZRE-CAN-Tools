@@ -1,5 +1,12 @@
 #!/bin/bash
-# TODO(Barach): This likely isn't safe with spaces in path
+
+# Usage:
+#   For SocketCAN devices:
+#   - Brings the device online, if it isn't already
+#
+#   For SLCAN devices:
+#   - Enumerates and discovers the device, if no name was provided
+#   - Concatenates the device name and baudrate
 
 # Helper for printing to stderr (stdout is used for return value).
 echoerr() { printf "%s\n" "$*" >&2; }
@@ -7,8 +14,8 @@ echoerr() { printf "%s\n" "$*" >&2; }
 # Check args
 if [ "$1" = "" ]; then
 	echoerr "Invalid arguments. Usage:"
-	echoerr "  init-can <Baud> <Device>"
-	echoerr "  init-can <Baud>"
+	echoerr "  can-init <Baud> <Device>"
+	echoerr "  can-init <Baud>"
 	exit -1
 fi
 
@@ -33,7 +40,7 @@ if [ "$2" = "" ]; then
 		# Query the CAN device, checking the return code. If successful, print
 		# the name and exit.
 		# The '2>/dev/null' suppresses standard error output
-		can-dev-cli -q $DEVICE@$1 2>/dev/null && echo $DEVICE@$1 && exit 0
+		$ZRE_CANTOOLS_DIR/bin/can-dev-cli -q $DEVICE@$1 2>/dev/null && echo $DEVICE@$1 && exit 0
 	done
 
 	# No device found, exit
