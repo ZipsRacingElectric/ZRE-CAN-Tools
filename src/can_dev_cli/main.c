@@ -42,14 +42,27 @@ void promptFrame (canFrame_t* frame)
 	}
 }
 
-void printFrame (canFrame_t* frame)
+void displayHelp() 
 {
-	printf ("0x%3X : ", frame->id);
+	// TODO(DiBacco): create a manual page for the can-dev-cli command
+}
 
-	for (uint8_t index = 0; index < frame->dlc; ++index)
-		printf ("[%02X]", frame->data [index]);
+void printFrame (canFrame_t* frame, int* canIds, int canIdsSize)
+{
+	// Base-10 representations: 512, 513, 514, 515, 1536, 1537
+	// r=[512][513][514][515][1536][1537]
+	for (int i = 0; i < canIdsSize; i++) {
+		if (canIds[i] == frame->id) {
+			printf ("0x%3X : ", frame->id);
+			for (uint8_t index = 0; index < frame->dlc; ++index) 
+			{
+				printf ("[%02X]", frame->data [index]);
+			}
 
-	printf ("\n");
+			printf ("\n");
+			return;
+		}
+	}
 }
 
 unsigned long int promptTimeout ()
@@ -98,9 +111,9 @@ int main (int argc, char** argv)
 	while (true)
 	{
 		canFrame_t frame;
-		char selection;
+		char* command = malloc (100); // TODO (DiBacco): change malloc to an appropriate size 
 		long unsigned int timeoutMs;
-
+		
 		printf ("Enter an option:\n");
 		printf (" t - Transmit a CAN message.\n");
 		printf (" r - Receive a CAN message.\n");
@@ -108,33 +121,86 @@ int main (int argc, char** argv)
 		printf (" m - Set the device's timeout.\n");
 		printf (" q - Quit the program.\n");
 
-		fscanf (stdin, "%c%*1[\n]", &selection);
-		switch (selection)
+		fscanf (stdin, "%s%*1[\n]", command);
+
+		int equalSignIndex = strcspn (command, "=");
+		if ( ! (equalSignIndex == strlen (command) || equalSignIndex == 1)) 
 		{
-		case 't':
+			printf ("Error: Invalid Command Format \n");
+			continue;
+		}
+		
+		// TODO(DiBacco): add filters to detect invalid input
+		char method = command[0];
+		command += 2;
+			
+		switch (method)
+		{
+		case 't': {
 			promptFrame (&frame);
 			if (canTransmit (device, &frame) == 0)
 				printf ("Success.\n");
 			else
 			 	printf ("Error: %s.\n", errorMessage (errno));
 			break;
-		case 'r':
+		}
+		case 'r': {
+			// TODO(DiBacco): add base-10 / base-16 functionality
+			// TODO(DiBacco): implement a looping command
+			int canIdIndex = 0;
+			int canIdLength = 0;
+			const char* openBracketCharacters = "([{<";
+			const char* closeBracketCharacters = ")]}>";
+
+			for (int i = 0; i < strlen(command); i++) {
+				if (strchr (openBracketCharacters, command[i]) != NULL) {
+					canIdLength++;
+				}
+			}
+
+			int canIds[canIdLength];
+			
+			while (true) {
+				int x = strcspn (command, openBracketCharacters);
+				int y = strcspn (command, closeBracketCharacters);
+
+				int counter = 0;
+				int delta = y - x;
+				char* id = malloc (delta * sizeof(char));
+
+				for (int i = x + 1; i < y; i++) {
+					id[counter] = command[i];
+					counter++;
+				}
+
+				command += delta + 1;
+				canIds[canIdIndex] = atoi(id);
+				canIdIndex++;
+
+				if (command[0] == '\0' || command[0] == 'x') {
+					break;
+				}
+			}
+
 			if (canReceive (device, &frame) == 0)
-				printFrame (&frame);
+				printFrame (&frame, canIds, (sizeof(canIds) / sizeof(canIds[0])));
 			else
 				printf ("Error: %s.\n", errorMessage (errno));
 			break;
-		case 'f':
+		}
+		case 'f': {
 			if (canFlushRx (device) != 0)
 				printf ("Error: %s.\n", errorMessage (errno));
 			break;
-		case 'm':
+		}
+		case 'm': {
 			timeoutMs = promptTimeout ();
 			if (canSetTimeout (device, timeoutMs) != 0)
 				printf ("Error: %s.\n", errorMessage (errno));
 			break;
-		case 'q':
-			return 0;
 		}
+		case 'q': {
+			return 0;
+		}}
 	};
 }
