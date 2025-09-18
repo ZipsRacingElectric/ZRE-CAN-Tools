@@ -14,8 +14,8 @@ echoerr() { printf "%s\n" "$*" >&2; }
 # Check args
 if [ "$1" = "" ]; then
 	echoerr "Invalid arguments. Usage:"
-	echoerr "  init-can <Baud> <Device>"
-	echoerr "  init-can <Baud>"
+	echoerr "  can-init <Baud> <Device>"
+	echoerr "  can-init <Baud>"
 	exit -1
 fi
 

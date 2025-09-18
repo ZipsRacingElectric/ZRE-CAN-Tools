@@ -1,7 +1,7 @@
 setlocal
 
 :: Set the CANTOOLS directory environment variable
-setx ZRE_CANTOOLS_DIR %~dp0%
+setx ZRE_CANTOOLS_DIR "%~dp0%
 
 :: Start menu directory for shortcuts
 set "FOLDER=%APPDATA%\Microsoft\Windows\Start Menu\Programs\ZRE"
