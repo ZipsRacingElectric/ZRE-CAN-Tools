@@ -47,11 +47,11 @@ void displayHelp()
 	// TODO(DiBacco): create a manual page for the can-dev-cli command
 }
 
-void printFrame (canFrame_t* frame, int* canIds, int canIdsSize)
+void printFrame (canFrame_t* frame, uint32_t* canIds, size_t canIdLength, int numberOfIterations)
 {
 	// Base-10 representations: 512, 513, 514, 515, 1536, 1537
 	// r=[512][513][514][515][1536][1537]
-	for (int i = 0; i < canIdsSize; i++) {
+	for (size_t i = 0; i < canIdLength; i++) {
 		if (canIds[i] == frame->id) {
 			printf ("0x%3X : ", frame->id);
 			for (uint8_t index = 0; index < frame->dlc; ++index) 
@@ -61,6 +61,7 @@ void printFrame (canFrame_t* frame, int* canIds, int canIdsSize)
 
 			printf ("\n");
 			return;
+			
 		}
 	}
 }
@@ -111,7 +112,7 @@ int main (int argc, char** argv)
 	while (true)
 	{
 		canFrame_t frame;
-		char* command = malloc (100); // TODO (DiBacco): change malloc to an appropriate size 
+		char* command = malloc (512);  
 		long unsigned int timeoutMs;
 		
 		printf ("Enter an option:\n");
@@ -123,7 +124,7 @@ int main (int argc, char** argv)
 
 		fscanf (stdin, "%s%*1[\n]", command);
 
-		int equalSignIndex = strcspn (command, "=");
+		size_t equalSignIndex = strcspn (command, "=");
 		if ( ! (equalSignIndex == strlen (command) || equalSignIndex == 1)) 
 		{
 			printf ("Error: Invalid Command Format \n");
@@ -148,45 +149,40 @@ int main (int argc, char** argv)
 			// TODO(DiBacco): add base-10 / base-16 functionality
 			// TODO(DiBacco): implement a looping command
 			int canIdIndex = 0;
-			int canIdLength = 0;
-			const char* openBracketCharacters = "([{<";
-			const char* closeBracketCharacters = ")]}>";
+			size_t canIdLength = 0;
+			const char* bracketCharacters = "([{<>}])";
 
-			for (int i = 0; i < strlen(command); i++) {
-				if (strchr (openBracketCharacters, command[i]) != NULL) {
+			// Retreive the number of iterations from the user input
+			int numberOfIterations = 1;
+			size_t x = strcspn (command, "x");
+			if (command[x] == 'x') numberOfIterations = strtol(command + x + 1, NULL, 10);
+
+			// Get the number of CAN Ids to allocate memory for the array
+			for (size_t i = 0; i < strlen(command); i++) {
+				if (strchr (bracketCharacters, command[i]) != NULL) { 
 					canIdLength++;
 				}
 			}
 
-			int canIds[canIdLength];
-			
-			while (true) {
-				int x = strcspn (command, openBracketCharacters);
-				int y = strcspn (command, closeBracketCharacters);
+			canIdLength /= 2; 
+			uint32_t* canIds = malloc (canIdLength * sizeof(uint32_t));
+			char* id = strtok (command, bracketCharacters);
+			canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, 10);
+			canIdIndex++;
 
-				int counter = 0;
-				int delta = y - x;
-				char* id = malloc (delta * sizeof(char));
-
-				for (int i = x + 1; i < y; i++) {
-					id[counter] = command[i];
-					counter++;
-				}
-
-				command += delta + 1;
-				canIds[canIdIndex] = atoi(id);
+			// Parse the CAN Ids from the user input
+			for (size_t i = 0; i < canIdLength -1; i++) {
+				id = strtok (NULL, bracketCharacters);
+				canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, 10);
 				canIdIndex++;
-
-				if (command[0] == '\0' || command[0] == 'x') {
-					break;
-				}
 			}
 
 			if (canReceive (device, &frame) == 0)
-				printFrame (&frame, canIds, (sizeof(canIds) / sizeof(canIds[0])));
+				printFrame (&frame, canIds, canIdLength, numberOfIterations);
 			else
 				printf ("Error: %s.\n", errorMessage (errno));
 			break;
+			
 		}
 		case 'f': {
 			if (canFlushRx (device) != 0)
