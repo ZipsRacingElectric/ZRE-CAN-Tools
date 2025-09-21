@@ -10,15 +10,18 @@
 // Includes
 #include "can_device/can_device.h"
 #include "error_codes.h"
+#include "time_port.h"
 
 // C Standard Library
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+// DiBacco: function no longer used
 void promptFrame (canFrame_t* frame)
 {
 	char buffer [512];
@@ -42,28 +45,46 @@ void promptFrame (canFrame_t* frame)
 	}
 }
 
+// TODO(DiBacco): create a manual page for the can-dev-cli command
 void displayHelp() 
 {
 	// TODO(DiBacco): create a manual page for the can-dev-cli command
 }
 
-void printFrame (canFrame_t* frame, uint32_t* canIds, size_t canIdLength, int numberOfIterations)
+/*
+	- Nested function for the Receive Method
+	- Print the Frame if the ID matches one of the provided IDs
+*/
+void printFrame (canFrame_t* frame)
 {
-	// r=[512][513][514][515][1536][1537]
-	// r=[0x200][0x201][0x202][0x203][0x600][0x601]
-	for (size_t i = 0; i < canIdLength; i++) {
-		if (canIds[i] == frame->id) {
-			printf ("0x%3X : ", frame->id);
-			for (uint8_t index = 0; index < frame->dlc; ++index) 
-			{
-				printf ("[%02X]", frame->data [index]);
-			}
-
-			printf ("\n");
-			return;
-
-		}
+	printf ("0x%3X: [", frame->id);
+	for (uint8_t index = 0; index < frame->dlc; ++index) 
+	{
+		printf ("%02X,", frame->data [index]);
 	}
+
+	printf ("\b]\n");
+	return;
+}
+
+void receiveTimeout (time_t seconds, long microseconds)
+{
+	struct timeval timeout = 
+	{
+		.tv_sec = seconds,
+		.tv_usec = microseconds
+	};
+	
+	struct timeval deadline;
+	struct timeval currentTime;
+	gettimeofday (&currentTime, NULL);
+	timeradd (&currentTime, &timeout, &deadline);
+	
+	while (timercmp (&currentTime, &deadline, <))
+	{
+		gettimeofday (&currentTime, NULL);
+	}
+	printf ("Done\n");
 }
 
 unsigned long int promptTimeout ()
@@ -76,13 +97,177 @@ unsigned long int promptTimeout ()
 	return strtol (buffer, NULL, 0);
 }
 
+// Method Functions ------------------------------------------------------------------------------------------------------------
+
+/*
+	- Syntax ex). t=1[1,2,3,4,5,6,7,8]@12
+*/
+int transmitFrame (canDevice_t* device, char* command) {
+	// TODO(DiBacco): figure out why transmit function is not working correctly from the command line
+	canFrame_t frame;
+	char* originalCommand;
+
+	// Set Iterations
+	int transmitIterations = 1;
+	size_t delimiterPosition = strcspn (command, "@");
+	if (command[delimiterPosition] == '@') {
+		transmitIterations = strtol(command + delimiterPosition + 1, NULL, 10);
+		command[transmitIterations] = '\0';
+		strcpy (originalCommand, command);
+	} else {
+		strcpy (originalCommand, command);
+	}
+	command[strlen(command) -1] = '\0';
+
+	// Get Number of DLC Bytes
+	int dlcBytes = 1;
+	for (size_t i = 0; i < strlen(command); i++) {
+		if (strchr (",", command[i]) != NULL) { 
+			dlcBytes++;
+		}
+	}
+	
+	// Assign Frame ID
+	int id = atoi (strtok (command, "["));
+	frame.id = (uint32_t) id;
+
+	// Assign Frame DLC & Data
+	frame.dlc = (uint8_t) dlcBytes;
+	for (int i = 0; i < dlcBytes; i++) {
+		char* byte = strtok (NULL, ",");
+		frame.data[i] = (uint8_t) strtol (byte, NULL, 0);
+	}
+
+	// Transmit Frame
+	printf ("\n");
+	for (int i = 0; i < transmitIterations; i++) {
+		if (canTransmit (device, &frame) == 0) {
+			printf ("%2d). %s => Success\n", i + 1, originalCommand);
+		} else {
+			printf ("Error: %s.\n", errorMessage (errno));
+			return errno;
+		}
+	}
+	return 0;
+}
+
+/*
+	- Syntax ex). r=[512,513,514,515,1536,1]@12	
+*/
+int receiveFrame (canDevice_t* device, char* command) {
+	canFrame_t frame;
+	
+	int canIdIndex = 0;
+	size_t canIdLength = 1;
+
+	// Set Iterations
+	int receiveIterations = 1;
+	size_t deliminatorPosition = strcspn (command, "@");
+	if (command[deliminatorPosition] == '@') {
+		receiveIterations = strtol(command + deliminatorPosition + 1, NULL, 10);
+		command[deliminatorPosition -1] = '\0';
+	} 
+	
+	// Get Number of CAN IDs 
+	for (size_t i = 0; i < strlen(command); i++) {
+		if (strchr (",", command[i]) != NULL) { 
+			canIdLength++;
+		}
+	}
+
+	// Parse CAN IDs
+	if (command[0] == '[') command++;
+	if (command[strlen(command) - 1] == ']') command[strlen(command) - 1] = '\0'; 
+	uint32_t* canIds = malloc (canIdLength * sizeof(uint32_t));
+	for (size_t i = 0; i < canIdLength; i++) {
+		char* id = (i == 0) ? strtok (command, ",") : strtok (NULL, ",");
+		canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, 0);
+		canIdIndex++;
+	}
+
+	// Receive Frame
+	// TODO(DiBacco): display a message for iterations w. no frames received
+	for (int m = 0; m < receiveIterations; m++) {
+		printf ("\n");
+		printf ("Iteration: %d\n", m +1);
+		for (size_t i = 0; i < canIdLength; i++) {
+			int* visited = malloc (15 * sizeof(char*));
+			size_t currentIndex = 0;
+			bool received = false;
+			while (! received) { 
+				if (canReceive(device, &frame) == 0) {
+					if (canIds[i] == frame.id) {
+						printFrame (&frame);
+						received = true;
+					} else {
+						for (size_t j = 0; j < currentIndex; j++) {
+							if (visited[j] == frame.id) {
+								received = true;
+								break;
+							}
+						}
+						visited[currentIndex] = frame.id;
+						currentIndex++;
+					}
+				} else {
+					printf ("Error: %s.\n", errorMessage (errno));
+				}
+			}
+			free (visited);
+		}
+	}
+	printf ("\n");
+}
+
+/*
+	- Takes Entire Command and Processes it	
+	- DiBacco: better function name
+*/
+int processCommand (canDevice_t* device, char* command) {
+	// TODO(DiBacco): ADD ERROR HANDLING FOR INVALID COMMANDS!!!!!!!!!!!!!!!!!!!!!!!!!
+	size_t equalSignIndex = strcspn (command, "=");
+	if ( ! (equalSignIndex == strlen (command) || equalSignIndex == 1)) 
+	{
+		printf ("Error: Invalid Command Format \n");
+		return -1;
+	}
+		
+	// TODO(DiBacco): add filters to detect invalid input
+	// Get Method & Shift Command
+	char method = command[0];
+	command += 2;
+			
+	switch (method) {
+	case 't': 
+		transmitFrame (device, command);
+		break;
+	case 'r': 
+		receiveFrame(device, command);
+		break;
+	case 'f': {
+		if (canFlushRx (device) != 0)
+			printf ("Error: %s.\n", errorMessage (errno));
+		break;
+	}
+	case 'm': { 
+		long unsigned int timeoutMs = promptTimeout (); // DiBacco
+		if (canSetTimeout (device, timeoutMs) != 0)
+			printf ("Error: %s.\n", errorMessage (errno));
+		break;
+	}
+	case 'q': {
+		return 0;
+	}}
+	return 0;
+}
+
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
-{
-	if (argc < 2)
+{	
+	if (argc < 2 || argc > 3)
 	{
-		fprintf (stderr, "Format: can-dev-cli <device name>\n");
+		fprintf (stderr, "Format: can-dev-cli -method (optional) <device name>\n");
 		return -1;
 	}
 
@@ -105,101 +290,35 @@ int main (int argc, char** argv)
 		return code;
 	}
 
-	// If this is query mode, return successful
-	if (queryMode)
+	// Directly From Command Line
+	if (argc == 3) {
+		char* command = argv [1];
+		processCommand (device, command);
 		return 0;
 
-	while (true)
-	{
-		canFrame_t frame;
-		char* command = malloc (512);  
-		long unsigned int timeoutMs;
-		
-		printf ("Enter an option:\n");
-		printf (" t - Transmit a CAN message.\n");
-		printf (" r - Receive a CAN message.\n");
-		printf (" f - Flush the receive buffer.\n");
-		printf (" m - Set the device's timeout.\n");
-		printf (" q - Quit the program.\n");
-
-		fscanf (stdin, "%s%*1[\n]", command);
-
-		size_t equalSignIndex = strcspn (command, "=");
-		if ( ! (equalSignIndex == strlen (command) || equalSignIndex == 1)) 
-		{
-			printf ("Error: Invalid Command Format \n");
-			continue;
-		}
-		
-		// TODO(DiBacco): add filters to detect invalid input
-		char method = command[0];
-		command += 2;
-			
-		switch (method)
-		{
-		case 't': {
-			promptFrame (&frame);
-			if (canTransmit (device, &frame) == 0)
-				printf ("Success.\n");
-			else
-			 	printf ("Error: %s.\n", errorMessage (errno));
-			break;
-		}
-		case 'r': {
-			// TODO(DiBacco): add base-10 / base-16 functionality
-			// TODO(DiBacco): implement a looping command
-			int canIdIndex = 0;
-			size_t canIdLength = 0;
-			const char* bracketCharacters = "([{<>}])";
-
-			// Retreive the number of iterations from the user input
-			int numberOfIterations = 1;
-			size_t x = strcspn (command, "x");
-			if (command[x] == 'x') numberOfIterations = strtol(command + x + 1, NULL, 10);
-
-			// Get the number of CAN Ids to allocate memory for the array
-			for (size_t i = 0; i < strlen(command); i++) {
-				if (strchr (bracketCharacters, command[i]) != NULL) { 
-					canIdLength++;
-				}
-			}
-
-			canIdLength /= 2; 
-			uint32_t* canIds = malloc (canIdLength * sizeof(uint32_t));
-			char* id = strtok (command, bracketCharacters);
-			canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, 10);
-			canIdIndex++;
-
-			// Parse the CAN Ids from the user input
-			for (size_t i = 0; i < canIdLength -1; i++) {
-				int base = 10;
-				id = strtok (NULL, bracketCharacters);
-				if (id[0] == '0' && (id[1] == 'x' || id[1] == 'X')) base = 16;
-				canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, base);
-				printf ("CAN ID: %u\n", canIds[canIdIndex]);
-				canIdIndex++;
-			}
-
-			if (canReceive (device, &frame) == 0)
-				printFrame (&frame, canIds, canIdLength, numberOfIterations);
-			else
-				printf ("Error: %s.\n", errorMessage (errno));
-			break;
-			
-		}
-		case 'f': {
-			if (canFlushRx (device) != 0)
-				printf ("Error: %s.\n", errorMessage (errno));
-			break;
-		}
-		case 'm': {
-			timeoutMs = promptTimeout ();
-			if (canSetTimeout (device, timeoutMs) != 0)
-				printf ("Error: %s.\n", errorMessage (errno));
-			break;
-		}
-		case 'q': {
+	} else {
+		// Interactive Mode
+		// If this is query mode, return successful
+		if (queryMode)
 			return 0;
-		}}
-	};
+
+		while (true)
+		{
+			char* command = malloc (512);  
+		
+			printf ("Enter an option:\n");
+			printf (" t - Transmit a CAN message.\n");
+			printf (" r - Receive a CAN message.\n");
+			printf (" f - Flush the receive buffer.\n");
+			printf (" m - Set the device's timeout.\n");
+			printf (" q - Quit the program.\n");
+
+			fscanf (stdin, "%s%*1[\n]", command);
+			processCommand (device, command);
+
+			free (command);
+		};
+	}
+	return 0;
 }
+
