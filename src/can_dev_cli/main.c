@@ -107,6 +107,59 @@ int transmitFrame (canDevice_t* device, char* command) {
 	canFrame_t frame;
 	char* originalCommand;
 
+	// Validate Input
+    // TODO (DiBacco): may need to add ' ' functionality between bytes in the payload
+    // TODO (DiBacco): may need to validate that each id is within a certain range during parsing
+    bool hasPayload = false;
+    bool hasIterationInput = false; 
+    int x = strcspn (command, "["); 
+    int y = strcspn (command, "]");
+    if (command[0] == '[') {
+        printf ("Invalid Input: Missing ID Field\n");
+        return 1;
+    }
+    if (! (command[x] == '[' && command[y] == ']')) {
+        printf("Invalid Input: Missing Brackets\n");
+        return 1;
+    }
+    for (int i = 0; i < x; i++) {
+        if (! ((command[i] >= '0' && command[i] <= '9'))) {
+            printf("Invalid Input: Invalid Character in Input Field\n");
+            return 1;
+        }
+    }
+    for (int i = x + 1; i < y; i++) {
+        if (! ((command[i] >= '0' && command[i] <= '9') || command[i] == ',')) {
+            if (i > 1 && command[i] == ' ' && (command[i-1] == ',' || command[i-1] == ' '))  continue; 
+            printf("Invalid Input: Invalid Character in Brackets\n");
+            return 1;
+        } else {
+            hasPayload = true;
+        }
+    }
+    if (! hasPayload) {
+        printf("Invalid Input: Missing Payload\n");
+        return 1;
+    }
+    if (! (command[y + 1] == '\0')) {
+        if (! (command[y + 1] == '@')) {
+            printf("Invalid Input: Invalid Symbol After Brackets (@)\n");
+            return 1;
+        } 
+        for (int i = y + 2; i < strlen(command); i++) {
+            if (! ((command[i] >= '0' && command[i] <= '9'))) {
+                printf("Invalid Input: Invalid Iteration Input\n");
+                return 1;
+            } else {
+                hasIterationInput = true;
+            }
+        }
+        if (! hasIterationInput) {
+            printf("Invalid Input: Missing Iteration Input\n");
+            return 1;
+        }
+    }
+
 	// Set Iterations
 	int transmitIterations = 1;
 	size_t delimiterPosition = strcspn (command, "@");
@@ -159,6 +212,48 @@ int receiveFrame (canDevice_t* device, char* command) {
 	
 	int canIdIndex = 0;
 	size_t canIdLength = 1;
+
+	// Validate Input
+    // TODO (DiBacco): may need to add ' ' functionality between ids
+    // TODO (DiBacco): may need to validate that each id is within a certain range during parsing
+	int x = strcspn (command, "]");
+    bool hasIds = false;
+    bool hasIterationInput = false;
+    if (! (command[0] == '[' && command[x] == ']')) {
+        printf("Invalid Input: Missing Brackets\n");
+        return 1;
+    } 
+    for (int i = 1; i < x; i++) {
+        if (! ((command[i] >= '0' && command[i] <= '9') || command[i] == ',')) {
+            if (i > 1 && command[i] == ' ' && (command[i-1] == ',' || command[i-1] == ' '))  continue; 
+            printf("Invalid Input: Invalid Character in Brackets\n");
+            return 1;
+        } else {
+            hasIds = true;
+        }
+    }
+    if (! hasIds) {
+        printf("Invalid Input: Missing IDs in Brackets\n");
+        return 1;
+    }
+    if (! (command[x + 1] == '\0')) {
+        if (! (command[x + 1] == '@')) {
+            printf("Invalid Input: Invalid Symbol After Brackets (@)\n");
+            return 1;
+        } 
+        for (int i = x + 2; i < strlen(command); i++) {
+            if (! ((command[i] >= '0' && command[i] <= '9'))) {
+                printf("Invalid Input: Invalid Iteration Input\n");
+                return 1;
+            } else {
+                hasIterationInput = true;
+            }
+        }
+        if (! hasIterationInput) {
+            printf("Invalid Input: Missing Iteration Input\n");
+            return 1;
+        }
+    }
 
 	// Set Iterations
 	int receiveIterations = 1;
@@ -224,7 +319,7 @@ int receiveFrame (canDevice_t* device, char* command) {
 	- DiBacco: better function name
 */
 int processCommand (canDevice_t* device, char* command) {
-	// TODO(DiBacco): ADD ERROR HANDLING FOR INVALID COMMANDS!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Validate Input
 	size_t equalSignIndex = strcspn (command, "=");
 	if ( ! (equalSignIndex == strlen (command) || equalSignIndex == 1)) 
 	{
