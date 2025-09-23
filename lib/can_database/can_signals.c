@@ -9,7 +9,7 @@
 uint64_t signalEncode (canSignal_t* signal, float value)
 {
 	// TODO(Barach): This doesn't respect endianness
-	uint64_t buffer = roundf (value - signal->offset) / signal->scaleFactor;
+	uint64_t buffer = roundf ((value - signal->offset) / signal->scaleFactor);
 	buffer &= signal->bitmask;
 	buffer <<= signal->bitPosition;
 	return buffer;
