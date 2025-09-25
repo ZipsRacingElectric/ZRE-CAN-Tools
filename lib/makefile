@@ -1,18 +1,10 @@
-CC_FLAGS := -Wall -Wextra -g
-
-BIN_DIR := ../bin
-OBJ_DIR := $(BIN_DIR)/obj
-LIB_DIR := $(BIN_DIR)/lib
-
-BIN := $(LIB_DIR)/lib.a
+include $(TARGETS_MK)
 
 SRC := $(wildcard *.c)
-OBJ := $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC))
+OBJ := $(patsubst %.c, $(BIN_OBJ_DIR)/%.o, $(SRC))
 
-$(BIN): $(OBJ)
-	mkdir -p $(LIB_DIR)
-	ar rvs $(BIN) $^
+$(COMMON_LIB): $(OBJ)
+	ar rvs $@ $(OBJ)
 
-$(OBJ_DIR)/%.o: %.c %.h
-	mkdir -p $(OBJ_DIR)
-	gcc $(CC_FLAGS) -I.. -c $< -o $@
+$(BIN_OBJ_DIR)/%.o: %.c %.h $(BIN_LIB_DIR) $(BIN_OBJ_DIR)
+	gcc $(CC_FLAGS) -c $< -o $@
