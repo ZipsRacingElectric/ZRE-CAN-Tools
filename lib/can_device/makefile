@@ -1,10 +1,15 @@
-include $(TARGETS_MK)
+LIB_CAN_DEVICE := $(BIN_LIB_DIR)/libcan_device.a
 
-SRC := $(wildcard *.c)
-OBJ := $(patsubst %.c, $(BIN_OBJ_DIR)/%.o, $(SRC))
+private DIR := $(LIB_DIR)/can_device
+private BIN := $(LIB_CAN_DEVICE)
 
-$(CAN_DEVICE_LIB): $(OBJ)
-	ar rvs $@ $(OBJ)
+private SRC := $(wildcard $(DIR)/*.c)
+private OBJ := $(patsubst $(DIR)/%.c, $(BIN_OBJ_DIR)/%.o, $(SRC))
 
-$(BIN_OBJ_DIR)/%.o: %.c %.h $(SERIAL_CAN_LIB) $(BIN_LIB_DIR) $(BIN_OBJ_DIR)
-	gcc $(CC_FLAGS) -I $(BIN_DIR)/include -c $< -o $@
+$(BIN): $(OBJ)
+	mkdir -p $(BIN_LIB_DIR)
+	ar rvs $@ $^
+
+$(BIN_OBJ_DIR)/%.o: $(DIR)/%.c $(DIR)/%.h $(BIN_LIB_DIR)/serial_can.a
+	mkdir -p $(BIN_OBJ_DIR)
+	gcc $(CFLAGS) -I $(BIN_DIR)/include -c $< -o $@

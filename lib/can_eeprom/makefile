@@ -1,18 +1,15 @@
-CC_FLAGS := -Wall -Wextra -g
+LIB_CAN_EEPROM := $(BIN_LIB_DIR)/libcan_eeprom.a
 
-BIN_DIR := ../../bin
-OBJ_DIR := $(BIN_DIR)/obj
-LIB_DIR := $(BIN_DIR)/lib
+private DIR := $(LIB_DIR)/can_eeprom
+private BIN := $(LIB_CAN_EEPROM)
 
-BIN := $(LIB_DIR)/can_eeprom.a
-
-SRC := $(wildcard *.c)
-OBJ := $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC))
+private SRC := $(wildcard $(DIR)/*.c)
+private OBJ := $(patsubst $(DIR)/%.c, $(BIN_OBJ_DIR)/%.o, $(SRC))
 
 $(BIN): $(OBJ)
-	mkdir -p $(LIB_DIR)
-	ar rvs $(BIN) $^
+	mkdir -p $(BIN_LIB_DIR)
+	ar rvs $@ $^
 
-$(OBJ_DIR)/%.o: %.c %.h
-	mkdir -p $(OBJ_DIR)
-	gcc $(CC_FLAGS) -I.. -c $< -o $@
+$(BIN_OBJ_DIR)/%.o: $(DIR)/%.c $(DIR)/%.h
+	mkdir -p $(BIN_OBJ_DIR)
+	gcc $(CFLAGS) -c $< -o $@

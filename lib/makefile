@@ -1,10 +1,15 @@
-include $(TARGETS_MK)
+LIB_COMMON := $(BIN_LIB_DIR)/libcommon.a
 
-SRC := $(wildcard *.c)
-OBJ := $(patsubst %.c, $(BIN_OBJ_DIR)/%.o, $(SRC))
+private DIR := $(LIB_DIR)
+private BIN := $(LIB_COMMON)
 
-$(COMMON_LIB): $(OBJ)
-	ar rvs $@ $(OBJ)
+private SRC := $(wildcard $(DIR)/*.c)
+private OBJ := $(patsubst $(DIR)/%.c, $(BIN_OBJ_DIR)/%.o, $(SRC))
 
-$(BIN_OBJ_DIR)/%.o: %.c %.h $(BIN_LIB_DIR) $(BIN_OBJ_DIR)
-	gcc $(CC_FLAGS) -c $< -o $@
+$(BIN): $(OBJ)
+	mkdir -p $(BIN_LIB_DIR)
+	ar rvs $@ $^
+
+$(BIN_OBJ_DIR)/%.o: $(DIR)/%.c $(DIR)/%.h
+	mkdir -p $(BIN_OBJ_DIR)
+	gcc $(CFLAGS) -c $< -o $@
