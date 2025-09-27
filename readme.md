@@ -97,9 +97,11 @@ Some dependencies of this project are not natively built for Windows. A solution
 - From this point, all further commands can be run from command prompt.
 
 ## Compilation
-Use `make` to compile all of the programs.
+Use `make` to compile all of the applications.
 
-Use `make -B` to re-compile all of the programs. Note that this may be required after making library modifications.
+Use `make -B` to re-compile all of the programs. Note that this may be required after making modifications to the build system.
+
+Use `make release` to create a release of the project.
 
 Use the `install` script to recreate the application shortcuts / setup environment variables.
 
