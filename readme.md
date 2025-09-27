@@ -1,8 +1,10 @@
 # ZRE-CAN-Tools - Zips Racing
+
 ZRE-CAN-Tools is the application layer of Zips Racing's electrical systems. This project is a combination of libraries and applications that aim to simplify the interaction with firmware written by Zips Racing.
 
 ## Usage
 ### ZR25 Shell Scripts
+
 A set of shell scripts are provided to simplify usage of the applications.
  - `glory-bms-view-vehicle` - Application for monitoring the BMS of ZR25, configured for the vehicle's CAN bus.
  - `glory-bms-view-charger` - Application for monitoring the BMS of ZR25, configured for the charger's CAN bus.
@@ -14,18 +16,22 @@ A set of shell scripts are provided to simplify usage of the applications.
  - `glory-drs-vehicle` - Application for configuring the DRS of ZR25, configured for the vehicles's CAN bus.
 
 ### ZRE24 Shell Scripts
+
  - `cross-bms` - Application for monitoring the BMS of ZRE24.
  - `cross-can` - Application for monitoring the CAN bus of ZRE24.
 
 ### CAN DBC CLI
+
 `can-dbc-cli <device name> <DBC file path>`
 This program is used to interact with a CAN node in real-time. Received messages are parsed and stored in a relational database which can be queried. Arbitrary messages can be transmitted by the user.
 
 ### CAN DBC TUI
+
 `can-dbc-tui <device name> <DBC file path>`
 This program is used to monitor the activity of a CAN bus in real-time.
 
 ### CAN EEPROM CLI
+
 ```
 Usage:
 
@@ -48,10 +54,12 @@ Options:
 This program is used to program a device's EEPROM via CAN bus.
 
 ### BMS TUI
+
 `bms-tui <device name> <DBC file path> <config JSON path>`
 This program is used to monitor a battery management system in real-time.
 
 ### Command-line Arguments
+
 ```
 <device name>         - The adapter-specific identity of the CAN device.
     can*              - SocketCAN device, must be already initialized and
@@ -70,13 +78,15 @@ This program is used to monitor a battery management system in real-time.
 ```
 
 ## Installation (For General Usage)
-- Go the the [Releases](https://github.com/ZipsRacingElectric/CAN-Tools-2025/releases) section on github.
+
+- Go the the [Releases](https://github.com/ZipsRacingElectric/CAN-Tools-2025/releases) section on GitHub.
 - Download the latest version for your OS.
 - Extract the archive to a permanent location, ex. `%userprofile%/ZRE`. Note this cannot be inside a OneDrive folder.
 - See the `readme.txt` file for installation & usage instructions.
 
 ## Installation (For Development)
-- Clone this repo using Github's SSH URL `git clone <SSH URL>`
+
+- Clone this repo using GitHub's SSH URL `git clone <SSH URL>`
 - Perform the OS-specific steps setup below before continuing with these steps.
 - Run `make` to compile all of the programs.
 - Run the `install` script to create the needed environment variables.
@@ -84,12 +94,14 @@ This program is used to monitor a battery management system in real-time.
 - On Windows, it is useful to add the `bin` directory to your system path (not needed, just conventient).
 
 ### For Linux
+
 Install all of the following dependencies, if not already installed:
 - `libnursesw-dev` (NCurses development library with wide character support)
 
 ### For Windows
+
 Some dependencies of this project are not natively built for Windows. A solution to this is to use MSYS2, a collection of tools and libraries that provide a POSIX-like development environment for Windows.
-- Download and run the MSYS2 installer from [Github](https://github.com/msys2/msys2-installer/releases/).
+- Download and run the MSYS2 installer from [GitHub](https://github.com/msys2/msys2-installer/releases/).
 - When finished, a terminal should open, if not, open one by searching 'MSYS2 UCRT64' from the start menu.
 - In said terminal, run `pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain`. When prompted, select default (all) packages.
 - Add the `msys64\ucrt64\bin` and `msys64\usr\bin` directories to your system path.
@@ -97,13 +109,19 @@ Some dependencies of this project are not natively built for Windows. A solution
 - From this point, all further commands can be run from command prompt.
 
 ## Compilation
-Use `make` to compile all of the programs.
 
-Use `make -B` to re-compile all of the programs. Note that this may be required after making library modifications.
+Use `make` or `make bin` to compile all of the applications.
+
+Use `make lib` to compile just the libraries.
+
+Use `make -B` to re-compile all of the programs. Note that this may be required after making modifications to the build system.
+
+Use `make release` to create a release of the project.
 
 Use the `install` script to recreate the application shortcuts / setup environment variables.
 
 ## Project Structure
+
 ```
 .
 ├── bin                        - Output directory for compilation. Final
