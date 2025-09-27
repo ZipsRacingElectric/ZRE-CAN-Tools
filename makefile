@@ -1,42 +1,115 @@
-# Project Structure -----------------------------------------------------------
+ROOT_DIR := .
+include include.mk
 
-ROOT_DIR	:= .
-SRC_DIR		:= $(ROOT_DIR)/src
-LIB_DIR		:= $(ROOT_DIR)/lib
-BIN_DIR		:= $(ROOT_DIR)/bin
-BIN_LIB_DIR	:= $(BIN_DIR)/lib
-BIN_OBJ_DIR	:= $(BIN_DIR)/obj
+# Releasing -------------------------------------------------------------------
 
-# Compilation -----------------------------------------------------------------
+# For some reason these can't be at the end of the file.
 
-CFLAGS := -Wall -Wextra -g -I $(LIB_DIR) -lm
+# Operating System Detection
+# - This is only used for tagging releases, everything in here should work in
+#   both linux and MSYS2.
+ifeq ($(OS),Windows_NT)
+	DETECTED_OS := windows
+else
+	DETECTED_OS := $(shell uname | tr '[:upper:]' '[:lower:]')
+endif
 
-# Libraries -------------------------------------------------------------------
+ifeq ($(DETECTED_OS), windows)
+	INSTALLER := install.bat
+	UNINSTALLER := uninstall.bat
+else
+	INSTALLER := install.sh
+	UNINSTALLER := uninstall.sh
+endif
 
-# Note that these are in order by dependency. The top-most is least dependent
-# and the bottom-most is most dependent.
-
-include lib/makefile
-
-LIB_SERIAL_CAN := $(BIN_LIB_DIR)/libserial_can.a
-$(LIB_SERIAL_CAN):
-	make -B -C $(LIB_DIR)/serial_can/
-
-include lib/can_device/makefile
-include lib/can_database/makefile
-include lib/cjson/makefile
-include lib/can_eeprom/makefile
-include lib/bms/makefile
+# Command for copying the MSYS2 UCRT binaries into a release
+ifeq ($(DETECTED_OS), windows)
+	ifeq ($(MSYS_BIN), "")
+		MSYS_UCRT_COPY_CMD := echo "Error: MSYS_BIN environment variable is not declared!"" && exit -1
+	else
+		MSYS_UCRT_COPY_CMD := cp -r $(MSYS_BIN) $(RELEASE_DIR)/
+	endif
+endif
 
 # Applications ----------------------------------------------------------------
 
-include src/bms_tui/makefile
-include src/can_dev_cli/makefile
+# Default target. Compiles all applications in the src directory. Marked as
+# phony because this corresponds to an actual directory name.
+.PHONY: bin
+bin: $(wildcard $(SRC_DIR)/*)
+
+# Wildcard defining the compilation rule for each subdirectory in the src
+# directory. Dependent on libs, meaning all libraries are compiled first.
+$(SRC_DIR)/%: lib
+	make -C $@
+
+# Libraries -------------------------------------------------------------------
+
+# Compilation rules for each library.
+
+$(LIB_COMMON):
+	make -C $(LIB_DIR)
+
+# serial_can requires the -B option to actually compile binaries. Not sure why.
+$(LIB_SERIAL_CAN):
+	make -B -C $(LIB_DIR)/serial_can
+
+$(LIB_CAN_DEVICE): $(LIB_SERIAL_CAN)
+	make -C $(LIB_DIR)/can_device
+
+$(LIB_CAN_DATABASE):
+	make -C $(LIB_DIR)/can_database
+
+$(LIB_CJSON):
+	make -C $(LIB_DIR)/cjson
+
+$(LIB_CAN_EEPROM):
+	make -C $(LIB_DIR)/can_eeprom
+
+$(LIB_BMS):
+	make -C $(LIB_DIR)/bms
+
+# Marks all library targets as phony. This forces the recipe to be re-run every
+# time a dependent is ran. Without this, libraries would never be recompiled.
+.PHONY: $(LIBS)
+
+# Target for compiling all libraries. Marked as phony because this corresponds
+# to an actual directory name.
+.PHONY: lib
+lib: $(LIBS)
 
 # Make Targets ----------------------------------------------------------------
 
-.DEFAULT_GOAL := all
-all: $(ALL)
-
+# Target for removing all compiled binaries.
+.PHONY: clean
 clean:
 	rm -rf $(BIN_DIR)
+
+# Releasing -------------------------------------------------------------------
+
+# TODO(Barach): This should include the architecture, as we are now deploying on ARM.
+RELEASE_DIR := $(ROOT_DIR)/release/zre_cantools_$(DETECTED_OS)_$(shell date +%Y.%m.%d)
+RELEASE_README := doc/readme_release.txt
+
+.PHONY: release
+release: bin
+	# Create the release directory (delete if it already exists)
+	if [ -d $(RELEASE_DIR) ]; then rm -Rf $(RELEASE_DIR); fi
+	mkdir -p $(RELEASE_DIR)
+
+	# Executables and configs
+	cp -r $(BIN_DIR) $(RELEASE_DIR)/
+	cp -r $(CONFIG_DIR) $(RELEASE_DIR)/
+
+	# MSYS binaries (windows only)
+	$(MSYS_UCRT_COPY_CMD)
+
+	# Install / uninstall scripts
+	cp $(INSTALLER) $(RELEASE_DIR)/
+	chmod +x $(RELEASE_DIR)/$(INSTALLER)
+	cp $(UNINSTALLER) $(RELEASE_DIR)/
+	chmod +x $(RELEASE_DIR)/$(UNINSTALLER)
+
+	# Documentation
+	cp -r $(DOC_DIR) $(RELEASE_DIR)/
+	cp $(RELEASE_README) $(RELEASE_DIR)/readme.txt

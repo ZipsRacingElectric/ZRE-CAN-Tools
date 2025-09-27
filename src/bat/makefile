@@ -1,9 +1,10 @@
-BIN_DIR := ../../bin
+ROOT_DIR := ../..
+include $(ROOT_DIR)/include.mk
 
 BAT := $(wildcard *.bat)
-EXEC := $(patsubst %, $(BIN_DIR)/%, $(BAT))
+BIN := $(patsubst %, $(BIN_DIR)/%, $(BAT))
 
-all: $(EXEC)
+all: $(BIN)
 
 $(BIN_DIR)/%: %
 	mkdir -p $(BIN_DIR)

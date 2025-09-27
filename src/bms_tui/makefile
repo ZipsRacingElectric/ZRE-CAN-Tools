@@ -1,15 +1,17 @@
-private BIN := $(BIN_DIR)/bms-tui
-private DIR := $(SRC_DIR)/bms_tui
-private SRC := $(DIR)/main.c
+ROOT_DIR := ../..
+include $(ROOT_DIR)/include.mk
 
-ALL += $(BIN)
+BIN := $(BIN_DIR)/bms-tui
+SRC := main.c
 
 # Note libraries must be in reverse order of dependencies, that is a dependency
 # must be placed after its dependents.
-private LIB :=				\
+LIB :=						\
 	$(LIB_BMS)				\
 	$(LIB_CJSON)			\
 	$(LIB_CAN_DATABASE)		\
+	$(LIB_CAN_DEVICE)		\
+	$(LIB_SERIAL_CAN)		\
 	$(LIB_COMMON)
 
 $(BIN): $(SRC) $(LIB)
