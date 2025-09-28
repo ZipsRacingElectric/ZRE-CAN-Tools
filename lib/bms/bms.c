@@ -120,7 +120,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		{
 			for (uint16_t senseLineIndex = 0; senseLineIndex < bms->senseLinesPerLtc; ++senseLineIndex)
 			{
-				uint16_t index = LTC_TO_SENSE_LINE_INDEX (bms, segmentIndex, ltcIndex, senseLineIndex);
+				uint16_t index = SENSE_LINE_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex, senseLineIndex);
 
 				char tempName [] = "SENSE_LINE_###_##_TEMPERATURE";
 				uint16_t offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, tempName + 11);

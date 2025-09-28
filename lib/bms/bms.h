@@ -16,11 +16,14 @@
 
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
-#define LTC_TO_CELL_INDEX(bms, segmentIndex, ltcIndex, cellIndex)															\
+#define CELL_INDEX_LOCAL_TO_GLOBAL(bms, segmentIndex, ltcIndex, cellIndex)													\
 	((bms)->cellsPerLtc * ((bms)->ltcsPerSegment * (segmentIndex) + ltcIndex) + (cellIndex))
 
-#define LTC_TO_SENSE_LINE_INDEX(bms, segmentIndex, ltcIndex, senseLineIndex)												\
+#define SENSE_LINE_INDEX_LOCAL_TO_GLOBAL(bms, segmentIndex, ltcIndex, senseLineIndex)										\
 	(((bms)->cellsPerLtc + 1) * ((bms)->ltcsPerSegment * (segmentIndex) + ltcIndex) + (senseLineIndex))
+
+#define LTC_INDEX_LOCAL_TO_GLOBAL(bms, segmentIndex, ltcIndex)																\
+	(((bms)->ltcsPerSegment) * (segmentIndex) + (ltcIndex))
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
