@@ -113,7 +113,7 @@ int transmitFrame (canDevice_t* device, char* command) {
 
 	// Set Iterations
 	strtok(command, "@");
-	int transmitIterations = (strspn (command, "@") != strlen (command)) ? (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0) : 1;
+	int transmitIterations = (strchr (command, '@') != NULL) ? (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0) : 1;
 	
 	// Assign Frame ID
 	frame.id = (uint32_t) strtoul (strtok (command, "["), NULL, 0);
@@ -156,7 +156,7 @@ int receiveFrame (canDevice_t* device, char* command) {
 	
 	// Get Iterations from Input
 	strtok(command, "@");
-	int receiveIterations = (strspn (command, "@") != strlen (command)) ? (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0) : 1;
+	int receiveIterations = ((strchr (command, '@') != NULL)) ? (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0) : 1;
 
 	// Parse CAN IDs
 	int canIdIndex = 0;
