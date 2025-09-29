@@ -4,7 +4,7 @@ include $(ROOT_DIR)/include.mk
 BIN := $(BIN_DIR)/dashboard
 SRC := main.c
 
-CFLAGS := $(shell pkg-config --cflags gtk4)
+CFLAGS += $(shell pkg-config --cflags gtk4)
 LIBFLAGS := $(shell pkg-config --libs gtk4)
 
 all: $(BIN) clangd-file
