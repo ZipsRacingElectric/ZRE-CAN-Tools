@@ -108,18 +108,24 @@ unsigned long int promptTimeout ()
 */
 int transmitFrame (canDevice_t* device, char* command) {
 	canFrame_t frame;
+	int byteCount = 0;
 	char originalCommand [500];
 	strncpy(originalCommand, command, sizeof(originalCommand) - 1);
 
 	// Set Iterations
 	strtok(command, "@");
-	int transmitIterations = (strchr (command, '@') != NULL) ? (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0) : 1;
+	int transmitIterations = (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0);
+	if (transmitIterations == 0) transmitIterations = 1;
 	
 	// Assign Frame ID
+	if (command[0] == '[') {
+		printf ("Please, enter an ID\n\n");
+		return -1;
+	}
 	frame.id = (uint32_t) strtoul (strtok (command, "["), NULL, 0);
 
 	// Assign Frame Data
-	int byteCount = 0;
+	
 	while (true) {
 		char* byte = strtok (NULL, ",");
 		if (byte == NULL) {
@@ -144,6 +150,7 @@ int transmitFrame (canDevice_t* device, char* command) {
 			return errno;
 		}
 	}
+	printf ("\n");
 	return 0;
 }
 
@@ -156,8 +163,9 @@ int receiveFrame (canDevice_t* device, char* command) {
 	
 	// Get Iterations from Input
 	strtok(command, "@");
-	int receiveIterations = ((strchr (command, '@') != NULL)) ? (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0) : 1;
-
+	int receiveIterations = (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0);
+	if (receiveIterations == 0) receiveIterations = 1;
+	
 	// Parse CAN IDs
 	int canIdIndex = 0;
 	if (command[0] == '[') command++;
@@ -172,9 +180,10 @@ int receiveFrame (canDevice_t* device, char* command) {
 	}
 
 	// Receive Frame
-	// TODO (DiBacco): error: receiver empty
-	printf ("\n");
-	while (receiveIterations != 0) {	
+	// TODO (DiBacco): Error: Receiver Empty - the CAN seems to run dry if it loops infinitly
+	int count = 0;
+	while (receiveIterations > 0) { //  && count < 100
+		// transmitTimeout(0, 500);
 		if (canReceive (device, &frame) == 0) {
 			for (size_t i = 0; i < canIdIndex; i++) {
 				if (canIds[i] == frame.id) {
@@ -187,6 +196,7 @@ int receiveFrame (canDevice_t* device, char* command) {
 		}
 	}
 	printf ("\n");
+	return 0;
 }
 
 /*
@@ -195,6 +205,7 @@ int receiveFrame (canDevice_t* device, char* command) {
 int processCommand (canDevice_t* device, char* command) {	
 	// TODO(DiBacco): add filters to detect invalid input
 	// Get Method & Shift Command
+	long unsigned int timeoutMs;
 	char method = command[0];
 	command += 2;
 			
@@ -202,22 +213,26 @@ int processCommand (canDevice_t* device, char* command) {
 	case 't': 
 		transmitFrame (device, command);
 		break;
+
 	case 'r': 
 		receiveFrame(device, command);
 		break;
+
 	case 'f': {
 		if (canFlushRx (device) != 0)
 			printf ("Error: %s.\n", errorMessage (errno));
 		break;
+
 	}
 	case 'm': { 
-		long unsigned int timeoutMs = promptTimeout (); // DiBacco
+		timeoutMs = promptTimeout (); 
 		if (canSetTimeout (device, timeoutMs) != 0)
 			printf ("Error: %s.\n", errorMessage (errno));
 		break;
+
 	}
 	case 'q': {
-		return 0;
+		return -1;
 	}}
 	return 0;
 }
@@ -274,10 +289,12 @@ int main (int argc, char** argv)
 			printf (" m - Set the device's timeout.\n");
 			printf (" q - Quit the program.\n");
 
-			fscanf (stdin, "%s%*1[\n]", command);
+			// fscanf (stdin, "%s*1[\n]", command);
+			fgets(command, sizeof(command), stdin);
 
 			if (strchr (command, '=') != NULL) {
-				if (processCommand (device, command) == 0) return 0;
+				if (processCommand (device, command) == -1) return 0;
+				continue;
 
 			} else {
 				canFrame_t frame;
@@ -291,21 +308,25 @@ int main (int argc, char** argv)
 						else
 			 				printf ("Error: %s.\n", errorMessage (errno));
 						break;
+
 					case 'r':
 						if (canReceive (device, &frame) == 0)
 							printFrame (&frame);
 						else
 							printf ("Error: %s.\n", errorMessage (errno));
 						break;
+
 					case 'f':
 						if (canFlushRx (device) != 0)
 							printf ("Error: %s.\n", errorMessage (errno));
 						break;
+						
 					case 'm':
 						timeoutMs = promptTimeout ();
 						if (canSetTimeout (device, timeoutMs) != 0)
 							printf ("Error: %s.\n", errorMessage (errno));
 						break;
+
 					case 'q':
 						return 0;
 				}
