@@ -20,10 +20,10 @@
 #include <sys/time.h>
 
 const int CAN_ID_LENGTH = 32;
+const int TRANSMIT_DELAY = 500; // in microseconds
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-// DiBacco: function no longer used
 void promptFrame (canFrame_t* frame)
 {
 	char buffer [512];
@@ -47,10 +47,22 @@ void promptFrame (canFrame_t* frame)
 	}
 }
 
-// TODO(DiBacco): create a manual page for the can-dev-cli command
+/*
+	Manual Page for the Transmit & Receive Methods
+*/
 void displayHelp() 
 {
-	// TODO(DiBacco): create a manual page for the can-dev-cli command
+	printf ("\n\
+		Transmit / Receive Can-Frames. \n\\n\
+		Methods: \n\
+		Transmit Frames: t=<id>[<byte1>, <byte2>, ...]@<iterations>\n\
+			- id: specifies the id of the frame\n\
+			- byte: specifies the content of each byte in the payload\n\
+			- iterations: specifies the number of iterations to transmit the frame\n\\n\
+		Receive Frames: r=[<id1>, <id2>, ...]@<iterations>\n\
+			- id: specifies the id of the Can-Frame to retrieve\n\
+			- iterations: specifies the number of iterations to receive frames\n\
+		");
 }
 
 /*
@@ -125,7 +137,6 @@ int transmitFrame (canDevice_t* device, char* command) {
 	frame.id = (uint32_t) strtoul (strtok (command, "["), NULL, 0);
 
 	// Assign Frame Data
-	
 	while (true) {
 		char* byte = strtok (NULL, ",");
 		if (byte == NULL) {
@@ -139,11 +150,10 @@ int transmitFrame (canDevice_t* device, char* command) {
 	frame.dlc = (uint8_t) byteCount -1;
 
 	// Transmit Frame
-	// DiBacco (9/25): issues from interactive mode. Still?
 	printf ("\n");
 	for (int i = 0; i < transmitIterations; i++) {
 		if (canTransmit (device, &frame) == 0) {
-			transmitTimeout (0, 100000); // 100 ms timeout between transmissions
+			transmitTimeout (0, TRANSMIT_DELAY); // 100 ms timeout between transmissions
 			printf ("%2d). %s => Success\n", i + 1, originalCommand);
 		} else {
 			printf ("Error: %s.\n", errorMessage (errno));
@@ -181,14 +191,13 @@ int receiveFrame (canDevice_t* device, char* command) {
 
 	// Receive Frame
 	// TODO (DiBacco): Error: Receiver Empty - the CAN seems to run dry if it loops infinitly
-	int count = 0;
-	while (receiveIterations > 0) { //  && count < 100
-		// transmitTimeout(0, 500);
+	while (receiveIterations > 0) { 
 		if (canReceive (device, &frame) == 0) {
 			for (size_t i = 0; i < canIdIndex; i++) {
 				if (canIds[i] == frame.id) {
 					printFrame (&frame);
 					receiveIterations--;
+					break;
 				}
 			}
 		} else {
@@ -203,7 +212,6 @@ int receiveFrame (canDevice_t* device, char* command) {
 	- Takes Entire Command and Processes it	
 */
 int processCommand (canDevice_t* device, char* command) {	
-	// TODO(DiBacco): add filters to detect invalid input
 	// Get Method & Shift Command
 	long unsigned int timeoutMs;
 	char method = command[0];
@@ -216,6 +224,10 @@ int processCommand (canDevice_t* device, char* command) {
 
 	case 'r': 
 		receiveFrame(device, command);
+		break;
+
+	case 'h':
+		displayHelp();
 		break;
 
 	case 'f': {
@@ -285,6 +297,7 @@ int main (int argc, char** argv)
 			printf ("Enter an option:\n");
 			printf (" t - Transmit a CAN message.\n");
 			printf (" r - Receive a CAN message.\n");
+			printf (" h - Display man page.\n");
 			printf (" f - Flush the receive buffer.\n");
 			printf (" m - Set the device's timeout.\n");
 			printf (" q - Quit the program.\n");
@@ -316,6 +329,10 @@ int main (int argc, char** argv)
 							printf ("Error: %s.\n", errorMessage (errno));
 						break;
 
+					case 'h':
+						displayHelp();
+						break;
+
 					case 'f':
 						if (canFlushRx (device) != 0)
 							printf ("Error: %s.\n", errorMessage (errno));
@@ -336,4 +353,3 @@ int main (int argc, char** argv)
 	}
 	return 0;
 }
-
