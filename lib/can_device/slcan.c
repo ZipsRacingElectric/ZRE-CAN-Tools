@@ -154,16 +154,31 @@ int slcanTransmit (void* device, canFrame_t* frame)
 
 int slcanReceive (void* device, canFrame_t* frame)
 {
+	int code;
 	slcan_t* can = device;
 
 	can_message_t message;
-	int code = can_read (can->handle, &message, can->timeoutMs);
+	/*
+	 	Fix: on Windows, can_read sets errno -30 (Recevier Empty) desite the timeout value indicating a blocking operation (65535)
+		SLCAN Error 122: EAGAIN: when a temporary resource shortage made an operation impossible / 
+		EWOULDBLOCK: the operation would have blocked, but the descriptor was placed in non-blocking mode. 
+		SLCAN Error 221 is fundamentally the same as SLCAN Error -30
+	*/
+	do {
+	
+		code = can_read (can->handle, &message, can->timeoutMs);
+
+	} while (can->timeoutMs == 65535 && (errno == 122 || errno == -30));
+	
 	if (code != 0)
 	{
+		printf ("errno: %d", errno);
 		// Offset the error code to match this project's convention.
 		errno = code + 10000;
 		return errno;
 	}
+
+
 
 	frame->id = message.id;
 	frame->dlc = message.dlc;
