@@ -53,16 +53,20 @@ void promptFrame (canFrame_t* frame)
 void displayHelp() 
 {
 	printf ("\n\
-		Transmit / Receive Can-Frames. \n\\n\
+		Transmit / Receive Can-Frames \n\
+		\n\
 		Methods: \n\
 		Transmit Frames: t=<id>[<byte1>, <byte2>, ...]@<iterations>\n\
 			- id: specifies the id of the frame\n\
 			- byte: specifies the content of each byte in the payload\n\
-			- iterations: specifies the number of iterations to transmit the frame\n\\n\
+			- iterations: specifies the number of iterations to transmit the frame\n\
+		\n\
 		Receive Frames: r=[<id1>, <id2>, ...]@<iterations>\n\
 			- id: specifies the id of the Can-Frame to retrieve\n\
+				- Note: the program will retreive all ids if the id input is empty ([])\n\
 			- iterations: specifies the number of iterations to receive frames\n\
 		");
+	printf ("\n");
 }
 
 /*
@@ -169,6 +173,7 @@ int transmitFrame (canDevice_t* device, char* command) {
 */
 int receiveFrame (canDevice_t* device, char* command) {
 	canFrame_t frame;
+	bool filterIds = false; 
 	uint32_t canIds [CAN_ID_LENGTH];
 	
 	// Get Iterations from Input
@@ -182,22 +187,32 @@ int receiveFrame (canDevice_t* device, char* command) {
 
 	while (true) {
 		char* id = (canIdIndex == 0) ? strtok (command, ",") : strtok (NULL, ",");
-		if (id == NULL) {
+		// checks if the parse is invalid
+		if (id == NULL || strcmp (id, "]") == 0) {
 			break;
 		}
 		canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, 0);
+		filterIds = true; // indicates that the user has input at least one id
 		canIdIndex++;
+		
 	}
 
 	// Receive Frame
 	// TODO (DiBacco): Error: Receiver Empty - the CAN seems to run dry if it loops infinitly
 	while (receiveIterations > 0) { 
-		if (canReceive (device, &frame) == 0) {
-			for (size_t i = 0; i < canIdIndex; i++) {
-				if (canIds[i] == frame.id) {
-					printFrame (&frame);
-					receiveIterations--;
-					break;
+		if (canReceive (device, &frame) == 0) { // receives a CAN Frame from the bus
+			if (! filterIds) { // checks that the user input ids
+				printFrame (&frame);
+				receiveIterations--;
+				continue;
+			}
+			else {
+				for (size_t i = 0; i < canIdIndex; i++) {
+					if (canIds[i] == frame.id) {
+						printFrame (&frame);
+						receiveIterations--;
+						break;
+					}
 				}
 			}
 		} else {
@@ -216,7 +231,7 @@ int processCommand (canDevice_t* device, char* command) {
 	long unsigned int timeoutMs;
 	char method = command[0];
 	command += 2;
-			
+	
 	switch (method) {
 	case 't': 
 		transmitFrame (device, command);
