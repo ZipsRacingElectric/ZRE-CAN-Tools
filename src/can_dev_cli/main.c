@@ -57,28 +57,41 @@ void promptFrame (canFrame_t* frame)
 */
 void displayHelp() 
 {
-	// REVIEW(Barach): This format has spaces inbetween fields, while the program doesn't support that.
-	// REVIEW(Barach): This says iterations are optional for TX, while the in reality they are only optional if the frequency
-	//   isn't specified. This can be fixed by moving the optional part down into the definitions below and elaborating a bit
-	//   more.
-
 	printf ("\n\
-		Transmit / Receive Can-Frames \n\
-		\n\
-		Methods: \n\
-		Transmit Frames: t=<id>[<byte1>, <byte2>, ...]@<frequency>, <iterations (optional)>\n\
-			- id: specifies the id of the frame\n\
-			- byte: specifies the content of each byte in the payload\n\
-			- frequency: specifies the frequency of received transmissions (hertz)\n\
-			- iterations: specifies the number of iterations to transmit the frame\n\
-		\n\
-		Receive Frames: r=[<id1>, <id2>, ...]@<iterations (optional)>\n\
-			- id: specifies the id of the Can-Frame to retrieve\n\
-				- Note: the program will retreive all ids if the id input is empty ([])\n\
-			- iterations: specifies the number of iterations to receive frames\n\
-		\n\
-		Infinitely Receive Frames: d=[<id1>, <id2>, ...]\n\
-			- id: specifies the id of the Can-Frame to retrieve\n\
+			Methods:\n\
+			Transmiting Frames:\n\
+    			t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]\n\
+        			Transmits a single CAN frame.\n\
+				\n\
+    			t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]@<Freq>,<Count>\n\
+        			Transmits a CAN frame at a specified frequency.\n\
+				\n\
+    			Arguments:\n\
+        			ID     - The CAN ID of the frame to transmit.\n\
+        			Byte n - The n'th byte of the payload, in little-endian.\n\
+        			Freq   - The frequency to transmit at, in Hertz.\n\
+        			Count  - The number of times to transmit the message.\n\
+			\n\
+			Receiving Frames:\n\
+   				r - Receives the first available CAN message.\n\
+				\n\
+    			r=[<ID 0>,<ID 1>,...<ID n>]\n\
+        			Receives the first available CAN message from a list of IDs.\n\
+				\n\
+    			r=[<ID 0>,<ID 1>,...<ID n>]@<Count>\n\
+        			Receives the first set of availble CAN messages from a list of IDs.\n\
+				\n\
+    			r=[]@<Iterations>\n\
+        			Receives the first set of available CAN messages.\n\
+				\n\
+    			d - Dumps all received CAN messages.\n\
+				\n\
+    			d=[<ID 0>,<ID 1>,...<ID n>]\n\
+        			Dumps all received CAN messages from a list of IDs.\n\
+				\n\
+    			Arguments:\n\
+        			ID n  - The n'th CAN ID to filter for.\n\
+        			Count - Specifies the number CAN frames to receive\n\
 		");
 	printf ("\n");
 }
@@ -101,31 +114,6 @@ void printFrame (canFrame_t* frame)
 }
 
 /*
-	- Creates a timeout for the transmit implementation based on the frequency (hertz) input from the user
-*/
-void transmitTimeout (time_t seconds, long microseconds)
-{
-	struct timeval timeout = 
-	{
-		.tv_sec = seconds,
-		.tv_usec = microseconds
-	};
-	
-	struct timeval deadline;
-	struct timeval currentTime;
-
-	// REVIEW(Barach): Because the call to canTransmit is not between gettimeofday and while loop, this delay is longer than it
-	//   should be. Actual execution time is (the time canTransmit takes) + (period we are transmitting at).
-	gettimeofday (&currentTime, NULL);
-	timeradd (&currentTime, &timeout, &deadline);
-	
-	while (timercmp (&currentTime, &deadline, <))
-	{
-		gettimeofday (&currentTime, NULL);
-	}
-}
-
-/*
 	Assigns duration for the CAN BUS to wait when it is not receiving frames
 */
 unsigned long int promptTimeout ()
@@ -144,27 +132,39 @@ unsigned long int promptTimeout ()
 	- Syntax ex). t=1[1,2,3,4,5,6,7,8]@0.5, 12
 */
 int transmitFrame (canDevice_t* device, char* command) {
-
-	// REVIEW(Barach): If the formatting of this doesn't match what is expected, the program seg faults.
-	// - Unchecked result of strtok
-
-	// 
-
 	canFrame_t frame;
 	int byteCount = 0;
-	char originalCommand [500];
-	strncpy(originalCommand, command, sizeof(originalCommand) - 1);
-	originalCommand[strlen (originalCommand) - 1] = '\0'; // removes the trailing '\n' character
 
 	// Set Iterations
-	strtok(command, "@");
-	float frequency = strtof (strtok (NULL, ","), NULL); // in hertz
+	strtok(command, "@"); // seperates backet segment of the command from the iteration / frequency part
+	
+	float frequency;
+	int transmitIterations;
+	char* x = strtok (NULL, ",");
+	if (x == NULL) {
+		frequency = 1.0;
+		transmitIterations = 1;
+	} else {
+		frequency = strtof (x, NULL); // in hertz
+		x = strtok (NULL, ",");
+		if (x == NULL) 
+			transmitIterations = 1;
+		else
+	 		transmitIterations = (uint32_t) strtoul (x, NULL, 0);
+	}
 	long totalMicroseconds = (1e6 / frequency); // microseconds = 1,000,000 / hertz
-	int transmitIterations = (uint32_t) strtoul (strtok (NULL, ","), NULL, 0);
-	if (transmitIterations == 0) transmitIterations = 1;
+		
+	long microseconds = totalMicroseconds % 1000000;
+	time_t seconds = totalMicroseconds / 1000000;
 
-	long microsecondFrequency = totalMicroseconds % 1000000;
-	time_t secondFrequency = totalMicroseconds / 1000000;
+	struct timeval timeout = 
+	{
+		.tv_sec = seconds,
+		.tv_usec = microseconds
+	};
+	
+	struct timeval deadline;
+	struct timeval currentTime;
 
 	// Assign Frame ID
 	if (command[0] == '[') { // if the first index in the command is '[' (not id)
@@ -183,23 +183,19 @@ int transmitFrame (canDevice_t* device, char* command) {
 		byteCount++;
 	}
 
-	// REVIEW(Barach): DLC appears off by one.
-	// command: t=0x123[0xAB, 0xCD, 0xEF]
-	// actual transmitted frame: 0x123[0xAB, 0xCD]
-
 	// Assign Frame DLC
-	frame.dlc = (uint8_t) byteCount -1;
+	frame.dlc = (uint8_t) byteCount;
 
 	// Transmit Frame
 	printf ("\n");
 	for (int i = 0; i < transmitIterations; i++) {
+		gettimeofday (&currentTime, NULL);
+		timeradd (&currentTime, &timeout, &deadline);
 		if (canTransmit (device, &frame) == 0) {
-			transmitTimeout (secondFrequency, microsecondFrequency); 
+			printFrame(&frame);
+			while (timercmp (&currentTime, &deadline, <)) // waits until deadline is reached
+				gettimeofday (&currentTime, NULL);
 			
-			// REVIEW(Barach): If you use printFrame here, you don't need to create a copy of the original command.
-			// This also guarantees the formatting is consistent between the two.
-			printf ("%2d). %s => Success\n", i + 1, originalCommand);
-
 		} else {
 			printf ("Error: %s.\n", errorMessage (errno));
 			return errno;
@@ -242,8 +238,6 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 	}
 
 	// Receive Frame
-	// REVIEW(Barach): old TODO message.
-	// TODO (DiBacco): Error: Receiver Empty - the CAN seems to run dry if it loops infinitly
 	while (infiniteIterations || receiveIterations > 0) { 
 		if (canReceive (device, &frame) == 0) { // receives a CAN Frame from the bus
 			if (! filterIds) { // checks that the user has input ids
@@ -317,7 +311,7 @@ int processCommand (canDevice_t* device, char* command) {
 
 int main (int argc, char** argv)
 {	
-	if (argc < 2 || argc > 3)
+	if (argc < 2)
 	{
 		fprintf (stderr, "Format: can-dev-cli -method (optional) <device name>\n");
 		return -1;
@@ -344,10 +338,13 @@ int main (int argc, char** argv)
 
 	// Directly From Command Line
 	if (argc == 3) {
-		// REVIEW(Barach): The command-line arguments should all start with '-'.
-		// - Can simply check argv [1][0] == '-' then say command = argv [1] + 1 (one character past the start).
 		char* command = argv [1];
-		processCommand (device, command);
+		if (command[0] == '-') 
+			processCommand (device, ++command);
+
+		else 
+			printf ("Command-Line arguments should start with '-'\n");
+		
 		return 0;
 
 	} else {
