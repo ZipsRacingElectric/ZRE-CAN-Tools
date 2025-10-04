@@ -66,7 +66,7 @@ void displayHelp()
 				- Note: the program will retreive all ids if the id input is empty ([])\n\
 			- iterations: specifies the number of iterations to receive frames\n\
 		\n\
-		Receive Frames Infinitely: d=[<id1>, <id2>, ...]\n\
+		Infinitely Receive Frames: d=[<id1>, <id2>, ...]\n\
 			- id: specifies the id of the Can-Frame to retrieve\n\
 		");
 	printf ("\n");
@@ -123,13 +123,14 @@ unsigned long int promptTimeout ()
 // Method Functions ------------------------------------------------------------------------------------------------------------
 
 /*
-	- Syntax ex). t=1[1,2,3,4,5,6,7,8]@12
+	- Syntax ex). t=1[1,2,3,4,5,6,7,8]@0.5, 12
 */
 int transmitFrame (canDevice_t* device, char* command) {
 	canFrame_t frame;
 	int byteCount = 0;
 	char originalCommand [500];
 	strncpy(originalCommand, command, sizeof(originalCommand) - 1);
+	originalCommand[strlen (originalCommand) - 1] = '\0'; // removes the trailing '\n' character
 
 	// Set Iterations
 	strtok(command, "@");
@@ -162,6 +163,7 @@ int transmitFrame (canDevice_t* device, char* command) {
 	frame.dlc = (uint8_t) byteCount -1;
 
 	// Transmit Frame
+	printf ("\n");
 	for (int i = 0; i < transmitIterations; i++) {
 		if (canTransmit (device, &frame) == 0) {
 			transmitTimeout (secondFrequency, microsecondFrequency); 
@@ -176,7 +178,7 @@ int transmitFrame (canDevice_t* device, char* command) {
 }
 
 /*
-	- Syntax ex). r=[512,513,514,515,1536,1]@0.5,12	/ d=[512,513,514,515,1536,1]
+	- Syntax ex). r=[512,513,514,515,1536,1]@12	/ d=[512,513,514,515,1536,1]
 */
 int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 	canFrame_t frame;
@@ -326,7 +328,7 @@ int main (int argc, char** argv)
 			printf ("Enter an option:\n");
 			printf (" t - Transmit a CAN message.\n");
 			printf (" r - Receive a CAN message.\n");
-			printf (" d - Receive CAN frames infinitely.\n");
+			printf (" d - Infinitely receive CAN messages.\n");
 			printf (" h - Display man page.\n");
 			printf (" f - Flush the receive buffer.\n");
 			printf (" m - Set the device's timeout.\n");
