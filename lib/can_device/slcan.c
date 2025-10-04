@@ -159,11 +159,15 @@ int slcanReceive (void* device, canFrame_t* frame)
 
 	can_message_t message;
 
-	// REVIEW(Barach): This should include a bit more information about the error:
-	// - can_read is returning -30, not setting errno
-	// - Does is always do this, or is it intermittent?
 	/*
-	 	Fix: on Windows, can_read sets errno -30 (Recevier Empty) desite the timeout value indicating a blocking operation (65535)
+		can_read() = -30 (Recevier Empty) Overview
+
+		Context:
+			- Windows only
+			- Intermittent -- replicable when receiving from the CAN bus with no valid ids as input
+		Error: Can_Read is returning -30 (Recevier Empty)
+			- timout value is set to 65535 which should create blocking functionality in the function (is not working in this context)
+	 	Fix: repeat the can_read() function which essentially creates a blocking operation
 	*/
 	do
 	{
@@ -172,9 +176,6 @@ int slcanReceive (void* device, canFrame_t* frame)
 
 	if (code != 0)
 	{
-		// REVIEW(Barach): Shouldn't be printing this here. Some applications use stdin/stdout for automatic operations, and
-		//   this will break that.
-		printf ("errno: %d", errno);
 		// Offset the error code to match this project's convention.
 		errno = code + 10000;
 		return errno;
