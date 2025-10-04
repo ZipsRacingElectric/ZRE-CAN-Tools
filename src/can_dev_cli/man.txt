@@ -7,10 +7,10 @@ Transmiting Frames:
         Transmits a CAN frame at a specified frequency.
 
     Arguments:
-    - ID     - The CAN ID of the frame to transmit.
-    - Byte n - The n'th byte of the payload, in little-endian.
-    - Freq   - The frequency to transmit at, in Hertz.
-    - Count  - The number of times to transmit the message.
+        ID     - The CAN ID of the frame to transmit.
+        Byte n - The n'th byte of the payload, in little-endian.
+        Freq   - The frequency to transmit at, in Hertz.
+        Count  - The number of times to transmit the message.
 
 Receiving Frames:
     r - Receives the first available CAN message.
@@ -22,6 +22,7 @@ Receiving Frames:
         Receives the first set of availble CAN messages from a list of IDs.
 
     r=[]@<Iterations>
+        Receives the first set of available CAN messages.
 
     d - Dumps all received CAN messages.
 
@@ -29,5 +30,5 @@ Receiving Frames:
         Dumps all received CAN messages from a list of IDs.
 
     Arguments:
-    - ID n  - The n'th CAN ID to filter for.
-    - Count - Specifies the number CAN frames to receive
+        ID n  - The n'th CAN ID to filter for.
+        Count - Specifies the number CAN frames to receive
