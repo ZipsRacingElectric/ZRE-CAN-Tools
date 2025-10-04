@@ -51,6 +51,11 @@ void promptFrame (canFrame_t* frame)
 */
 void displayHelp() 
 {
+	// REVIEW(Barach): This format has spaces inbetween fields, while the program doesn't support that.
+	// REVIEW(Barach): This says iterations are optional for TX, while the in reality they are only optional if the frequency
+	//   isn't specified. This can be fixed by moving the optional part down into the definitions below and elaborating a bit
+	//   more.
+
 	printf ("\n\
 		Transmit / Receive Can-Frames \n\
 		\n\
@@ -101,6 +106,9 @@ void transmitTimeout (time_t seconds, long microseconds)
 	
 	struct timeval deadline;
 	struct timeval currentTime;
+
+	// REVIEW(Barach): Because the call to canTransmit is not between gettimeofday and while loop, this delay is longer than it
+	//   should be. Actual execution time is (the time canTransmit takes) + (period we are transmitting at).
 	gettimeofday (&currentTime, NULL);
 	timeradd (&currentTime, &timeout, &deadline);
 	
@@ -126,6 +134,12 @@ unsigned long int promptTimeout ()
 	- Syntax ex). t=1[1,2,3,4,5,6,7,8]@0.5, 12
 */
 int transmitFrame (canDevice_t* device, char* command) {
+
+	// REVIEW(Barach): If the formatting of this doesn't match what is expected, the program seg faults.
+	// - Unchecked result of strtok
+
+	// 
+
 	canFrame_t frame;
 	int byteCount = 0;
 	char originalCommand [500];
@@ -138,10 +152,10 @@ int transmitFrame (canDevice_t* device, char* command) {
 	long totalMicroseconds = (1e6 / frequency); // microseconds = 1,000,000 / hertz
 	int transmitIterations = (uint32_t) strtoul (strtok (NULL, ","), NULL, 0);
 	if (transmitIterations == 0) transmitIterations = 1;
-	
+
 	long microsecondFrequency = totalMicroseconds % 1000000;
 	time_t secondFrequency = totalMicroseconds / 1000000;
-	
+
 	// Assign Frame ID
 	if (command[0] == '[') {
 		printf ("Please, enter an ID\n\n");
@@ -159,6 +173,10 @@ int transmitFrame (canDevice_t* device, char* command) {
 		byteCount++;
 	}
 
+	// REVIEW(Barach): DLC appears off by one.
+	// command: t=0x123[0xAB, 0xCD, 0xEF]
+	// actual transmitted frame: 0x123[0xAB, 0xCD]
+
 	// Assign Frame DLC
 	frame.dlc = (uint8_t) byteCount -1;
 
@@ -167,7 +185,11 @@ int transmitFrame (canDevice_t* device, char* command) {
 	for (int i = 0; i < transmitIterations; i++) {
 		if (canTransmit (device, &frame) == 0) {
 			transmitTimeout (secondFrequency, microsecondFrequency); 
+			
+			// REVIEW(Barach): If you use printFrame here, you don't need to create a copy of the original command.
+			// This also guarantees the formatting is consistent between the two.
 			printf ("%2d). %s => Success\n", i + 1, originalCommand);
+
 		} else {
 			printf ("Error: %s.\n", errorMessage (errno));
 			return errno;
@@ -210,6 +232,7 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 	}
 
 	// Receive Frame
+	// REVIEW(Barach): old TODO message.
 	// TODO (DiBacco): Error: Receiver Empty - the CAN seems to run dry if it loops infinitly
 	while (infiniteIterations || receiveIterations > 0) { 
 		if (canReceive (device, &frame) == 0) { // receives a CAN Frame from the bus
@@ -311,6 +334,8 @@ int main (int argc, char** argv)
 
 	// Directly From Command Line
 	if (argc == 3) {
+		// REVIEW(Barach): The command-line arguments should all start with '-'.
+		// - Can simply check argv [1][0] == '-' then say command = argv [1] + 1 (one character past the start).
 		char* command = argv [1];
 		processCommand (device, command);
 		return 0;
@@ -334,7 +359,6 @@ int main (int argc, char** argv)
 			printf (" m - Set the device's timeout.\n");
 			printf (" q - Quit the program.\n");
 
-			// fscanf (stdin, "%s*1[\n]", command);
 			fgets(command, sizeof(command), stdin);
 
 			if (strchr (command, '=') != NULL) {
