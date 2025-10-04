@@ -23,20 +23,26 @@ const int CAN_ID_LENGTH = 32;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+/*
+	Function used by the interactive frame trasmit implementation to prompt frame information from the user and assign it to the frame accordingly
+*/
 void promptFrame (canFrame_t* frame)
 {
 	char buffer [512];
 
+	// id
 	printf ("Enter the ID of the message: ");
 	fgets (buffer, sizeof (buffer), stdin);
 	buffer [strcspn (buffer, "\r\n")] = '\0';
 	frame->id = strtol (buffer, NULL, 0);
 
+	// DLC
 	printf ("Enter the DLC of the message: ");
 	fgets (buffer, sizeof (buffer), stdin);
 	buffer [strcspn (buffer, "\r\n")] = '\0';
 	frame->dlc = strtol (buffer, NULL, 0);
 
+	// Payload
 	for (uint8_t index = 0; index < frame->dlc; ++index)
 	{
 		printf ("Enter byte %i of the payload: ", index);
@@ -80,6 +86,7 @@ void displayHelp()
 /*
 	- Nested function for the Receive Method
 	- Print the Frame if the ID matches one of the provided IDs
+	- Output is displayed in 0xid[<byte1>, <byte2>, ...] format
 */
 void printFrame (canFrame_t* frame)
 {
@@ -94,7 +101,7 @@ void printFrame (canFrame_t* frame)
 }
 
 /*
-	- Creates a Timeout When Transmitting Frames on a Loop
+	- Creates a timeout for the transmit implementation based on the frequency (hertz) input from the user
 */
 void transmitTimeout (time_t seconds, long microseconds)
 {
@@ -118,6 +125,9 @@ void transmitTimeout (time_t seconds, long microseconds)
 	}
 }
 
+/*
+	Assigns duration for the CAN BUS to wait when it is not receiving frames
+*/
 unsigned long int promptTimeout ()
 {
 	char buffer [512];
@@ -157,14 +167,14 @@ int transmitFrame (canDevice_t* device, char* command) {
 	time_t secondFrequency = totalMicroseconds / 1000000;
 
 	// Assign Frame ID
-	if (command[0] == '[') {
+	if (command[0] == '[') { // if the first index in the command is '[' (not id)
 		printf ("Please, enter an ID\n\n");
 		return -1;
 	}
 	frame.id = (uint32_t) strtoul (strtok (command, "["), NULL, 0);
 
 	// Assign Frame Data
-	while (true) {
+	while (true) { // parse out ids from command until there are no more
 		char* byte = strtok (NULL, ",");
 		if (byte == NULL) {
 			break;
@@ -204,12 +214,12 @@ int transmitFrame (canDevice_t* device, char* command) {
 */
 int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 	canFrame_t frame;
-	bool filterIds = false; 
+	bool filterIds = false;
 	uint32_t canIds [CAN_ID_LENGTH];
 	
 	// Get Iterations from Input
 	int receiveIterations;
-	if (! infiniteIterations) {
+	if (! infiniteIterations) { // if the user is using the receive (r) method
 		strtok(command, "@");
 		receiveIterations = (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0);
 		if (receiveIterations == 0) receiveIterations = 1;
@@ -236,7 +246,7 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 	// TODO (DiBacco): Error: Receiver Empty - the CAN seems to run dry if it loops infinitly
 	while (infiniteIterations || receiveIterations > 0) { 
 		if (canReceive (device, &frame) == 0) { // receives a CAN Frame from the bus
-			if (! filterIds) { // checks that the user input ids
+			if (! filterIds) { // checks that the user has input ids
 				printFrame (&frame);
 				receiveIterations--;
 				continue;
@@ -264,7 +274,7 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 int processCommand (canDevice_t* device, char* command) {	
 	// Get Method & Shift Command
 	long unsigned int timeoutMs;
-	char method = command[0];
+	char method = command[0]; // gets method type (t / r / d)
 	command += 2;
 	
 	switch (method) {
