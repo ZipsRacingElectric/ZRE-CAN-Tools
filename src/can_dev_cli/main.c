@@ -20,7 +20,6 @@
 #include <sys/time.h>
 
 const int CAN_ID_LENGTH = 32;
-const int TRANSMIT_DELAY = 500; // in microseconds
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
@@ -56,12 +55,13 @@ void displayHelp()
 		Transmit / Receive Can-Frames \n\
 		\n\
 		Methods: \n\
-		Transmit Frames: t=<id>[<byte1>, <byte2>, ...]@<iterations>\n\
+		Transmit Frames: t=<id>[<byte1>, <byte2>, ...]@<frequency>, <iterations (optional)>\n\
 			- id: specifies the id of the frame\n\
 			- byte: specifies the content of each byte in the payload\n\
+			- frequency: specifies the frequency of received transmissions (hertz)\n\
 			- iterations: specifies the number of iterations to transmit the frame\n\
 		\n\
-		Receive Frames: r=[<id1>, <id2>, ...]@<iterations>\n\
+		Receive Frames: r=[<id1>, <id2>, ...]@<iterations (optional)>\n\
 			- id: specifies the id of the Can-Frame to retrieve\n\
 				- Note: the program will retreive all ids if the id input is empty ([])\n\
 			- iterations: specifies the number of iterations to receive frames\n\
@@ -130,8 +130,13 @@ int transmitFrame (canDevice_t* device, char* command) {
 
 	// Set Iterations
 	strtok(command, "@");
-	int transmitIterations = (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0);
+	float frequency = strtof (strtok (NULL, ","), NULL); // in hertz
+	long totalMicroseconds = (1e6 / frequency); // microseconds = 1,000,000 / hertz
+	int transmitIterations = (uint32_t) strtoul (strtok (NULL, ","), NULL, 0);
 	if (transmitIterations == 0) transmitIterations = 1;
+	
+	long microsecondFrequency = totalMicroseconds % 1000000;
+	time_t secondFrequency = totalMicroseconds / 1000000;
 	
 	// Assign Frame ID
 	if (command[0] == '[') {
@@ -154,10 +159,9 @@ int transmitFrame (canDevice_t* device, char* command) {
 	frame.dlc = (uint8_t) byteCount -1;
 
 	// Transmit Frame
-	printf ("\n");
 	for (int i = 0; i < transmitIterations; i++) {
 		if (canTransmit (device, &frame) == 0) {
-			transmitTimeout (0, TRANSMIT_DELAY); // 100 ms timeout between transmissions
+			transmitTimeout (secondFrequency, microsecondFrequency); 
 			printf ("%2d). %s => Success\n", i + 1, originalCommand);
 		} else {
 			printf ("Error: %s.\n", errorMessage (errno));
