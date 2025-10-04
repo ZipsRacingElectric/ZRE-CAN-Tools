@@ -65,6 +65,9 @@ void displayHelp()
 			- id: specifies the id of the Can-Frame to retrieve\n\
 				- Note: the program will retreive all ids if the id input is empty ([])\n\
 			- iterations: specifies the number of iterations to receive frames\n\
+		\n\
+		Receive Frames Infinitely: d=[<id1>, <id2>, ...]\n\
+			- id: specifies the id of the Can-Frame to retrieve\n\
 		");
 	printf ("\n");
 }
@@ -173,17 +176,20 @@ int transmitFrame (canDevice_t* device, char* command) {
 }
 
 /*
-	- Syntax ex). r=[512,513,514,515,1536,1]@12	
+	- Syntax ex). r=[512,513,514,515,1536,1]@0.5,12	/ d=[512,513,514,515,1536,1]
 */
-int receiveFrame (canDevice_t* device, char* command) {
+int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 	canFrame_t frame;
 	bool filterIds = false; 
 	uint32_t canIds [CAN_ID_LENGTH];
 	
 	// Get Iterations from Input
-	strtok(command, "@");
-	int receiveIterations = (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0);
-	if (receiveIterations == 0) receiveIterations = 1;
+	int receiveIterations;
+	if (! infiniteIterations) {
+		strtok(command, "@");
+		receiveIterations = (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0);
+		if (receiveIterations == 0) receiveIterations = 1;
+	}
 	
 	// Parse CAN IDs
 	int canIdIndex = 0;
@@ -203,7 +209,7 @@ int receiveFrame (canDevice_t* device, char* command) {
 
 	// Receive Frame
 	// TODO (DiBacco): Error: Receiver Empty - the CAN seems to run dry if it loops infinitly
-	while (receiveIterations > 0) { 
+	while (infiniteIterations || receiveIterations > 0) { 
 		if (canReceive (device, &frame) == 0) { // receives a CAN Frame from the bus
 			if (! filterIds) { // checks that the user input ids
 				printFrame (&frame);
@@ -242,7 +248,11 @@ int processCommand (canDevice_t* device, char* command) {
 		break;
 
 	case 'r': 
-		receiveFrame(device, command);
+		receiveFrame(device, command, false);
+		break;
+
+	case 'd':
+		receiveFrame(device, command, true);
 		break;
 
 	case 'h':
@@ -316,6 +326,7 @@ int main (int argc, char** argv)
 			printf ("Enter an option:\n");
 			printf (" t - Transmit a CAN message.\n");
 			printf (" r - Receive a CAN message.\n");
+			printf (" d - Receive CAN frames infinitely.\n");
 			printf (" h - Display man page.\n");
 			printf (" f - Flush the receive buffer.\n");
 			printf (" m - Set the device's timeout.\n");
@@ -347,7 +358,17 @@ int main (int argc, char** argv)
 						else
 							printf ("Error: %s.\n", errorMessage (errno));
 						break;
+					
+					case 'd':
+						while (true) {
+							if (canReceive (device, &frame) == 0)
+								printFrame (&frame);
 
+							else
+								printf ("Error: %s.\n", errorMessage (errno));
+						}
+						break;
+					
 					case 'h':
 						displayHelp();
 						break;
