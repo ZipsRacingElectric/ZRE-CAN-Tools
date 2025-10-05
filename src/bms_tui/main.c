@@ -439,13 +439,14 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 	mvprintw (row + 0, 0, "┌");
 	mvprintw (row + 1, 0, "├");
 	mvprintw (row + 2, 0, "│");
-	mvprintw (row + 3, 0, "├┬──");
-	mvprintw (row + 4, 0, "││  ");
-	mvprintw (row + 5, 0, "││  ");
-	mvprintw (row + 6, 0, "│└──");
-	mvprintw (row + 7, 0, "└───");
+	mvprintw (row + 3, 0, "├┬");
+	mvprintw (row + 4, 0, "││");
+	mvprintw (row + 5, 0, "││");
+	mvprintw (row + 6, 0, "│└");
+	mvprintw (row + 7, 0, "└─");
+	
 	columnSense += 1;
-	columnCell += 3;
+	columnCell += 2;
 
 	for (uint16_t ltcIndex = 0; ltcIndex < bms->ltcsPerSegment; ++ltcIndex)
 	{
@@ -456,11 +457,11 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 			uint16_t index = CELL_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex, cellIndex);
 
 			// Print the cell's box
-			mvprintw (row + 3, columnCell, "┬──┘└──");
-			mvprintw (row + 4, columnCell, "│      ");
-			mvprintw (row + 5, columnCell, "│      ");
-			mvprintw (row + 6, columnCell, "┴──────");
-			mvprintw (row + 7, columnCell, "───────");
+			mvprintw (row + 3, columnCell, "┬─┘└─");
+			mvprintw (row + 4, columnCell, "│    ");
+			mvprintw (row + 5, columnCell, "│    ");
+			mvprintw (row + 6, columnCell, "┴────");
+			mvprintw (row + 7, columnCell, "─────");
 
 			// If this is the first cell, extend the left side to connect to the start of the segement
 			if (cellIndex == 0)
@@ -473,31 +474,33 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 			}
 
 			// Print the cell voltage text
-			printVoltage (row + 4, columnCell + 3, bms, index);
+			printVoltage (row + 4, columnCell + 2, bms, index);
 			// Print the cell index text
-			printCellIndex (row + 7, columnCell + 2, index);
-
-			columnCell += 7;
+			// TODO: DiBacco: figure out solution to  3 digit index presses up against the "-" symbol
+			printCellIndex (row + 7, columnCell + 1, index);
+			
+			columnCell += 5;
 		}
 
 		if (ltcIndex != bms->ltcsPerSegment - 1)
 		{
 			// If this is not the last LTC, print the divider for the next one.
-			mvprintw (row + 3, columnCell,	"──┬┬┬─");
-			mvprintw (row + 4, columnCell,	"  │││ ");
-			mvprintw (row + 5, columnCell,	"  │││ ");
-			mvprintw (row + 6, columnCell,	"──┘│└─");
-			mvprintw (row + 7, columnCell,	"───┴──");
-			columnCell += 6;
+			mvprintw (row + 3, columnCell,	"─┬┬┬");
+			mvprintw (row + 4, columnCell,	" │││");
+			mvprintw (row + 5, columnCell,	" │││");
+			mvprintw (row + 6, columnCell,	"─┘│└");
+			mvprintw (row + 7, columnCell,	"──┴─");
+
+			columnCell += 4;
 		}
 		else
 		{
 			// If this is the last LTC, print the end of the segment.
-			mvprintw (row + 3, columnCell,	"──┬┤");
-			mvprintw (row + 4, columnCell,	"  ││");
-			mvprintw (row + 5, columnCell,	"  ││");
-			mvprintw (row + 6, columnCell,	"──┘│");
-			mvprintw (row + 7, columnCell,	"───┘");
+			mvprintw (row + 3, columnCell,	"─┬┤");
+			mvprintw (row + 4, columnCell,	" ││");
+			mvprintw (row + 5, columnCell,	" ││");
+			mvprintw (row + 6, columnCell,	"─┘│");
+			mvprintw (row + 7, columnCell,	"──┘");
 		}
 
 		// Print the segment's sense lines
@@ -510,26 +513,26 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 			uint16_t increment;
 			if (senseLineIndex != bms->senseLinesPerLtc - 1)
 			{
-				mvprintw (row + 0, columnSense, "───────");
-				mvprintw (row + 1, columnSense, "─────╮╭");
-				mvprintw (row + 2, columnSense, "     ├┤");
-				increment = 7;
+				mvprintw (row + 0, columnSense, "─────");
+				mvprintw (row + 1, columnSense, "───╮╭");
+				mvprintw (row + 2, columnSense, "   ├┤");
+				increment = 5;
 			}
 			else
 			{
-				mvprintw (row + 0, columnSense, "─────");
-				mvprintw (row + 1, columnSense, "─────");
-				mvprintw (row + 2, columnSense, "     ");
-				increment = 5;
+				mvprintw (row + 0, columnSense, "───");
+				mvprintw (row + 1, columnSense, "───");
+				mvprintw (row + 2, columnSense, "   ");
+				increment = 3;
 			}
 
 			// Print the LTC's status. This is done after 6 sense lines have been printed, as otherwise they would print over
 			// top this text.
 			if (senseLineIndex == 5)
-				printLtcStatus (row, columnSense - 34, bms, LTC_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex));
+				printLtcStatus (row, columnSense - 24, bms, LTC_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex));
 
 			// Print the sense line's temperature and status.
-			printTemperature (row + 2, columnSense, bms, index);
+			printTemperature (row + 2, columnSense -1, bms, index);
 			printSenseLineStatus (row + 3, columnSense, bms, index);
 			columnSense += increment;
 		}
@@ -613,7 +616,9 @@ void printTemperature (int row, int column, bms_t* bms, uint16_t senseLineIndex)
 
 		// Print the temperature
 		attron (COLOR_PAIR (color));
-		mvprintw (row, column, "%.1fC", temperature);
+		mvprintw (row, column, "%.1fC", temperature); 
+		// TODO: DiBacco: need to split into two lines and possibly remove the C
+		// TODO: DiBacco: maybe just look into shrinking the text size
 		attroff (COLOR_PAIR (color));
 
 		break;
@@ -629,7 +634,7 @@ void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t senseLineIn
 	case CAN_DATABASE_TIMEOUT:
 		// If the signal is not valid, print invalid.
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column + 1, " - ");
+		mvprintw (row, column, " - ");
 		attroff (COLOR_PAIR (COLOR_INVALID));
 		break;
 
