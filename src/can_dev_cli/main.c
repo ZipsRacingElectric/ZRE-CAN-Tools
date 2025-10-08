@@ -1,9 +1,12 @@
 // CAN Device CLI -------------------------------------------------------------------------------------------------------------
 //
-// Author: Cole Barach
+// Author: Cole Barach, ... REVIEW(Barach): Add your name up here. This tells later software devs who to direct questions to.
 // Date Created: 2025.07.04
 //
 // Description: Command-line interface for controlling a CAN adapter.
+
+// REVIEW(Barach):
+// -d doesn't work from standard arguments.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -19,6 +22,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+// REVIEW(Barach): Documentation on what this is, could be helped with better naming too,
+// ex. MAX_CAN_ID_COUNT or something to that extent.
 const int CAN_ID_LENGTH = 32;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -96,6 +101,7 @@ void displayHelp()
 	printf ("\n");
 }
 
+// REVIEW(Barach): Outdated documentation (doesn't check IDs anymore).
 /*
 	- Nested function for the Receive Method
 	- Print the Frame if the ID matches one of the provided IDs
@@ -103,12 +109,17 @@ void displayHelp()
 */
 void printFrame (canFrame_t* frame)
 {
+	// REVIEW(Barach): This should use the same syntax as the transmit function accepts, i.e. no spaces or colon.
+	// REVIEW(Barach): The '%3X' specifier prints right justified, so there is an awkward gap between the '0x' and the number
+	//   printed. Better to use the '%03X' specifier which inserts leading 0's.
 	printf ("0x%3X: [", frame->id);
-	for (uint8_t index = 0; index < frame->dlc; ++index) 
+	for (uint8_t index = 0; index < frame->dlc; ++index)
 	{
 		printf ("%02X,", frame->data [index]);
 	}
 
+	// REVIEW(Barach): Behavior of \b is not standardized across all terminal environments. Better to not print the comma on
+	//   the last iteration.
 	printf ("\b]\n");
 	return;
 }
@@ -153,7 +164,7 @@ int transmitFrame (canDevice_t* device, char* command) {
 	 		transmitIterations = (uint32_t) strtoul (x, NULL, 0);
 	}
 	long totalMicroseconds = (1e6 / frequency); // microseconds = 1,000,000 / hertz
-		
+	
 	long microseconds = totalMicroseconds % 1000000;
 	time_t seconds = totalMicroseconds / 1000000;
 
@@ -171,8 +182,10 @@ int transmitFrame (canDevice_t* device, char* command) {
 		printf ("Please, enter an ID\n\n");
 		return -1;
 	}
+	// REVIEW(Barach): Unchecked strtok return value.
 	frame.id = (uint32_t) strtoul (strtok (command, "["), NULL, 0);
 
+	// REVIEW(Barach): This doesn't handle empty frames, '[]', correctly. Interprets as '[0]'. Not an off-by-one error though.
 	// Assign Frame Data
 	while (true) { // parse out ids from command until there are no more
 		char* byte = strtok (NULL, ",");
@@ -186,6 +199,10 @@ int transmitFrame (canDevice_t* device, char* command) {
 	// Assign Frame DLC
 	frame.dlc = (uint8_t) byteCount;
 
+	// REVIEW(Barach): Very dense code is hard to read. Put some empty lines between distinct sections and comments to break
+	//   it up. Ex. gettimeofday and timeradd are performing one distinct 'action' so they can be grouped together.
+	//   Also inline comments (after the line of code) are not preferred for this reason, better to put the comment above the
+	//   line and use spacing to seperate it from the adjacent code.
 	// Transmit Frame
 	printf ("\n");
 	for (int i = 0; i < transmitIterations; i++) {
@@ -193,10 +210,15 @@ int transmitFrame (canDevice_t* device, char* command) {
 		timeradd (&currentTime, &timeout, &deadline);
 		if (canTransmit (device, &frame) == 0) {
 			printFrame(&frame);
+
+			// REVIEW(Barach): No need to delay on the last iteration. This makes single message transmissions very slow.
 			while (timercmp (&currentTime, &deadline, <)) // waits until deadline is reached
 				gettimeofday (&currentTime, NULL);
 			
 		} else {
+			// REVIEW(Barach): Should attempt to keep transmitting if an error occurs. No need to change anything with
+			//   iterations though, if we're only doing 5 messages and all 5 fail, then no need to retry any of them. Also
+			//   preferrably the delay is applied to failed messages as well (move while loop outside the if branch).
 			printf ("Error: %s.\n", errorMessage (errno));
 			return errno;
 		}
@@ -228,6 +250,7 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 	while (true) {
 		char* id = (canIdIndex == 0) ? strtok (command, ",") : strtok (NULL, ",");
 		// checks if the parse is invalid
+		// REVIEW(Barach): This second clause can be avoided by adding ']' to the delimiters.
 		if (id == NULL || strcmp (id, "]") == 0) {
 			break;
 		}
@@ -313,6 +336,8 @@ int main (int argc, char** argv)
 {	
 	if (argc < 2)
 	{
+		// REVIEW(Barach): A bit pedantic, but all other applications use the below syntax:
+		//   can-dev-cli <options> <device name>
 		fprintf (stderr, "Format: can-dev-cli -method (optional) <device name>\n");
 		return -1;
 	}
@@ -343,11 +368,15 @@ int main (int argc, char** argv)
 			processCommand (device, ++command);
 
 		else 
+			// REVIEW(Barach): Bit pedantic again, but technically this should say options (device name is a command-line
+			//  argument, but it doesn't start with '-')
 			printf ("Command-Line arguments should start with '-'\n");
 		
 		return 0;
 
 	} else {
+		// REVIEW(Barach): Preferrably query mode is higher precedence than the command-line options (immediately after
+		//   the call to canInit). Shouldn't really be an issue, but just in case.
 		// Interactive Mode
 		// If this is query mode, return successful
 		if (queryMode)
@@ -360,6 +389,8 @@ int main (int argc, char** argv)
 			printf ("Enter an option:\n");
 			printf (" t - Transmit a CAN message.\n");
 			printf (" r - Receive a CAN message.\n");
+			// REVIEW(Barach): Preferrably this refers to it as 'Dump received CAN messages' or something to that effect, just
+			// to help with the mnemonic.
 			printf (" d - Infinitely receive CAN messages.\n");
 			printf (" h - Display man page.\n");
 			printf (" f - Flush the receive buffer.\n");
@@ -373,6 +404,9 @@ int main (int argc, char** argv)
 				continue;
 
 			} else {
+				// REVIEW(Barach): A lot of redundant code between this and the processCommand function. This is where the bug
+				//   with '-d' is coming from. The functionality of this and the processCommand should be merged together for
+				//   consistency (processCommand will need to use return code for quit).
 				canFrame_t frame;
 				char method = command[0];
 				long unsigned int timeoutMs;
