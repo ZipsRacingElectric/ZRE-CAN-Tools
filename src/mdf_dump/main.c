@@ -1,3 +1,13 @@
+// MDF Dump -------------------------------------------------------------------------------------------------------------------
+//
+// Author: Cole Barach
+// Date Created: 2025.09.29
+//
+// Description: Program for performing light parsing and interpretation of MDF files. Used for checking MDF file validity and
+//   debugging erroneous implementations.
+
+// Includes -------------------------------------------------------------------------------------------------------------------
+
 // Includes
 #include "debug.h"
 
@@ -8,6 +18,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+// Datatypes ------------------------------------------------------------------------------------------------------------------
 
 typedef enum size_t
 {
@@ -23,6 +35,8 @@ const char* BLOCK_ID_STRINGS [] =
 	[BLOCK_ID_MD] = "##MD",
 	[BLOCK_ID_TX] = "##TX",
 };
+
+// Functions ------------------------------------------------------------------------------------------------------------------
 
 blockId_t checkBlockId (uint8_t* header)
 {
