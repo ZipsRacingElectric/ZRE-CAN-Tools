@@ -9,6 +9,7 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
+#include "mdf_reader.h"
 #include "debug.h"
 #include "error_codes.h"
 
@@ -20,144 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Error Codes ----------------------------------------------------------------------------------------------------------------
-
-#define ERRNO_UNKNOWN 2048
-#define ERRNO_END_OF_FILE 2049
-
-// Datatypes ------------------------------------------------------------------------------------------------------------------
-
-#define BLOCK_ID_STR(a, b, c, d) (uint32_t)((a) | (b) << 8 | (c) << 16 | (d) << 24)
-
-typedef struct
-{
-	uint8_t data [64];
-} mdfFileIdBlock_t;
-
-typedef enum: uint64_t
-{
-	BLOCK_ID_DT = BLOCK_ID_STR ('#', '#', 'D', 'T'),
-	BLOCK_ID_MD = BLOCK_ID_STR ('#', '#', 'M', 'D'),
-	BLOCK_ID_TX = BLOCK_ID_STR ('#', '#', 'T', 'X'),
-	BLOCK_ID_UNKNOWN
-} blockId_t;
-
-typedef struct
-{
-	long addr;
-	struct
-	{
-		blockId_t blockId;
-		uint64_t blockLength;
-		uint64_t linkCount;
-	} header;
-	uint64_t* linkList;
-	uint64_t dataSectionSize;
-	uint8_t* dataSection;
-} mdfBlock_t;
-
-typedef void (mdfByteHandler_t) (mdfBlock_t* block, uint8_t data, void* arg);
-
 // Functions ------------------------------------------------------------------------------------------------------------------
-
-int handleFreadError (FILE* stream)
-{
-	if (feof (stream))
-		return ERRNO_END_OF_FILE;
-
-	if (errno != 0)
-		return errno;
-
-	return ERRNO_UNKNOWN;
-}
-
-int skipToBlock (FILE* stream)
-{
-	// Consume any non '#' characters.
-	int c;
-	do
-	{
-		c = getc (stream);
-	} while (c != '#' && c != EOF);
-	if (c == EOF)
-		return ERRNO_END_OF_FILE;
-
-	// Put the character back into the stream.
-	ungetc (c, stream);
-	return 0;
-}
-
-FILE* openMdf (const char* filePath, mdfFileIdBlock_t* fileIdBlock)
-{
-	// Open the file for reading.
-	FILE* stream = fopen (filePath, "r");
-	if (stream == NULL)
-		return NULL;
-
-	// Read the file ID block
-	if (fread (fileIdBlock, sizeof (mdfFileIdBlock_t), 1, stream) != 1)
-	{
-		errno = handleFreadError (stream);
-		return NULL;
-	}
-
-	return stream;
-}
-
-int readBlockHeader (FILE* stream, mdfBlock_t* block)
-{
-	// Store the address of the block
-	block->addr = ftell (stream);
-
-	// Read the block's header
-	if (fread (&block->header, sizeof (block->header), 1, stream) != 1)
-		return handleFreadError (stream);
-
-	return 0;
-}
-
-int readBlockLinkList (FILE* stream, mdfBlock_t* block)
-{
-	// Read the block's link list
-	block->linkList = malloc (block->header.linkCount * sizeof (uint64_t));
-	if (block->linkList == NULL)
-		return errno;
-
-	if (fread (block->linkList, sizeof (uint64_t), block->header.linkCount, stream) != block->header.linkCount)
-		return handleFreadError (stream);
-
-	return 0;
-}
-
-int readBlockDataSection (FILE* stream, mdfBlock_t* block, mdfByteHandler_t* dataSectionByteHandler, void* dataSectionByteArg)
-{
-	// Read the block's data section. Note that a data section size of zero indicates the block's data section extends to the
-	// end of the file.
-	block->dataSectionSize = block->header.blockLength - sizeof (block->header) - sizeof (uint64_t) * block->header.linkCount;
-	for (size_t index = 0; index < block->dataSectionSize || block->dataSectionSize == 0; ++index)
-	{
-		int data = fgetc (stream);
-		if (data == EOF)
-		{
-			// If we expected more data, return error.
-			if (block->dataSectionSize != 0)
-				return handleFreadError (stream);
-
-			break;
-		}
-
-		// Pass the received byte to the user provided handler.
-		dataSectionByteHandler (block, (uint8_t) data, dataSectionByteArg);
-	}
-
-	return 0;
-}
-
-void deallocBlock (mdfBlock_t* block)
-{
-	free (block->dataSection);
-	free (block->linkList);
-}
 
 void asciidump (void* buffer, size_t length, size_t width, FILE* stream)
 {
@@ -437,7 +301,7 @@ int main (int argc, char** argv)
 	printf ("- Begin MDF File -\n\n");
 
 	mdfFileIdBlock_t fileIdBlock;
-	FILE* mdf = openMdf (filePath, &fileIdBlock);
+	FILE* mdf = mdfReaderOpen (filePath, &fileIdBlock);
 	if (mdf == NULL)
 	{
 		int code = errno;
@@ -451,11 +315,11 @@ int main (int argc, char** argv)
 
 	for (size_t count = 0; count < blockCount - 1; ++count)
 	{
-		if (skipToBlock (mdf) != 0)
+		if (mdfReaderSkipToBlock (mdf) != 0)
 			break;
 
 		mdfBlock_t block;
-		if (readBlockHeader (mdf, &block) != 0)
+		if (mdfReadBlockHeader (mdf, &block) != 0)
 		{
 			int code = errno;
 			fprintf (stderr, "Failed to read MDF block header: %s.\n", errorMessage (code));
@@ -466,7 +330,7 @@ int main (int argc, char** argv)
 		dumpBlockHeader (stdout, &block);
 		printf ("- End Header -\n\n");
 
-		if (readBlockLinkList (mdf, &block) != 0)
+		if (mdfReadBlockLinkList (mdf, &block) != 0)
 		{
 			int code = errno;
 			fprintf (stderr, "Failed to read MDF block link list: %s.\n", errorMessage (code));
@@ -489,7 +353,7 @@ int main (int argc, char** argv)
 			.recordIndex = 0,
 		};
 
-		if (readBlockDataSection (mdf, &block, dataSectionByteHandler, &dataSectionByteArg) != 0)
+		if (mdfReadBlockDataSection (mdf, &block, dataSectionByteHandler, &dataSectionByteArg) != 0)
 		{
 			int code = errno;
 			fprintf (stderr, "Failed to read MDF block data section: %s.\n", errorMessage (code));
