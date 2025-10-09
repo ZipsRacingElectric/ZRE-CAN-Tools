@@ -44,12 +44,14 @@ void printStatPanel (int row, int column, bms_t* bms);
 
 /**
  * @brief Prints all information known about a segment.
+ * @param startRow The row to start printing at.
+ * @param endRow The row to stop printing at.
  * @param row The row to print at.
  * @param column The column to print at.
  * @param bms The BMS owning the segment.
  * @param segmentIndex The index of the segment.
  */
-void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex);
+int printSegment (int startRow, int endRow, int row, int column, bms_t* bms, uint16_t segmentIndex);
 
 /**
  * @brief Prints the voltage of a cell.
@@ -94,6 +96,9 @@ void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t senseLineIn
  * @param ltcIndex The global index of the LTC.
  */
 void printLtcStatus (int row, int column, bms_t* bms, uint16_t ltcIndex);
+
+// TODO: (DiBacco) create description of function
+bool checkRow (int startRow, int endRow, int row);
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
@@ -173,32 +178,42 @@ int main (int argc, char** argv)
 	// Setup non-blocking keyboard input
 	cbreak ();
 	nodelay (stdscr, true);
-	keypad(stdscr, true);
+	keypad (stdscr, true);
 
+	int offset = 0;
 	while (true)
 	{
 		uint16_t row = 0;
+		int offsetIncrement = 0; 
+		
+		// Get terminal dimensions
+		int scr_x, scr_y;
+		getmaxyx (stdscr, scr_y, scr_x);
+		(void) scr_x;
 
 		#ifdef __unix__
 		clear ();
 		#endif
-
-		// Print the top-most panel
-		printStatPanel (row, 0, &bms);
-		row += 6;
-
-		// Print each battery segment
-		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
-		{
-			printSegment (row, 0, &bms, segmentIndex);
-			row += 10;
-		}
-
+		
 		// Get keyboard input
 		int ret = getch ();
-		if (ret == ' ')
+		if (ret == KEY_UP) 
 		{
-			// Space key should refresh the screen
+			erase ();
+			offset += 1;
+			if (offset > 0) {
+				offset = 0;
+			}
+			
+		}
+		else if (ret == KEY_DOWN) 
+		{ 
+			erase ();
+			offset -= 1;
+		}
+		else if (ret == ' ')
+		{
+			// Spaces should refresh the terminal
 			endwin ();
 			refresh ();
 		}
@@ -206,8 +221,19 @@ int main (int argc, char** argv)
 		{
 			// Q should quit the application
 			break;
-		}
+		} 
 
+		// Print the top-most panel
+		printStatPanel (row, 0, &bms);
+		row += 6;
+
+		// Print each battery segment
+		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
+		{	
+			offsetIncrement += printSegment (offset + offsetIncrement + 6, offset + offsetIncrement + scr_y - 6, row, 0, &bms, segmentIndex);
+			row += 8;
+		}
+	
 		// Render the frame to the screen and wait for the next update
 		refresh ();
 		napms (48);
@@ -427,23 +453,36 @@ void printStatPanel (int row, int column, bms_t* bms)
 	mvprintw (row + 4, column, "─┘");
 }
 
-void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
-{
+int printSegment (int startRow, int endRow, int row, int column, bms_t* bms, uint16_t segmentIndex)
+{	
 	// Column index for the cells
 	uint16_t columnCell = column;
 
 	// Column index for the sense lines
 	uint16_t columnSense = column;
 
+	// Get validRows
+	bool validRows [8]; 
+	int offsetIncrement = 0; 
+	for (int i = 0; i < 8; i++) {
+		if (checkRow(startRow, endRow, row + i)) {
+			validRows[i] = true;
+			offsetIncrement += 1;
+			
+		} else {
+			validRows[i] = false;
+		}
+	}
+
 	// Print the start of the segment
-	mvprintw (row + 0, 0, "┌");
-	mvprintw (row + 1, 0, "├");
-	mvprintw (row + 2, 0, "│");
-	mvprintw (row + 3, 0, "├┬");
-	mvprintw (row + 4, 0, "││");
-	mvprintw (row + 5, 0, "││");
-	mvprintw (row + 6, 0, "│└");
-	mvprintw (row + 7, 0, "└─");
+	if (validRows[0]) mvprintw (startRow + 0, 0, "┌"); 
+	if (validRows[1]) mvprintw (startRow + 1, 0, "├");  
+	if (validRows[2]) mvprintw (startRow + 2, 0, "│");  
+	if (validRows[3]) mvprintw (startRow + 3, 0, "├┬"); 
+	if (validRows[4]) mvprintw (startRow + 4, 0, "││"); 
+	if (validRows[5]) mvprintw (startRow + 5, 0, "││"); 
+	if (validRows[6]) mvprintw (startRow + 6, 0, "│└"); 
+	if (validRows[7]) mvprintw (startRow + 7, 0, "└─"); 
 	
 	columnSense += 1;
 	columnCell += 2;
@@ -457,50 +496,50 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 			uint16_t index = CELL_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex, cellIndex);
 
 			// Print the cell's box
-			mvprintw (row + 3, columnCell, "┬─┘└─");
-			mvprintw (row + 4, columnCell, "│    ");
-			mvprintw (row + 5, columnCell, "│    ");
-			mvprintw (row + 6, columnCell, "┴────");
-			mvprintw (row + 7, columnCell, "─────");
+			if (validRows[3]) mvprintw (startRow + 3, columnCell, "┬─┘└─");
+			if (validRows[4]) mvprintw (startRow + 4, columnCell, "│    ");
+			if (validRows[5]) mvprintw (startRow + 5, columnCell, "│    ");
+			if (validRows[6]) mvprintw (startRow + 6, columnCell, "┴────");
+			if (validRows[7]) mvprintw (startRow + 7, columnCell, "─────");
 
 			// If this is the first cell, extend the left side to connect to the start of the segement
 			if (cellIndex == 0)
 			{
-				mvprintw (row + 3, columnCell, "─");
-				mvprintw (row + 4, columnCell, " ");
-				mvprintw (row + 5, columnCell, " ");
-				mvprintw (row + 6, columnCell, "─");
-				mvprintw (row + 7, columnCell, "─");
+				if (validRows[3]) mvprintw (startRow + 3, columnCell, "─");
+				if (validRows[4]) mvprintw (startRow + 4, columnCell, " ");
+				if (validRows[5]) mvprintw (startRow + 5, columnCell, " ");
+				if (validRows[6]) mvprintw (startRow + 6, columnCell, "─");
+				if (validRows[7]) mvprintw (startRow + 7, columnCell, "─");
 			}
 
 			// Print the cell voltage text
-			printVoltage (row + 4, columnCell + 2, bms, index);
+			if (validRows[4]) printVoltage (startRow + 4, columnCell + 2, bms, index);
 			// Print the cell index text
 			// TODO: DiBacco: figure out solution to  3 digit index presses up against the "-" symbol
-			printCellIndex (row + 7, columnCell + 1, index);
-			
+			if (validRows[7]) printCellIndex (startRow + 7, columnCell + 1, index); 
+	
 			columnCell += 5;
 		}
 
 		if (ltcIndex != bms->ltcsPerSegment - 1)
 		{
 			// If this is not the last LTC, print the divider for the next one.
-			mvprintw (row + 3, columnCell,	"─┬┬┬");
-			mvprintw (row + 4, columnCell,	" │││");
-			mvprintw (row + 5, columnCell,	" │││");
-			mvprintw (row + 6, columnCell,	"─┘│└");
-			mvprintw (row + 7, columnCell,	"──┴─");
+			if (validRows[3]) mvprintw (startRow + 3, columnCell,	"─┬┬┬"); 
+			if (validRows[4]) mvprintw (startRow + 4, columnCell,	" │││"); 
+			if (validRows[5]) mvprintw (startRow + 5, columnCell,	" │││"); 
+			if (validRows[6]) mvprintw (startRow + 6, columnCell,	"─┘│└"); 
+			if (validRows[7]) mvprintw (startRow + 7, columnCell,	"──┴─"); 
 
 			columnCell += 4;
 		}
 		else
 		{
 			// If this is the last LTC, print the end of the segment.
-			mvprintw (row + 3, columnCell,	"─┬┤");
-			mvprintw (row + 4, columnCell,	" ││");
-			mvprintw (row + 5, columnCell,	" ││");
-			mvprintw (row + 6, columnCell,	"─┘│");
-			mvprintw (row + 7, columnCell,	"──┘");
+			if (validRows[3]) mvprintw (startRow + 3, columnCell,	"─┬┤"); 
+			if (validRows[4]) mvprintw (startRow + 4, columnCell,	" ││"); 
+			if (validRows[5]) mvprintw (startRow + 5, columnCell,	" ││"); 
+			if (validRows[6]) mvprintw (startRow + 6, columnCell,	"─┘│"); 
+			if (validRows[7]) mvprintw (startRow + 7, columnCell,	"──┘"); 
 		}
 
 		// Print the segment's sense lines
@@ -513,46 +552,47 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 			uint16_t increment;
 			if (senseLineIndex != bms->senseLinesPerLtc - 1)
 			{
-				mvprintw (row + 0, columnSense, "─────");
-				mvprintw (row + 1, columnSense, "───╮╭");
-				mvprintw (row + 2, columnSense, "   ├┤");
+				if (validRows[0]) mvprintw (startRow + 0, columnSense, "─────"); 
+				if (validRows[1]) mvprintw (startRow + 1, columnSense, "───╮╭"); 
+				if (validRows[2]) mvprintw (startRow + 2, columnSense, "   ├┤"); 
 				increment = 5;
 			}
 			else
 			{
-				mvprintw (row + 0, columnSense, "───");
-				mvprintw (row + 1, columnSense, "───");
-				mvprintw (row + 2, columnSense, "   ");
+				if (validRows[0]) mvprintw (startRow + 0, columnSense, "───"); 
+				if (validRows[1]) mvprintw (startRow + 1, columnSense, "───"); 
+				if (validRows[2]) mvprintw (startRow + 2, columnSense, "   "); 
 				increment = 3;
 			}
 
 			// Print the LTC's status. This is done after 6 sense lines have been printed, as otherwise they would print over
 			// top this text.
 			if (senseLineIndex == 5)
-				printLtcStatus (row, columnSense - 24, bms, LTC_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex));
+				if (validRows[0]) printLtcStatus (startRow, columnSense - 24, bms, LTC_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex)); 
 
 			// Print the sense line's temperature and status.
-			printTemperature (row + 2, columnSense -1, bms, index);
-			printSenseLineStatus (row + 3, columnSense, bms, index);
+			if (validRows[2]) printTemperature (startRow + 2, columnSense -1, bms, index);
+			if (validRows[3]) printSenseLineStatus (startRow + 3, columnSense, bms, index); 
 			columnSense += increment;
 		}
 
 		if (ltcIndex != bms->ltcsPerSegment - 1)
 		{
 			// If this is not the last LTC, print the divider for the next one.
-			mvprintw (row + 0, columnSense,	"┬");
-			mvprintw (row + 1, columnSense,	"┴");
-			mvprintw (row + 2, columnSense,	"┊");
+			if (checkRow(startRow, endRow, row + 0)) mvprintw (startRow + 0, columnSense,	"┬");
+			if (checkRow(startRow, endRow, row + 1)) mvprintw (startRow + 1, columnSense,	"┴"); 
+			if (checkRow(startRow, endRow, row + 2)) mvprintw (startRow + 2, columnSense,	"┊"); 
 			columnSense += 1;
 		}
 		else
 		{
 			// If this is the last LTC, print the end of the segment.
-			mvprintw (row + 0, columnSense,	"┐");
-			mvprintw (row + 1, columnSense,	"┤");
-			mvprintw (row + 2, columnSense,	"│");
+			if (checkRow(startRow, endRow, row + 0)) mvprintw (startRow + 0, columnSense,	"┐");
+			if (checkRow(startRow, endRow, row + 1)) mvprintw (startRow + 1, columnSense,	"┤"); 
+			if (checkRow(startRow, endRow, row + 2)) mvprintw (startRow + 2, columnSense,	"│"); 
 		}
 	}
+	return offsetIncrement;
 }
 
 void printVoltage (int row, int column, bms_t* bms, uint16_t cellIndex)
@@ -711,4 +751,10 @@ void printLtcStatus (int row, int column, bms_t* bms, uint16_t ltcIndex)
 		printw ("(%4.2f C) ", temperature);
 		attroff (COLOR_PAIR (color));
 	}
+}
+
+bool checkRow (int startRow, int endRow, int row) {
+	if (startRow <= row && row <= endRow) 
+		return true;
+	return false;
 }
