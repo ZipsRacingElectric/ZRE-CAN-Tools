@@ -10,6 +10,7 @@
 
 // Includes
 #include "debug.h"
+#include "error_codes.h"
 
 // C Standard Library
 #include <errno.h>
@@ -19,63 +20,56 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Error Codes ----------------------------------------------------------------------------------------------------------------
+
+#define ERRNO_UNKNOWN 2048
+#define ERRNO_END_OF_FILE 2049
+
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
-typedef enum size_t
+#define BLOCK_ID_STR(a, b, c, d) (uint32_t)((a) | (b) << 8 | (c) << 16 | (d) << 24)
+
+typedef struct
 {
-	BLOCK_ID_DT,
-	BLOCK_ID_MD,
-	BLOCK_ID_TX,
+	uint8_t data [64];
+} mdfFileIdBlock_t;
+
+typedef enum: uint64_t
+{
+	BLOCK_ID_DT = BLOCK_ID_STR ('#', '#', 'D', 'T'),
+	BLOCK_ID_MD = BLOCK_ID_STR ('#', '#', 'M', 'D'),
+	BLOCK_ID_TX = BLOCK_ID_STR ('#', '#', 'T', 'X'),
 	BLOCK_ID_UNKNOWN
 } blockId_t;
 
-const char* BLOCK_ID_STRINGS [] =
+typedef struct
 {
-	[BLOCK_ID_DT] = "##DT",
-	[BLOCK_ID_MD] = "##MD",
-	[BLOCK_ID_TX] = "##TX",
-};
+	long addr;
+	struct
+	{
+		blockId_t blockId;
+		uint64_t blockLength;
+		uint64_t linkCount;
+	} header;
+	uint64_t* linkList;
+	uint64_t dataSectionSize;
+	uint8_t* dataSection;
+} mdfBlock_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-blockId_t checkBlockId (uint8_t* header)
+int handleFreadError (FILE* stream)
 {
-	char blockIdString [5];
+	if (feof (stream))
+		return ERRNO_END_OF_FILE;
 
-	memcpy (blockIdString, header, sizeof (blockIdString) - 1);
+	if (errno != 0)
+		return errno;
 
-	blockIdString [sizeof (blockIdString) - 1] = '\0';
-
-	for (size_t index = 0; index < sizeof (BLOCK_ID_STRINGS) / sizeof (char *); ++index)
-		if (strcmp (blockIdString, BLOCK_ID_STRINGS [index]) == 0)
-			return index;
-
-	fprintf (stderr, "Warning: Unknown block ID string '%s'.\n", blockIdString);
-	return BLOCK_ID_UNKNOWN;
+	return ERRNO_UNKNOWN;
 }
 
-uint64_t getBlockLength (uint8_t* header)
-{
-	uint64_t blockLength = 0;
-	for (size_t index = 0; index < 8; ++index)
-		blockLength |= header [index + 8] << (index * 8);
-	return blockLength;
-}
-
-uint64_t getLinkCount (uint8_t* header)
-{
-	uint64_t linkCount = 0;
-	for (size_t index = 0; index < 8; ++index)
-		linkCount |= header [index + 16] << (index * 8);
-	return linkCount;
-}
-
-uint64_t getDataCount (uint64_t blockLength, uint64_t linkCount)
-{
-	return blockLength - 24 - linkCount * 8;
-}
-
-int skipToHeader (FILE* stream)
+int skipToBlock (FILE* stream)
 {
 	// Consume any non '#' characters.
 	int c;
@@ -84,32 +78,64 @@ int skipToHeader (FILE* stream)
 		c = getc (stream);
 	} while (c != '#' && c != EOF);
 	if (c == EOF)
-		return -1;
+		return ERRNO_END_OF_FILE;
 
+	// Put the character back into the stream.
 	ungetc (c, stream);
-
 	return 0;
 }
 
-int handleFileError (FILE* stream, const char* message)
+FILE* openMdf (const char* filePath, mdfFileIdBlock_t* fileIdBlock)
 {
-	if (feof (stream))
+	// Open the file for reading.
+	FILE* stream = fopen (filePath, "r");
+	if (stream == NULL)
+		return NULL;
+
+	// Read the file ID block
+	if (fread (fileIdBlock, sizeof (mdfFileIdBlock_t), 1, stream) != 1)
 	{
-		fprintf (stderr, "%s: Unexpected end of file.\n", message);
-		return -1;
+		errno = handleFreadError (stream);
+		return NULL;
 	}
 
-	int code = errno;
-	fprintf (stderr, "%s: %s.\n", message, strerror (code));
-	return code;
+	return stream;
 }
 
-void asciidump (uint8_t* buffer, size_t length, size_t width, FILE* stream)
+int readBlock (FILE* stream, mdfBlock_t* block)
+{
+	// Store the address of the block
+	block->addr = ftell (stream);
+
+	// Read the block's header
+	if (fread (&block->header, sizeof (block->header), 1, stream) != 1)
+		return handleFreadError (stream);
+
+	// Read the block's link list
+	block->linkList = malloc (block->header.linkCount * sizeof (uint64_t));
+	if (fread (block->linkList, sizeof (uint64_t), block->header.linkCount, stream) != block->header.linkCount)
+		return handleFreadError (stream);
+
+	block->dataSectionSize = block->header.blockLength - sizeof (block->header) - sizeof (uint64_t) * block->header.linkCount;
+
+	// TODO(Barach): Figure this out.
+	// // Read the block's data section
+	// block->dataSection = malloc (block->dataSectionSize);
+	return 0;
+}
+
+void deallocBlock (mdfBlock_t* block)
+{
+	free (block->dataSection);
+	free (block->linkList);
+}
+
+void asciidump (void* buffer, size_t length, size_t width, FILE* stream)
 {
 	size_t count = 0;
 	while (length > 0)
 	{
-		fprintf (stream, "%c ", (char) *buffer);
+		fprintf (stream, "%c ", *((char*) buffer));
 		++buffer;
 		--length;
 		++count;
@@ -118,12 +144,12 @@ void asciidump (uint8_t* buffer, size_t length, size_t width, FILE* stream)
 	}
 }
 
-void hexdump (uint8_t* buffer, size_t length, size_t width, FILE* stream)
+void hexdump (void* buffer, size_t length, size_t width, FILE* stream)
 {
 	size_t count = 0;
 	while (length > 0)
 	{
-		fprintf (stream, "%02X ", *buffer);
+		fprintf (stream, "%02X ", *((uint8_t*) buffer));
 		++buffer;
 		--length;
 		++count;
@@ -132,10 +158,30 @@ void hexdump (uint8_t* buffer, size_t length, size_t width, FILE* stream)
 	}
 }
 
-void canRecordDump (uint8_t* buffer, size_t length, FILE* stream)
+void dumpBlockHeader (FILE* stream, mdfBlock_t* block)
 {
-	for (size_t index = 0; index < length; ++index)
-		printf ("%02X ", buffer [index]);
+	// Block ID
+	hexdump (&block->header.blockId, sizeof (block->header.blockId), sizeof (block->header.blockId), stream);
+	fprintf (stream, "| ");
+	asciidump (&block->header.blockId, 4, 4, stdout);
+	printf ("\n");
+
+	// Block length
+	hexdump (&block->header.blockLength, sizeof (block->header.blockLength), sizeof (block->header.blockLength), stream);
+	fprintf (stream, "| Block length = %lu\n", block->header.blockLength);
+
+	// Link count
+	hexdump (&block->header.linkCount, sizeof (block->header.linkCount), sizeof (block->header.linkCount), stream);
+	fprintf (stream, "| Link count = %lu\n\n", block->header.linkCount);
+}
+
+void dumpBlockLinkList (FILE* stream, mdfBlock_t* block)
+{
+	for (size_t linkIndex = 0; linkIndex < block->header.linkCount; ++linkIndex)
+	{
+		hexdump (&block->linkList [linkIndex], sizeof (uint64_t), sizeof (uint64_t), stream);
+		fprintf (stream, "| 0x%08lX\n", block->linkList [linkIndex]);
+	}
 }
 
 int main (int argc, char** argv)
@@ -148,11 +194,11 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
-	char* filename = argv [argc - 1];
+	char* filePath = argv [argc - 1];
 	FILE* timestampStream = fopen ("/dev/null", "w");
 	size_t blockCount = (size_t) -1;
 
-	for (size_t index = 1; index < argc - 1; ++index)
+	for (int index = 1; index < argc - 1; ++index)
 	{
 		if (argv [index][0] == '-' && argv [index][1] == 't' && argv [index][2] != '=')
 		{
@@ -172,85 +218,49 @@ int main (int argc, char** argv)
 		}
 	}
 
-	fpos_t filePointer;
-	FILE* mdf = fopen (filename, "r");
+	printf ("- Begin MDF File -\n\n");
+
+	mdfFileIdBlock_t fileIdBlock;
+	FILE* mdf = openMdf (filePath, &fileIdBlock);
 	if (mdf == NULL)
 	{
 		int code = errno;
-		fprintf (stderr, "Failed to open file '%s': %s.\n", filename, strerror (code));
+		fprintf (stderr, "Failed to open MDF file: %s.\n", errorMessage (code));
 		return code;
 	}
 
-	printf ("- Begin MDF File -\n\n");
-
-	uint8_t fileId [64];
-	fgetpos (mdf, &filePointer);
-	if (fread (fileId, 1, sizeof (fileId), mdf) != sizeof (fileId))
-		return handleFileError (mdf, "Failed to read file ID block");
-
-	printf ("- Begin File ID Block - 0x%08lX -\n\n", filePointer.__pos);
-	hexdump (fileId, sizeof (fileId), 8, stdout);
+	printf ("- Begin File ID Block -\n\n");
+	hexdump (&fileIdBlock, sizeof (fileIdBlock), 8, stdout);
 	printf ("\n\n- End File ID Block -\n\n");
 
 	for (size_t count = 0; count < blockCount - 1; ++count)
 	{
-		if (skipToHeader (mdf) != 0)
+		if (skipToBlock (mdf) != 0)
 			break;
 
-		uint8_t header [24];
-
-		// Block header
-		fgetpos (mdf, &filePointer);
-		if (fread (header, 1, sizeof (header), mdf) != sizeof (header))
-			return handleFileError (mdf, "Failed to read block header");
-
-		blockId_t blockId = checkBlockId (header);
-
-		printf ("- Begin Header - 0x%08lX -\n\n", filePointer.__pos);
-		hexdump (header, 8, 8, stdout);
-		printf ("| ");
-		asciidump(header, 4, 4, stdout);
-		printf ("\n");
-
-		uint64_t blockLength = getBlockLength (header);
-		hexdump (header + 8, 8, 8, stdout);
-		printf ("| Block length = %lu\n", blockLength);
-
-		uint64_t linkCount = getLinkCount (header);
-		hexdump (header + 16, 8, 8, stdout);
-		printf ("| Link count = %lu\n\n", linkCount);
-
-		hexdump (header + 24, sizeof (header) - 24, 8, stdout);
-		printf ("- End Header -\n\n");
-
-		size_t linkLinkLength = 8 * linkCount;
-		if (linkLinkLength != 0)
+		mdfBlock_t block;
+		if (readBlock (mdf, &block) != 0)
 		{
-			uint8_t* linkList = malloc (linkLinkLength);
-			fgetpos (mdf, &filePointer);
-			if (fread (linkList, 1, linkLinkLength, mdf) != linkLinkLength)
-				return handleFileError (mdf, "Failed to read link list");
-
-			printf ("- Begin Link List - 0x%08lX -\n\n", filePointer.__pos);
-			for (size_t linkIndex = 0; linkIndex < linkCount; ++linkIndex)
-			{
-				uint64_t addr = 0;
-				for (size_t byteIndex = 0; byteIndex < 8; ++byteIndex)
-					addr |= ((uint64_t) linkList [linkIndex * 8 + byteIndex]) << (byteIndex * 8);
-
-				hexdump (linkList + linkIndex * 8, 8, 8, stdout);
-				printf ("| 0x%08lX\n", addr);
-			}
-			printf ("\n- End Link List -\n\n");
-
-			free (linkList);
+			int code = errno;
+			fprintf (stderr, "Failed to read MDF block: %s.\n", errorMessage (code));
+			return code;
 		}
 
-		fgetpos (mdf, &filePointer);
-		printf ("- Begin Data Section - 0x%08lX -\n\n", filePointer.__pos);
+		printf ("- Begin Header - 0x%08lX -\n\n", block.addr);
+		dumpBlockHeader (stdout, &block);
+		printf ("- End Header -\n\n");
 
-		size_t dataLength = getDataCount (blockLength, linkCount);
+		size_t linkLinkLength = 8 * block.header.linkCount;
+		if (linkLinkLength != 0)
+		{
+			printf ("- Begin Link List -\n\n");
+			dumpBlockLinkList (stdout, &block);
+			printf ("\n- End Link List -\n\n");
+		}
 
+		printf ("- Begin Data Section -\n\n");
+
+		// TODO(Barach): Parse this from the MDF file?
 		enum : uint8_t
 		{
 			ID_CAN_RX	= 0x01
@@ -266,19 +276,23 @@ int main (int argc, char** argv)
 		uint64_t timestamp1 = 0;
 		uint32_t canId = 0;
 
-		while (dataCount < dataLength || dataLength == 0)
+		while (dataCount < block.dataSectionSize || block.dataSectionSize == 0)
 		{
 			int data = fgetc (mdf);
 			if (data == EOF)
 			{
-				if (dataLength != 0)
-					return handleFileError (mdf, "Failed to read data section");
+				if (block.dataSectionSize != 0)
+				{
+					int code = handleFreadError (mdf);
+					fprintf (stderr, "Failed to read data section: %s.\n", errorMessage (code));
+					return code;
+				}
 
 				break;
 			}
 			++dataCount;
 
-			if (blockId == BLOCK_ID_DT)
+			if (block.header.blockId == BLOCK_ID_DT)
 			{
 				printf ("%02X ", data);
 
@@ -410,7 +424,7 @@ int main (int argc, char** argv)
 					if (recordIndex == 27)
 						printf ("| ");
 
-					if (recordIndex == 27 + dlc0)
+					if (recordIndex == 27U + dlc0)
 					{
 						recordIndex = 0;
 						if (dlc0 == 0)
@@ -432,7 +446,7 @@ int main (int argc, char** argv)
 
 				++recordIndex;
 			}
-			else if (blockId == BLOCK_ID_MD || blockId == BLOCK_ID_TX)
+			else if (block.header.blockId == BLOCK_ID_MD || block.header.blockId == BLOCK_ID_TX)
 			{
 				if (data != '\0')
 					printf ("%c", data);
@@ -448,7 +462,7 @@ int main (int argc, char** argv)
 
 		printf ("\n\n- End Data Section -\n\n");
 
-		if (dataLength == 0)
+		if (block.dataSectionSize == 0)
 			break;
 	}
 
