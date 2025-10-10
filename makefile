@@ -69,6 +69,9 @@ $(LIB_CAN_EEPROM):
 $(LIB_BMS):
 	make -C $(LIB_DIR)/bms
 
+$(LIB_MDF):
+	make -C $(LIB_DIR)/mdf
+
 # Marks all library targets as phony. This forces the recipe to be re-run every
 # time a dependent is ran. Without this, libraries would never be recompiled.
 .PHONY: $(LIBS)

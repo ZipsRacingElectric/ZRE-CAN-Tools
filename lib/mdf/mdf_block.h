@@ -15,7 +15,7 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
-#define MDF_BLOCK_ID_STR(a, b, c, d) (uint32_t)((a) | (b) << 8 | (c) << 16 | (d) << 24)
+#define MDF_BLOCK_ID_STR(b0, b1, b2, b3) (uint32_t)((b0) | (b1) << 8 | (b2) << 16 | (b3) << 24)
 
 /// @brief Datatype representing the MDF file ID block, a unique MDF block occurring only once per file.
 typedef struct
