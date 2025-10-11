@@ -1,7 +1,6 @@
 // CAN Device CLI -------------------------------------------------------------------------------------------------------------
 //
-// Author: Cole Barach, ... REVIEW(Barach): Add your name up here. This tells later software devs who to direct questions to.
-// Date Created: 2025.07.04
+// Author: Cole Barach, Owen DiBacco
 //
 // Description: Command-line interface for controlling a CAN adapter.
 
@@ -22,9 +21,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-// REVIEW(Barach): Documentation on what this is, could be helped with better naming too,
-// ex. MAX_CAN_ID_COUNT or something to that extent.
-const int CAN_ID_LENGTH = 32;
+// Constant used to initilize canIds array in the receive method
+const int MAX_CAN_ID_COUNT = 32;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
@@ -101,11 +99,9 @@ void displayHelp()
 	printf ("\n");
 }
 
-// REVIEW(Barach): Outdated documentation (doesn't check IDs anymore).
 /*
 	- Nested function for the Receive Method
-	- Print the Frame if the ID matches one of the provided IDs
-	- Output is displayed in 0xid[<byte1>, <byte2>, ...] format
+	- Output is displayed in 0xid[<byte1>,<byte2>, ...] format
 */
 void printFrame (canFrame_t* frame)
 {
@@ -199,20 +195,19 @@ int transmitFrame (canDevice_t* device, char* command) {
 	// Assign Frame DLC
 	frame.dlc = (uint8_t) byteCount;
 
-	// REVIEW(Barach): Very dense code is hard to read. Put some empty lines between distinct sections and comments to break
-	//   it up. Ex. gettimeofday and timeradd are performing one distinct 'action' so they can be grouped together.
-	//   Also inline comments (after the line of code) are not preferred for this reason, better to put the comment above the
-	//   line and use spacing to seperate it from the adjacent code.
 	// Transmit Frame
 	printf ("\n");
 	for (int i = 0; i < transmitIterations; i++) {
+		// Start Timer
 		gettimeofday (&currentTime, NULL);
 		timeradd (&currentTime, &timeout, &deadline);
+
 		if (canTransmit (device, &frame) == 0) {
 			printFrame(&frame);
 
 			// REVIEW(Barach): No need to delay on the last iteration. This makes single message transmissions very slow.
-			while (timercmp (&currentTime, &deadline, <)) // waits until deadline is reached
+			// Wait until deadline is reached
+			while (timercmp (&currentTime, &deadline, <)) 
 				gettimeofday (&currentTime, NULL);
 			
 		} else {
@@ -233,7 +228,7 @@ int transmitFrame (canDevice_t* device, char* command) {
 int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 	canFrame_t frame;
 	bool filterIds = false;
-	uint32_t canIds [CAN_ID_LENGTH];
+	uint32_t canIds [MAX_CAN_ID_COUNT];
 	
 	// Get Iterations from Input
 	int receiveIterations;
@@ -336,9 +331,7 @@ int main (int argc, char** argv)
 {	
 	if (argc < 2)
 	{
-		// REVIEW(Barach): A bit pedantic, but all other applications use the below syntax:
-		//   can-dev-cli <options> <device name>
-		fprintf (stderr, "Format: can-dev-cli -method (optional) <device name>\n");
+		fprintf (stderr, "Format: can-dev-cli <options> <device name>\n");
 		return -1;
 	}
 
@@ -368,9 +361,7 @@ int main (int argc, char** argv)
 			processCommand (device, ++command);
 
 		else 
-			// REVIEW(Barach): Bit pedantic again, but technically this should say options (device name is a command-line
-			//  argument, but it doesn't start with '-')
-			printf ("Command-Line arguments should start with '-'\n");
+			printf ("Options should start with '-'\n");
 		
 		return 0;
 
@@ -389,9 +380,7 @@ int main (int argc, char** argv)
 			printf ("Enter an option:\n");
 			printf (" t - Transmit a CAN message.\n");
 			printf (" r - Receive a CAN message.\n");
-			// REVIEW(Barach): Preferrably this refers to it as 'Dump received CAN messages' or something to that effect, just
-			// to help with the mnemonic.
-			printf (" d - Infinitely receive CAN messages.\n");
+			printf (" d - Dump received CAN messages.\n");
 			printf (" h - Display man page.\n");
 			printf (" f - Flush the receive buffer.\n");
 			printf (" m - Set the device's timeout.\n");
