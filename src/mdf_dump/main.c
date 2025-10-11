@@ -268,44 +268,53 @@ int main (int argc, char** argv)
 {
 	debugInit ();
 
-	if (argc < 2)
-	{
-		fprintf (stderr, "Invalid arguments, usage: mdf-dump <MDF file path>.\n");
-		return -1;
-	}
-
-	char* filePath = argv [argc - 1];
 	FILE* timestampStream = fopen ("/dev/null", "w");
 	size_t blockCount = (size_t) -1;
 
-	for (int index = 1; index < argc - 1; ++index)
+	FILE* mdf = stdin;
+	for (int index = 1; index < argc; ++index)
 	{
-		if (argv [index][0] == '-' && argv [index][1] == 't' && argv [index][2] != '=')
+		if (argv [index][0] == '-')
 		{
-			timestampStream = fopen (argv [index] + 3, "w");
-			if (timestampStream == NULL)
+			if (argv [index][1] == 't' && argv [index][2] != '=')
 			{
-				fprintf (stderr, "Failed to open timestamp stream '%s': %s", argv [index] + 3, strerror (errno));
-				return errno;
+				timestampStream = fopen (argv [index] + 3, "w");
+				if (timestampStream == NULL)
+				{
+					fprintf (stderr, "Failed to open timestamp stream '%s': %s", argv [index] + 3, strerror (errno));
+					return errno;
+				}
+				continue;
+			}
+
+			if (argv [index][1] == 'b' && argv [index][2] == '=')
+			{
+				blockCount = strtoul (argv [index] + 3, NULL, 0);
+				if (blockCount == 0)
+					return 0;
+				continue;
 			}
 		}
 
-		if (argv [index][0] == '-' && argv [index][1] == 'b' && argv [index][2] == '=')
+		if (index == argc - 1)
 		{
-			blockCount = strtoul (argv [index] + 3, NULL, 0);
-			if (blockCount == 0)
-				return 0;
+			mdf = fopen (argv [index], "r");
+			if (mdf == NULL)
+			{
+				int code = errno;
+				fprintf (stderr, "Failed to open MDF file: %s.\n", errorMessage (code));
+				return code;
+			}
 		}
 	}
 
 	printf ("- Begin MDF File -\n\n");
 
 	mdfFileIdBlock_t fileIdBlock;
-	FILE* mdf = mdfReaderOpen (filePath, &fileIdBlock);
-	if (mdf == NULL)
+	if (mdfReadFileIdBlock (mdf, &fileIdBlock) != 0)
 	{
 		int code = errno;
-		fprintf (stderr, "Failed to open MDF file: %s.\n", errorMessage (code));
+		fprintf (stderr, "Failed to read MDF file ID block: %s.\n", errorMessage (code));
 		return code;
 	}
 
