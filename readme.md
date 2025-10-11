@@ -2,7 +2,6 @@
 
 ZRE-CAN-Tools is the application layer of Zips Racing's electrical systems. This project is a combination of libraries and applications that aim to simplify the interaction with firmware written by Zips Racing.
 
-
 ## Usage
 ### ZR25 Shell Scripts
 
