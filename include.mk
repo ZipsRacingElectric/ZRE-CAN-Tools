@@ -35,3 +35,13 @@ LIBS :=					\
 # Compilation -----------------------------------------------------------------
 
 CFLAGS := -Wall -Wextra -g -I $(LIB_DIR) -lm
+
+# Operating System Detection --------------------------------------------------
+
+# - This is only used for tagging releases, everything in here should work in
+#   both linux and MSYS2.
+ifeq ($(OS),Windows_NT)
+	DETECTED_OS := windows
+else
+	DETECTED_OS := $(shell uname | tr '[:upper:]' '[:lower:]')
+endif

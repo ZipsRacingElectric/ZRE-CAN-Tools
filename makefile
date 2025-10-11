@@ -2,17 +2,7 @@ ROOT_DIR := .
 include include.mk
 
 # Releasing -------------------------------------------------------------------
-
 # For some reason these can't be at the end of the file.
-
-# Operating System Detection
-# - This is only used for tagging releases, everything in here should work in
-#   both linux and MSYS2.
-ifeq ($(OS),Windows_NT)
-	DETECTED_OS := windows
-else
-	DETECTED_OS := $(shell uname | tr '[:upper:]' '[:lower:]')
-endif
 
 ifeq ($(DETECTED_OS), windows)
 	INSTALLER := install.bat
