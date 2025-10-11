@@ -103,9 +103,9 @@ int printBlockTree (uint64_t addr, treeArg_t* arg, FILE* mdf, FILE* stream)
 			return code;
 		}
 
-		fprintf (stream, "%s - 0x%08lX", (char*) &block.header.blockId, block.addr);
+		fprintf (stream, "%s - 0x%08lX", mdfBlockIdToString (block.header.blockId), block.addr);
 
-		if (block.header.blockId == BLOCK_ID_TX)
+		if (block.header.blockId == MDF_BLOCK_ID_TX)
 			if (printTextBlock (&block, mdf, stream) != 0)
 				return errno;
 

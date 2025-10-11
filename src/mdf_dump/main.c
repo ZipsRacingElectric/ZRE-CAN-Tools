@@ -55,9 +55,7 @@ void dumpBlockHeader (FILE* stream, mdfBlock_t* block)
 {
 	// Block ID
 	hexdump (&block->header.blockId, sizeof (block->header.blockId), sizeof (block->header.blockId), stream);
-	fprintf (stream, "| ");
-	asciidump (&block->header.blockId, 4, 4, stdout);
-	printf ("\n");
+	fprintf (stream, "| %s\n", mdfBlockIdToString (block->header.blockId));
 
 	// Block length
 	hexdump (&block->header.blockLength, sizeof (block->header.blockLength), sizeof (block->header.blockLength), stream);
@@ -99,7 +97,7 @@ void dataSectionByteHandler (mdfBlock_t* block, uint8_t data, void* dataSectionB
 
 	switch (block->header.blockId)
 	{
-	case BLOCK_ID_DT:
+	case MDF_BLOCK_ID_DT:
 		printf ("%02X ", data);
 
 		// Record ID
@@ -247,8 +245,8 @@ void dataSectionByteHandler (mdfBlock_t* block, uint8_t data, void* dataSectionB
 		}
 	break;
 
-	case BLOCK_ID_MD:
-	case BLOCK_ID_TX:
+	case MDF_BLOCK_ID_MD:
+	case MDF_BLOCK_ID_TX:
 		if (data != '\0')
 			printf ("%c", data);
 		break;
