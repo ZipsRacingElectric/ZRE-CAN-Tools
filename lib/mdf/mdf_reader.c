@@ -13,21 +13,13 @@
  */
 int handleFreadError (FILE* stream);
 
-FILE* mdfReaderOpen (const char* filePath, mdfFileIdBlock_t* fileIdBlock)
+int mdfReadFileIdBlock (FILE* stream, mdfFileIdBlock_t* fileIdBlock)
 {
-	// Open the file for reading.
-	FILE* stream = fopen (filePath, "r");
-	if (stream == NULL)
-		return NULL;
-
 	// Read the file ID block
 	if (fread (fileIdBlock, sizeof (mdfFileIdBlock_t), 1, stream) != 1)
-	{
-		errno = handleFreadError (stream);
-		return NULL;
-	}
+		return handleFreadError (stream);
 
-	return stream;
+	return 0;
 }
 
 int mdfReaderSkipToBlock (FILE* stream)
@@ -104,12 +96,16 @@ int handleFreadError (FILE* stream)
 {
 	// If the file ended, return the code for that.
 	if (feof (stream))
-		return ERRNO_END_OF_FILE;
+	{
+		errno = ERRNO_END_OF_FILE;
+		return errno;
+	}
 
 	// If errno is set, that was the error.
 	if (errno != 0)
 		return errno;
 
 	// No information about what happened. Shouldn't ever occur, but just in case.
-	return ERRNO_UNKNOWN;
+	errno = ERRNO_UNKNOWN;
+	return errno;
 }

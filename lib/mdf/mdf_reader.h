@@ -22,7 +22,7 @@ typedef void (mdfByteHandler_t) (mdfBlock_t* block, uint8_t data, void* arg);
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-FILE* mdfReaderOpen (const char* filePath, mdfFileIdBlock_t* fileIdBlock);
+int mdfReadFileIdBlock (FILE* stream, mdfFileIdBlock_t* fileIdBlock);
 
 int mdfReaderSkipToBlock (FILE* stream);
 

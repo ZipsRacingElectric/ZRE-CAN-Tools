@@ -103,9 +103,9 @@ int printBlockTree (uint64_t addr, treeArg_t* arg, FILE* mdf, FILE* stream)
 			return code;
 		}
 
-		fprintf (stream, "%s - 0x%08lX", (char*) &block.header.blockId, block.addr);
+		fprintf (stream, "%s - 0x%08lX", mdfBlockIdToString (block.header.blockId), block.addr);
 
-		if (block.header.blockId == BLOCK_ID_TX)
+		if (block.header.blockId == MDF_BLOCK_ID_TX)
 			if (printTextBlock (&block, mdf, stream) != 0)
 				return errno;
 
@@ -148,28 +148,37 @@ int main (int argc, char** argv)
 {
 	debugInit ();
 
-	if (argc < 2)
-	{
-		fprintf (stderr, "Invalid arguments, usage: mdf-dump <MDF file path>.\n");
-		return -1;
-	}
-
-	for (int index = 1; index < argc - 1; ++index)
-	{
-		if (strcmp (argv [index], "-r") == 0)
-			skipRepeats = true;
-	}
-
 	listInit (uint64_t) (&addrHistory, 64);
 
-	char* filePath = argv [argc - 1];
+	FILE* mdf = stdin;
+	for (int index = 1; index < argc; ++index)
+	{
+		if (argv [index][0] == '-')
+		{
+			if (strcmp (argv [index], "-r") == 0)
+			{
+				skipRepeats = true;
+				continue;
+			}
+		}
+
+		if (index == argc - 1)
+		{
+			mdf = fopen (argv [index], "r");
+			if (mdf == NULL)
+			{
+				int code = errno;
+				fprintf (stderr, "Failed to open MDF file: %s.\n", errorMessage (code));
+				return code;
+			}
+		}
+	}
 
 	mdfFileIdBlock_t fileIdBlock;
-	FILE* mdf = mdfReaderOpen (filePath, &fileIdBlock);
-	if (mdf == NULL)
+	if (mdfReadFileIdBlock (mdf, &fileIdBlock) != 0)
 	{
 		int code = errno;
-		fprintf (stderr, "Failed to open MDF file: %s.\n", errorMessage (code));
+		fprintf (stderr, "Failed to read MDF file ID block: %s.\n", errorMessage (code));
 		return code;
 	}
 

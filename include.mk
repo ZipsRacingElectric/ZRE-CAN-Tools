@@ -34,6 +34,7 @@ LIBS :=					\
 
 # Compilation -----------------------------------------------------------------
 
+# TODO(Barach): "-lm" should be in libflags, not CFLAGS
 CFLAGS := -Wall -Wextra -g -I $(LIB_DIR) -lm
 
 # Operating System Detection --------------------------------------------------
