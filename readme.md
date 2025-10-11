@@ -96,14 +96,15 @@ This program is used to monitor a battery management system in real-time.
 ### For Linux
 
 Install all of the following dependencies, if not already installed:
-- `libnursesw-dev` (NCurses development library with wide character support)
+- `libncurses-dev` (Debian) or `ncurses` (Arch) - NCurses development library with wide character support.
+- `libgtk-4-dev` (Debian) or `gtk4` (Arch) - GTK 4 development library.
 
 ### For Windows
 
 Some dependencies of this project are not natively built for Windows. A solution to this is to use MSYS2, a collection of tools and libraries that provide a POSIX-like development environment for Windows.
 - Download and run the MSYS2 installer from [GitHub](https://github.com/msys2/msys2-installer/releases/).
 - When finished, a terminal should open, if not, open one by searching 'MSYS2 UCRT64' from the start menu.
-- In said terminal, run `pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain`. When prompted, select default (all) packages.
+- In said terminal, run `pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-gtk4`. When prompted, select default (all) packages.
 - Add the `msys64\ucrt64\bin` and `msys64\usr\bin` directories to your system path.
 - Create the `MSYS_BIN` environment variable defined to the `msys64\ucrt64\bin` directory.
 - From this point, all further commands can be run from command prompt.
