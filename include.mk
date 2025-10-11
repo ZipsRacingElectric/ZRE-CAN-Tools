@@ -18,6 +18,7 @@ LIB_CAN_DATABASE	:= $(LIB_BIN_DIR)/libcan_database.a
 LIB_CJSON			:= $(LIB_BIN_DIR)/libcjson.a
 LIB_CAN_EEPROM		:= $(LIB_BIN_DIR)/libcan_eeprom.a
 LIB_BMS				:= $(LIB_BIN_DIR)/libbms.a
+LIB_MDF				:= $(LIB_BIN_DIR)/libmdf.a
 
 # Note that serial_can is not included in this list. This is because serial_can
 # shouldn't be included as a PHONY target (see root makefile) or else it will
@@ -28,7 +29,8 @@ LIBS :=					\
 	$(LIB_CAN_DATABASE)	\
 	$(LIB_CJSON)		\
 	$(LIB_CAN_EEPROM)	\
-	$(LIB_BMS)
+	$(LIB_BMS)			\
+	$(LIB_MDF)
 
 # Compilation -----------------------------------------------------------------
 
