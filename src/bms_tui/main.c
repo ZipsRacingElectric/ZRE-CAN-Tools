@@ -190,14 +190,20 @@ int main (int argc, char** argv)
 	const int TOTAL_ROWS = STAT_HEIGHT + (bms.segmentCount * SEGMENT_HEIGHT); // the total # of rows in the pad
 
 	WINDOW *pad = newpad (TOTAL_ROWS, scr_x);
-
-	// TODO: (DiBacco): check that pad was successfully created
+	if (! pad) {
+		endwin ();
+		fprintf (stderr, "Failed to create pad");
+		return -1;
+	}
 
 	// Initially render segments to the pad
 	for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; segmentIndex++) {
 		int startingRow = STAT_HEIGHT + (segmentIndex * SEGMENT_HEIGHT);
 		
 		// TODO (DiBacco): temp approach setting stdscr to the pad
+		/*
+			DiBacco: solution: mvwprintw - print to specific window (pad)?
+		*/
 		WINDOW* w = stdscr; 
 		stdscr = pad;
 
