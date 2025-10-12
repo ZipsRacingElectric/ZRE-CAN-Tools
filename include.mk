@@ -35,7 +35,7 @@ LIBS :=					\
 # Compilation -----------------------------------------------------------------
 
 # TODO(Barach): "-lm" should be in libflags, not CFLAGS
-CFLAGS := -Wall -Wextra -g -I $(LIB_DIR) -lm
+CFLAGS := -fno-strict-aliasing -Wall -Wextra -Wpedantic -g -I $(LIB_DIR) -lm
 
 # Operating System Detection --------------------------------------------------
 
