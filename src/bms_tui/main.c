@@ -1,6 +1,6 @@
 // BMS TUI --------------------------------------------------------------------------------------------------------------------
 //
-// Author: Cole Barach
+// Authors: Cole Barach, Owen DiBacco
 // Date Created: 2025.05.24
 //
 // Description: Terminal user interface for monitoring a battery management system.
@@ -44,56 +44,62 @@ void printStatPanel (int row, int column, bms_t* bms);
 
 /**
  * @brief Prints all information known about a segment.
+ * @param pad The window to display onto.
  * @param row The row to print at.
  * @param column The column to print at.
  * @param bms The BMS owning the segment.
  * @param segmentIndex The index of the segment.
  */
-void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex);
+void printSegment (WINDOW* pad, int row, int column, bms_t* bms, uint16_t segmentIndex);
 
 /**
  * @brief Prints the voltage of a cell.
+ * @param pad The window to display onto.
  * @param row The row to print at.
  * @param column The column to print at.
  * @param bms The BMS owning the cell.
  * @param cellIndex The global index of the cell.
  */
-void printVoltage (int row, int column, bms_t* bms, uint16_t cellIndex);
+void printVoltage (WINDOW* pad, int row, int column, bms_t* bms, uint16_t cellIndex);
 
 /**
  * @brief Prints the index of a cell.
+ * @param pad The window to display onto.
  * @param row The row to print at.
  * @param column The column to print at.
  * @param index The global index of the cell.
  */
-void printCellIndex (int row, int column, uint16_t cellIndex);
+void printCellIndex (WINDOW* pad, int row, int column, uint16_t cellIndex);
 
 /**
  * @brief Prints the temperature of a sense line.
+ * @param pad The window to display onto.
  * @param row The row to print at.
  * @param column The column to print at.
  * @param bms The BMS owning the sense line.
  * @param senseLineIndex The global index of the sense line.
  */
-void printTemperature (int row, int column, bms_t* bms, uint16_t senseLineIndex);
+void printTemperature (WINDOW* pad, int row, int column, bms_t* bms, uint16_t senseLineIndex);
 
 /**
  * @brief Prints the status of a sense line.
+ * @param pad The window to display onto.
  * @param row The row to print at.
  * @param column The column to print at.
  * @param bms The BMS owning the sense line.
  * @param senseLineIndex The global index of the sense line.
  */
-void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t senseLineIndex);
+void printSenseLineStatus (WINDOW* pad, int row, int column, bms_t* bms, uint16_t senseLineIndex);
 
 /**
  * @brief Prints the index and status of an LTC.
+ * @param pad The window to display onto.
  * @param row The row to print at.
  * @param column The column to print at.
  * @param bms The BMS owning the LTC.
  * @param ltcIndex The global index of the LTC.
  */
-void printLtcStatus (int row, int column, bms_t* bms, uint16_t ltcIndex);
+void printLtcStatus (WINDOW* pad, int row, int column, bms_t* bms, uint16_t ltcIndex);
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
@@ -175,12 +181,6 @@ int main (int argc, char** argv)
 	nodelay (stdscr, true);
 	keypad(stdscr, true);
 
-	/*
-		DiBacco: Vertical Scroll Approach (Hacky - have to fix it at some point)
-			- segments are mvprintw'd onto a pad
-			- vertical scroll feature is implemented by offsetting coordinates of the pad when mapping the pad to the physical terminal
-	*/
-
 	// Get terminal size
 	int scr_x, scr_y;
 	getmaxyx (stdscr, scr_y, scr_x);
@@ -190,7 +190,7 @@ int main (int argc, char** argv)
 	const int TOTAL_ROWS = STAT_HEIGHT + (bms.segmentCount * SEGMENT_HEIGHT); // the total # of rows in the pad
 
 	WINDOW *pad = newpad (TOTAL_ROWS, scr_x);
-	if (! pad) {
+	if (!pad) {
 		endwin ();
 		fprintf (stderr, "Failed to create pad");
 		return -1;
@@ -199,16 +199,7 @@ int main (int argc, char** argv)
 	// Initially render segments to the pad
 	for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; segmentIndex++) {
 		int startingRow = STAT_HEIGHT + (segmentIndex * SEGMENT_HEIGHT);
-		
-		// TODO (DiBacco): temp approach setting stdscr to the pad
-		/*
-			DiBacco: solution: mvwprintw - print to specific window (pad)?
-		*/
-		WINDOW* w = stdscr; 
-		stdscr = pad;
-
-		printSegment(startingRow, 0, &bms, segmentIndex);
-		stdscr = w;
+		printSegment(pad, startingRow, 0, &bms, segmentIndex);
 	}
 
 	int offset = 0;
@@ -484,7 +475,7 @@ void printStatPanel (int row, int column, bms_t* bms)
 	mvprintw (row + 4, column, "─┘");
 }
 
-void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
+void printSegment (WINDOW* pad, int row, int column, bms_t* bms, uint16_t segmentIndex)
 {
 	// Column index for the cells
 	uint16_t columnCell = column;
@@ -493,14 +484,14 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 	uint16_t columnSense = column;
 
 	// Print the start of the segment
-	mvprintw (row + 0, 0, "┌");
-	mvprintw (row + 1, 0, "├");
-	mvprintw (row + 2, 0, "│");
-	mvprintw (row + 3, 0, "├┬");
-	mvprintw (row + 4, 0, "││");
-	mvprintw (row + 5, 0, "││");
-	mvprintw (row + 6, 0, "│└");
-	mvprintw (row + 7, 0, "└─");
+	mvwprintw (pad, row + 0, 0, "┌");
+	mvwprintw (pad, row + 1, 0, "├");
+	mvwprintw (pad, row + 2, 0, "│");
+	mvwprintw (pad, row + 3, 0, "├┬");
+	mvwprintw (pad, row + 4, 0, "││");
+	mvwprintw (pad, row + 5, 0, "││");
+	mvwprintw (pad, row + 6, 0, "│└");
+	mvwprintw (pad, row + 7, 0, "└─");
 	
 	columnSense += 1;
 	columnCell += 2;
@@ -514,27 +505,27 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 			uint16_t index = CELL_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex, cellIndex);
 
 			// Print the cell's box
-			mvprintw (row + 3, columnCell, "┬─┘└─");
-			mvprintw (row + 4, columnCell, "│    ");
-			mvprintw (row + 5, columnCell, "│    ");
-			mvprintw (row + 6, columnCell, "┴────");
-			mvprintw (row + 7, columnCell, "─────");
+			mvwprintw (pad, row + 3, columnCell, "┬─┘└─");
+			mvwprintw (pad, row + 4, columnCell, "│    ");
+			mvwprintw (pad, row + 5, columnCell, "│    ");
+			mvwprintw (pad, row + 6, columnCell, "┴────");
+			mvwprintw (pad, row + 7, columnCell, "─────");
 
 			// If this is the first cell, extend the left side to connect to the start of the segement
 			if (cellIndex == 0)
 			{
-				mvprintw (row + 3, columnCell, "─");
-				mvprintw (row + 4, columnCell, " ");
-				mvprintw (row + 5, columnCell, " ");
-				mvprintw (row + 6, columnCell, "─");
-				mvprintw (row + 7, columnCell, "─");
+				mvwprintw (pad, row + 3, columnCell, "─");
+				mvwprintw (pad, row + 4, columnCell, " ");
+				mvwprintw (pad, row + 5, columnCell, " ");
+				mvwprintw (pad, row + 6, columnCell, "─");
+				mvwprintw (pad, row + 7, columnCell, "─");
 			}
 
 			// Print the cell voltage text
-			printVoltage (row + 4, columnCell + 2, bms, index);
+			printVoltage (pad, row + 4, columnCell + 2, bms, index);
 			// Print the cell index text
 			// TODO: DiBacco: figure out solution to  3 digit index presses up against the "-" symbol
-			printCellIndex (row + 7, columnCell + 1, index);
+			printCellIndex (pad, row + 7, columnCell + 1, index);
 			
 			columnCell += 5;
 		}
@@ -542,22 +533,22 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 		if (ltcIndex != bms->ltcsPerSegment - 1)
 		{
 			// If this is not the last LTC, print the divider for the next one.
-			mvprintw (row + 3, columnCell,	"─┬┬┬");
-			mvprintw (row + 4, columnCell,	" │││");
-			mvprintw (row + 5, columnCell,	" │││");
-			mvprintw (row + 6, columnCell,	"─┘│└");
-			mvprintw (row + 7, columnCell,	"──┴─");
+			mvwprintw (pad, row + 3, columnCell,	"─┬┬┬");
+			mvwprintw (pad, row + 4, columnCell,	" │││");
+			mvwprintw (pad, row + 5, columnCell,	" │││");
+			mvwprintw (pad, row + 6, columnCell,	"─┘│└");
+			mvwprintw (pad, row + 7, columnCell,	"──┴─");
 
 			columnCell += 4;
 		}
 		else
 		{
 			// If this is the last LTC, print the end of the segment.
-			mvprintw (row + 3, columnCell,	"─┬┤");
-			mvprintw (row + 4, columnCell,	" ││");
-			mvprintw (row + 5, columnCell,	" ││");
-			mvprintw (row + 6, columnCell,	"─┘│");
-			mvprintw (row + 7, columnCell,	"──┘");
+			mvwprintw (pad, row + 3, columnCell,	"─┬┤");
+			mvwprintw (pad, row + 4, columnCell,	" ││");
+			mvwprintw (pad, row + 5, columnCell,	" ││");
+			mvwprintw (pad, row + 6, columnCell,	"─┘│");
+			mvwprintw (pad, row + 7, columnCell,	"──┘");
 		}
 
 		// Print the segment's sense lines
@@ -570,49 +561,49 @@ void printSegment (int row, int column, bms_t* bms, uint16_t segmentIndex)
 			uint16_t increment;
 			if (senseLineIndex != bms->senseLinesPerLtc - 1)
 			{
-				mvprintw (row + 0, columnSense, "─────");
-				mvprintw (row + 1, columnSense, "───╮╭");
-				mvprintw (row + 2, columnSense, "   ├┤");
+				mvwprintw (pad, row + 0, columnSense, "─────");
+				mvwprintw (pad, row + 1, columnSense, "───╮╭");
+				mvwprintw (pad, row + 2, columnSense, "   ├┤");
 				increment = 5;
 			}
 			else
 			{
-				mvprintw (row + 0, columnSense, "───");
-				mvprintw (row + 1, columnSense, "───");
-				mvprintw (row + 2, columnSense, "   ");
+				mvwprintw (pad, row + 0, columnSense, "───");
+				mvwprintw (pad, row + 1, columnSense, "───");
+				mvwprintw (pad, row + 2, columnSense, "   ");
 				increment = 3;
 			}
 
 			// Print the LTC's status. This is done after 6 sense lines have been printed, as otherwise they would print over
 			// top this text.
 			if (senseLineIndex == 5)
-				printLtcStatus (row, columnSense - 24, bms, LTC_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex));
+				printLtcStatus (pad, row, columnSense - 24, bms, LTC_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex));
 
 			// Print the sense line's temperature and status.
-			printTemperature (row + 2, columnSense -1, bms, index);
-			printSenseLineStatus (row + 3, columnSense, bms, index);
+			printTemperature (pad, row + 2, columnSense -1, bms, index);
+			printSenseLineStatus (pad, row + 3, columnSense, bms, index);
 			columnSense += increment;
 		}
 
 		if (ltcIndex != bms->ltcsPerSegment - 1)
 		{
 			// If this is not the last LTC, print the divider for the next one.
-			mvprintw (row + 0, columnSense,	"┬");
-			mvprintw (row + 1, columnSense,	"┴");
-			mvprintw (row + 2, columnSense,	"┊");
+			mvwprintw (pad, row + 0, columnSense,	"┬");
+			mvwprintw (pad, row + 1, columnSense,	"┴");
+			mvwprintw (pad, row + 2, columnSense,	"┊");
 			columnSense += 1;
 		}
 		else
 		{
 			// If this is the last LTC, print the end of the segment.
-			mvprintw (row + 0, columnSense,	"┐");
-			mvprintw (row + 1, columnSense,	"┤");
-			mvprintw (row + 2, columnSense,	"│");
+			mvwprintw (pad, row + 0, columnSense,	"┐");
+			mvwprintw (pad, row + 1, columnSense,	"┤");
+			mvwprintw (pad, row + 2, columnSense,	"│");
 		}
 	}
 }
 
-void printVoltage (int row, int column, bms_t* bms, uint16_t cellIndex)
+void printVoltage (WINDOW* pad, int row, int column, bms_t* bms, uint16_t cellIndex)
 {
 	float voltage;
 	bool discharging;
@@ -622,7 +613,7 @@ void printVoltage (int row, int column, bms_t* bms, uint16_t cellIndex)
 		bmsGetCellDischarging (bms, cellIndex, &discharging) != CAN_DATABASE_VALID)
 	{
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, "--");
+		mvwprintw (pad, row, column, "--");
 		attroff (COLOR_PAIR (COLOR_INVALID));
 		return;
 	}
@@ -637,19 +628,19 @@ void printVoltage (int row, int column, bms_t* bms, uint16_t cellIndex)
 	uint16_t voltageRounded = (uint16_t) roundf (voltage * 100);
 	uint8_t voltageInt = voltageRounded / 100;
 	uint8_t voltageFrac = voltageRounded % 100;
-	mvprintw (row, column, "%i.", voltageInt);
-	mvprintw (row + 1, column, "%02i", voltageFrac);
+	mvwprintw (pad, row, column, "%i.", voltageInt);
+	mvwprintw (pad, row + 1, column, "%02i", voltageFrac);
 
 	attroff (COLOR_PAIR (color));
 }
 
-void printCellIndex (int row, int column, uint16_t cellIndex)
+void printCellIndex (WINDOW* pad, int row, int column, uint16_t cellIndex)
 {
 	// Print the index of the cell
-	mvprintw (row, column, " %i ", cellIndex);
+	mvwprintw (pad, row, column, " %i ", cellIndex);
 }
 
-void printTemperature (int row, int column, bms_t* bms, uint16_t senseLineIndex)
+void printTemperature (WINDOW* pad, int row, int column, bms_t* bms, uint16_t senseLineIndex)
 {
 	float temperature;
 	switch (bmsGetSenseLineTemperature (bms, senseLineIndex, &temperature))
@@ -661,7 +652,7 @@ void printTemperature (int row, int column, bms_t* bms, uint16_t senseLineIndex)
 	case CAN_DATABASE_TIMEOUT:
 		// If the signal is timed out, print invalid.
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " --- ");
+		mvwprintw (pad, row, column, " --- ");
 		attroff (COLOR_PAIR (COLOR_INVALID));
 
 		break;
@@ -673,7 +664,7 @@ void printTemperature (int row, int column, bms_t* bms, uint16_t senseLineIndex)
 
 		// Print the temperature
 		attron (COLOR_PAIR (color));
-		mvprintw (row, column, "%.1fC", temperature); 
+		mvwprintw (pad, row, column, "%.1fC", temperature); 
 		// TODO: DiBacco: need to split into two lines and possibly remove the C
 		// TODO: DiBacco: maybe just look into shrinking the text size
 		attroff (COLOR_PAIR (color));
@@ -682,7 +673,7 @@ void printTemperature (int row, int column, bms_t* bms, uint16_t senseLineIndex)
 	}
 }
 
-void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t senseLineIndex)
+void printSenseLineStatus (WINDOW* pad, int row, int column, bms_t* bms, uint16_t senseLineIndex)
 {
 	bool open;
 	switch (bmsGetSenseLineOpen (bms, senseLineIndex, &open))
@@ -691,7 +682,7 @@ void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t senseLineIn
 	case CAN_DATABASE_TIMEOUT:
 		// If the signal is not valid, print invalid.
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " - ");
+		mvwprintw (pad, row, column, " - ");
 		attroff (COLOR_PAIR (COLOR_INVALID));
 		break;
 
@@ -700,46 +691,46 @@ void printSenseLineStatus (int row, int column, bms_t* bms, uint16_t senseLineIn
 		if (open)
 		{
 			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (row, column, " XXX ");
+			mvwprintw (pad, row, column, " XXX ");
 			attroff (COLOR_PAIR (COLOR_INVALID));
 		}
 	}
 }
 
-void printLtcStatus (int row, int column, bms_t* bms, uint16_t ltcIndex)
+void printLtcStatus (WINDOW* pad, int row, int column, bms_t* bms, uint16_t ltcIndex)
 {
 	switch (bmsGetLtcState (bms, ltcIndex))
 	{
 	case BMS_LTC_STATE_MISSING:
 		// If no other information is available, print only the index.
-		mvprintw (row, column, " LTC %i ", ltcIndex);
+		mvwprintw (pad, row, column, " LTC %i ", ltcIndex);
 		break;
 
 	case BMS_LTC_STATE_TIMEOUT:
 		// If either signal is timed out, print so.
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " LTC %i: CAN Timeout ", ltcIndex);
+		mvwprintw (pad, row, column, " LTC %i: CAN Timeout ", ltcIndex);
 		attroff (COLOR_PAIR (COLOR_INVALID));
 		break;
 
 	case BMS_LTC_STATE_ISOSPI_FAULT:
 		// If the LTC is faulted, print so.
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " LTC %i: IsoSPI Fault ", ltcIndex);
+		mvwprintw (pad, row, column, " LTC %i: IsoSPI Fault ", ltcIndex);
 		attroff (COLOR_PAIR (COLOR_INVALID));
 		break;
 
 	case BMS_LTC_STATE_SELF_TEST_FAULT:
 		// If the LTC is faulted, print so.
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " LTC %i: Self-Test Fault ", ltcIndex);
+		mvwprintw (pad, row, column, " LTC %i: Self-Test Fault ", ltcIndex);
 		attroff (COLOR_PAIR (COLOR_INVALID));
 		break;
 
 	case BMS_LTC_STATE_OKAY:
 		// If the LTC is okay, print so.
 		attron (COLOR_PAIR (COLOR_VALID));
-		mvprintw (row, column, " LTC %i: Comms Okay ", ltcIndex);
+		mvwprintw (pad, row, column, " LTC %i: Comms Okay ", ltcIndex);
 		attroff (COLOR_PAIR (COLOR_VALID));
 		break;
 	}
