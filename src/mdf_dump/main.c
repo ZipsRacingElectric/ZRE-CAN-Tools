@@ -25,11 +25,13 @@
 
 void asciidump (void* buffer, size_t length, size_t width, FILE* stream)
 {
+	char* data = buffer;
+
 	size_t count = 0;
 	while (length > 0)
 	{
-		fprintf (stream, "%c ", *((char*) buffer));
-		++buffer;
+		fprintf (stream, "%c ", *data);
+		++data;
 		--length;
 		++count;
 		if (count % width == 0 && length != 0)
@@ -39,11 +41,13 @@ void asciidump (void* buffer, size_t length, size_t width, FILE* stream)
 
 void hexdump (void* buffer, size_t length, size_t width, FILE* stream)
 {
+	uint8_t* data = buffer;
+
 	size_t count = 0;
 	while (length > 0)
 	{
-		fprintf (stream, "%02X ", *((uint8_t*) buffer));
-		++buffer;
+		fprintf (stream, "%02X ", *data);
+		++data;
 		--length;
 		++count;
 		if (count % width == 0 && length != 0)
@@ -55,7 +59,7 @@ void dumpBlockHeader (FILE* stream, mdfBlock_t* block)
 {
 	// Block ID
 	hexdump (&block->header.blockId, sizeof (block->header.blockId), sizeof (block->header.blockId), stream);
-	fprintf (stream, "| %s\n", mdfBlockIdToString (block->header.blockId));
+	fprintf (stream, "| %s\n", block->header.blockIdString);
 
 	// Block length
 	hexdump (&block->header.blockLength, sizeof (block->header.blockLength), sizeof (block->header.blockLength), stream);
@@ -322,7 +326,7 @@ int main (int argc, char** argv)
 
 	for (size_t count = 0; count < blockCount - 1; ++count)
 	{
-		if (mdfReaderSkipToBlock (mdf) != 0)
+		if (mdfReaderJumpToBlock (mdf) != 0)
 			break;
 
 		mdfBlock_t block;
@@ -360,16 +364,32 @@ int main (int argc, char** argv)
 			.recordIndex = 0,
 		};
 
-		if (mdfReadBlockDataSection (mdf, &block, dataSectionByteHandler, &dataSectionByteArg) != 0)
+		if (mdfReadBlockDataSection (mdf, &block) != 0)
 		{
 			int code = errno;
 			fprintf (stderr, "Failed to read MDF block data section: %s.\n", errorMessage (code));
 			return code;
 		}
 
+		size_t dataSectionSize = mdfBlockDataSectionSize (&block);
+		for (size_t index = 0; index < dataSectionSize; ++index)
+			dataSectionByteHandler (&block, ((uint8_t*) block.dataSection) [index], &dataSectionByteArg);
+
+		if (dataSectionSize == 0)
+		{
+			int data;
+			while (true)
+			{
+				data = fgetc (mdf);
+				if (data == EOF)
+					break;
+				dataSectionByteHandler (&block, data, &dataSectionByteArg);
+			}
+		}
+
 		printf ("\n\n- End Data Section -\n\n");
 
-		if (block.dataSectionSize == 0)
+		if (dataSectionSize == 0)
 			break;
 	}
 

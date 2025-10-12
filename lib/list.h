@@ -12,7 +12,7 @@
 // At the top-level scope, the list must be explicitly defined for the specific datatype (or datatypes) it is to be used with.
 // This is done via the listDefine(...) macro. Ex:
 //
-//   listDefine (float);
+//   listDefine (float)
 //
 // To instance a list, the list's datatype is given by the list_t(...) macro. Ex:
 //

@@ -37,7 +37,11 @@ typedef struct
 	struct
 	{
 		/// @brief The ID of the block.
-		uint64_t blockId;
+		union
+		{
+			uint64_t blockId;
+			char blockIdString [8];
+		};
 
 		/// @brief The length of the block, including the header, in bytes.
 		uint64_t blockLength;
@@ -50,15 +54,12 @@ typedef struct
 	/// @c header.linkCount .
 	uint64_t* linkList;
 
-	/// @brief The size of the block's data section, in bytes.
-	uint64_t dataSectionSize;
+	void* dataSection;
 } mdfBlock_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-/**
- * @brief Converts a block ID into a string representation.
- * @param blockId The block ID to convert.
- * @return The string representation.
- */
-char* mdfBlockIdToString (uint64_t blockId);
+#define mdfBlockDataSectionSize(block)																						\
+	((block)->header.blockLength - sizeof ((block)->header) - (block)->header.linkCount * sizeof (uint64_t))
+
+

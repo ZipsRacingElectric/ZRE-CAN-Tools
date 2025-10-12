@@ -11,78 +11,67 @@
  * @param stream The @c FILE* that caused the failure.
  * @return The error code indicating what occurred.
  */
-int handleFreadError (FILE* stream);
+static int handleFreadError (FILE* stream);
 
-int mdfReadFileIdBlock (FILE* stream, mdfFileIdBlock_t* fileIdBlock)
+int mdfReadFileIdBlock (FILE* mdf, mdfFileIdBlock_t* fileIdBlock)
 {
 	// Read the file ID block
-	if (fread (fileIdBlock, sizeof (mdfFileIdBlock_t), 1, stream) != 1)
-		return handleFreadError (stream);
+	if (fread (fileIdBlock, sizeof (*fileIdBlock), 1, mdf) != 1)
+		return handleFreadError (mdf);
 
 	return 0;
 }
 
-int mdfReaderSkipToBlock (FILE* stream)
-{
-	// Consume any non '#' characters.
-	int c;
-	do
-	{
-		c = getc (stream);
-	} while (c != '#' && c != EOF);
-	if (c == EOF)
-		return ERRNO_END_OF_FILE;
-
-	// Put the character back into the stream.
-	ungetc (c, stream);
-	return 0;
-}
-
-int mdfReadBlockHeader (FILE* stream, mdfBlock_t* block)
+int mdfReadBlockHeader (FILE* mdf, mdfBlock_t* block)
 {
 	// Store the address of the block
-	block->addr = ftell (stream);
+	block->addr = ftell (mdf);
 
 	// Read the block's header
-	if (fread (&block->header, sizeof (block->header), 1, stream) != 1)
-		return handleFreadError (stream);
+	if (fread (&block->header, sizeof (block->header), 1, mdf) != 1)
+		return handleFreadError (mdf);
+
+	// Terminate the block ID string
+	block->header.blockIdString [sizeof (block->header.blockIdString) - 1] = '\0';
 
 	return 0;
 }
 
-int mdfReadBlockLinkList (FILE* stream, mdfBlock_t* block)
+int mdfReadBlockLinkList (FILE* mdf, mdfBlock_t* block)
 {
-	// Read the block's link list
+	if (block->header.linkCount == 0)
+		return 0;
+
+	// Allocate memory for the list
 	block->linkList = malloc (block->header.linkCount * sizeof (uint64_t));
 	if (block->linkList == NULL)
 		return errno;
 
-	if (fread (block->linkList, sizeof (uint64_t), block->header.linkCount, stream) != block->header.linkCount)
-		return handleFreadError (stream);
+	// Read the list
+	if (fread (block->linkList, sizeof (uint64_t), block->header.linkCount, mdf) != block->header.linkCount)
+		return handleFreadError (mdf);
 
 	return 0;
 }
 
-int mdfReadBlockDataSection (FILE* stream, mdfBlock_t* block, mdfByteHandler_t* dataSectionByteHandler, void* dataSectionByteArg)
+int mdfReadBlockDataSection (FILE* mdf, mdfBlock_t* block)
 {
-	// Read the block's data section. Note that a data section size of zero indicates the block's data section extends to the
-	// end of the file.
-	block->dataSectionSize = block->header.blockLength - sizeof (block->header) - sizeof (uint64_t) * block->header.linkCount;
-	for (size_t index = 0; index < block->dataSectionSize || block->dataSectionSize == 0; ++index)
-	{
-		int data = fgetc (stream);
-		if (data == EOF)
-		{
-			// If we expected more data, return error.
-			if (block->dataSectionSize != 0)
-				return handleFreadError (stream);
+	size_t dataSectionSize = mdfBlockDataSectionSize (block);
+	if (dataSectionSize == 0)
+		return 0;
 
-			break;
-		}
+	// Allocate memory for the data section
+	block->dataSection = malloc (dataSectionSize);
+	if (block->dataSection == NULL)
+		return errno;
 
-		// Pass the received byte to the user provided handler.
-		dataSectionByteHandler (block, (uint8_t) data, dataSectionByteArg);
-	}
+	// Read the data section
+	if (fread (block->dataSection, 1, dataSectionSize, mdf) != dataSectionSize)
+		return handleFreadError (mdf);
+
+	// If this is a text section, terminate the string
+	if (block->header.blockId == MDF_BLOCK_ID_TX)
+		((char*) block->dataSection) [dataSectionSize - 1] = '\0';
 
 	return 0;
 }
@@ -92,7 +81,28 @@ void mdrReaderDeallocBlock (mdfBlock_t* block)
 	free (block->linkList);
 }
 
-int handleFreadError (FILE* stream)
+int mdfReaderJumpToBlock (FILE* mdf)
+{
+	// Consume any non '#' characters.
+	int c;
+	do
+	{
+		c = getc (mdf);
+	} while (c != '#' && c != EOF);
+	if (c == EOF)
+	{
+		errno = ERRNO_END_OF_FILE;
+		return errno;
+	}
+
+	// Put the character back into the stream.
+	if (ungetc (c, mdf) == EOF)
+		return errno;
+
+	return 0;
+}
+
+static int handleFreadError (FILE* stream)
 {
 	// If the file ended, return the code for that.
 	if (feof (stream))

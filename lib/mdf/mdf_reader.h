@@ -16,20 +16,16 @@
 // C Standard Library
 #include <stdio.h>
 
-// Datatypes ------------------------------------------------------------------------------------------------------------------
-
-typedef void (mdfByteHandler_t) (mdfBlock_t* block, uint8_t data, void* arg);
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-int mdfReadFileIdBlock (FILE* stream, mdfFileIdBlock_t* fileIdBlock);
+int mdfReadFileIdBlock (FILE* mdf, mdfFileIdBlock_t* fileIdBlock);
 
-int mdfReaderSkipToBlock (FILE* stream);
+int mdfReadBlockHeader (FILE* mdf, mdfBlock_t* block);
 
-int mdfReadBlockHeader (FILE* stream, mdfBlock_t* block);
+int mdfReadBlockLinkList (FILE* mdf, mdfBlock_t* block);
 
-int mdfReadBlockLinkList (FILE* stream, mdfBlock_t* block);
-
-int mdfReadBlockDataSection (FILE* stream, mdfBlock_t* block, mdfByteHandler_t* dataSectionByteHandler, void* dataSectionByteArg);
+int mdfReadBlockDataSection (FILE* mdf, mdfBlock_t* block);
 
 void mdrReaderDeallocBlock (mdfBlock_t* block);
+
+int mdfReaderJumpToBlock (FILE* mdf);
