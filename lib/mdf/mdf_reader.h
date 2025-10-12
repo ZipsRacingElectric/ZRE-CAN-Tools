@@ -8,6 +8,9 @@
 // References:
 // - https://www.asam.net/standards/detail/mdf/wiki/
 
+// TODO(Barach):
+// - Any reason to keep read split into 3 sections?
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -25,7 +28,5 @@ int mdfReadBlockHeader (FILE* mdf, mdfBlock_t* block);
 int mdfReadBlockLinkList (FILE* mdf, mdfBlock_t* block);
 
 int mdfReadBlockDataSection (FILE* mdf, mdfBlock_t* block);
-
-void mdrReaderDeallocBlock (mdfBlock_t* block);
 
 int mdfReaderJumpToBlock (FILE* mdf);

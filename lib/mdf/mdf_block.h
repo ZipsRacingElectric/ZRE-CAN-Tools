@@ -31,7 +31,7 @@ typedef struct
 typedef struct
 {
 	/// @brief The file address of the header of the block.
-	long addr;
+	uint64_t addr;
 
 	/// @brief The block's header.
 	struct
@@ -59,7 +59,11 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-#define mdfBlockDataSectionSize(block)																						\
-	((block)->header.blockLength - sizeof ((block)->header) - (block)->header.linkCount * sizeof (uint64_t))
+int mdfBlockInit (mdfBlock_t* block);
 
+void mdfBlockDealloc (mdfBlock_t* block);
 
+static inline uint64_t mdfBlockDataSectionSize(mdfBlock_t* block)
+{
+	return (block)->header.blockLength - sizeof ((block)->header) - (block)->header.linkCount * sizeof (uint64_t);
+}

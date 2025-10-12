@@ -21,3 +21,5 @@
 int mdfWriteFileIdBlock (FILE* mdf, mdfFileIdBlock_t* fileIdBlock);
 
 int mdfWriteBlock (FILE* mdf, mdfBlock_t* block, void* dataSection);
+
+int mdfUpdateBlockLinkList (FILE* mdf, mdfBlock_t* block);

@@ -26,7 +26,10 @@ int mdfWriteBlock (FILE* mdf, mdfBlock_t* block, void* dataSection)
 		return errno;
 
 	// Set the block's address based on the stream position.
-	block->addr = ftell (mdf);
+	long addr = ftell (mdf);
+	if (addr < 0)
+		return errno;
+	block->addr = addr;
 
 	// Write the header
 	if (fwrite (&block->header, sizeof (block->header), 1, mdf) != 1)
@@ -46,10 +49,23 @@ int mdfWriteBlock (FILE* mdf, mdfBlock_t* block, void* dataSection)
 	return 0;
 }
 
+int mdfUpdateBlockLinkList (FILE* mdf, mdfBlock_t* block)
+{
+	// Jump to the block's link list section
+	fseek (mdf, block->addr + sizeof (block->header), SEEK_SET);
+
+	// Write the link list
+	if (block->header.linkCount != 0)
+		if (fwrite (block->linkList, sizeof (uint64_t), block->header.linkCount, mdf) != block->header.linkCount)
+			return errno;
+}
+
 static int alignBlock (FILE* mdf)
 {
 	// Get the current address of the stream.
 	long addrCurrent = ftell (mdf);
+	if (addrCurrent < 0)
+		return errno;
 
 	// Pad the stream with 0's until the next multiple of 8 bytes.
 	long padding = addrCurrent % 8;

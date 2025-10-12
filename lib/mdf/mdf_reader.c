@@ -24,28 +24,21 @@ int mdfReadFileIdBlock (FILE* mdf, mdfFileIdBlock_t* fileIdBlock)
 
 int mdfReadBlockHeader (FILE* mdf, mdfBlock_t* block)
 {
-	// Store the address of the block
+	// Set the block's address based on the stream position
 	block->addr = ftell (mdf);
 
 	// Read the block's header
 	if (fread (&block->header, sizeof (block->header), 1, mdf) != 1)
 		return handleFreadError (mdf);
 
-	// Terminate the block ID string
-	block->header.blockIdString [sizeof (block->header.blockIdString) - 1] = '\0';
-
-	return 0;
+	// Initialize the remainder of the block.
+	return mdfBlockInit (block);
 }
 
 int mdfReadBlockLinkList (FILE* mdf, mdfBlock_t* block)
 {
 	if (block->header.linkCount == 0)
 		return 0;
-
-	// Allocate memory for the list
-	block->linkList = malloc (block->header.linkCount * sizeof (uint64_t));
-	if (block->linkList == NULL)
-		return errno;
 
 	// Read the list
 	if (fread (block->linkList, sizeof (uint64_t), block->header.linkCount, mdf) != block->header.linkCount)
@@ -60,25 +53,16 @@ int mdfReadBlockDataSection (FILE* mdf, mdfBlock_t* block)
 	if (dataSectionSize == 0)
 		return 0;
 
-	// Allocate memory for the data section
-	block->dataSection = malloc (dataSectionSize);
-	if (block->dataSection == NULL)
-		return errno;
-
 	// Read the data section
 	if (fread (block->dataSection, 1, dataSectionSize, mdf) != dataSectionSize)
 		return handleFreadError (mdf);
 
 	// If this is a text section, terminate the string
+	// TODO(Barach): Do we want to really do this?
 	if (block->header.blockId == MDF_BLOCK_ID_TX)
 		((char*) block->dataSection) [dataSectionSize - 1] = '\0';
 
 	return 0;
-}
-
-void mdrReaderDeallocBlock (mdfBlock_t* block)
-{
-	free (block->linkList);
 }
 
 int mdfReaderJumpToBlock (FILE* mdf)
