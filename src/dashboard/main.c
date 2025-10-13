@@ -3,9 +3,25 @@
 
 static void print_hello (GtkWidget* widget, gpointer data)
 {
-	(void) widget;
-	(void) data;
 	g_print ("Hello, World!\n");
+}
+static void winscreen (GtkWidget* widget, GtkWindow* window)
+{
+	//Set Window Unfullscreen
+	if (gtk_window_is_fullscreen (GTK_WINDOW(window)) == true)
+	{
+		g_print ("Unfullscreen\n");
+		gtk_button_set_label(GTK_BUTTON(widget), "Fullscreen");
+		gtk_window_unfullscreen (GTK_WINDOW(window));
+	}
+
+	//Set Window Fullscreen
+	else if (gtk_window_is_fullscreen (GTK_WINDOW(window)) == false)
+	{
+		g_print ("Fullscreen\n");
+		gtk_button_set_label(GTK_BUTTON(widget), "Unfullscreen");
+		gtk_window_fullscreen (GTK_WINDOW(window));
+	}
 }
 
 static void quit (GtkWidget* widget, gpointer data)
@@ -22,6 +38,7 @@ static void activate (GtkApplication* app, gpointer title)
 	/* Create a new window and set it's title*/
 	window = gtk_application_window_new (app);
 	gtk_window_set_title (GTK_WINDOW (window), title);
+	gtk_window_fullscreen (GTK_WINDOW(window));
 
 	/* Contruct the Container that will hold buttons */
 	grid = gtk_grid_new ();
@@ -34,8 +51,8 @@ static void activate (GtkApplication* app, gpointer title)
 
 	gtk_grid_attach (GTK_GRID(grid), button, 0, 0, 1, 1);
 
-	button = gtk_button_new_with_label ("Button 2");
-	g_signal_connect (button, "clicked", G_CALLBACK (print_hello), NULL);
+	button = gtk_button_new_with_label ("Unfullscreen");
+	g_signal_connect (button, "clicked", G_CALLBACK (winscreen), window);
 
 	gtk_grid_attach (GTK_GRID(grid), button, 1, 0, 1, 1);
 
