@@ -1,3 +1,6 @@
+#ifndef MDF_BLOCK_H
+#define MDF_BLOCK_H
+
 // MDF Block ------------------------------------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
@@ -17,6 +20,10 @@
 
 #define MDF_BLOCK_ID_STR_TO_VALUE(c0, c1, c2, c3) ((c0) | (c1) << 8 | (c2) << 16 | (c3) << 24)
 
+#define MDF_BLOCK_ID_HD MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'H', 'D')
+#define MDF_BLOCK_ID_DG MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'D', 'G')
+#define MDF_BLOCK_ID_CG MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'C', 'G')
+#define MDF_BLOCK_ID_CN MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'C', 'N')
 #define MDF_BLOCK_ID_DT MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'D', 'T')
 #define MDF_BLOCK_ID_MD MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'M', 'D')
 #define MDF_BLOCK_ID_TX MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'T', 'X')
@@ -59,7 +66,9 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-int mdfBlockInit (mdfBlock_t* block);
+int mdfBlockInit (mdfBlock_t* block, uint64_t blockId, uint64_t linkCount, uint64_t dataSectionSize);
+
+int mdfBlockInitHeader (mdfBlock_t* block);
 
 void mdfBlockDealloc (mdfBlock_t* block);
 
@@ -67,3 +76,5 @@ static inline uint64_t mdfBlockDataSectionSize(mdfBlock_t* block)
 {
 	return (block)->header.blockLength - sizeof ((block)->header) - (block)->header.linkCount * sizeof (uint64_t);
 }
+
+#endif // MDF_BLOCK_H

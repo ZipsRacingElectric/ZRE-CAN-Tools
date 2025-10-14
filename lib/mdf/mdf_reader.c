@@ -32,7 +32,7 @@ int mdfReadBlockHeader (FILE* mdf, mdfBlock_t* block)
 		return handleFreadError (mdf);
 
 	// Initialize the remainder of the block.
-	return mdfBlockInit (block);
+	return mdfBlockInitHeader (block);
 }
 
 int mdfReadBlockLinkList (FILE* mdf, mdfBlock_t* block)

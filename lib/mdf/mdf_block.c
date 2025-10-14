@@ -5,7 +5,16 @@
 #include <errno.h>
 #include <stdlib.h>
 
-int mdfBlockInit (mdfBlock_t* block)
+int mdfBlockInit (mdfBlock_t* block, uint64_t blockId, uint64_t linkCount, uint64_t dataSectionSize)
+{
+	block->header.blockId = blockId;
+	block->header.linkCount = linkCount;
+	block->header.blockLength = dataSectionSize + sizeof (block->header) + sizeof (uint64_t) * linkCount;
+
+	return mdfBlockInitHeader (block);
+}
+
+int mdfBlockInitHeader (mdfBlock_t* block)
 {
 	// Terminate the block ID string if it isn't already
 	block->header.blockIdString [sizeof (block->header.blockIdString) - 1] = '\0';
@@ -13,7 +22,7 @@ int mdfBlockInit (mdfBlock_t* block)
 	// Allocate the block's link list
 	if (block->header.linkCount != 0)
 	{
-		block->linkList = malloc (block->header.linkCount * sizeof (uint64_t));
+		block->linkList = calloc (block->header.linkCount, sizeof (uint64_t));
 		if (block->linkList == NULL)
 			return errno;
 	}
@@ -22,7 +31,7 @@ int mdfBlockInit (mdfBlock_t* block)
 	uint64_t dataSectionSize = mdfBlockDataSectionSize (block);
 	if (dataSectionSize != 0)
 	{
-		block->dataSection = malloc (dataSectionSize);
+		block->dataSection = calloc (dataSectionSize, 1);
 		if (block->dataSection == NULL)
 			return errno;
 	}

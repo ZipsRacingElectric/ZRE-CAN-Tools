@@ -1,3 +1,6 @@
+#ifndef MDF_WRITER_H
+#define MDF_WRITER_H
+
 // MDF Writer -----------------------------------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
@@ -20,6 +23,13 @@
 
 int mdfWriteFileIdBlock (FILE* mdf, mdfFileIdBlock_t* fileIdBlock);
 
-int mdfWriteBlock (FILE* mdf, mdfBlock_t* block, void* dataSection);
+int mdfWriteBlock (FILE* mdf, mdfBlock_t* block);
 
-int mdfUpdateBlockLinkList (FILE* mdf, mdfBlock_t* block);
+// TODO(Barach): Do we need this?
+int mdfRewriteBlockHeader (FILE* mdf, mdfBlock_t* block);
+
+int mdfRewriteBlockLinkList (FILE* mdf, mdfBlock_t* block);
+
+int mdfRewriteBlockDataSection (FILE* mdf, mdfBlock_t* block);
+
+#endif // MDF_WRITER_H

@@ -19,7 +19,7 @@ int mdfWriteFileIdBlock (FILE* mdf, mdfFileIdBlock_t* fileIdBlock)
 	return 0;
 }
 
-int mdfWriteBlock (FILE* mdf, mdfBlock_t* block, void* dataSection)
+int mdfWriteBlock (FILE* mdf, mdfBlock_t* block)
 {
 	// Align the stream for the next block.
 	if (alignBlock (mdf) != 0)
@@ -43,13 +43,13 @@ int mdfWriteBlock (FILE* mdf, mdfBlock_t* block, void* dataSection)
 	// Write the data section
 	size_t dataSectionSize = mdfBlockDataSectionSize (block);
 	if (dataSectionSize != 0)
-		if (fwrite (dataSection, 1, dataSectionSize, mdf) != dataSectionSize)
+		if (fwrite (block->dataSection, 1, dataSectionSize, mdf) != dataSectionSize)
 			return errno;
 
 	return 0;
 }
 
-int mdfUpdateBlockLinkList (FILE* mdf, mdfBlock_t* block)
+int mdfRewriteBlockLinkList (FILE* mdf, mdfBlock_t* block)
 {
 	// Jump to the block's link list section
 	fseek (mdf, block->addr + sizeof (block->header), SEEK_SET);
@@ -58,6 +58,23 @@ int mdfUpdateBlockLinkList (FILE* mdf, mdfBlock_t* block)
 	if (block->header.linkCount != 0)
 		if (fwrite (block->linkList, sizeof (uint64_t), block->header.linkCount, mdf) != block->header.linkCount)
 			return errno;
+
+	return 0;
+}
+
+int mdfRewriteBlockDataSection (FILE* mdf, mdfBlock_t* block)
+{
+	size_t dataSectionSize = mdfBlockDataSectionSize (block);
+
+	// Jump to the block's data section
+	fseek (mdf, block->addr + sizeof (block->header) + dataSectionSize, SEEK_SET);
+
+	// Write the data section
+	if (dataSectionSize != 0)
+		if (fwrite (block->linkList, 1, dataSectionSize, mdf) != dataSectionSize)
+			return errno;
+
+	return 0;
 }
 
 static int alignBlock (FILE* mdf)
@@ -68,7 +85,7 @@ static int alignBlock (FILE* mdf)
 		return errno;
 
 	// Pad the stream with 0's until the next multiple of 8 bytes.
-	long padding = addrCurrent % 8;
+	size_t padding = (8 - (addrCurrent % 8)) % 8;
 	uint8_t buffer [] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 	if (padding != 0)
 		if (fwrite (buffer, sizeof (uint8_t), padding, mdf) != padding)

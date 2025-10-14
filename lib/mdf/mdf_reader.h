@@ -1,3 +1,6 @@
+#ifndef MDF_READER_H
+#define MDF_READER_H
+
 // MDF Reader -----------------------------------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
@@ -9,7 +12,7 @@
 // - https://www.asam.net/standards/detail/mdf/wiki/
 
 // TODO(Barach):
-// - Any reason to keep read split into 3 sections?
+// - Should probably replace 3 separate functions.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -30,3 +33,5 @@ int mdfReadBlockLinkList (FILE* mdf, mdfBlock_t* block);
 int mdfReadBlockDataSection (FILE* mdf, mdfBlock_t* block);
 
 int mdfReaderJumpToBlock (FILE* mdf);
+
+#endif // MDF_READER_H
