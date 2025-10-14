@@ -189,6 +189,7 @@ int main (int argc, char** argv)
 	const int SEGMENT_HEIGHT = 9; // the height of each Segment that will be in the pad
 	const int TOTAL_ROWS = STAT_HEIGHT + (bms.segmentCount * SEGMENT_HEIGHT); // the total # of rows in the pad
 
+	// Pad is used to display the segments from the bms with a vertical scroll implementation
 	WINDOW *pad = newpad (TOTAL_ROWS, scr_x);
 	if (!pad) {
 		endwin ();
@@ -200,12 +201,12 @@ int main (int argc, char** argv)
 	while (true)
 	{
 		// Update & display segments in the pad 
-		// TODO(DiBacco): create a function to update only the parts of the segment that need updated
 		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; segmentIndex++) {
 			int startingRow = STAT_HEIGHT + (segmentIndex * SEGMENT_HEIGHT);
 			printSegment(pad, startingRow, 0, &bms, segmentIndex);
 		}
 
+		// Refine the current screen's dimensions
 		getmaxyx(stdscr, scr_y, scr_x);
 
 		// Clamp offset
@@ -218,15 +219,16 @@ int main (int argc, char** argv)
 		clear ();
 		#endif
 
-		// Print the top-most panel
+		// Update & display the stat panel
 		printStatPanel (0, 0, &bms);
 		wrefresh(stdscr);
 
 		// Blit a slice of the pad to the terminal
 		int startingRow = offset + STAT_HEIGHT;
 		if (startingRow < 0) startingRow = 0;
-		if (startingRow > TOTAL_ROWS -1) startingRow = TOTAL_ROWS;
+		if (startingRow > TOTAL_ROWS -1) startingRow = TOTAL_ROWS; 
 
+		// Refresh pad
 		prefresh (pad, startingRow, 0, STAT_HEIGHT, 0, scr_y - 1, scr_x - 1);
 		/*
 			prefresh: copies the specified retangle from the pad's data structure to the virtual screen => updates the physical terminal
@@ -235,6 +237,9 @@ int main (int argc, char** argv)
 			sminrow, smincol: upper left corner coords on the physical screen
 			smaxrow, smaxcol: lower right coordinates on the physical screen
 		*/
+
+		// Set blocking until user input
+		timeout(-1);
 
 		// Get keyboard input
 		int ret = getch ();
@@ -485,7 +490,6 @@ void printSegment (WINDOW* pad, int row, int column, bms_t* bms, uint16_t segmen
 	uint16_t columnSense = column;
 
 	// Print the start of the segment
-	// DiBacco: adjust here
 	mvwprintw (pad, row + 0, 0, "┌");
 	mvwprintw (pad, row + 1, 0, "├");
 	mvwprintw (pad, row + 2, 0, "│");
@@ -526,8 +530,8 @@ void printSegment (WINDOW* pad, int row, int column, bms_t* bms, uint16_t segmen
 
 			// Print the cell voltage text
 			printVoltage (pad, row + 5, columnCell + 2, bms, index);
+
 			// Print the cell index text
-			// TODO: DiBacco: figure out solution to  3 digit index presses up against the "-" symbol
 			printCellIndex (pad, row + 8, columnCell + 2, index);
 			
 			columnCell += 5;
@@ -585,8 +589,8 @@ void printSegment (WINDOW* pad, int row, int column, bms_t* bms, uint16_t segmen
 				printLtcStatus (pad, row, columnSense - 24, bms, LTC_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex));
 
 			// Print the sense line's temperature and status.
-			printTemperature (pad, row + 2, columnSense, bms, index);
-			printSenseLineStatus (pad, row + 3, columnSense, bms, index);
+			printTemperature (pad, row + 2, columnSense + 1, bms, index);
+			printSenseLineStatus (pad, row + 4, columnSense, bms, index);
 			columnSense += increment;
 		}
 
@@ -661,7 +665,7 @@ void printTemperature (WINDOW* pad, int row, int column, bms_t* bms, uint16_t se
 		wattron (pad, COLOR_PAIR (COLOR_INVALID));
 		mvwprintw (pad, row, column, " - ");
 		wattroff (pad, COLOR_PAIR (COLOR_INVALID));
-
+		// 
 		break;
 
 	case CAN_DATABASE_VALID:
@@ -671,11 +675,12 @@ void printTemperature (WINDOW* pad, int row, int column, bms_t* bms, uint16_t se
 
 		// Print the temperature
 		wattron (pad, COLOR_PAIR (color));
-		mvwprintw (pad, row, column + 1, "%d\n", (int) temperature);
-		mvwprintw (pad, row + 1, column + 1, "%s%.1fC\n", temperature - (int) temperature);
 
-		// TODO: DiBacco: need to split into two lines and possibly remove the C
-		// TODO: DiBacco: maybe just look into shrinking the text size
+		// TODO(DiBacco): temperature
+		// TODO(DiBacco): is printTemperature column + 1 valid?
+		mvwprintw (pad, row, column, "%d\n", (int) temperature);
+		mvwprintw (pad, row + 1, column, "%s%.1fC\n", temperature - (int) temperature);
+
 		wattroff (pad, COLOR_PAIR (color));
 
 		break;
