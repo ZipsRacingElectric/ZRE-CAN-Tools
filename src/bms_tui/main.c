@@ -196,15 +196,16 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
-	// Initially render segments to the pad
-	for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; segmentIndex++) {
-		int startingRow = STAT_HEIGHT + (segmentIndex * SEGMENT_HEIGHT);
-		printSegment(pad, startingRow, 0, &bms, segmentIndex);
-	}
-
 	int offset = 0;
 	while (true)
 	{
+		// Update & display segments in the pad 
+		// TODO(DiBacco): create a function to update only the parts of the segment that need updated
+		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; segmentIndex++) {
+			int startingRow = STAT_HEIGHT + (segmentIndex * SEGMENT_HEIGHT);
+			printSegment(pad, startingRow, 0, &bms, segmentIndex);
+		}
+
 		getmaxyx(stdscr, scr_y, scr_x);
 
 		// Clamp offset
