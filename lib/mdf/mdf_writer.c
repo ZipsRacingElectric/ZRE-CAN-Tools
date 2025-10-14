@@ -51,6 +51,10 @@ int mdfWriteBlock (FILE* mdf, mdfBlock_t* block)
 
 int mdfRewriteBlockLinkList (FILE* mdf, mdfBlock_t* block)
 {
+	long addr = ftell (mdf);
+	if (addr < 0)
+		return errno;
+
 	// Jump to the block's link list section
 	fseek (mdf, block->addr + sizeof (block->header), SEEK_SET);
 
@@ -58,6 +62,9 @@ int mdfRewriteBlockLinkList (FILE* mdf, mdfBlock_t* block)
 	if (block->header.linkCount != 0)
 		if (fwrite (block->linkList, sizeof (uint64_t), block->header.linkCount, mdf) != block->header.linkCount)
 			return errno;
+
+	if (fseek (mdf, addr, SEEK_SET) != 0)
+		return errno;
 
 	return 0;
 }

@@ -27,6 +27,8 @@
 #define MDF_BLOCK_ID_DT MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'D', 'T')
 #define MDF_BLOCK_ID_MD MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'M', 'D')
 #define MDF_BLOCK_ID_TX MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'T', 'X')
+#define MDF_BLOCK_ID_SI MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'S', 'I')
+#define MDF_BLOCK_ID_FH MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'F', 'H')
 
 /// @brief Datatype representing the MDF file ID block, a unique MDF block occurring only once per file.
 typedef struct
