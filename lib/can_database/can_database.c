@@ -71,6 +71,16 @@ ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name)
 	return -1;
 }
 
+canMessage_t* canDatabaseFindMessage (canDatabase_t* database, const char* name)
+{
+	for (size_t index = 0; index < database->messageCount; ++index)
+		if (strcmp (database->messages [index].name, name) == 0)
+			return &database->messages [index];
+
+	errno = ERRNO_CAN_DATABASE_MESSAGE_MISSING;
+	return NULL;
+}
+
 canDatabaseSignalState_t canDatabaseGetUint32 (canDatabase_t* database, ssize_t index, uint32_t* value)
 {
 	if (index < 0)

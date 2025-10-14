@@ -106,6 +106,14 @@ int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* d
 ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name);
 
 /**
+ * @brief Finds the index of a message based off its name.
+ * @param database The database to search from.
+ * @param name The name of the message to find.
+ * @return A pointer of the message if successful, @c NULL otherwise. Note errno is set on error.
+ */
+canMessage_t* canDatabaseFindMessage (canDatabase_t* database, const char* name);
+
+/**
  * @brief Gets the value of a signal in a CAN database, as a @c uint32_t .
  * @param database The database to get from.
  * @param index The global index of the signal to get. Note that a local index can be transformed using the
