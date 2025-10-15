@@ -8,6 +8,7 @@
 // C Standard Library
 #include <errno.h>
 #include <stdio.h>
+#include <math.h>
 
 void initTx (mdfBlock_t* tx, const char* text)
 {
@@ -299,11 +300,17 @@ int main (int argc, char** argv)
 		0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF
 	};
 
-	fwrite (record, 1, sizeof (record), mdf);
-	record [3] = 1;
-	fwrite (record, 1, sizeof (record), mdf);
-	record [3] = 2;
-	fwrite (record, 1, sizeof (record), mdf);
+	size_t resolution = 512;
+	for (size_t index = 0; index < resolution; ++index)
+	{
+		record [3] = index;
+		record [4] = index >> 8;
+		record [12] = roundf (100 * sinf (2.0f * M_PI * index / resolution) + 128.0f);
+		record [13] = roundf (100 * sinf (4.0f * M_PI * index / resolution) + 128.0f);
+		record [14] = roundf (100 * sinf (6.0f * M_PI * index / resolution) + 128.0f);
+		record [15] = roundf (100 * sinf (8.0f * M_PI * index / resolution) + 128.0f);
+		fwrite (record, 1, sizeof (record), mdf);
+	}
 
 	return 0;
 }
