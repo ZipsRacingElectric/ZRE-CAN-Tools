@@ -4,11 +4,69 @@
 #include "mdf/mdf_writer.h"
 #include "debug.h"
 #include "error_codes.h"
+#include "can_device/can_device.h"
 
 // C Standard Library
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <math.h>
+
+#define BIT_LENGTH_TO_BYTE_LENGTH(bitLength) (((bitLength) + 7) / 8)
+#define BIT_LENGTH_TO_BIT_MASK(bitLength) ((1 << (bitLength)) - 1)
+
+#define TIMESTAMP_BYTE_OFFSET	0
+#define TIMESTAMP_BIT_LENGTH	48
+
+#define CAN_ID_BYTE_OFFSET		6
+#define CAN_ID_BIT_LENGTH		29
+
+#define IDE_BYTE_OFFSET			9
+#define IDE_BIT_OFFSET			5
+#define IDE_BIT_LENGTH			1
+
+#define BUS_CHANNEL_BYTE_OFFSET	9
+#define BUS_CHANNEL_BIT_OFFSET	6
+#define BUS_CHANNEL_BIT_LENGTH	2
+
+#define DLC_BYTE_OFFSET			10
+#define DLC_BIT_OFFSET			0
+#define DLC_BIT_LENGTH			4
+
+#define DATA_BYTES_BYTE_OFFSET	11
+
+void writeCan1RxRecord (FILE* mdf, canFrame_t* frame, uint64_t timestamp, uint8_t busChannel)
+{
+	uint8_t record [20] = {};
+
+	// Record ID
+	record [0] = 0x01;
+
+	// Timestamp
+	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (TIMESTAMP_BIT_LENGTH); ++index)
+		record [index + TIMESTAMP_BYTE_OFFSET + 1] = timestamp >> (index * 8);
+
+	// CAN ID
+	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (CAN_ID_BIT_LENGTH); ++index)
+		record [index + CAN_ID_BYTE_OFFSET + 1] = frame->id >> (index * 8);
+
+	// IDE
+	record [IDE_BYTE_OFFSET + 1] = (0 & BIT_LENGTH_TO_BIT_MASK (IDE_BIT_LENGTH)) << IDE_BIT_OFFSET;
+
+	// Bus channel
+	record [BUS_CHANNEL_BYTE_OFFSET + 1] =
+		(busChannel & BIT_LENGTH_TO_BIT_MASK (BUS_CHANNEL_BIT_LENGTH)) << BUS_CHANNEL_BIT_OFFSET;
+
+	// DLC
+	record [DLC_BYTE_OFFSET + 1] =
+		(frame->dlc & BIT_LENGTH_TO_BIT_MASK (DLC_BIT_LENGTH)) << DLC_BIT_OFFSET;
+
+	// Data Bytes
+	for (size_t index = 0; index < frame->dlc; ++index)
+		record [DATA_BYTES_BYTE_OFFSET + index + 1] = frame->data [index];
+
+	fwrite (record, 1, sizeof (record), mdf);
+}
 
 void initTx (mdfBlock_t* tx, const char* text)
 {
@@ -174,16 +232,16 @@ int main (int argc, char** argv)
 	mdfWriteBlock (mdf, &cnCanDataFrame);
 	cnTimestamp.linkList [0] = cnCanDataFrame.addr;
 
-	uint64_t addrDataBytes	= writeCn (mdf, 0, "CAN_DataFrame.DataBytes",	11, 0, 64, 0x0A0000, 0x0400);
-	uint64_t addrBrs		= writeCn (mdf, addrDataBytes, "CAN_DataFrame.BRS", 		10, 7, 1, 0x000000, 0x0400);
-	uint64_t addrEsi		= writeCn (mdf, addrBrs, "CAN_DataFrame.ESI", 		10, 6, 1, 0x000000, 0x0400);
-	uint64_t addrEdl		= writeCn (mdf, addrEsi, "CAN_DataFrame.EDL", 		10, 5, 1, 0x000000, 0x0400);
-	uint64_t addrDir		= writeCn (mdf, addrEdl, "CAN_DataFrame.Dir", 		10, 4, 1, 0x000000, 0x0400);
-	uint64_t addrDataLength	= writeCn (mdf, addrDir, "CAN_DataFrame.DataLength",	10, 0, 4, 0x000000, 0x0400);
-	uint64_t addrDlc		= writeCn (mdf, addrDataLength, "CAN_DataFrame.DLC",			10, 0, 4, 0x000000, 0x0400);
-	uint64_t addrBusChannel	= writeCn (mdf, addrDlc, "CAN_DataFrame.BusChannel",	9, 6, 2, 0x000000, 0x0408);
-	uint64_t addrIde		= writeCn (mdf, addrBusChannel, "CAN_DataFrame.IDE",			9, 5, 1, 0x000000, 0x0400);
-	uint64_t addrId			= writeCn (mdf, addrIde, "CAN_DataFrame.ID",			6, 0, 29, 0x000000, 0x0400);
+	uint64_t addrDataBytes	= writeCn (mdf, 0,				"CAN_DataFrame.DataBytes",	DATA_BYTES_BYTE_OFFSET, 0, 64, 0x0A0000, 0x0400);
+	uint64_t addrBrs		= writeCn (mdf, addrDataBytes,	"CAN_DataFrame.BRS", 		10, 7, 1, 0x000000, 0x0400);
+	uint64_t addrEsi		= writeCn (mdf, addrBrs,		"CAN_DataFrame.ESI", 		10, 6, 1, 0x000000, 0x0400);
+	uint64_t addrEdl		= writeCn (mdf, addrEsi,		"CAN_DataFrame.EDL", 		10, 5, 1, 0x000000, 0x0400);
+	uint64_t addrDir		= writeCn (mdf, addrEdl,		"CAN_DataFrame.Dir", 		10, 4, 1, 0x000000, 0x0400);
+	uint64_t addrDataLength	= writeCn (mdf, addrDir,		"CAN_DataFrame.DataLength",	DLC_BYTE_OFFSET, DLC_BIT_OFFSET, DLC_BIT_LENGTH, 0x000000, 0x0400);
+	uint64_t addrDlc		= writeCn (mdf, addrDataLength,	"CAN_DataFrame.DLC",		DLC_BYTE_OFFSET, DLC_BIT_OFFSET, DLC_BIT_LENGTH, 0x000000, 0x0400);
+	uint64_t addrBusChannel	= writeCn (mdf, addrDlc,		"CAN_DataFrame.BusChannel",	BUS_CHANNEL_BYTE_OFFSET, BUS_CHANNEL_BIT_OFFSET, BUS_CHANNEL_BIT_LENGTH, 0x000000, 0x0408);
+	uint64_t addrIde		= writeCn (mdf, addrBusChannel,	"CAN_DataFrame.IDE",		IDE_BYTE_OFFSET, IDE_BIT_OFFSET, IDE_BIT_LENGTH, 0x000000, 0x0400);
+	uint64_t addrId			= writeCn (mdf, addrIde,		"CAN_DataFrame.ID",			CAN_ID_BYTE_OFFSET, 0, CAN_ID_BIT_LENGTH, 0x000000, 0x0400);
 	cnCanDataFrame.linkList [1] = addrId;
 
 	mdfBlock_t siTx;
@@ -291,26 +349,51 @@ int main (int argc, char** argv)
 
 	// Data Block Data Section ------------------------------------------------------------------------------------------------
 
-	uint8_t record [] =
+	// uint8_t record [] =
+	// {
+	// 	0x01,
+	// 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	// 	0xAB, 0x00, 0x00, 0x40,
+	// 	0x08,
+	// 	0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF
+	// };
+
+	canFrame_t frame =
 	{
-		0x01,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0xAB, 0x00, 0x00, 0x40,
-		0x08,
-		0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF
+		.id = 0x123,
+		.data =
+		{
+			0x01,
+			0x23,
+			0x45,
+			0x67,
+			0x89,
+			0xAB,
+			0xCD,
+			0xEF
+		},
+		.dlc = 8
 	};
 
-	size_t resolution = 512;
-	for (size_t index = 0; index < resolution; ++index)
-	{
-		record [3] = index;
-		record [4] = index >> 8;
-		record [12] = roundf (100 * sinf (2.0f * M_PI * index / resolution) + 128.0f);
-		record [13] = roundf (100 * sinf (4.0f * M_PI * index / resolution) + 128.0f);
-		record [14] = roundf (100 * sinf (6.0f * M_PI * index / resolution) + 128.0f);
-		record [15] = roundf (100 * sinf (8.0f * M_PI * index / resolution) + 128.0f);
-		fwrite (record, 1, sizeof (record), mdf);
-	}
+	writeCan1RxRecord (mdf, &frame, 0, 1);
+	frame.id = 0x001;
+	writeCan1RxRecord (mdf, &frame, 1000, 1);
+	frame.id = 0x010;
+	writeCan1RxRecord (mdf, &frame, 2000, 1);
+	frame.id = 0x100;
+	writeCan1RxRecord (mdf, &frame, 3000, 1);
+
+	// size_t resolution = 512;
+	// for (size_t index = 0; index < resolution; ++index)
+	// {
+	// 	record [3] = index;
+	// 	record [4] = index >> 8;
+	// 	record [12] = roundf (100 * sinf (2.0f * M_PI * index / resolution) + 128.0f);
+	// 	record [13] = roundf (100 * sinf (4.0f * M_PI * index / resolution) + 128.0f);
+	// 	record [14] = roundf (100 * sinf (6.0f * M_PI * index / resolution) + 128.0f);
+	// 	record [15] = roundf (100 * sinf (8.0f * M_PI * index / resolution) + 128.0f);
+	// 	fwrite (record, 1, sizeof (record), mdf);
+	// }
 
 	return 0;
 }
