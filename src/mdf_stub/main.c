@@ -136,7 +136,7 @@ int main (int argc, char** argv)
 	((uint8_t*) cgCanDataFrame.dataSection) [0] = 0x01;
 	((uint8_t*) cgCanDataFrame.dataSection) [16] = 0x06;
 	((uint8_t*) cgCanDataFrame.dataSection) [18] = 0x2E;
-	((uint8_t*) cgCanDataFrame.dataSection) [24] = 0x16;
+	((uint8_t*) cgCanDataFrame.dataSection) [24] = 0x13; // Byte length
 
 	mdfWriteBlock (mdf, &cgCanDataFrame);
 	dg.linkList [1] = cgCanDataFrame.addr;
@@ -147,33 +147,84 @@ int main (int argc, char** argv)
 	mdfWriteBlock (mdf, &cnTimestamp);
 	cgCanDataFrame.linkList [1] = cnTimestamp.addr;
 
+	mdfBlock_t ccTimestampTx;
+	initTx (&ccTimestampTx, "s");
+	mdfWriteBlock (mdf, &ccTimestampTx);
+
+	uint64_t ccTimestampDataSection [] =
+	{
+		0x0002000000000001,
+		0x0000000000000000,
+		0x0000000000000000,
+		0x0000000000000000,
+		0x3EB0C6F7A0B5ED8D
+		// 8D ED B5 A0 F7 C6 B0 3E 
+	};
+	mdfBlock_t ccTimestamp;
+	mdfBlockInit (&ccTimestamp, MDF_BLOCK_ID_CC, 4, sizeof (ccTimestampDataSection));
+	memcpy (ccTimestamp.dataSection, ccTimestampDataSection, sizeof (ccTimestampDataSection));
+	ccTimestamp.linkList [1] = ccTimestampTx.addr;
+	mdfWriteBlock (mdf, &ccTimestamp);
+	cnTimestamp.linkList [4] = ccTimestamp.addr;
+
 	mdfBlock_t cnCanDataFrame;
-	initCn (&cnCanDataFrame, 0, 0, 64, 0, 0);
+	initCn (&cnCanDataFrame, 6, 0, 104, 0x0A0000, 0x0400);
 	cnCanDataFrame.linkList [2] = cgTx.addr;
 	mdfWriteBlock (mdf, &cnCanDataFrame);
 	cnTimestamp.linkList [0] = cnCanDataFrame.addr;
 
-	uint64_t addrBrs = writeCn (mdf, 0, "CAN_DataFrame.BRS", 12, 1, 1, 0x000000, 0x0400);
-	uint64_t addrEsi = writeCn (mdf, addrBrs, "CAN_DataFrame.ESI", 12, 2, 1, 0x000000, 0x0400);
-	uint64_t addrEdl = writeCn (mdf, addrEsi, "CAN_DataFrame.EDL", 12, 0, 1, 0x000000, 0x0400);
-	uint64_t addrDir = writeCn (mdf, addrEdl, "CAN_DataFrame.Dir", 12, 0, 1, 0x000000, 0x0400);
-	uint64_t addrDataBytes = writeCn (mdf, addrDir, "CAN_DataFrame.DataBytes", 14, 0, 64, 0x0A0000, 0x0400);
-	uint64_t addrDataLength = writeCn (mdf, addrDataBytes, "CAN_DataFrame.DataLength", 7, 4, 4, 0x000000, 0x0400);
-	uint64_t addrDlc = writeCn (mdf, addrDataLength, "CAN_DataFrame.DLC", 7, 4, 4, 0x000000, 0x0400);
-	uint64_t addrIde = writeCn (mdf, addrDlc, "CAN_DataFrame.IDE", 8, 0, 1, 0x000000, 0x0400);
-	uint64_t addrId = writeCn (mdf, addrIde, "CAN_DataFrame.ID", 8, 3, 29, 0x000000, 0x0400);
-	uint64_t addrBusChannel = writeCn (mdf, addrId, "CAN_DataFrame.BusChannel", 8, 1, 2, 0x000000, 0x0408);
-	cnCanDataFrame.linkList [1] = addrBusChannel;
+	uint64_t addrDataBytes	= writeCn (mdf, 0, "CAN_DataFrame.DataBytes",	11, 0, 64, 0x0A0000, 0x0400);
+	uint64_t addrBrs		= writeCn (mdf, addrDataBytes, "CAN_DataFrame.BRS", 		10, 7, 1, 0x000000, 0x0400);
+	uint64_t addrEsi		= writeCn (mdf, addrBrs, "CAN_DataFrame.ESI", 		10, 6, 1, 0x000000, 0x0400);
+	uint64_t addrEdl		= writeCn (mdf, addrEsi, "CAN_DataFrame.EDL", 		10, 5, 1, 0x000000, 0x0400);
+	uint64_t addrDir		= writeCn (mdf, addrEdl, "CAN_DataFrame.Dir", 		10, 4, 1, 0x000000, 0x0400);
+	uint64_t addrDataLength	= writeCn (mdf, addrDir, "CAN_DataFrame.DataLength",	10, 0, 4, 0x000000, 0x0400);
+	uint64_t addrDlc		= writeCn (mdf, addrDataLength, "CAN_DataFrame.DLC",			10, 0, 4, 0x000000, 0x0400);
+	uint64_t addrBusChannel	= writeCn (mdf, addrDlc, "CAN_DataFrame.BusChannel",	9, 6, 2, 0x000000, 0x0408);
+	uint64_t addrIde		= writeCn (mdf, addrBusChannel, "CAN_DataFrame.IDE",			9, 5, 1, 0x000000, 0x0400);
+	uint64_t addrId			= writeCn (mdf, addrIde, "CAN_DataFrame.ID",			6, 0, 29, 0x000000, 0x0400);
+	cnCanDataFrame.linkList [1] = addrId;
 
-	// mdfBlock_t si;
-	// mdfBlockInit (&si, MDF_BLOCK_ID_SI, 3, 8);
+	mdfBlock_t siTx;
+	initTx (&siTx, "CAN");
+	mdfWriteBlock (mdf, &siTx);
 
-	// // 02 02 00 00 00 00 00 00
-	// ((uint8_t*) si.dataSection) [0] = 0x02;
-	// ((uint8_t*) si.dataSection) [1] = 0x02;
+	mdfBlock_t siMd;
+	initMd (&siMd,
+		"<SIcomment>\n"
+		"<TX>\n"
+		"    CAN\n"
+		"</TX>\n"
+		"<bus name=\"CAN\"/>\n"
+		"    <common_properties>\n"
+		"        <tree name=\"ASAM Measurement Environment\">\n"
+		"            <tree name=\"node\">\n"
+		"                <e name=\"type\">Device</e>\n"
+		"                <e name=\"software configuration\">01.04.02</e>\n"
+		"                <e name=\"hardware version\">00.02</e>\n"
+		"                <e name=\"serial number\">846DD296</e>\n"
+		"            </tree>\n"
+		"        </tree>\n"
+		"        <tree name=\"Bus Information\">\n"
+		"            <e name=\"CAN1 Bit-rate\" unit=\"Hz\">1000000</e>\n"
+		"            <e name=\"CAN2 Bit-rate\" unit=\"Hz\">      0</e>\n"
+		"        </tree>\n"
+		"    </common_properties>\n"
+		"</SIcomment>\n");
+	mdfWriteBlock (mdf, &siMd);
 
-	// mdfWriteBlock (mdf, &si);
-	// cgCanDataFrame.linkList [2] = si.addr;
+	mdfBlock_t si;
+	mdfBlockInit (&si, MDF_BLOCK_ID_SI, 3, 8);
+
+	// 02 02 00 00 00 00 00 00
+	((uint8_t*) si.dataSection) [0] = 0x02;
+	((uint8_t*) si.dataSection) [1] = 0x02;
+	si.linkList [0] = siTx.addr;
+	si.linkList [1] = siTx.addr;
+	si.linkList [2] = siMd.addr;
+
+	mdfWriteBlock (mdf, &si);
+	cgCanDataFrame.linkList [3] = si.addr;
 
 	mdfBlock_t fh;
 	uint8_t fhDataSection [] =
@@ -188,40 +239,45 @@ int main (int argc, char** argv)
 
 	mdfBlock_t fhMd;
 	initMd (&fhMd,
-	"<FHcomment>\n"
-	"	<TX>\n"
-	"		Creation and logging of data.\n"
-	"	</TX>\n"
-	"	<tool_id>CE</tool_id>\n"
-	"	<tool_vendor></tool_vendor>\n"
-	"	<tool_version>01.04.02</tool_version>\n"
-	"</FHcomment>");
+		"<FHcomment>\n"
+		"	<TX>\n"
+		"		Creation and logging of data.\n"
+		"	</TX>\n"
+		"	<tool_id>CE</tool_id>\n"
+		"	<tool_vendor></tool_vendor>\n"
+		"	<tool_version>01.04.02</tool_version>\n"
+		"</FHcomment>");
 	mdfWriteBlock (mdf, &fhMd);
 	fh.linkList [1] = fhMd.addr;
 
 	mdfBlock_t hdMd;
 	initMd (&hdMd,
-	"<HDcomment>\n"
-    "    <TX/>\n"
-    "    <common_properties>\n"
-    "        <tree name=\"Device Information\">\n"
-    "            <e name=\"firmware version\" ro=\"true\">01.04.02</e>\n"
-    "            <e name=\"hardware version\" ro=\"true\">00.02</e>\n"
-    "            <e name=\"serial number\" ro=\"true\">846DD296</e>\n"
-    "            <e name=\"device type\" ro=\"true\">0000001D</e>\n"
-    "            <e name=\"storage total\" ro=\"true\">  7746768</e>\n"
-    "            <e name=\"storage free\" ro=\"true\">  7746708</e>\n"
-    "            <e name=\"config crc32 checksum\" ro=\"true\">5611BDB3</e>\n"
-    "        </tree>\n"
-    "        <tree name=\"File Information\">\n"
-    "            <e name=\"session\" ro=\"true\">     273</e>\n"
-    "            <e name=\"split\" ro=\"true\">       1</e>\n"
-    "            <e name=\"comment\" ro=\"true\">                              </e>\n"
-    "        </tree>\n"
-    "    </common_properties>\n"
-	"</HDcomment>");
+		"<HDcomment>\n"
+		"    <TX/>\n"
+		"    <common_properties>\n"
+		"        <tree name=\"Device Information\">\n"
+		"            <e name=\"firmware version\" ro=\"true\">01.04.02</e>\n"
+		"            <e name=\"hardware version\" ro=\"true\">00.02</e>\n"
+		"            <e name=\"serial number\" ro=\"true\">846DD296</e>\n"
+		"            <e name=\"device type\" ro=\"true\">0000001D</e>\n"
+		"            <e name=\"storage total\" ro=\"true\">  7746768</e>\n"
+		"            <e name=\"storage free\" ro=\"true\">  7746708</e>\n"
+		"            <e name=\"config crc32 checksum\" ro=\"true\">5611BDB3</e>\n"
+		"        </tree>\n"
+		"        <tree name=\"File Information\">\n"
+		"            <e name=\"session\" ro=\"true\">     273</e>\n"
+		"            <e name=\"split\" ro=\"true\">       1</e>\n"
+		"            <e name=\"comment\" ro=\"true\">                              </e>\n"
+		"        </tree>\n"
+		"    </common_properties>\n"
+		"</HDcomment>");
 	mdfWriteBlock (mdf, &hdMd);
 	hd.linkList [5] = hdMd.addr;
+
+	mdfBlock_t dt;
+	mdfBlockInit (&dt, MDF_BLOCK_ID_DT, 0, 0);
+	mdfWriteBlock (mdf, &dt);
+	dg.linkList [2] = dt.addr;
 
 	// Link List --------------------------------------------------------------------------------------------------------------
 
@@ -231,6 +287,23 @@ int main (int argc, char** argv)
 	mdfRewriteBlockLinkList (mdf, &cnTimestamp);
 	mdfRewriteBlockLinkList (mdf, &cnCanDataFrame);
 	mdfRewriteBlockLinkList (mdf, &fh);
+
+	// Data Block Data Section ------------------------------------------------------------------------------------------------
+
+	uint8_t record [] =
+	{
+		0x01,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0xAB, 0x00, 0x00, 0x40,
+		0x08,
+		0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF
+	};
+
+	fwrite (record, 1, sizeof (record), mdf);
+	record [3] = 1;
+	fwrite (record, 1, sizeof (record), mdf);
+	record [3] = 2;
+	fwrite (record, 1, sizeof (record), mdf);
 
 	return 0;
 }

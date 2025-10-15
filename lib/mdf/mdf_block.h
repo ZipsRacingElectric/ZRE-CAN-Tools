@@ -24,6 +24,7 @@
 #define MDF_BLOCK_ID_DG MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'D', 'G')
 #define MDF_BLOCK_ID_CG MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'C', 'G')
 #define MDF_BLOCK_ID_CN MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'C', 'N')
+#define MDF_BLOCK_ID_CC MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'C', 'C')
 #define MDF_BLOCK_ID_DT MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'D', 'T')
 #define MDF_BLOCK_ID_MD MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'M', 'D')
 #define MDF_BLOCK_ID_TX MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'T', 'X')
