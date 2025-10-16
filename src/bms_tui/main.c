@@ -33,10 +33,10 @@
 #define COLOR_BALANCING		3
 
 // The height of the Stat Panel that will be in the pad
-#define STAT_HEIGHT = 6; 
+#define STAT_HEIGHT 6
 
 // The height of each Segment that will be in the pad
-#define SEGMENT_HEIGHT = 8; 
+#define SEGMENT_HEIGHT 8 
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
