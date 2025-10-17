@@ -238,12 +238,14 @@ int main (int argc, char** argv)
 		#endif
 		
 		// Ensures the content stays within the terminal window
+		
 		int max_y = TOTAL_ROWS - scr_y; // # of rows that will extend beyond the window
 		if (max_y < 0) max_y = 0;           
 		if (offset < 0) offset = 0;         
-		if (offset > max_y) offset = max_y; 
+		if (offset > max_y) offset = max_y;
 
 		// Calculate the top & bottom coordinates of the window (based on the offset)
+		
 		int scrlTop = offset + STAT_HEIGHT; 
 		int scrlBottom = offset + scr_y -1;
 		if (scrlTop < 0) scrlTop = 0;
@@ -509,7 +511,7 @@ int printSegment (int scrlTop, int scrlBottom, uint16_t* segmentRow, uint16_t se
 {	
 	// DiBacco: can't think of a way to print each segment in the correct position using calculations
 	// Simplest way seems to use a counter method instead
-	
+
 	// Column index for the cells
 	uint16_t columnCell = segmentCol;
 
@@ -517,12 +519,21 @@ int printSegment (int scrlTop, int scrlBottom, uint16_t* segmentRow, uint16_t se
 	uint16_t columnSense = segmentCol;
 
 	// Get valid rows (rows that can be displayed)
-	bool validRows [9];
-	int validRowCount = 0;
-	for (int i = 0; i < 9; i++) {
-		if (checkRow(scrlTop, scrlBottom, STAT_HEIGHT + (SEGMENT_HEIGHT * segmentIndex) + i)) {
+	bool validSegment = false;
+	bool validRows [SEGMENT_HEIGHT];
+
+	// Map each row of the segment to its position in the window
+	int mapRowToPosition [SEGMENT_HEIGHT];
+
+	// Validate & map position for each row of the segment 
+	for (int i = 0; i < SEGMENT_HEIGHT; i++) {
+		int row = STAT_HEIGHT + (SEGMENT_HEIGHT * segmentIndex) + i;
+		if (checkRow(scrlTop, scrlBottom, row)) {
 			validRows[i] = true;
-			validRowCount += 1;
+			validSegment = true;
+			mapRowToPosition[i] = *segmentRow;
+			*segmentRow += 1;
+			
 		}
 		else {
 			validRows[i] = false;
@@ -530,19 +541,19 @@ int printSegment (int scrlTop, int scrlBottom, uint16_t* segmentRow, uint16_t se
 	}
 
 	// Check if the entire segment cannot be displayed
-	if (!validRowCount) return 0;
+	if (!validSegment) return 0;
 
 	// Print the start of the segment
-	if (validRows[0]) mvprintw (*segmentRow + 0, 0, "┌"); 
-	if (validRows[1]) mvprintw (*segmentRow + 1, 0, "├");  
-	if (validRows[2]) mvprintw (*segmentRow + 2, 0, "│"); 
-	if (validRows[3]) mvprintw (*segmentRow + 3, 0, "│"); 
-	if (validRows[4]) mvprintw (*segmentRow + 4, 0, "├┬"); 
-	if (validRows[5]) mvprintw (*segmentRow + 5, 0, "││"); 
-	if (validRows[6]) mvprintw (*segmentRow + 6, 0, "││"); 
-	if (validRows[7]) mvprintw (*segmentRow + 7, 0, "│└"); 
-	if (validRows[8]) mvprintw (*segmentRow + 8, 0, "└─"); 
-	
+	if (validRows[0]) mvprintw (mapRowToPosition[0], 0, "┌"); 
+	if (validRows[1]) mvprintw (mapRowToPosition[1], 0, "├");  
+	if (validRows[2]) mvprintw (mapRowToPosition[2], 0, "│"); 
+	if (validRows[3]) mvprintw (mapRowToPosition[3], 0, "│"); 
+	if (validRows[4]) mvprintw (mapRowToPosition[4], 0, "├┬"); 
+	if (validRows[5]) mvprintw (mapRowToPosition[5], 0, "││"); 
+	if (validRows[6]) mvprintw (mapRowToPosition[6], 0, "││"); 
+	if (validRows[7]) mvprintw (mapRowToPosition[7], 0, "│└"); 
+	if (validRows[8]) mvprintw (mapRowToPosition[8], 0, "└─"); 
+		
 	columnSense += 1;
 	columnCell += 2;
 
@@ -555,27 +566,26 @@ int printSegment (int scrlTop, int scrlBottom, uint16_t* segmentRow, uint16_t se
 			uint16_t index = CELL_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex, cellIndex);
 
 			// Print the cell's box
-			if (validRows[4]) mvprintw (*segmentRow + 4, columnCell, "┬─┘└─");
-			if (validRows[5]) mvprintw (*segmentRow + 5, columnCell, "│    ");
-			if (validRows[6]) mvprintw (*segmentRow + 6, columnCell, "│    ");
-			if (validRows[7]) mvprintw (*segmentRow + 7, columnCell, "┴────");
-			if (validRows[8]) mvprintw (*segmentRow + 8, columnCell, "─────");
+			if (validRows[4]) mvprintw (mapRowToPosition[4], columnCell, "┬─┘└─");
+			if (validRows[5]) mvprintw (mapRowToPosition[5], columnCell, "│    ");
+			if (validRows[6]) mvprintw (mapRowToPosition[6], columnCell, "│    ");
+			if (validRows[7]) mvprintw (mapRowToPosition[7], columnCell, "┴────");
+			if (validRows[8]) mvprintw (mapRowToPosition[8], columnCell, "─────");
 
 			// If this is the first cell, extend the left side to connect to the start of the segement
 			if (cellIndex == 0)
 			{
-				if (validRows[4]) mvprintw (*segmentRow + 4, columnCell, "─");
-				if (validRows[5]) mvprintw (*segmentRow + 5, columnCell, " ");
-				if (validRows[6]) mvprintw (*segmentRow + 6, columnCell, " ");
-				if (validRows[7]) mvprintw (*segmentRow + 7, columnCell, "─");
-				if (validRows[8]) mvprintw (*segmentRow + 8, columnCell, "─");
+				if (validRows[4]) mvprintw (mapRowToPosition[4], columnCell, "─");
+				if (validRows[5]) mvprintw (mapRowToPosition[5], columnCell, " ");
+				if (validRows[6]) mvprintw (mapRowToPosition[6], columnCell, " ");
+				if (validRows[7]) mvprintw (mapRowToPosition[7], columnCell, "─");
+				if (validRows[8]) mvprintw (mapRowToPosition[8], columnCell, "─");
 			}
 
 			// Print the cell voltage text
-			if (validRows[5]) printVoltage (*segmentRow + 5, columnCell + 2, bms, index);
+			if (validRows[5]) printVoltage (mapRowToPosition[5], columnCell + 2, bms, index);
 			// Print the cell index text
-			// TODO: DiBacco: figure out solution to  3 digit index presses up against the "-" symbol
-			if (validRows[8]) printCellIndex (*segmentRow + 8, columnCell + 2, index); 
+			if (validRows[8]) printCellIndex (mapRowToPosition[8], columnCell + 2, index); 
 	
 			columnCell += 5;
 		}
@@ -583,81 +593,80 @@ int printSegment (int scrlTop, int scrlBottom, uint16_t* segmentRow, uint16_t se
 		if (ltcIndex != bms->ltcsPerSegment - 1)
 		{
 			// If this is not the last LTC, print the divider for the next one.
-			if (validRows[4]) mvprintw (*segmentRow + 4, columnCell,	"─┬┬┬"); 
-			if (validRows[5]) mvprintw (*segmentRow + 5, columnCell,	" │││"); 
-			if (validRows[6]) mvprintw (*segmentRow + 6, columnCell,	" │││"); 
-			if (validRows[7]) mvprintw (*segmentRow + 7, columnCell,	"─┘│└"); 
-			if (validRows[8]) mvprintw (*segmentRow + 8, columnCell,	"──┴─"); 
+			if (validRows[4]) mvprintw (mapRowToPosition[4], columnCell,	"─┬┬┬"); 
+			if (validRows[5]) mvprintw (mapRowToPosition[5], columnCell,	" │││"); 
+			if (validRows[6]) mvprintw (mapRowToPosition[6], columnCell,	" │││"); 
+			if (validRows[7]) mvprintw (mapRowToPosition[7], columnCell,	"─┘│└"); 
+			if (validRows[8]) mvprintw (mapRowToPosition[8], columnCell,	"──┴─"); 
 
 			columnCell += 4;
 		}
 		else
 		{
 			// If this is the last LTC, print the end of the segment.
-			if (validRows[4]) mvprintw (*segmentRow + 4, columnCell,	"─┬┤"); 
-			if (validRows[5]) mvprintw (*segmentRow + 5, columnCell,	" ││"); 
-			if (validRows[6]) mvprintw (*segmentRow + 6, columnCell,	" ││"); 
-			if (validRows[7]) mvprintw (*segmentRow + 7, columnCell,	"─┘│"); 
-			if (validRows[8]) mvprintw (*segmentRow + 8, columnCell,	"──┘"); 
+			if (validRows[4]) mvprintw (mapRowToPosition[4], columnCell,	"─┬┤"); 
+			if (validRows[5]) mvprintw (mapRowToPosition[5], columnCell,	" ││"); 
+			if (validRows[6]) mvprintw (mapRowToPosition[6], columnCell,	" ││"); 
+			if (validRows[7]) mvprintw (mapRowToPosition[7], columnCell,	"─┘│"); 
+			if (validRows[8]) mvprintw (mapRowToPosition[8], columnCell,	"──┘"); 
 		}
 
 		// Print the segment's sense lines
 		for (uint16_t senseLineIndex = 0; senseLineIndex < bms->senseLinesPerLtc; ++senseLineIndex)
-		{
+		{	
 			// Convert local sense line index to global sense line index.
 			uint16_t index = SENSE_LINE_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex, senseLineIndex);
 
 			// Print the sense line's box (or tab).
 			uint16_t increment;
+
+			int temperatureRowOffset = 0;
 			if (senseLineIndex != bms->senseLinesPerLtc - 1)
 			{
-				if (validRows[0]) mvprintw (*segmentRow + 0, columnSense, "─────"); 
-				if (validRows[1]) mvprintw (*segmentRow + 1, columnSense, "───╮╭"); 
-				if (validRows[2]) mvprintw (*segmentRow + 2, columnSense, "   ├┤");
-				if (validRows[3]) mvprintw (*segmentRow + 3, columnSense, "   ├┤"); 
+				if (validRows[0]) mvprintw (mapRowToPosition[0], columnSense, "─────"); 
+				if (validRows[1]) mvprintw (mapRowToPosition[1], columnSense, "───╮╭"); 
+				if (validRows[2]) mvprintw (mapRowToPosition[2], columnSense, "   ├┤");
+				if (validRows[3]) mvprintw (mapRowToPosition[3], columnSense, "   ├┤"); 
 				increment = 5;
 			}
 			else
 			{
-				if (validRows[0]) mvprintw (*segmentRow + 0, columnSense, "───"); 
-				if (validRows[1]) mvprintw (*segmentRow + 1, columnSense, "───"); 
-				if (validRows[2]) mvprintw (*segmentRow + 2, columnSense, "   ");
-				if (validRows[3]) mvprintw (*segmentRow + 3, columnSense, "   "); 
+				if (validRows[0]) mvprintw (mapRowToPosition[0], columnSense, "───"); 
+				if (validRows[1]) mvprintw (mapRowToPosition[1], columnSense, "───"); 
+				if (validRows[2]) mvprintw (mapRowToPosition[2], columnSense, "   ");
+				if (validRows[3]) mvprintw (mapRowToPosition[3], columnSense, "   "); 
 				increment = 3;
 			}
 
 			// Print the LTC's status. This is done after 6 sense lines have been printed, as otherwise they would print over
 			// top this text.
 			if (senseLineIndex == 5)
-				if (validRows[0]) printLtcStatus (*segmentRow, columnSense - 24, bms, LTC_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex)); 
+				if (validRows[0]) printLtcStatus (mapRowToPosition[0], columnSense - 24, bms, LTC_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex)); 
 
 			// Print the sense line's temperature and status.
-			if (validRows[2]) printTemperature (*segmentRow + 2, columnSense, bms, index);
-			if (validRows[4]) printSenseLineStatus (*segmentRow + 4, columnSense, bms, index); 
+			if (validRows[2]) printTemperature (mapRowToPosition[2], columnSense, bms, index);
+			if (validRows[4]) printSenseLineStatus (mapRowToPosition[4], columnSense, bms, index); 
 			columnSense += increment;
 		}
 
 		if (ltcIndex != bms->ltcsPerSegment - 1)
 		{
 			// If this is not the last LTC, print the divider for the next one.
-			if (validRows[0]) mvprintw (*segmentRow + 0, columnSense,	"┬");
-			if (validRows[1]) mvprintw (*segmentRow + 1, columnSense,	"┴"); 
-			if (validRows[2]) mvprintw (*segmentRow + 2, columnSense,	"┊");
-			if (validRows[3]) mvprintw (*segmentRow + 3, columnSense,	"┊"); 
+			if (validRows[0]) mvprintw (mapRowToPosition[0], columnSense,	"┬");
+			if (validRows[1]) mvprintw (mapRowToPosition[1], columnSense,	"┴"); 
+			if (validRows[2]) mvprintw (mapRowToPosition[2], columnSense,	"┊");
+			if (validRows[3]) mvprintw (mapRowToPosition[3], columnSense,	"┊"); 
 			columnSense += 1;
 		}
 		else
 		{
 			// If this is the last LTC, print the end of the segment.
-			if (validRows[0]) mvprintw (*segmentRow + 0, columnSense,	"┐");
-			if (validRows[1]) mvprintw (*segmentRow + 1, columnSense,	"┤"); 
-			if (validRows[2]) mvprintw (*segmentRow + 2, columnSense,	"│");
-			if (validRows[3]) mvprintw (*segmentRow + 3, columnSense,	"│"); 
+			if (validRows[0]) mvprintw (mapRowToPosition[0], columnSense,	"┐");
+			if (validRows[1]) mvprintw (mapRowToPosition[1], columnSense,	"┤"); 
+			if (validRows[2]) mvprintw (mapRowToPosition[2], columnSense,	"│");
+			if (validRows[3]) mvprintw (mapRowToPosition[3], columnSense,	"│"); 
 		}
 	}
-
-	// Specify the segment index for the next iteration
-	*segmentRow += validRowCount; 
 }
 
 void printVoltage (int row, int column, bms_t* bms, uint16_t cellIndex)
