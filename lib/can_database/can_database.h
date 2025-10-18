@@ -111,7 +111,7 @@ ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name);
  * @param name The name of the message to find.
  * @return A pointer of the message if successful, @c NULL otherwise. Note errno is set on error.
  */
-canMessage_t* canDatabaseFindMessage (canDatabase_t* database, const char* name);
+ssize_t canDatabaseFindMessage (canDatabase_t* database, const char* name);
 
 /**
  * @brief Gets the value of a signal in a CAN database, as a @c uint32_t .
