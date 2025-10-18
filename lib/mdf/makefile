@@ -1,7 +1,7 @@
 ROOT_DIR := ../..
 include $(ROOT_DIR)/include.mk
 
-BIN := $(LIB_CAN_DEVICE)
+BIN := $(LIB_MDF)
 SRC := $(wildcard *.c)
 OBJ := $(patsubst %.c, $(OBJ_BIN_DIR)/%.o, $(SRC))
 

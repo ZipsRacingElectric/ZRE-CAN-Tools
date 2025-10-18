@@ -13,14 +13,18 @@
 
 // General Errors -------------------------------------------------------------------------------------------------------------
 
-#define ERRNO_OS_NOT_SUPPORTED					1024
+#define ERRNO_UNKNOWN							1024
+#define ERRNO_OS_NOT_SUPPORTED					1025
+#define ERRNO_END_OF_FILE						1026
 
+#define ERRMSG_UNKNOWN							"An unknown error occurred"
 #define ERRMSG_OS_NOT_SUPPORTED					"The attempted operation is not supported on this operating system"
+#define ERRMSG_END_OF_FILE						"Unexpected end of file"
 
 // can_device Module ----------------------------------------------------------------------------------------------------------
 
-#define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1025
-#define ERRNO_CAN_DEVICE_BAD_TIMEOUT			1026
+#define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1030
+#define ERRNO_CAN_DEVICE_BAD_TIMEOUT			1031
 
 #define ERRMSG_CAN_DEVICE_UNKNOWN_NAME			"The device name does not belong to any known CAN device"
 #define ERRMSG_CAN_DEVICE_BAD_TIMEOUT			"The specified timeout is not possible"
@@ -149,8 +153,12 @@ static inline const char* errorMessage (int errorCode)
 	switch (errorCode)
 	{
 	// General Errors
+	case ERRNO_UNKNOWN:
+		return ERRMSG_UNKNOWN;
 	case ERRNO_OS_NOT_SUPPORTED:
 		return ERRMSG_OS_NOT_SUPPORTED;
+	case ERRNO_END_OF_FILE:
+		return ERRMSG_END_OF_FILE;
 
 	// can_device module
 	case ERRNO_CAN_DEVICE_UNKNOWN_NAME:

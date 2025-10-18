@@ -186,8 +186,6 @@ void canDatabaseCheckTimeouts (canDatabase_t* database)
 	// TODO(Barach): This should use a stack to only check valid messages and in the order they are expected to expire.
 	for (uint16_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
 	{
-		canMessage_t* message = database->messages + messageIndex;
-
 		// If the message is already invalid, skip the timeout check.
 		if (!database->messagesValid [messageIndex])
 			continue;

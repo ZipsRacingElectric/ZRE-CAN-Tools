@@ -30,8 +30,8 @@ static void segvHandler (int sig)
 
 	// Print the backtrace to stderr
 	// - Start at 1 to skip the call to this function
-	for (size_t index = 1; index < backtraceArraySize; ++index)
-		printf ("%s\n", backtraceSymbols [index]);
+	for (int index = 1; index < backtraceArraySize; ++index)
+		fprintf (stderr, "%s\n", backtraceSymbols [index]);
 
 	free (backtraceSymbols);
 

@@ -82,7 +82,7 @@ HEADERS = -I$(SOURCE_DIR) \
 	-I$(SERIAL_DIR) \
 	-I$(WRAPPER_DIR)
 
-LIBRARY = serial_can
+LIBRARY = libserial_can
 
 SONAME  = $(LIBRARY).so.1
 TARGET  = $(SONAME).$(VERSION)

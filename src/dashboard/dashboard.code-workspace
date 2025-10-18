@@ -1,0 +1,23 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		},
+		{
+			"path": "../.."
+		}
+	],
+	"settings":
+	{
+		"C_Cpp.intelliSenseEngine": "disabled",
+		"clangd.arguments":
+		[
+			"-log=verbose",
+			"-pretty",
+			"--background-index",
+			"--compile-commands-dir=./.vscode/",
+			"-header-insertion=never"
+		]
+	}
+}

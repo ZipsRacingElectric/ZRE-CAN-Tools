@@ -1,39 +1,9 @@
-# Operating System Detection
-# - This is only used for tagging releases, everything in here should work in both linux and MSYS2.
-ifeq ($(OS),Windows_NT)
-	# Windows_NT on XP, 2000, 7, Vista, 10...
-	DETECTED_OS := windows
-else
-	# Same as "uname -s"
-	DETECTED_OS := $(shell uname | tr '[:upper:]' '[:lower:]')
-endif
+ROOT_DIR := .
+include include.mk
 
-# Project directories
-BIN_DIR := bin
-LIB_DIR := $(BIN_DIR)/lib
-CONFIG_DIR := config
-# TODO(Barach): This should include the architecture, as we are now deploying on ARM.
-RELEASE_DIR := release/zre_cantools_$(DETECTED_OS)_$(shell date +%Y.%m.%d)
-DOC_DIR := doc
+# Releasing -------------------------------------------------------------------
+# For some reason these can't be at the end of the file.
 
-# Libraries
-LIB := $(LIB_DIR)/lib.a
-CAN_DEVICE_LIB := $(LIB_DIR)/can_device.a
-CAN_DATABASE_LIB := $(LIB_DIR)/can_database.a
-CAN_EEPROM_LIB := $(LIB_DIR)/can_eeprom.a
-CJSON_LIB := $(LIB_DIR)/cjson.a
-BMS_LIB := $(LIB_DIR)/bms.a
-SERIAL_CAN_LIB := $(LIB_DIR)/serial_can.a
-
-# Applications
-CAN_DEV_CLI		:= $(BIN_DIR)/can-dev-cli
-CAN_DBC_CLI		:= $(BIN_DIR)/can-dbc-cli
-CAN_DBC_TUI		:= $(BIN_DIR)/can-dbc-tui
-CAN_DUMP		:= $(BIN_DIR)/can-dump
-CAN_EEPROM_CLI	:= $(BIN_DIR)/can-eeprom-cli
-BMS_TUI			:= $(BIN_DIR)/bms-tui
-
-# Installer script and readme file
 ifeq ($(DETECTED_OS), windows)
 	INSTALLER := install.bat
 	UNINSTALLER := uninstall.bat
@@ -41,71 +11,81 @@ else
 	INSTALLER := install.sh
 	UNINSTALLER := uninstall.sh
 endif
-RELEASE_README := doc/readme_release.txt
 
 # Command for copying the MSYS2 UCRT binaries into a release
 ifeq ($(DETECTED_OS), windows)
 	ifeq ($(MSYS_BIN), "")
-		MSYS_UCRT_COPY_CMD := echo Error: MSYS_BIN environment variable is not declared! && exit -1
+		MSYS_UCRT_COPY_CMD := echo "Error: MSYS_BIN environment variable is not declared!"" && exit -1
 	else
 		MSYS_UCRT_COPY_CMD := cp -r $(MSYS_BIN) $(RELEASE_DIR)/
 	endif
 endif
 
-all: $(CAN_DEV_CLI) $(CAN_DBC_CLI) $(CAN_DBC_TUI) $(CAN_DUMP) $(CAN_EEPROM_CLI) $(BMS_TUI) sh bat
+# Applications ----------------------------------------------------------------
 
-# Libraries
-$(LIB): FORCE
-	make -C lib
+# Default target. Compiles all applications in the src directory. Marked as
+# phony because this corresponds to an actual directory name.
+.PHONY: bin
+bin: $(wildcard $(SRC_DIR)/*)
 
-$(SERIAL_CAN_LIB): $(LIB) FORCE
-	make -B -C lib/serial_can
+# Wildcard defining the compilation rule for each subdirectory in the src
+# directory. Dependent on libs, meaning all libraries are compiled first.
+$(SRC_DIR)/%: lib
+	make -C $@
 
-$(CAN_DEVICE_LIB): $(LIB) $(SERIAL_CAN_LIB) FORCE
-	make -C lib/can_device
+# Libraries -------------------------------------------------------------------
 
-$(CAN_DATABASE_LIB): $(LIB) FORCE
-	make -C lib/can_database
+# Compilation rules for each library.
 
-$(CAN_EEPROM_LIB): $(LIB) $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CJSON_LIB) FORCE
-	make -C lib/can_eeprom
+$(LIB_COMMON):
+	make -C $(LIB_DIR)
 
-$(CJSON_LIB): $(LIB) FORCE
-	make -C lib/cjson
+# serial_can requires the -B option to actually compile binaries. Not sure why.
+$(LIB_SERIAL_CAN):
+	make -B -C $(LIB_DIR)/serial_can
 
-$(BMS_LIB): $(LIB) $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) $(CJSON_LIB) FORCE
-	make -C lib/bms
+$(LIB_CAN_DEVICE): $(LIB_SERIAL_CAN)
+	make -C $(LIB_DIR)/can_device
 
-# Applications
-$(CAN_DEV_CLI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) FORCE
-	make -C src/can_dev_cli
+$(LIB_CAN_DATABASE):
+	make -C $(LIB_DIR)/can_database
 
-$(CAN_DBC_CLI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) FORCE
-	make -C src/can_dbc_cli
+$(LIB_CJSON):
+	make -C $(LIB_DIR)/cjson
 
-$(CAN_DBC_TUI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) FORCE
-	make -C src/can_dbc_tui
+$(LIB_CAN_EEPROM):
+	make -C $(LIB_DIR)/can_eeprom
 
-$(CAN_EEPROM_CLI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_EEPROM_LIB) FORCE
-	make -C src/can_eeprom_cli
+$(LIB_BMS):
+	make -C $(LIB_DIR)/bms
 
-$(CAN_DUMP): $(CAN_DEVICE_LIB) FORCE
-	make -C src/can_dump
+$(LIB_MDF):
+	make -C $(LIB_DIR)/mdf
 
-$(BMS_TUI): $(CAN_DEVICE_LIB) $(SERIAL_CAN_LIB) $(CAN_DATABASE_LIB) $(BMS_LIB) FORCE
-	make -C src/bms_tui
+# Marks all library targets as phony. This forces the recipe to be re-run every
+# time a dependent is ran. Without this, libraries would never be recompiled.
+.PHONY: $(LIBS)
 
-sh: FORCE
-	make -C src/sh
+# Target for compiling all libraries. Marked as phony because this corresponds
+# to an actual directory name.
+.PHONY: lib
+lib: $(LIBS)
 
-bat: FORCE
-	make -C src/bat
+# Make Targets ----------------------------------------------------------------
 
-# Phony target, forces dependent targets to always be re-compiled
-FORCE:
+# Target for removing all compiled binaries.
+.PHONY: clean
+clean:
+	rm -rf $(BIN_DIR)
 
-# Releasing
-release: all FORCE
+# Releasing -------------------------------------------------------------------
+
+# TODO(Barach): This should include the architecture, as we are now deploying on ARM.
+RELEASE_DIR := $(ROOT_DIR)/release/zre_cantools_$(DETECTED_OS)_$(shell date +%Y.%m.%d)
+RELEASE_README := doc/readme_release.txt
+
+.PHONY: release
+release: bin
 	# Create the release directory (delete if it already exists)
 	if [ -d $(RELEASE_DIR) ]; then rm -Rf $(RELEASE_DIR); fi
 	mkdir -p $(RELEASE_DIR)
@@ -126,7 +106,3 @@ release: all FORCE
 	# Documentation
 	cp -r $(DOC_DIR) $(RELEASE_DIR)/
 	cp $(RELEASE_README) $(RELEASE_DIR)/readme.txt
-
-# Cleanup
-clean:
-	rm -r $(BIN_DIR)

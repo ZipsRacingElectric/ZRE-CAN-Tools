@@ -1,20 +1,19 @@
-CC_FLAGS := -Wall -Wextra -g
+ROOT_DIR := ../..
+include $(ROOT_DIR)/include.mk
 
-BIN_DIR	:= ../../bin
-LIB_DIR := $(BIN_DIR)/lib
-BIN		:= $(BIN_DIR)/bms-tui
+BIN := $(BIN_DIR)/bms-tui
+SRC := main.c
 
-SRC 	:=	main.c
+# Note libraries must be in reverse order of dependencies, that is a dependency
+# must be placed after its dependents.
+LIB :=						\
+	$(LIB_BMS)				\
+	$(LIB_CJSON)			\
+	$(LIB_CAN_DATABASE)		\
+	$(LIB_CAN_DEVICE)		\
+	$(LIB_SERIAL_CAN)		\
+	$(LIB_COMMON)
 
-# Note libraries must be in reverse order of dependencies, that is a dependency must be placed after its dependents.
-LIB		:=						\
-	$(LIB_DIR)/bms.a			\
-	$(LIB_DIR)/cjson.a			\
-	$(LIB_DIR)/can_database.a	\
-	$(LIB_DIR)/can_device.a		\
-	$(LIB_DIR)/serial_can.a		\
-	$(LIB_DIR)/lib.a
-
-$(BIN): $(SRC)
+$(BIN): $(SRC) $(LIB)
 	mkdir -p $(BIN_DIR)
-	gcc $(SRC) $(CC_FLAGS) $(LIB) -I../../lib/ -o $(BIN) -lm -lncursesw
+	gcc $^ $(CFLAGS) -o $@ -lncursesw

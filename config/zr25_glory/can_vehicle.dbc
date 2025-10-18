@@ -319,9 +319,9 @@ BO_ 1952 VEHICLE_CONFIG: 4 VCU
  SG_ TORQUE_ALGORITHM_INDEX : 24|8@1+ (1,0) [0|255] "Index" Vector__XXX
 
 BO_ 1956 DRS_STATUS: 2 Vector__XXX
- SG_ THETA_TARGET : 0|10@1+ (0.3515625,-180) [0|1] "" Vector__XXX
- SG_ WING_STATUS : 10|3@1+ (1,0) [0|1] "" Vector__XXX
- SG_ EEPROM_STATUS : 13|2@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ THETA_TARGET : 0|10@1+ (0.3515625,-180) [-180|180] "" Vector__XXX
+ SG_ WING_STATUS : 10|3@1+ (1,0) [0|7] "" Vector__XXX
+ SG_ EEPROM_STATUS : 13|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ STALLED : 15|1@1+ (1,0) [0|1] "" Vector__XXX
 
 BO_ 1792 BMS_CELL_VOLTAGES_0_5: 8 BMS

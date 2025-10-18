@@ -1,18 +1,14 @@
-CC_FLAGS := -Wall -Wextra -g
+ROOT_DIR := ../..
+include $(ROOT_DIR)/include.mk
 
-BIN_DIR := ../../bin
-OBJ_DIR := $(BIN_DIR)/obj
-LIB_DIR := $(BIN_DIR)/lib
-
-BIN := $(LIB_DIR)/can_eeprom.a
-
+BIN := $(LIB_CAN_EEPROM)
 SRC := $(wildcard *.c)
-OBJ := $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC))
+OBJ := $(patsubst %.c, $(OBJ_BIN_DIR)/%.o, $(SRC))
 
 $(BIN): $(OBJ)
-	mkdir -p $(LIB_DIR)
-	ar rvs $(BIN) $^
+	mkdir -p $(LIB_BIN_DIR)
+	ar rvs $@ $^
 
-$(OBJ_DIR)/%.o: %.c %.h
-	mkdir -p $(OBJ_DIR)
-	gcc $(CC_FLAGS) -I.. -c $< -o $@
+$(OBJ_BIN_DIR)/%.o: %.c %.h
+	mkdir -p $(OBJ_BIN_DIR)
+	gcc $(CFLAGS) -I $(BIN_DIR)/include -c $< -o $@
