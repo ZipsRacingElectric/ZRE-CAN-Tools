@@ -26,6 +26,8 @@ int mdfBlockInitHeader (mdfBlock_t* block)
 		if (block->linkList == NULL)
 			return errno;
 	}
+	else
+		block->linkList = NULL;
 
 	// Allocate the block's data section
 	uint64_t dataSectionSize = mdfBlockDataSectionSize (block);
@@ -35,6 +37,8 @@ int mdfBlockInitHeader (mdfBlock_t* block)
 		if (block->dataSection == NULL)
 			return errno;
 	}
+	else
+		block->dataSection = NULL;
 
 	return 0;
 }

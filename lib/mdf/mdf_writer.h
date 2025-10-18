@@ -10,6 +10,7 @@
 //
 // References:
 // - https://www.asam.net/standards/detail/mdf/wiki/
+// - https://asammdf.readthedocs.io/en/latest/v4blocks.html
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -23,7 +24,7 @@
 
 int mdfWriteFileIdBlock (FILE* mdf, mdfFileIdBlock_t* fileIdBlock);
 
-int mdfWriteBlock (FILE* mdf, mdfBlock_t* block);
+uint64_t mdfBlockWrite (FILE* mdf, mdfBlock_t* block);
 
 // TODO(Barach): Do we need this?
 int mdfRewriteBlockHeader (FILE* mdf, mdfBlock_t* block);

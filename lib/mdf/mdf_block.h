@@ -10,6 +10,7 @@
 //
 // References:
 // - https://www.asam.net/standards/detail/mdf/wiki/
+// - https://asammdf.readthedocs.io/en/latest/v4blocks.html
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -31,10 +32,27 @@
 #define MDF_BLOCK_ID_SI MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'S', 'I')
 #define MDF_BLOCK_ID_FH MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'F', 'H')
 
+#define MDF_FILE_IDENTIFICATION_FINALIZED	{'M', 'D', 'F', ' ', ' ', ' ', ' ', ' '}
+#define MDF_FILE_IDENTIFICATION_UNFINALIZED	{'U', 'n', 'F', 'i', 'n', 'M', 'F', ' '}
+
+#define MDF_VERSION_STRING_V4_11			{'4', '.', '1', '1', ' ', ' ', ' ', ' '}
+
+#define MDF_FILE_ID_BLOCK_DATA																								\
+{																															\
+	0x00, 0x00, 0x00, 0x00, 0x9B, 0x01, 0x00, 0x00,																			\
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,																			\
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,																			\
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,																			\
+	0x00, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00,																			\
+}
+
 /// @brief Datatype representing the MDF file ID block, a unique MDF block occurring only once per file.
 typedef struct
 {
-	uint8_t data [64];
+	char fileIdentification [8];
+	char versionString [8];
+	char programIdentification [8];
+	uint8_t data [40];
 } mdfFileIdBlock_t;
 
 /// @brief Datatype representing an MDF block.

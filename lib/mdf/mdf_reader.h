@@ -10,6 +10,7 @@
 //
 // References:
 // - https://www.asam.net/standards/detail/mdf/wiki/
+// - https://asammdf.readthedocs.io/en/latest/v4blocks.html
 
 // TODO(Barach):
 // - Should probably replace 3 separate functions.

@@ -19,34 +19,34 @@ int mdfWriteFileIdBlock (FILE* mdf, mdfFileIdBlock_t* fileIdBlock)
 	return 0;
 }
 
-int mdfWriteBlock (FILE* mdf, mdfBlock_t* block)
+uint64_t mdfBlockWrite (FILE* mdf, mdfBlock_t* block)
 {
 	// Align the stream for the next block.
 	if (alignBlock (mdf) != 0)
-		return errno;
+		return 0;
 
 	// Set the block's address based on the stream position.
 	long addr = ftell (mdf);
 	if (addr < 0)
-		return errno;
+		return 0;
 	block->addr = addr;
 
 	// Write the header
 	if (fwrite (&block->header, sizeof (block->header), 1, mdf) != 1)
-		return errno;
+		return 0;
 
 	// Write the link list
 	if (block->header.linkCount != 0)
 		if (fwrite (block->linkList, sizeof (uint64_t), block->header.linkCount, mdf) != block->header.linkCount)
-			return errno;
+			return 0;
 
 	// Write the data section
 	size_t dataSectionSize = mdfBlockDataSectionSize (block);
 	if (dataSectionSize != 0)
 		if (fwrite (block->dataSection, 1, dataSectionSize, mdf) != dataSectionSize)
-			return errno;
+			return 0;
 
-	return 0;
+	return block->addr;
 }
 
 int mdfRewriteBlockLinkList (FILE* mdf, mdfBlock_t* block)
