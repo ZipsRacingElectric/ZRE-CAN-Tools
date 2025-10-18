@@ -39,6 +39,7 @@ typedef enum
 typedef struct
 {
 	canDatabase_t* database;
+	
 
 	uint16_t segmentCount;
 
@@ -63,6 +64,8 @@ typedef struct
 	ssize_t* ltcTemperatureIndices;
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
+	
+	size_t bmsStatusMessageIndex;
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -90,5 +93,14 @@ bool bmsGetCellVoltageStats (bms_t* bms, float* min, float* max, float* avg);
 bool bmsGetCellDeltaStats (bms_t* bms, float* max, float* avg);
 
 bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
+
+/**
+ * @brief Retreives the value of the signal associated with the signal index.
+ * @param database the CAN database associated with the BMS.
+ * @param messageIndex the index of the CAN message.
+ * @param signalIndex the index of the signal within the CAN message.
+ * @param value the value of the signal.
+*/
+canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t messageIndex, size_t signalIndex, float* value);
 
 #endif // BMS_H

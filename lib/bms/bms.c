@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+// Calculate the length of the index (primarily used to calculate offset for signal names)
 static size_t printIndex (uint16_t index, char* name)
 {
 	snprintf (name, 4, "%-3i", index);
@@ -92,16 +93,23 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	bms->cellVoltageIndices = malloc (sizeof (ssize_t) * bms->cellCount);
 	bms->cellsDischargingIndices = malloc (sizeof (ssize_t) * bms->cellCount);
 
+	// Iterate over each cell index in the bms
 	for (uint16_t index = 0; index < bms->cellCount; ++index)
 	{
+		// Get cell voltage signal index
+		// DiBacco: signal name is used to locate data from the dbc file
 		char voltName [] = "CELL_VOLTAGE_###";
 		size_t offset = printIndex (index, voltName + 13);
-		voltName [offset + 13] = '\0';
+		voltName [offset + 13] = '\0'; 
+		// DiBacco: offset is used to modify the signal name to contain one '#' per digit in the index
+		// index < 10 = CELL_VOLTAGE_# | index < 100 = CELL_VOLTAGE_## | etc
 
+		// DiBacco: retreives the index of the specified from the signals array from the database
 		bms->cellVoltageIndices [index] = canDatabaseFindSignal (database, voltName);
-		if (bms->cellVoltageIndices [index] < 0)
+		if (bms->cellVoltageIndices [index] < 0) // DiBacco: canDatabaseFindSignal returns -1 if not found (return errno which is set in canDatabaseFindSignal)
 			return errno;
 
+		// Get cell balancing signal index
 		char disName [] = "CELL_BALANCING_###";
 		offset = printIndex (index, disName + 15);
 		disName [offset + 15] = '\0';
@@ -114,14 +122,19 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	bms->senseLineTemperatureIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
 	bms->senseLinesOpenIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
 
+	// DiBacco: iterate over each segment in the module
 	for (uint16_t segmentIndex = 0; segmentIndex < bms->segmentCount; ++segmentIndex)
 	{
+		// DiBacco: iterate over each LTC chip (batter monitor IC) 
 		for (uint16_t ltcIndex = 0; ltcIndex < bms->ltcsPerSegment; ++ltcIndex)
 		{
+			// DiBacco: iterate over each sense line (voltage measurement line)
 			for (uint16_t senseLineIndex = 0; senseLineIndex < bms->senseLinesPerLtc; ++senseLineIndex)
 			{
+				// DiBacco: get index of the sense line in reference to the entire bms
 				uint16_t index = SENSE_LINE_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex, senseLineIndex);
-
+				
+				// Get sense line temperature signal index
 				char tempName [] = "SENSE_LINE_###_##_TEMPERATURE";
 				uint16_t offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, tempName + 11);
 				snprintf (tempName + 11 + offset, 13, "_TEMPERATURE");
@@ -176,6 +189,11 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	bms->packCurrentIndex = canDatabaseFindSignal (database, "PACK_CURRENT");
 	if (bms->packCurrentIndex < 0)
 		return errno;
+
+	bms->bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
+	if (bms->bmsStatusMessageIndex < 0) {
+		return errno;
+	}
 
 	return 0;
 }
@@ -353,4 +371,13 @@ bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg)
 		*avg /= count;
 
 	return valid;
+}
+
+canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t messageIndex, size_t signalIndex, float* value) {
+	// Convert index within the message to index within the databaseS
+	ssize_t globalIndex = canDatabaseGetGlobalIndex (database, messageIndex, signalIndex); 
+
+	// Get the value of the message associated with the global index
+	// Timeout in canDatabaseGetFloat is result of no data in the BUS
+	return canDatabaseGetFloat (database, globalIndex, value);
 }
