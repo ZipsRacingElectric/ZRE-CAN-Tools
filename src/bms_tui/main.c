@@ -41,6 +41,14 @@
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 /**
+ * @brief Prints all the signals on the BMS_Status message
+ * @param row The row to print at.
+ * @param column The column to print at.
+ * @param bms The BMS to print the stats of. 
+*/
+void printBmsStatusSignals (int row, int column, bms_t* bms);
+
+/**
  * @brief Prints a panel of statistics about a BMS.
  * @param row The row to print at.
  * @param column The column to print at.
@@ -238,26 +246,28 @@ int main (int argc, char** argv)
 		#endif
 		
 		// Ensures the content stays within the terminal window
-		
 		int max_y = TOTAL_ROWS - scr_y; // # of rows that will extend beyond the window
 		if (max_y < 0) max_y = 0;           
 		if (offset < 0) offset = 0;         
 		if (offset > max_y) offset = max_y;
 
 		// Calculate the top & bottom coordinates of the window (based on the offset)
-		
 		int scrlTop = offset + STAT_HEIGHT; 
 		int scrlBottom = offset + scr_y -1;
 		if (scrlTop < 0) scrlTop = 0;
 		if (scrlTop > TOTAL_ROWS -1) scrlTop = TOTAL_ROWS;
 
+		printBmsStatusSignals (0, 0, &bms);
+
 		// Print the top-most panel
-		printStatPanel (0, 0, &bms);
+		// printStatPanel (0, 0, &bms);
+		// TODO(DiBacco): uncomment temporary printStatPanel comment
 
 		// Print each battery segment
 		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
 		{	
-			printSegment (scrlTop, scrlBottom, &segmentRow, segmentCol, &bms, segmentIndex);
+			// printSegment (scrlTop, scrlBottom, &segmentRow, segmentCol, &bms, segmentIndex);
+			// TODO(DiBacco): uncomment temporary printSegment comment
 		}
 	
 		// Render the frame to the screen and wait for the next update
@@ -300,6 +310,70 @@ int main (int argc, char** argv)
 }
 
 // Functions ------------------------------------------------------------------------------------------------------------------
+
+void printBmsStatusSignals (int row, int column, bms_t* bms) 
+{
+	ssize_t bmsStatusMessageIndex = bms->bmsStatusMessageIndex;
+
+	canDatabase_t* database = bms->database;
+	canMessage_t bmsStatusMessage = database->messages [bmsStatusMessageIndex];
+	
+	// Print the header of the BMS Status Signals Panel
+	for (int i = 0; i < 3; i++) {
+		mvprintw (row + 0, column + (i * 12), "────────────");
+		mvprintw (row + 2, column + (i * 12), "────────────");
+	}
+		
+	// Prints corners of the BMS Status Signals Panel header
+	mvprintw (row + 0, column + 0,  "┌");
+	mvprintw (row + 0, column + 36, "┐");
+	
+	// Print headers 
+	mvprintw (row + 1, column + 2,  "Signal");
+	mvprintw (row + 1, column + 31, "Value");
+	
+	// Print sides of the BMS Status Signals Panel header
+	for (row = 1; row < 3; row++) {
+		mvprintw (row, column + 0,  "│");
+		mvprintw (row, column + 30, "│");
+		mvprintw (row, column + 36, "│");
+	}
+
+	// Display each signal name and its corresponding value in a row
+	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage.signalCount; signalIndex++) {
+		float value;
+		canSignal_t signal = bmsStatusMessage.signals[signalIndex];
+		
+		// Print boarders of the BMS Status Signals Panel row
+		mvprintw (row + signalIndex, column + 0,  "│");	
+		mvprintw (row + signalIndex, column + 30, "│");
+		mvprintw (row + signalIndex, column + 36, "│");
+
+		// Print signal name
+		mvprintw (row + signalIndex, column + 2, signal.name);
+
+		// Get & display signal value or insert placeholder value
+		switch (bmsGetSignalValue(database, bmsStatusMessageIndex, signalIndex, &value)) 
+		{
+			case CAN_DATABASE_MISSING: {
+				// Shouldn't reach here
+				break;
+			}
+			case CAN_DATABASE_TIMEOUT: {
+				mvprintw (row + signalIndex, column + 32, "---");
+				break;
+			}
+			case CAN_DATABASE_VALID: {
+				mvprintw (row + signalIndex, column + 32, "%.01f", value);
+				break;
+			}
+		}
+	}
+
+	// Print the bottom of the BMS Status Signals Panel
+	for (int i = 0; i < 3; i++) 
+		mvprintw (row + bmsStatusMessage.signalCount + 3, column + (i * 12), "────────────");
+}
 
 void printStatPanel (int row, int column, bms_t* bms)
 {
