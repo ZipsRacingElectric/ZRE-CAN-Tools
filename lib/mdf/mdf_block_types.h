@@ -28,7 +28,7 @@ typedef struct
 	/// @brief The time, in nanoseconds since the Unix epoch, of the creation of the MDF file.
 	uint64_t unixTimeNs;
 
-	/// @brief Reserved, must be set to all 0s.
+	/// @brief Reserved, must be all 0s.
 	uint64_t reserved0 [3];
 } mdfHdDataSection_t;
 
@@ -180,10 +180,10 @@ static inline mdfCnLinkList_t* mdfCnBlockLinkList (mdfBlock_t* block) { return (
 typedef struct
 {
 	/// @brief The ID used to identify the group's records.
-	uint8_t recordId;
+	uint32_t recordId;
 
 	/// @brief Reserved, must be all 0s.
-	uint8_t reserved0 [15];
+	uint8_t reserved0 [12];
 
 	/// @brief The group's flags.
 	uint8_t flags;
@@ -319,6 +319,16 @@ static inline mdfCcLinkList_t* mdfCcBlockLinkList (mdfBlock_t* block) { return (
 /// @brief The data section of a data group block.
 typedef struct
 {
+	/// @brief The length, in bytes, of the group's record IDs. Must be either 1, 2, or 4.
+	uint8_t recordIdLength;
+
+	/// @brief Reserved, must be all 0s.
+	uint8_t reserved0 [7];
+} mdfDgDataSection_t;
+
+/// @brief The link list of a data group block.
+typedef struct
+{
 	/// @brief The address of the next data group in the list.
 	uint64_t nextDgAddr;
 
@@ -335,10 +345,11 @@ typedef struct
 /**
  * @brief Initializes a data group block.
  * @param block The block to initialize. Must be deallocated using @c mdfBlockDealloc .
+ * @param dataSection The data section to give the block.
  * @param linkList The link list to give the block.
  * @return 0 if successful, the error code otherwise.
  */
-int mdfDgBlockInit (mdfBlock_t* block, mdfDgLinkList_t* linkList);
+int mdfDgBlockInit (mdfBlock_t* block, mdfDgDataSection_t* dataSection, mdfDgLinkList_t* linkList);
 
 /// @return The link list of the block.
 static inline mdfDgLinkList_t* mdfDgBlockLinkList (mdfBlock_t* block) { return (mdfDgLinkList_t*) block->linkList; }

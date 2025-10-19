@@ -433,6 +433,10 @@ int main (int argc, char** argv)
 
 	mdfBlock_t dg;
 	mdfDgBlockInit (&dg,
+		&(mdfDgDataSection_t)
+		{
+			.recordIdLength = 1
+		},
 		&(mdfDgLinkList_t)
 		{
 			.firstCgAddr = cgAddr

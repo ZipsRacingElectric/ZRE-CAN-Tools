@@ -55,27 +55,15 @@ int mdfCcBlockInit (mdfBlock_t* block, mdfCcDataSection_t* dataSection, mdfCcLin
 	return 0;
 }
 
-int mdfDgBlockInit (mdfBlock_t* block, mdfDgLinkList_t* linkList)
+int mdfDgBlockInit (mdfBlock_t* block, mdfDgDataSection_t* dataSection, mdfDgLinkList_t* linkList)
 {
-	typedef struct
-	{
-		uint8_t recordIdLength;
-		uint8_t reserved0 [7];
-	} mdfDgDataSection_t;
-
-	mdfDgDataSection_t dataSection =
-	{
-		// TODO(Barach): Can we let this be variable?
-		.recordIdLength = 1
-	};
-
 	// Initialize the block
 	if (mdfBlockInit (block, MDF_BLOCK_ID_DG, sizeof (*linkList) / sizeof (uint64_t), sizeof (uint64_t)) != 0)
 		return errno;
 
 	// Populate the link list and data section
 	memcpy (block->linkList, linkList, sizeof (*linkList));
-	memcpy (block->dataSection, &dataSection, sizeof (dataSection));
+	memcpy (block->dataSection, dataSection, sizeof (*dataSection));
 
 	return 0;
 }
