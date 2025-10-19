@@ -39,19 +39,20 @@
 #define SEGMENT_HEIGHT 9 
 
 // The height of BMS_Status Signals panels
-#define BMS_STATUS_SIGNALS_PANEL_HEIGHT 42
+#define BMS_STATUS_SIGNALS_PANEL_HEIGHT 43
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-/**
+/** TODO(DiBacco): parameter names may be ambiguous
  * @brief Prints all the signals on the BMS_Status message
  * @param scrlTop The coordinate of the top of the scrolling window.
  * @param scrlTop The coordinate of the bottom of the scrolling window.
- * @param row The row to print at.
+ * @param rowPosition The row to print at.
+ * @param row The row of the start of the BMS Signals Status Panel.
  * @param column The column to print at.
  * @param bms The BMS to print the stats of. 
 */
-void printBmsStatusSignals (int scrlTop, int scrlBottom, int row, int column, bms_t* bms);
+void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* rowPosition, uint16_t row, uint16_t column, bms_t* bms);
 
 /**
  * @brief Prints a panel of statistics about a BMS.
@@ -177,8 +178,8 @@ int main (int argc, char** argv)
 		return code;
 	}
 
-	// The total # of rows in the pads
-	const int TOTAL_ROWS = STAT_HEIGHT + (bms.segmentCount * SEGMENT_HEIGHT); 
+	// The total # of rows in the window
+	const int TOTAL_ROWS = STAT_HEIGHT + (bms.segmentCount * SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT; 
 
 	// Set OS-specific locale for wide character support
 	#ifdef __unix__
@@ -260,23 +261,21 @@ int main (int argc, char** argv)
 		int scrlTop = offset + STAT_HEIGHT; 
 		int scrlBottom = offset + scr_y -1;
 		if (scrlTop < 0) scrlTop = 0;
-		if (scrlBottom > scr_y -1) scrlBottom = scr_y; // TODO(DiBacco): change scr_y back to TOTAL_ROWS?
-		// TODO(DiBacco): find out why the bottom of the BMS Status Signal Panel is not reaching the bottom of the screen.
+		if (scrlTop > TOTAL_ROWS -1) scrlTop = TOTAL_ROWS;
 
-		printf ("scr_y: %d\n", scr_y);
-		printBmsStatusSignals (offset, scrlBottom, segmentRow, 0, &bms); // TODO(DiBacco): change row & scrlTop to the correct row for the BMS Status Signal Panel
- 
 		// Print the top-most panel
-		// printStatPanel (0, 0, &bms);
-		// TODO(DiBacco): uncomment temporary printStatPanel comment
+		printStatPanel (0, 0, &bms);
 
 		// Print each battery segment
 		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
 		{	
-			// printSegment (scrlTop, scrlBottom, &segmentRow, segmentCol, &bms, segmentIndex);
-			// TODO(DiBacco): uncomment temporary printSegment comment
+			printSegment (scrlTop, scrlBottom, &segmentRow, segmentCol, &bms, segmentIndex);
 		}
-	
+
+		// Print BMS Status Signals Panel
+		uint16_t startRow = STAT_HEIGHT + (bms.segmentCount * SEGMENT_HEIGHT);
+		printBmsStatusSignals (scrlTop, scrlBottom, &segmentRow, startRow, 0, &bms); 
+
 		// Render the frame to the screen and wait for the next update
 		refresh ();
 
@@ -318,7 +317,7 @@ int main (int argc, char** argv)
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-void printBmsStatusSignals (int scrlTop, int scrlBottom, int row, int column, bms_t* bms) 
+void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* rowPosition, uint16_t row, uint16_t column, bms_t* bms) 
 {
 	size_t const BMS_STATUS_SIGNALS_HEADER_HEIGHT = 3;
 	ssize_t bmsStatusMessageIndex = bms->bmsStatusMessageIndex;
@@ -330,19 +329,21 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, int row, int column, bm
 	bool validRows [SEGMENT_HEIGHT];
 
 	// Map each row of the segment to its position in the window
-	int rowPosition = 0;
 	int mapRowToPosition [SEGMENT_HEIGHT];
 
 	// Validate & map position for each row of the segment 
 	for (int i = 0; i < BMS_STATUS_SIGNALS_HEADER_HEIGHT; i++) {
 		if (checkRow(scrlTop, scrlBottom, row++)) { 
 			validRows[i] = true;
-			mapRowToPosition[i] = rowPosition++; 
+			mapRowToPosition[i] = *rowPosition += 1; 
 		}
 		else {
 			validRows[i] = false;
 		} 
 	}	
+
+	// Set row position for the signals
+	*rowPosition += 1;
 
 	// Print the header of the BMS Status Signals Panel
 	for (int i = 0; i < 3; i++) {
@@ -362,7 +363,6 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, int row, int column, bm
 		mvprintw (mapRowToPosition[1], column + 31, "Value");
 	}
 	
-	
 	// Print sides of the BMS Status Signals Panel header
 	for (int i = 1; i < 3; i++) {
 		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 0,  "│");
@@ -377,12 +377,12 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, int row, int column, bm
 		
 		if (checkRow(scrlTop, scrlBottom, row++)) {
 			// Print boarders of the BMS Status Signals Panel row
-			mvprintw (rowPosition, column + 0,  "│");	
-			mvprintw (rowPosition, column + 30, "│");
-			mvprintw (rowPosition, column + 36, "│");
+			mvprintw (*rowPosition, column + 0,  "│");	
+			mvprintw (*rowPosition, column + 30, "│");
+			mvprintw (*rowPosition, column + 36, "│");
 
 			// Print signal name
-			mvprintw (rowPosition, column + 2, signal.name);
+			mvprintw (*rowPosition, column + 2, signal.name);
 
 			// Get & display signal value or insert placeholder value
 			switch (bmsGetSignalValue(database, bmsStatusMessageIndex, signalIndex, &value)) 
@@ -393,29 +393,28 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, int row, int column, bm
 				}
 				case CAN_DATABASE_TIMEOUT: {
 					attron (COLOR_PAIR (COLOR_INVALID));
-					mvprintw (rowPosition, column + 32, "---");
+					mvprintw (*rowPosition, column + 32, "---");
 					attroff (COLOR_PAIR (COLOR_INVALID));
 					break;
 				}
 				case CAN_DATABASE_VALID: {
-					mvprintw (rowPosition, column + 32, "%.01f", value);
+					mvprintw (*rowPosition, column + 32, "%.01f", value);
 					break;
 				}
 			}
 
-			rowPosition++;
-		} 
+			*rowPosition += 1;
+		}
 	}
 
 	// Print the bottom of the BMS Status Signals Panel
 	if (checkRow (scrlTop, scrlBottom, row)) {
 		for (int i = 0; i < 3; i++) 
-			mvprintw (rowPosition, column + (i * 12), "────────────");
+			mvprintw (*rowPosition, column + (i * 12), "────────────");
 
-		mvprintw (rowPosition, column + 0,  "└");
-		mvprintw (rowPosition, column + 36, "┘");
-	}
-	
+		mvprintw (*rowPosition, column + 0,  "└");
+		mvprintw (*rowPosition, column + 36, "┘");
+	} 
 }
 
 void printStatPanel (int row, int column, bms_t* bms)
