@@ -93,7 +93,7 @@ int main (int argc, char** argv)
 		return code;
 	}
 
-	// Preamble ---------------------------------------------------------------------------------------------------------------
+	// Header -----------------------------------------------------------------------------------------------------------------
 
 	time_t timeUtc = time (NULL);
 	time_t timeLocal = timeUtc + localtime (&timeUtc)->tm_gmtoff;
@@ -116,15 +116,7 @@ int main (int argc, char** argv)
 		&(mdfHdLinkList_t) {});
 	mdfBlockWrite (mdf, &hd);
 
-	uint64_t addrCanDataFrameTx = mdfTxBlockWrite (mdf, "CAN_DataFrame");
-
-	// Channel Group ----------------------------------------------------------------------------------------------------------
-
-	// CG     : CAN_DataFrame
-	// - CN   : Timestamp
-	// - CN   : CAN_DataFrame
-	//   - CN : CAN_DataFrame.ID
-	//   - CN : CAN_DataFrame.DLC
+	// CAN_DataFrame Component Channels ---------------------------------------------------------------------------------------
 
 	uint64_t addrDataBytes = mdfCnBlockWrite (mdf,
 		&(mdfCnDataSection_t)
@@ -296,6 +288,8 @@ int main (int argc, char** argv)
 			.nextCnAddr	= addrIde
 		});
 
+	// CAN_DataFrame Channel Group --------------------------------------------------------------------------------------------
+
 	uint64_t addrCanDataFrame = mdfCnBlockWrite (mdf,
 		&(mdfCnDataSection_t)
 		{
@@ -309,7 +303,7 @@ int main (int argc, char** argv)
 		},
 		&(mdfCnLinkList_t)
 		{
-			.nameAddr		= addrCanDataFrameTx,
+			.nameAddr		= mdfTxBlockWrite (mdf, "CAN_DataFrame"),
 			.componentAddr	= addrId,
 			.nextCnAddr		= 0,
 		});
@@ -433,7 +427,7 @@ int main (int argc, char** argv)
 		&(mdfCgLinkList_t)
 		{
 			.firstCnAddr			= addrTimestamp,
-			.acquisitionNameAddr	= addrCanDataFrameTx,
+			.acquisitionNameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame"),
 			.acquisitionSourceAddr	= addrSi
 		});
 
@@ -447,10 +441,13 @@ int main (int argc, char** argv)
 
 	mdfDgBlockLinkList (&dg)->dataBlockAddr = mdfDtBlockWrite (mdf);
 
-	// Link List --------------------------------------------------------------------------------------------------------------
+	// Rewrite Link Lists -----------------------------------------------------------------------------------------------------
 
 	mdfRewriteBlockLinkList (mdf, &hd);
 	mdfRewriteBlockLinkList (mdf, &dg);
+
+	mdfBlockDealloc (&hd);
+	mdfBlockDealloc (&dg);
 
 	// Data Block Data Section ------------------------------------------------------------------------------------------------
 
