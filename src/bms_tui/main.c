@@ -392,7 +392,9 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, int row, int column, bm
 					break;
 				}
 				case CAN_DATABASE_TIMEOUT: {
+					attron (COLOR_PAIR (COLOR_INVALID));
 					mvprintw (rowPosition, column + 32, "---");
+					attroff (COLOR_PAIR (COLOR_INVALID));
 					break;
 				}
 				case CAN_DATABASE_VALID: {
