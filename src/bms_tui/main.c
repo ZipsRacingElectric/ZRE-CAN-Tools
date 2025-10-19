@@ -393,9 +393,6 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* rowPosition, 
 			mvprintw (*rowPosition, column + 30, "│");
 			mvprintw (*rowPosition, column + 36, "│");
 
-			// Print signal name
-			mvprintw (*rowPosition, column + 2, signal.name);
-
 			// Get & display signal value or insert placeholder value
 			switch (bmsGetSignalValue(database, bmsStatusMessageIndex, signalIndex, &value)) 
 			{
@@ -405,11 +402,13 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* rowPosition, 
 				}
 				case CAN_DATABASE_TIMEOUT: {
 					attron (COLOR_PAIR (COLOR_INVALID));
+					mvprintw (*rowPosition, column + 2, signal.name);
 					mvprintw (*rowPosition, column + 32, "---");
 					attroff (COLOR_PAIR (COLOR_INVALID));
 					break;
 				}
 				case CAN_DATABASE_VALID: {
+					mvprintw (*rowPosition, column + 2, signal.name);
 					mvprintw (*rowPosition, column + 32, "%.01f", value);
 					break;
 				}
