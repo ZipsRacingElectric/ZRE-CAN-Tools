@@ -57,11 +57,6 @@ int mdfReadBlockDataSection (FILE* mdf, mdfBlock_t* block)
 	if (fread (block->dataSection, 1, dataSectionSize, mdf) != dataSectionSize)
 		return handleFreadError (mdf);
 
-	// If this is a text section, terminate the string
-	// TODO(Barach): Do we want to really do this?
-	if (block->header.blockId == MDF_BLOCK_ID_TX)
-		((char*) block->dataSection) [dataSectionSize - 1] = '\0';
-
 	return 0;
 }
 

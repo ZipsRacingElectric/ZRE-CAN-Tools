@@ -84,6 +84,94 @@ int mdfRewriteBlockDataSection (FILE* mdf, mdfBlock_t* block)
 	return 0;
 }
 
+uint64_t mdfCgBlockWrite (FILE* mdf, mdfCgDataSection_t* dataSection, mdfCgLinkList_t* linkList)
+{
+	mdfBlock_t block;
+	mdfCgBlockInit (&block, dataSection, linkList);
+	uint64_t addr = mdfBlockWrite (mdf, &block);
+	mdfBlockDealloc (&block);
+
+	return addr;
+}
+
+uint64_t mdfTxBlockWrite (FILE* mdf, const char* text)
+{
+	mdfBlock_t block;
+	mdfTxBlockInit (&block, text);
+	uint64_t addr = mdfBlockWrite (mdf, &block);
+	mdfBlockDealloc (&block);
+	return addr;
+}
+
+uint64_t mdfMdBlockWrite (FILE* mdf, const char* xml)
+{
+	mdfBlock_t block;
+	mdfMdBlockInit (&block, xml);
+	uint64_t addr = mdfBlockWrite (mdf, &block);
+	mdfBlockDealloc (&block);
+	return addr;
+}
+
+uint64_t mdfCnBlockWrite (FILE* mdf, mdfCnDataSection_t* dataSection, mdfCnLinkList_t* linkList)
+{
+	mdfBlock_t block;
+	mdfCnBlockInit (&block, dataSection, linkList);
+	uint64_t addr = mdfBlockWrite (mdf, &block);
+	mdfBlockDealloc (&block);
+
+	return addr;
+}
+
+uint64_t mdfCcBlockWrite (FILE* mdf, mdfCcDataSection_t* dataSection, mdfCcLinkList_t* linkList)
+{
+	mdfBlock_t block;
+	mdfCcBlockInit (&block, dataSection, linkList);
+	uint64_t addr = mdfBlockWrite (mdf, &block);
+	mdfBlockDealloc (&block);
+
+	return addr;
+}
+
+uint64_t mdfSiBlockWrite (FILE* mdf, mdfSiDataSection_t* dataSection, mdfSiLinkList_t* linkList)
+{
+	mdfBlock_t block;
+	mdfSiBlockInit (&block, dataSection, linkList);
+	uint64_t addr = mdfBlockWrite (mdf, &block);
+	mdfBlockDealloc (&block);
+
+	return addr;
+}
+
+uint64_t mdfDtBlockWrite (FILE* mdf)
+{
+	mdfBlock_t block;
+	mdfDtBlockInit (&block);
+	uint64_t addr = mdfBlockWrite (mdf, &block);
+	mdfBlockDealloc (&block);
+
+	return addr;
+}
+
+uint64_t mdfDgBlockWrite (FILE* mdf, mdfDgLinkList_t* linkList)
+{
+	mdfBlock_t block;
+	mdfDgBlockInit (&block, linkList);
+	uint64_t addr = mdfBlockWrite (mdf, &block);
+	mdfBlockDealloc (&block);
+
+	return addr;
+}
+
+uint64_t mdfFhBlockWrite (FILE* mdf, mdfFhDataSection_t* dataSection, mdfFhLinkList_t* linkList)
+{
+	mdfBlock_t block;
+	mdfFhBlockInit (&block, dataSection, linkList);
+	uint64_t addr = mdfBlockWrite (mdf, &block);
+	mdfBlockDealloc (&block);
+
+	return addr;
+}
+
 static int alignBlock (FILE* mdf)
 {
 	// Get the current address of the stream.

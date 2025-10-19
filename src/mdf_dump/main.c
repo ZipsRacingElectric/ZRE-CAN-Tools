@@ -10,6 +10,7 @@
 
 // Includes
 #include "mdf/mdf_reader.h"
+#include "mdf/mdf_block_types.h"
 #include "debug.h"
 #include "error_codes.h"
 
