@@ -331,7 +331,7 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* rowPosition, 
 	// Map each row of the segment to its position in the window
 	int mapRowToPosition [SEGMENT_HEIGHT];
 
-	// Validate & map position for each row of the segment 
+	// Validate & map position for each row of the segment  
 	for (int i = 0; i < BMS_STATUS_SIGNALS_HEADER_HEIGHT; i++) {
 		if (checkRow(scrlTop, scrlBottom, row++)) { 
 			validRows[i] = true;
@@ -353,8 +353,8 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* rowPosition, 
 		
 	// Prints corners of the BMS Status Signals Panel header
 	if (validRows[0]) {
-		mvprintw (mapRowToPosition[0], column + 0,  "┌");
-		mvprintw (mapRowToPosition[0], column + 36, "┐");
+		mvprintw (mapRowToPosition[0], column + 0,  "╭");
+		mvprintw (mapRowToPosition[0], column + 36, "╮");
 	}
 	
 	// Print headers 
@@ -366,9 +366,20 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* rowPosition, 
 	// Print sides of the BMS Status Signals Panel header
 	for (int i = 1; i < 3; i++) {
 		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 0,  "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 29, "│");
 		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 30, "│");
 		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 36, "│");
 	}
+
+	// Fill in gaps in the frame of the BMS Status Signals Panel
+	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 29, "╮");
+	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 30, "╭");
+
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 0,  "├");
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 30, "├");
+
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 29, "┤");
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 36, "┤");
 
 	// Display each signal name and its corresponding value in a row
 	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage.signalCount; signalIndex++) {
@@ -378,6 +389,7 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* rowPosition, 
 		if (checkRow(scrlTop, scrlBottom, row++)) {
 			// Print boarders of the BMS Status Signals Panel row
 			mvprintw (*rowPosition, column + 0,  "│");	
+			mvprintw (*rowPosition, column + 29, "│");
 			mvprintw (*rowPosition, column + 30, "│");
 			mvprintw (*rowPosition, column + 36, "│");
 
@@ -414,6 +426,10 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* rowPosition, 
 
 		mvprintw (*rowPosition, column + 0,  "└");
 		mvprintw (*rowPosition, column + 36, "┘");
+
+		// Fill in gaps in the frame of the BMS Status Signals Panel
+		mvprintw (*rowPosition, column + 29, "┴");
+		mvprintw (*rowPosition, column + 30, "┴");
 	} 
 }
 
