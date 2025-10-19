@@ -4,7 +4,7 @@
 # - 1 - Device name (optional)
 
 # Initialize the CAN device
-DEVICE=$($ZRE_CANTOOLS_DIR/bin/can-init 1000000 $1)
+DEVICE=$($ZRE_CANTOOLS_DIR/bin/can-init 500000 $1)
 if [ "$?" != 0 ]; then
 	exit $?
 fi
