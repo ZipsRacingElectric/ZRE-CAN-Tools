@@ -55,7 +55,7 @@ void promptFrame (canFrame_t* frame)
 /*
 	Manual Page for the Transmit & Receive Methods
 */
-void displayHelp() 
+void displayHelp ()
 {
 	printf ("\n\
 			Methods:\n\
@@ -105,10 +105,10 @@ void printFrame (canFrame_t* frame)
 	printf ("0x%03X[", frame->id);
 	for (uint8_t index = 0; index < frame->dlc; ++index)
 	{
+		// REVIEW(Barach): For consistency, this should have the '0x' prefix to indicate it is hex.
 		printf ("%02X", frame->data [index]);
-		if (index != frame->dlc -1) {
+		if (index != frame->dlc -1)
 			printf (",");
-		}
 	}
 
 	printf ("]\n");
@@ -133,82 +133,102 @@ unsigned long int promptTimeout ()
 /*
 	- Syntax ex). t=1[1,2,3,4,5,6,7,8]@0.5, 12
 */
-int transmitFrame (canDevice_t* device, char* command) {
+int transmitFrame (canDevice_t* device, char* command)
+{
 	canFrame_t frame;
+
+	// REVIEW(Barach): Since we are casting later, this should be a uint8_t
 	int byteCount = 0;
 
 	// Check if command is only 't'
-	if (command[1] == '\0') {
+	if (command[1] == '\0')
+	{
 		// Interactive Transmit Method
 		promptFrame (&frame);
-		
+
 		// Transmits CAN Frame
-		if (canTransmit (device, &frame) == 0) {
+		if (canTransmit (device, &frame) == 0)
+		{
 			printf ("Success.\n");
 			return 0;
 
-		} else {
+		}
+		else
+		{
 			fprintf (stderr, "Error: %s.\n", errorMessage (errno));
 			return errno;
 		}
 	}
 
 	// Set Iterations
-	strtok(command, "@"); // seperates backet segment of the command from the iteration / frequency part
-	
+	strtok (command, "@"); // seperates backet segment of the command from the iteration / frequency part
+
 	float frequency;
 	int transmitIterations;
 	char* x = strtok (NULL, ",");
-	if (x == NULL) {
+	if (x == NULL)
+	{
 		frequency = 1.0;
 		transmitIterations = 1;
-	} else {
+	}
+	else
+	{
 		frequency = strtof (x, NULL); // in hertz
 		x = strtok (NULL, ",");
-		if (x == NULL) 
+		if (x == NULL)
 			transmitIterations = 1;
 		else
 	 		transmitIterations = (uint32_t) strtoul (x, NULL, 0);
 	}
 	long totalMicroseconds = (1e6 / frequency); // microseconds = 1,000,000 / hertz
-	
+
 	long microseconds = totalMicroseconds % 1000000;
 	time_t seconds = totalMicroseconds / 1000000;
 
-	struct timeval timeout = 
+	struct timeval timeout =
 	{
 		.tv_sec = seconds,
 		.tv_usec = microseconds
 	};
-	
+
 	struct timeval deadline;
 	struct timeval currentTime;
 
 	// Assign Frame ID
-	if (command[0] == '[') { // if the first index in the command is '[' (not id)
+	if (command[0] == '[')
+	{
+		// if the first index in the command is '[' (not id)
 		fprintf (stderr, "Please, enter an ID\n\n");
 		return -1;
 	}
 
 	// Validate id input
+	// REVIEW(Barach): 0x000 should be a valid ID.
+	// REVIEW(Barach): Unchecked strtok result. Causes segv when no ID is present.
 	uint32_t id = (uint32_t) strtoul (strtok (command, "["), NULL, 0);
-	if (id <= 0) {
+	if (id <= 0)
+	{
 		fprintf (stderr, "Invalid ID Input\n\n");
 		return -1;
 	}
 	frame.id = id;
-	
-	// Assign Frame Data
-	// Parses out ids between the brackets from the input 
-	while (true) {
-		char* byte = strtok (NULL, ",");
-		if (byte == NULL) {
-			break;
 
+	// Assign Frame Data
+	// Parses out ids between the brackets from the input
+	while (true)
+	{
+		char* byte = strtok (NULL, ",");
+		if (byte == NULL)
+		{
+			break;
+		}
+		// REVIEW(Barach): What is this meant to do?
 		// Checks if the every character '1' - '9' is not present in the byte and skips over the index if this is true
-		} else if (strcspn (byte, "123456789") == strlen(byte)) {
+		else if (strcspn (byte, "123456789") == strlen (byte))
+		{
 			continue;
 		}
+
 		frame.data[byteCount] = (uint8_t) strtol (byte, NULL, 0);
 		byteCount++;
 	}
@@ -218,22 +238,25 @@ int transmitFrame (canDevice_t* device, char* command) {
 
 	// Transmit Frame
 	printf ("\n");
-	for (int i = 0; i < transmitIterations; i++) {
+	for (int i = 0; i < transmitIterations; i++)
+	{
 		// Start Timer
 		gettimeofday (&currentTime, NULL);
 		timeradd (&currentTime, &timeout, &deadline);
 
 		// Transmits the Can Frame
-		if (canTransmit (device, &frame) == 0) {
+		if (canTransmit (device, &frame) == 0)
+		{
 			// Displays the transmitted CAN Frame
-			printFrame(&frame);
-			
-		} else {
+			printFrame (&frame);
+		}
+		else
+		{
 			printf ("Error: %s.\n", errorMessage (errno));
 		}
 
 		// Wait until deadline is reached
-		while (timercmp (&currentTime, &deadline, <) && i != transmitIterations -1) 
+		while (timercmp (&currentTime, &deadline, <) && i != transmitIterations -1)
 			gettimeofday (&currentTime, NULL);
 	}
 	printf ("\n");
@@ -243,30 +266,40 @@ int transmitFrame (canDevice_t* device, char* command) {
 /*
 	- Syntax ex). r=[512,513,514,515,1536,1]@12	/ d=[512,513,514,515,1536,1]
 */
-int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
+int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
+{
 	canFrame_t frame;
 	bool filterIds = false;
 	uint32_t canIds [MAX_CAN_ID_COUNT];
-	
+
 	// Get Iterations from Input
 	int receiveIterations;
-	if (! infiniteIterations) { // if the user is using the receive (r) method
-		strtok(command, "@");
+	if (!infiniteIterations)
+	{
+		// if the user is using the receive (r) method
+
+		strtok (command, "@");
+		// REVIEW(Barach): Unchecked strtok result. Causes segv when no '@' is present. If no '@' is present, the program
+		//   should only receive 1 message.
 		receiveIterations = (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0);
-		if (receiveIterations == 0) receiveIterations = 1;
+		if (receiveIterations == 0)
+			receiveIterations = 1;
 	}
-	
+
 	// Parse CAN IDs
+	// REVIEW(Barach): This should use the size_t datatype, as we are later comparing with another size_t.
 	int canIdIndex = 0;
-	if (command[0] == '[') {
+	if (command[0] == '[')
+	{
 		command++;
 
-		while (true) {
+		while (true)
+		{
 			char* id = (canIdIndex == 0) ? strtok (command, ",]") : strtok (NULL, ",]");
 			// Checks if the parse is invalid
-			if (id == NULL) { 
+			if (id == NULL)
 				break;
-			}
+
 			canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, 0);
 			filterIds = true; // indicates that the user has input at least one id
 			canIdIndex++;
@@ -275,79 +308,93 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations) {
 	}
 
 	// Receive Frame
-	while (infiniteIterations || receiveIterations > 0) { 
-		if (canReceive (device, &frame) == 0) { // receives a CAN Frame from the bus
-			if (! filterIds) { // checks that the user has input ids
+	while (infiniteIterations || receiveIterations > 0)
+	{
+		// receives a CAN Frame from the bus
+		if (canReceive (device, &frame) == 0)
+		{
+			if (!filterIds)
+			{
+				// checks that the user has input ids
+
 				printFrame (&frame);
 				receiveIterations--;
 				continue;
 			}
-			else {
-				for (size_t i = 0; i < canIdIndex; i++) {
-					if (canIds[i] == frame.id) {
+			else
+			{
+				for (size_t i = 0; i < canIdIndex; i++)
+				{
+					if (canIds[i] == frame.id)
+					{
 						printFrame (&frame);
 						receiveIterations--;
 						break;
 					}
 				}
 			}
-		} else {
+		}
+		else
+		{
 			printf ("Error: %s.\n", errorMessage (errno));
 		}
 	}
+
 	printf ("\n");
 	return 0;
 }
 
 /*
-	- Takes Entire Command and Processes it	
+	- Takes Entire Command and Processes it
 */
-int processCommand (canDevice_t* device, char* command) {	
+int processCommand (canDevice_t* device, char* command)
+{
 	// Get Method & Shift Command
 	long unsigned int timeoutMs;
 	char method = command[0]; // gets method type (t / r / d)
 	command += 2;
-	
-	switch (method) {
-	case 't': 
+
+	switch (method)
+	{
+	case 't':
 		transmitFrame (device, command);
 		break;
 
-	case 'r': 
-		receiveFrame(device, command, false);
+	case 'r':
+		receiveFrame (device, command, false);
 		break;
 
 	case 'd':
-		receiveFrame(device, command, true);
+		receiveFrame (device, command, true);
 		break;
 
 	case 'h':
-		displayHelp();
+		displayHelp ();
 		break;
 
-	case 'f': {
+	case 'f':
 		if (canFlushRx (device) != 0)
 			printf ("Error: %s.\n", errorMessage (errno));
 		break;
 
-	}
-	case 'm': { 
-		timeoutMs = promptTimeout (); 
+	case 'm':
+		timeoutMs = promptTimeout ();
 		if (canSetTimeout (device, timeoutMs) != 0)
 			printf ("Error: %s.\n", errorMessage (errno));
 		break;
 
-	}
-	case 'q': {
+	case 'q':
 		return -1;
-	}}
+
+	}
+
 	return 0;
 }
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
-{	
+{
 	if (argc < 2)
 	{
 		fprintf (stderr, "Format: can-dev-cli <options> <device name>\n");
@@ -357,7 +404,6 @@ int main (int argc, char** argv)
 	char* deviceName = argv [argc - 1];
 
 	// Check for query mode
-	// TODO(Barach): This is pretty messy.
 	bool queryMode = false;
 	for (int index = 1; index < argc - 1; ++ index)
 	{
@@ -367,7 +413,6 @@ int main (int argc, char** argv)
 
 	canDevice_t* device = canInit (deviceName);
 
-	// Interactive Mode
 	// If this is query mode, return successful
 	if (queryMode)
 		return 0;
@@ -380,21 +425,23 @@ int main (int argc, char** argv)
 	}
 
 	// Directly From Command Line
-	if (argc == 3) {
+	if (argc == 3)
+	{
 		char* command = argv [1];
-		if (command[0] == '-') 
+		if (command[0] == '-')
 			processCommand (device, ++command);
 
-		else 
+		else
 			printf ("Options should start with '-'\n");
-		
-		return 0;
 
-	} else {
+		return 0;
+	}
+	else
+	{
 		while (true)
 		{
-			char command [512];  
-		
+			char command [512];
+
 			printf ("Enter an option:\n");
 			printf (" t - Transmit a CAN message.\n");
 			printf (" r - Receive a CAN message.\n");
@@ -405,10 +452,12 @@ int main (int argc, char** argv)
 			printf (" q - Quit the program.\n");
 
 			// Get User Input
-			fgets(command, sizeof(command), stdin);
+			fgets (command, sizeof (command), stdin);
 
-			if (processCommand (device, command) == -1) return 0;
-		};
+			if (processCommand (device, command) == -1)
+				return 0;
+		}
 	}
+
 	return 0;
 }
