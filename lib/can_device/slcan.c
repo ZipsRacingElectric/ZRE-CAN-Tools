@@ -154,16 +154,34 @@ int slcanTransmit (void* device, canFrame_t* frame)
 
 int slcanReceive (void* device, canFrame_t* frame)
 {
+	int code;
 	slcan_t* can = device;
 
 	can_message_t message;
-	int code = can_read (can->handle, &message, can->timeoutMs);
+
+	/*
+		can_read() = -30 (Recevier Empty) Overview
+
+		Context:
+			- Windows only
+			- Intermittent -- replicable when receiving from the CAN bus with no valid ids as input
+		Error: Can_Read is returning -30 (Recevier Empty)
+			- timout value is set to 65535 which should create blocking functionality in the function (is not working in this context)
+	 	Fix: repeat the can_read() function which essentially creates a blocking operation
+	*/
+	do
+	{
+		code = can_read (can->handle, &message, can->timeoutMs);
+	} while (can->timeoutMs == 65535 && code == -30);
+
 	if (code != 0)
 	{
 		// Offset the error code to match this project's convention.
 		errno = code + 10000;
 		return errno;
 	}
+
+
 
 	frame->id = message.id;
 	frame->dlc = message.dlc;
