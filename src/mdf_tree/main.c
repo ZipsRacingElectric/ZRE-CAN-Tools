@@ -10,9 +10,11 @@
 
 // Includes
 #include "mdf/mdf_reader.h"
+#include "mdf/mdf_block_types.h"
 #include "debug.h"
 #include "error_codes.h"
 #include "list.h"
+#include "array.h"
 
 // C Standard Library
 #include <errno.h>
@@ -24,7 +26,9 @@
 
 // Globals --------------------------------------------------------------------------------------------------------------------
 
-listDefine (uint64_t);
+listDefine (uint64_t)
+arrayDefine (uint64_t)
+
 list_t (uint64_t) addrHistory;
 
 bool skipRepeats = false;
@@ -50,14 +54,14 @@ void printTextBlockCharacter (mdfBlock_t* block, uint8_t data, void* arg)
 
 int printTextBlock (mdfBlock_t* block, FILE* mdf, FILE* stream)
 {
-	fprintf (stream, " - ");
-
-	if (mdfReadBlockDataSection (mdf, block, printTextBlockCharacter, stream))
+	if (mdfReadBlockDataSection (mdf, block))
 	{
 		int code = errno;
 		fprintf (stderr, "Failed to read MDF block data section: %s.\n", errorMessage (code));
 		return code;
 	}
+
+	fprintf (stream, " - %s", (char*) block->dataSection);
 
 	return 0;
 }
@@ -103,13 +107,13 @@ int printBlockTree (uint64_t addr, treeArg_t* arg, FILE* mdf, FILE* stream)
 			return code;
 		}
 
-		fprintf (stream, "%s - 0x%08lX", mdfBlockIdToString (block.header.blockId), block.addr);
+		fprintf (stream, "%s - 0x%08lX", block.header.blockIdString, block.addr);
 
 		if (block.header.blockId == MDF_BLOCK_ID_TX)
 			if (printTextBlock (&block, mdf, stream) != 0)
 				return errno;
 
-		if (skipRepeats && listContains (uint64_t) (&addrHistory, block.addr))
+		if (skipRepeats && arrayContains (uint64_t) (listArray (uint64_t) (&addrHistory), block.addr, listSize (uint64_t) (&addrHistory)))
 		{
 			if (block.header.linkCount != 0)
 				fprintf (stream, " (Repeat)");

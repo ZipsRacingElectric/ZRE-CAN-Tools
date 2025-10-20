@@ -1,3 +1,6 @@
+#ifndef LIST_H
+#define LIST_H
+
 // Generic Datatype List ------------------------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
@@ -12,7 +15,7 @@
 // At the top-level scope, the list must be explicitly defined for the specific datatype (or datatypes) it is to be used with.
 // This is done via the listDefine(...) macro. Ex:
 //
-//   listDefine (float);
+//   listDefine (float)
 //
 // To instance a list, the list's datatype is given by the list_t(...) macro. Ex:
 //
@@ -70,6 +73,14 @@
 	listDealloc_ ## datatype
 
 /**
+ * @brief Appends an uninitialized element to the end of a list, re-allocating the list if necessary.
+ * @param list The list to append to.
+ * @return 0 if successful, the error code otherwise.
+ */
+#define listAppendUninit(datatype)																							\
+	listAppendUninit_ ## datatype
+
+/**
  * @brief Appends an element to the end of a list, re-allocating the list if necessary.
  * @param list The list to append to.
  * @param element The element to append.
@@ -84,6 +95,33 @@
  */
 #define listTruncate(datatype)																								\
 	listTruncate_ ## datatype
+
+/**
+ * @brief Gets the value of an element in a list.
+ * @param list The list to get from.
+ * @param index The index of the element to get.
+ * @return The element at said index.
+ */
+#define listGet(datatype)																									\
+	listGet_ ## datatype
+
+/**
+ * @brief Sets the value of an element in a list.
+ * @param list The list to set in.
+ * @param index The index of the element to set.
+ * @param element The value to set.
+ */
+#define listSet(datatype)																									\
+	listSet_ ## datatype
+
+/**
+ * @brief Gets a reference to an element in a list.
+ * @param list The list to get from.
+ * @param index The index of the element to get.
+ * @return A pointer to the element at said index.
+ */
+#define listGetReference(datatype)																							\
+	listGetReference_ ## datatype
 
 /// @return An array containing the contents of the list. Note this array is invalid after any operation is performed to the
 /// list. The size of this array is indicated by the @c listSize function-like macro.
@@ -148,7 +186,7 @@
 		free (list->array);																									\
 	}																														\
 																															\
-	static inline int listAppend (datatype) (list_t (datatype)* list, datatype element)										\
+	static inline int listAppendUninit (datatype) (list_t (datatype)* list)													\
 	{																														\
 		/* Check if there is space in the list. */																			\
 		if (list->size + 1 > list->capacity)																				\
@@ -159,10 +197,18 @@
 		}																													\
 																															\
 		/* Add the element to the end of the list */																		\
-		list->array [list->size] = element;																					\
 		++list->size;																										\
 																															\
 		/* Success */																										\
+		return 0;																											\
+	}																														\
+																															\
+	static inline int listAppend (datatype) (list_t (datatype)* list, datatype element)										\
+	{																														\
+		if (listAppendUninit (datatype) (list) != 0)																		\
+			return errno;																									\
+																															\
+		list->array [list->size - 1] = element;																				\
 		return 0;																											\
 	}																														\
 																															\
@@ -173,6 +219,21 @@
 			--list->size;																									\
 	}																														\
 																															\
+	static inline datatype listGet (datatype) (list_t (datatype)* list, size_t index)										\
+	{																														\
+		return list->array [index];																							\
+	}																														\
+																															\
+	static inline void listSet (datatype) (list_t (datatype)* list, size_t index, datatype element)							\
+	{																														\
+		list->array [index] = element;																						\
+	}																														\
+																															\
+	static inline datatype* listGetReference (datatype) (list_t (datatype)* list, size_t index)								\
+	{																														\
+		return &list->array [index];																						\
+	}																														\
+																															\
 	static inline datatype* listArray (datatype) (list_t (datatype)* list)													\
 	{																														\
 		return list->array;																									\
@@ -181,14 +242,6 @@
 	static inline size_t listSize (datatype) (list_t (datatype)* list)														\
 	{																														\
 		return list->size;																									\
-	}																														\
-																															\
-	static inline bool listContains (datatype) (list_t (datatype)* list, datatype element)									\
-	{																														\
-		for (size_t index = 0; index < list->size; ++index)																	\
-			if (list->array [index] == element)																				\
-				return true;																								\
-																															\
-		return false;																										\
 	}
 
+#endif // LIST_H

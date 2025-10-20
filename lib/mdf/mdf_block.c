@@ -1,17 +1,55 @@
 // Header
 #include "mdf_block.h"
 
-char* mdfBlockIdToString (uint64_t blockId)
-{
-	switch (blockId)
-	{
-	case MDF_BLOCK_ID_DT:
-		return "##DT";
-	case MDF_BLOCK_ID_MD:
-		return "##MD";
-	case MDF_BLOCK_ID_TX:
-		return "##TX";
-	}
+// C Standard Library
+#include <errno.h>
+#include <stdlib.h>
 
-	return "UNKNOWN";
+int mdfBlockInit (mdfBlock_t* block, uint64_t blockId, uint64_t linkCount, uint64_t dataSectionSize)
+{
+	block->header.blockId = blockId;
+	block->header.linkCount = linkCount;
+	block->header.blockLength = dataSectionSize + sizeof (block->header) + sizeof (uint64_t) * linkCount;
+
+	return mdfBlockInitHeader (block);
+}
+
+int mdfBlockInitHeader (mdfBlock_t* block)
+{
+	// Terminate the block ID string if it isn't already
+	block->header.blockIdString [sizeof (block->header.blockIdString) - 1] = '\0';
+
+	// Allocate the block's link list
+	if (block->header.linkCount != 0)
+	{
+		block->linkList = calloc (block->header.linkCount, sizeof (uint64_t));
+		if (block->linkList == NULL)
+			return errno;
+	}
+	else
+		block->linkList = NULL;
+
+	// Allocate the block's data section
+	uint64_t dataSectionSize = mdfBlockDataSectionSize (block);
+	if (dataSectionSize != 0)
+	{
+		block->dataSection = calloc (dataSectionSize, 1);
+		if (block->dataSection == NULL)
+			return errno;
+	}
+	else
+		block->dataSection = NULL;
+
+	return 0;
+}
+
+void mdfBlockDealloc (mdfBlock_t* block)
+{
+	// Deallocate the data section
+	if (block->dataSection != NULL)
+		free (block->dataSection);
+
+	// Deallocate the link list
+	if (block->linkList != NULL)
+		free (block->linkList);
 }

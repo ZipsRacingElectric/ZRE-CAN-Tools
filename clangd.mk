@@ -1,3 +1,5 @@
+# TODO(Barach): This is broken on Windows. Also, consider global compile_commands.json
+
 # This generates the Clangd compile_commands.json file.
 $(CLANGD_FILE): $(SRC)
 	rm -f $(CLANGD_FILE);

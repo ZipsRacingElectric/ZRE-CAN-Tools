@@ -1,3 +1,6 @@
+#ifndef MDF_READER_H
+#define MDF_READER_H
+
 // MDF Reader -----------------------------------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
@@ -7,6 +10,10 @@
 //
 // References:
 // - https://www.asam.net/standards/detail/mdf/wiki/
+// - https://asammdf.readthedocs.io/en/latest/v4blocks.html
+
+// TODO(Barach):
+// - Should probably replace 3 separate functions.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -16,20 +23,16 @@
 // C Standard Library
 #include <stdio.h>
 
-// Datatypes ------------------------------------------------------------------------------------------------------------------
-
-typedef void (mdfByteHandler_t) (mdfBlock_t* block, uint8_t data, void* arg);
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-int mdfReadFileIdBlock (FILE* stream, mdfFileIdBlock_t* fileIdBlock);
+int mdfReadFileIdBlock (FILE* mdf, mdfFileIdBlock_t* fileIdBlock);
 
-int mdfReaderSkipToBlock (FILE* stream);
+int mdfReadBlockHeader (FILE* mdf, mdfBlock_t* block);
 
-int mdfReadBlockHeader (FILE* stream, mdfBlock_t* block);
+int mdfReadBlockLinkList (FILE* mdf, mdfBlock_t* block);
 
-int mdfReadBlockLinkList (FILE* stream, mdfBlock_t* block);
+int mdfReadBlockDataSection (FILE* mdf, mdfBlock_t* block);
 
-int mdfReadBlockDataSection (FILE* stream, mdfBlock_t* block, mdfByteHandler_t* dataSectionByteHandler, void* dataSectionByteArg);
+int mdfReaderJumpToBlock (FILE* mdf);
 
-void mdrReaderDeallocBlock (mdfBlock_t* block);
+#endif // MDF_READER_H
