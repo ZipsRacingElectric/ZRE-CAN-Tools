@@ -1,7 +1,6 @@
 // CAN Device CLI -------------------------------------------------------------------------------------------------------------
 //
-// Author: Cole Barach
-// Date Created: 2025.07.04
+// Author: Cole Barach, Owen DiBacco
 //
 // Description: Command-line interface for controlling a CAN adapter.
 
@@ -19,23 +18,31 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+// Constant used to initilize canIds array in the receive method
+const int MAX_CAN_ID_COUNT = 32;
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-// DiBacco: function no longer used
+/*
+	Function used by the interactive frame trasmit implementation to prompt frame information from the user and assign it to the frame accordingly
+*/
 void promptFrame (canFrame_t* frame)
 {
 	char buffer [512];
 
+	// id
 	printf ("Enter the ID of the message: ");
 	fgets (buffer, sizeof (buffer), stdin);
 	buffer [strcspn (buffer, "\r\n")] = '\0';
 	frame->id = strtol (buffer, NULL, 0);
 
+	// DLC
 	printf ("Enter the DLC of the message: ");
 	fgets (buffer, sizeof (buffer), stdin);
 	buffer [strcspn (buffer, "\r\n")] = '\0';
 	frame->dlc = strtol (buffer, NULL, 0);
 
+	// Payload
 	for (uint8_t index = 0; index < frame->dlc; ++index)
 	{
 		printf ("Enter byte %i of the payload: ", index);
@@ -45,48 +52,72 @@ void promptFrame (canFrame_t* frame)
 	}
 }
 
-// TODO(DiBacco): create a manual page for the can-dev-cli command
-void displayHelp() 
+/*
+	Manual Page for the Transmit & Receive Methods
+*/
+void displayHelp ()
 {
-	// TODO(DiBacco): create a manual page for the can-dev-cli command
+	printf ("\n\
+			Methods:\n\
+			Transmiting Frames:\n\
+    			t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]\n\
+        			Transmits a single CAN frame.\n\
+				\n\
+    			t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]@<Freq>,<Count>\n\
+        			Transmits a CAN frame at a specified frequency.\n\
+				\n\
+    			Arguments:\n\
+        			ID     - The CAN ID of the frame to transmit.\n\
+        			Byte n - The n'th byte of the payload, in little-endian.\n\
+        			Freq   - The frequency to transmit at, in Hertz.\n\
+        			Count  - The number of times to transmit the message.\n\
+			\n\
+			Receiving Frames:\n\
+   				r - Receives the first available CAN message.\n\
+				\n\
+    			r=[<ID 0>,<ID 1>,...<ID n>]\n\
+        			Receives the first available CAN message from a list of IDs.\n\
+				\n\
+    			r=[<ID 0>,<ID 1>,...<ID n>]@<Count>\n\
+        			Receives the first set of availble CAN messages from a list of IDs.\n\
+				\n\
+    			r=[]@<Iterations>\n\
+        			Receives the first set of available CAN messages.\n\
+				\n\
+    			d - Dumps all received CAN messages.\n\
+				\n\
+    			d=[<ID 0>,<ID 1>,...<ID n>]\n\
+        			Dumps all received CAN messages from a list of IDs.\n\
+				\n\
+    			Arguments:\n\
+        			ID n  - The n'th CAN ID to filter for.\n\
+        			Count - Specifies the number CAN frames to receive\n\
+		");
+	printf ("\n");
 }
 
 /*
 	- Nested function for the Receive Method
-	- Print the Frame if the ID matches one of the provided IDs
+	- Output is displayed in 0xid[<byte1>,<byte2>, ...] format
 */
 void printFrame (canFrame_t* frame)
 {
-	printf ("0x%3X: [", frame->id);
-	for (uint8_t index = 0; index < frame->dlc; ++index) 
+	printf ("0x%03X[", frame->id);
+	for (uint8_t index = 0; index < frame->dlc; ++index)
 	{
-		printf ("%02X,", frame->data [index]);
+		// REVIEW(Barach): For consistency, this should have the '0x' prefix to indicate it is hex.
+		printf ("%02X", frame->data [index]);
+		if (index != frame->dlc -1)
+			printf (",");
 	}
 
-	printf ("\b]\n");
+	printf ("]\n");
 	return;
 }
 
-void receiveTimeout (time_t seconds, long microseconds)
-{
-	struct timeval timeout = 
-	{
-		.tv_sec = seconds,
-		.tv_usec = microseconds
-	};
-	
-	struct timeval deadline;
-	struct timeval currentTime;
-	gettimeofday (&currentTime, NULL);
-	timeradd (&currentTime, &timeout, &deadline);
-	
-	while (timercmp (&currentTime, &deadline, <))
-	{
-		gettimeofday (&currentTime, NULL);
-	}
-	printf ("Done\n");
-}
-
+/*
+	Assigns duration for the CAN BUS to wait when it is not receiving frames
+*/
 unsigned long int promptTimeout ()
 {
 	char buffer [512];
@@ -100,276 +131,279 @@ unsigned long int promptTimeout ()
 // Method Functions ------------------------------------------------------------------------------------------------------------
 
 /*
-	- Syntax ex). t=1[1,2,3,4,5,6,7,8]@12
+	- Syntax ex). t=1[1,2,3,4,5,6,7,8]@0.5, 12
 */
-int transmitFrame (canDevice_t* device, char* command) {
-	// TODO(DiBacco): figure out why transmit function is not working correctly from the command line
+int transmitFrame (canDevice_t* device, char* command)
+{
 	canFrame_t frame;
-	char* originalCommand;
 
-	// Validate Input
-    // TODO (DiBacco): may need to add ' ' functionality between bytes in the payload
-    // TODO (DiBacco): may need to validate that each id is within a certain range during parsing
-    bool hasPayload = false;
-    bool hasIterationInput = false; 
-    int x = strcspn (command, "["); 
-    int y = strcspn (command, "]");
-    if (command[0] == '[') {
-        printf ("Invalid Input: Missing ID Field\n");
-        return 1;
-    }
-    if (! (command[x] == '[' && command[y] == ']')) {
-        printf("Invalid Input: Missing Brackets\n");
-        return 1;
-    }
-    for (int i = 0; i < x; i++) {
-        if (! ((command[i] >= '0' && command[i] <= '9'))) {
-            printf("Invalid Input: Invalid Character in Input Field\n");
-            return 1;
-        }
-    }
-    for (int i = x + 1; i < y; i++) {
-        if (! ((command[i] >= '0' && command[i] <= '9') || command[i] == ',')) {
-            if (i > 1 && command[i] == ' ' && (command[i-1] == ',' || command[i-1] == ' '))  continue; 
-            printf("Invalid Input: Invalid Character in Brackets\n");
-            return 1;
-        } else {
-            hasPayload = true;
-        }
-    }
-    if (! hasPayload) {
-        printf("Invalid Input: Missing Payload\n");
-        return 1;
-    }
-    if (! (command[y + 1] == '\0')) {
-        if (! (command[y + 1] == '@')) {
-            printf("Invalid Input: Invalid Symbol After Brackets (@)\n");
-            return 1;
-        } 
-        for (int i = y + 2; i < strlen(command); i++) {
-            if (! ((command[i] >= '0' && command[i] <= '9'))) {
-                printf("Invalid Input: Invalid Iteration Input\n");
-                return 1;
-            } else {
-                hasIterationInput = true;
-            }
-        }
-        if (! hasIterationInput) {
-            printf("Invalid Input: Missing Iteration Input\n");
-            return 1;
-        }
-    }
+	// REVIEW(Barach): Since we are casting later, this should be a uint8_t
+	int byteCount = 0;
 
-	// Set Iterations
-	int transmitIterations = 1;
-	size_t delimiterPosition = strcspn (command, "@");
-	if (command[delimiterPosition] == '@') {
-		transmitIterations = strtol(command + delimiterPosition + 1, NULL, 10);
-		command[transmitIterations] = '\0';
-		strcpy (originalCommand, command);
-	} else {
-		strcpy (originalCommand, command);
-	}
-	command[strlen(command) -1] = '\0';
+	// Check if command is only 't'
+	if (command[1] == '\0')
+	{
+		// Interactive Transmit Method
+		promptFrame (&frame);
 
-	// Get Number of DLC Bytes
-	int dlcBytes = 1;
-	for (size_t i = 0; i < strlen(command); i++) {
-		if (strchr (",", command[i]) != NULL) { 
-			dlcBytes++;
+		// Transmits CAN Frame
+		if (canTransmit (device, &frame) == 0)
+		{
+			printf ("Success.\n");
+			return 0;
+
 		}
-	}
-	
-	// Assign Frame ID
-	int id = atoi (strtok (command, "["));
-	frame.id = (uint32_t) id;
-
-	// Assign Frame DLC & Data
-	frame.dlc = (uint8_t) dlcBytes;
-	for (int i = 0; i < dlcBytes; i++) {
-		char* byte = strtok (NULL, ",");
-		frame.data[i] = (uint8_t) strtol (byte, NULL, 0);
-	}
-
-	// Transmit Frame
-	printf ("\n");
-	for (int i = 0; i < transmitIterations; i++) {
-		if (canTransmit (device, &frame) == 0) {
-			printf ("%2d). %s => Success\n", i + 1, originalCommand);
-		} else {
-			printf ("Error: %s.\n", errorMessage (errno));
+		else
+		{
+			fprintf (stderr, "Error: %s.\n", errorMessage (errno));
 			return errno;
 		}
 	}
+
+	// Set Iterations
+	strtok (command, "@"); // seperates backet segment of the command from the iteration / frequency part
+
+	float frequency;
+	int transmitIterations;
+	char* x = strtok (NULL, ",");
+	if (x == NULL)
+	{
+		frequency = 1.0;
+		transmitIterations = 1;
+	}
+	else
+	{
+		frequency = strtof (x, NULL); // in hertz
+		x = strtok (NULL, ",");
+		if (x == NULL)
+			transmitIterations = 1;
+		else
+	 		transmitIterations = (uint32_t) strtoul (x, NULL, 0);
+	}
+	long totalMicroseconds = (1e6 / frequency); // microseconds = 1,000,000 / hertz
+
+	long microseconds = totalMicroseconds % 1000000;
+	time_t seconds = totalMicroseconds / 1000000;
+
+	struct timeval timeout =
+	{
+		.tv_sec = seconds,
+		.tv_usec = microseconds
+	};
+
+	struct timeval deadline;
+	struct timeval currentTime;
+
+	// Assign Frame ID
+	if (command[0] == '[')
+	{
+		// if the first index in the command is '[' (not id)
+		fprintf (stderr, "Please, enter an ID\n\n");
+		return -1;
+	}
+
+	// Validate id input
+	// REVIEW(Barach): 0x000 should be a valid ID.
+	// REVIEW(Barach): Unchecked strtok result. Causes segv when no ID is present.
+	uint32_t id = (uint32_t) strtoul (strtok (command, "["), NULL, 0);
+	if (id <= 0)
+	{
+		fprintf (stderr, "Invalid ID Input\n\n");
+		return -1;
+	}
+	frame.id = id;
+
+	// Assign Frame Data
+	// Parses out ids between the brackets from the input
+	while (true)
+	{
+		char* byte = strtok (NULL, ",");
+		if (byte == NULL)
+		{
+			break;
+		}
+		// REVIEW(Barach): What is this meant to do?
+		// Checks if the every character '1' - '9' is not present in the byte and skips over the index if this is true
+		else if (strcspn (byte, "123456789") == strlen (byte))
+		{
+			continue;
+		}
+
+		frame.data[byteCount] = (uint8_t) strtol (byte, NULL, 0);
+		byteCount++;
+	}
+
+	// Assign Frame DLC
+	frame.dlc = (uint8_t) byteCount;
+
+	// Transmit Frame
+	printf ("\n");
+	for (int i = 0; i < transmitIterations; i++)
+	{
+		// Start Timer
+		gettimeofday (&currentTime, NULL);
+		timeradd (&currentTime, &timeout, &deadline);
+
+		// Transmits the Can Frame
+		if (canTransmit (device, &frame) == 0)
+		{
+			// Displays the transmitted CAN Frame
+			printFrame (&frame);
+		}
+		else
+		{
+			printf ("Error: %s.\n", errorMessage (errno));
+		}
+
+		// Wait until deadline is reached
+		while (timercmp (&currentTime, &deadline, <) && i != transmitIterations -1)
+			gettimeofday (&currentTime, NULL);
+	}
+	printf ("\n");
 	return 0;
 }
 
 /*
-	- Syntax ex). r=[512,513,514,515,1536,1]@12	
+	- Syntax ex). r=[512,513,514,515,1536,1]@12	/ d=[512,513,514,515,1536,1]
 */
-int receiveFrame (canDevice_t* device, char* command) {
+int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
+{
 	canFrame_t frame;
-	
-	int canIdIndex = 0;
-	size_t canIdLength = 1;
+	bool filterIds = false;
+	uint32_t canIds [MAX_CAN_ID_COUNT];
 
-	// Validate Input
-    // TODO (DiBacco): may need to add ' ' functionality between ids
-    // TODO (DiBacco): may need to validate that each id is within a certain range during parsing
-	int x = strcspn (command, "]");
-    bool hasIds = false;
-    bool hasIterationInput = false;
-    if (! (command[0] == '[' && command[x] == ']')) {
-        printf("Invalid Input: Missing Brackets\n");
-        return 1;
-    } 
-    for (int i = 1; i < x; i++) {
-        if (! ((command[i] >= '0' && command[i] <= '9') || command[i] == ',')) {
-            if (i > 1 && command[i] == ' ' && (command[i-1] == ',' || command[i-1] == ' '))  continue; 
-            printf("Invalid Input: Invalid Character in Brackets\n");
-            return 1;
-        } else {
-            hasIds = true;
-        }
-    }
-    if (! hasIds) {
-        printf("Invalid Input: Missing IDs in Brackets\n");
-        return 1;
-    }
-    if (! (command[x + 1] == '\0')) {
-        if (! (command[x + 1] == '@')) {
-            printf("Invalid Input: Invalid Symbol After Brackets (@)\n");
-            return 1;
-        } 
-        for (int i = x + 2; i < strlen(command); i++) {
-            if (! ((command[i] >= '0' && command[i] <= '9'))) {
-                printf("Invalid Input: Invalid Iteration Input\n");
-                return 1;
-            } else {
-                hasIterationInput = true;
-            }
-        }
-        if (! hasIterationInput) {
-            printf("Invalid Input: Missing Iteration Input\n");
-            return 1;
-        }
-    }
+	// Get Iterations from Input
+	int receiveIterations;
+	if (!infiniteIterations)
+	{
+		// if the user is using the receive (r) method
 
-	// Set Iterations
-	int receiveIterations = 1;
-	size_t deliminatorPosition = strcspn (command, "@");
-	if (command[deliminatorPosition] == '@') {
-		receiveIterations = strtol(command + deliminatorPosition + 1, NULL, 10);
-		command[deliminatorPosition -1] = '\0';
-	} 
-	
-	// Get Number of CAN IDs 
-	for (size_t i = 0; i < strlen(command); i++) {
-		if (strchr (",", command[i]) != NULL) { 
-			canIdLength++;
-		}
+		strtok (command, "@");
+		// REVIEW(Barach): Unchecked strtok result. Causes segv when no '@' is present. If no '@' is present, the program
+		//   should only receive 1 message.
+		receiveIterations = (uint32_t) strtoul (strtok (NULL, "@"), NULL, 0);
+		if (receiveIterations == 0)
+			receiveIterations = 1;
 	}
 
 	// Parse CAN IDs
-	if (command[0] == '[') command++;
-	if (command[strlen(command) - 1] == ']') command[strlen(command) - 1] = '\0'; 
-	uint32_t* canIds = malloc (canIdLength * sizeof(uint32_t));
-	for (size_t i = 0; i < canIdLength; i++) {
-		char* id = (i == 0) ? strtok (command, ",") : strtok (NULL, ",");
-		canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, 0);
-		canIdIndex++;
+	// REVIEW(Barach): This should use the size_t datatype, as we are later comparing with another size_t.
+	int canIdIndex = 0;
+	if (command[0] == '[')
+	{
+		command++;
+
+		while (true)
+		{
+			char* id = (canIdIndex == 0) ? strtok (command, ",]") : strtok (NULL, ",]");
+			// Checks if the parse is invalid
+			if (id == NULL)
+				break;
+
+			canIds[canIdIndex] = (uint32_t) strtoul (id, NULL, 0);
+			filterIds = true; // indicates that the user has input at least one id
+			canIdIndex++;
+
+		}
 	}
 
 	// Receive Frame
-	// TODO(DiBacco): display a message for iterations w. no frames received
-	for (int m = 0; m < receiveIterations; m++) {
-		printf ("\n");
-		printf ("Iteration: %d\n", m +1);
-		for (size_t i = 0; i < canIdLength; i++) {
-			int* visited = malloc (15 * sizeof(char*));
-			size_t currentIndex = 0;
-			bool received = false;
-			while (! received) { 
-				if (canReceive(device, &frame) == 0) {
-					if (canIds[i] == frame.id) {
+	while (infiniteIterations || receiveIterations > 0)
+	{
+		// receives a CAN Frame from the bus
+		if (canReceive (device, &frame) == 0)
+		{
+			if (!filterIds)
+			{
+				// checks that the user has input ids
+
+				printFrame (&frame);
+				receiveIterations--;
+				continue;
+			}
+			else
+			{
+				for (size_t i = 0; i < canIdIndex; i++)
+				{
+					if (canIds[i] == frame.id)
+					{
 						printFrame (&frame);
-						received = true;
-					} else {
-						for (size_t j = 0; j < currentIndex; j++) {
-							if (visited[j] == frame.id) {
-								received = true;
-								break;
-							}
-						}
-						visited[currentIndex] = frame.id;
-						currentIndex++;
+						receiveIterations--;
+						break;
 					}
-				} else {
-					printf ("Error: %s.\n", errorMessage (errno));
 				}
 			}
-			free (visited);
+		}
+		else
+		{
+			printf ("Error: %s.\n", errorMessage (errno));
 		}
 	}
+
 	printf ("\n");
+	return 0;
 }
 
 /*
-	- Takes Entire Command and Processes it	
-	- DiBacco: better function name
+	- Takes Entire Command and Processes it
 */
-int processCommand (canDevice_t* device, char* command) {
-	// Validate Input
-	size_t equalSignIndex = strcspn (command, "=");
-	if ( ! (equalSignIndex == strlen (command) || equalSignIndex == 1)) 
-	{
-		printf ("Error: Invalid Command Format \n");
-		return -1;
-	}
-		
-	// TODO(DiBacco): add filters to detect invalid input
+int processCommand (canDevice_t* device, char* command)
+{
 	// Get Method & Shift Command
-	char method = command[0];
+	long unsigned int timeoutMs;
+	char method = command[0]; // gets method type (t / r / d)
 	command += 2;
-			
-	switch (method) {
-	case 't': 
+
+	switch (method)
+	{
+	case 't':
 		transmitFrame (device, command);
 		break;
-	case 'r': 
-		receiveFrame(device, command);
+
+	case 'r':
+		receiveFrame (device, command, false);
 		break;
-	case 'f': {
+
+	case 'd':
+		receiveFrame (device, command, true);
+		break;
+
+	case 'h':
+		displayHelp ();
+		break;
+
+	case 'f':
 		if (canFlushRx (device) != 0)
 			printf ("Error: %s.\n", errorMessage (errno));
 		break;
-	}
-	case 'm': { 
-		long unsigned int timeoutMs = promptTimeout (); // DiBacco
+
+	case 'm':
+		timeoutMs = promptTimeout ();
 		if (canSetTimeout (device, timeoutMs) != 0)
 			printf ("Error: %s.\n", errorMessage (errno));
 		break;
+
+	case 'q':
+		return -1;
+
 	}
-	case 'q': {
-		return 0;
-	}}
+
 	return 0;
 }
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
-{	
-	if (argc < 2 || argc > 3)
+{
+	if (argc < 2)
 	{
-		fprintf (stderr, "Format: can-dev-cli -method (optional) <device name>\n");
+		fprintf (stderr, "Format: can-dev-cli <options> <device name>\n");
 		return -1;
 	}
 
 	char* deviceName = argv [argc - 1];
 
 	// Check for query mode
-	// TODO(Barach): This is pretty messy.
 	bool queryMode = false;
 	for (int index = 1; index < argc - 1; ++ index)
 	{
@@ -378,6 +412,11 @@ int main (int argc, char** argv)
 	}
 
 	canDevice_t* device = canInit (deviceName);
+
+	// If this is query mode, return successful
+	if (queryMode)
+		return 0;
+
 	if (device == NULL)
 	{
 		int code = errno;
@@ -386,34 +425,39 @@ int main (int argc, char** argv)
 	}
 
 	// Directly From Command Line
-	if (argc == 3) {
+	if (argc == 3)
+	{
 		char* command = argv [1];
-		processCommand (device, command);
+		if (command[0] == '-')
+			processCommand (device, ++command);
+
+		else
+			printf ("Options should start with '-'\n");
+
 		return 0;
-
-	} else {
-		// Interactive Mode
-		// If this is query mode, return successful
-		if (queryMode)
-			return 0;
-
+	}
+	else
+	{
 		while (true)
 		{
-			char* command = malloc (512);  
-		
+			char command [512];
+
 			printf ("Enter an option:\n");
 			printf (" t - Transmit a CAN message.\n");
 			printf (" r - Receive a CAN message.\n");
+			printf (" d - Dump received CAN messages.\n");
+			printf (" h - Display man page.\n");
 			printf (" f - Flush the receive buffer.\n");
 			printf (" m - Set the device's timeout.\n");
 			printf (" q - Quit the program.\n");
 
-			fscanf (stdin, "%s%*1[\n]", command);
-			processCommand (device, command);
+			// Get User Input
+			fgets (command, sizeof (command), stdin);
 
-			free (command);
-		};
+			if (processCommand (device, command) == -1)
+				return 0;
+		}
 	}
+
 	return 0;
 }
-
