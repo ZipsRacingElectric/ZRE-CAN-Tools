@@ -125,11 +125,11 @@ uint64_t mdfCcBlockWrite (FILE* mdf, mdfCcDataSection_t* dataSection, mdfCcLinkL
 	return addr;
 }
 
-uint64_t mdfDgBlockWrite (FILE* mdf, mdfDgLinkList_t* linkList)
+uint64_t mdfDgBlockWrite (FILE* mdf, mdfDgDataSection_t* dataSection, mdfDgLinkList_t* linkList)
 {
 	// Allocate the block
 	mdfBlock_t block;
-	if (mdfDgBlockInit (&block, linkList) != 0)
+	if (mdfDgBlockInit (&block, dataSection, linkList) != 0)
 		return 0;
 
 	// Write the block then deallocate

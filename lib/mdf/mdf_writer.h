@@ -88,10 +88,11 @@ uint64_t mdfCcBlockWrite (FILE* mdf, mdfCcDataSection_t* dataSection, mdfCcLinkL
 /**
  * @brief Creates and writes a data group block to an MDF file.
  * @param mdf The file to write to.
+ * @param dataSection The data section to write.
  * @param linkList The link list to write.
  * @return The address of the block if successful, 0 otherwise.
  */
-uint64_t mdfDgBlockWrite (FILE* mdf, mdfDgLinkList_t* linkList);
+uint64_t mdfDgBlockWrite (FILE* mdf, mdfDgDataSection_t* dataSection, mdfDgLinkList_t* linkList);
 
 /**
  * @brief Creates and writes a data block to an MDF file.
