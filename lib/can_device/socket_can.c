@@ -30,6 +30,7 @@
 
 typedef struct
 {
+	// TODO(Barach): Docs
 	canDeviceVmt_t vmt;
 	const char* name;
 	int descriptor;
@@ -85,15 +86,20 @@ canDevice_t* socketCanInit (const char* name)
 		return NULL;
 	}
 
+	// Device must be dynamically allocated
 	socketCan_t* device = malloc (sizeof (socketCan_t));
 
+	// Setup the device's VMT
 	device->vmt.transmit	= socketCanTransmit;
 	device->vmt.receive 	= socketCanReceive;
 	device->vmt.flushRx 	= socketCanFlushRx;
 	device->vmt.setTimeout	= socketCanSetTimeout;
 
+	// Internal housekeeping
 	device->descriptor = descriptor;
 	device->name = name;
+
+	// Success
 	return (canDevice_t*) device;
 
 	#else // __unix__
@@ -109,9 +115,26 @@ canDevice_t* socketCanInit (const char* name)
 int socketCanDealloc (void* device)
 {
 	// TODO(Barach):
+	// #if defined (__unix__)
+
+	// socketCan_t* socket = device;
+
+	// // Close the socket.
+	// if (close (socket->descriptor) != 0)
+	// 	return errno;
+
+	// // Free the device's memory.
+	// free (socket);
+
+	// return 0;
+
+	// #else // __unix__
+
 	(void) device;
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return errno;
+
+	// #endif // __unix__
 }
 
 int socketCanTransmit (void* device, canFrame_t* frame)
@@ -120,6 +143,7 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 
 	socketCan_t* socket = device;
 
+	// Create the can_frame struct
 	struct can_frame socketFrame =
 	{
 		.can_dlc = frame->dlc,
@@ -127,10 +151,12 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 	};
 	memcpy (socketFrame.data, frame->data, frame->dlc);
 
+	// Transmit the frame
 	int code = write (socket->descriptor, &socketFrame, sizeof (struct can_frame));
 	if(code < (long int) sizeof (struct can_frame))
 		return errno;
 
+	// Success
 	return 0;
 
 	#else // __unix__
@@ -152,6 +178,7 @@ int socketCanReceive (void* device, canFrame_t* frame)
 
 	struct can_frame socketFrame;
 
+	// Read the frame
 	int code = read (socket->descriptor, &socketFrame, sizeof (struct can_frame));
 	if (code < (long int) sizeof (struct can_frame))
 		return errno;
@@ -160,9 +187,11 @@ int socketCanReceive (void* device, canFrame_t* frame)
 	// Mask out status bits
 	frame->id = socketFrame.can_id & 0x1FFFFFFF;
 
+	// Convert to canFrame_t
 	frame->dlc = socketFrame.can_dlc;
 	memcpy (frame->data, socketFrame.data, socketFrame.can_dlc);
 
+	// Success
 	return 0;
 
 	#else // __unix__

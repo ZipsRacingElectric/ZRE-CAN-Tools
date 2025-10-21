@@ -12,20 +12,30 @@
 
 // C Standard Library
 #include <stdint.h>
+#include <stdbool.h>
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
 /// @brief Structure representing a CAN message, also called a CAN frame.
 typedef struct
 {
-	/// @brief The ID of the CAN message may be either SID or EID.
+	/// @brief The ID of the CAN message, may be either a SID (standard identifier) or EID (extended identifier).
 	uint32_t id;
+
+	// TODO(Barach): can_database needs to correctly parse the EID bit for this to work.
+	/// @brief The EID (extended ID) bit of the message. Indicates the ID is an extended CAN ID rather than a standard CAN ID.
+	// bool eid;
 
 	/// @brief The payload of the message. Note that only @c dlc elements are used.
 	uint8_t data [8];
 
 	/// @brief The DLC (data length code) of the message.
 	uint8_t dlc;
+
+	// TODO(Barach): This is going to break a lot of things.
+	/// @brief The RTR (remote transmission request) bit of the message. Indicates a request for data, rather than a frame
+	/// containing data.
+	// bool rtr;
 } canFrame_t;
 
 /// @brief Function signature for the @c canTransmit function.
@@ -58,6 +68,7 @@ typedef struct
 	canSetTimeout_t* setTimeout;
 } canDeviceVmt_t;
 
+// TODO(Barach): This needs to store baudrate
 /**
  * @brief Polymorphic object representing a CAN device. This structure defines an abstract object, that is, it is not
  * instantiable. Rather than being instanced, this structure defines an interface for implementations of a CAN device.
