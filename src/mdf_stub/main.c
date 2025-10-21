@@ -95,8 +95,7 @@ int main (int argc, char** argv)
 
 	// Header -----------------------------------------------------------------------------------------------------------------
 
-	time_t timeUtc = time (NULL);
-	time_t timeLocal = timeUtc + localtime (&timeUtc)->tm_gmtoff;
+	time_t unixTime = time (NULL);
 
 	mdfFileIdBlock_t fileIdBlock =
 	{
@@ -111,7 +110,7 @@ int main (int argc, char** argv)
 	mdfHdBlockInit (&hd,
 		&(mdfHdDataSection_t)
 		{
-			.unixTimeNs = timeLocal * 1e9
+			.unixTimeNs = unixTime * 1e9
 		},
 		&(mdfHdLinkList_t) {});
 	mdfBlockWrite (mdf, &hd);
@@ -344,7 +343,7 @@ int main (int argc, char** argv)
 	mdfHdBlockLinkList (&hd)->firstFhAddr = mdfFhBlockWrite (mdf,
 		&(mdfFhDataSection_t)
 		{
-			.unixTimeNs = timeLocal * 1e9
+			.unixTimeNs = unixTime * 1e9
 		},
 		&(mdfFhLinkList_t)
 		{
