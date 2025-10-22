@@ -7,9 +7,9 @@
 #include "can_device/can_device.h"
 
 // C Standard Library
-#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 #define CAN_DATA_FRAME_BIT_LENGTH 104
@@ -39,7 +39,436 @@
 #define DATA_BYTES_BYTE_OFFSET	11
 #define DATA_BYTES_BIT_LENGTH	64
 
-void writeCan1RxRecord (FILE* mdf, canFrame_t* frame, uint64_t timestamp, uint8_t busChannel)
+/**
+ * @brief Writes the header of a CAN bus MDF log.
+ * @param mdf The MDF file to write to. Note this file cannot have anything else written to it before this call.
+ * @param programId The ID of the program generating this file. Note, strings longer than 7 characters will be truncated.
+ * @param unixTime The Unix timestamp at which this file was created.
+ * @return The header block (##HD) of the MDF file. Note this is dynamically allocated, and must be deallocated using
+ * @c mdfBlockDealloc followed by @c free .
+ */
+mdfBlock_t* mdfCanLogWriteHeader (FILE* mdf, const char* programId, time_t unixTime)
+{
+	// All MDF files start with the file ID block
+	mdfFileIdBlock_t fileIdBlock =
+	{
+		.fileIdentification		= MDF_FILE_IDENTIFICATION_UNFINALIZED,
+		.versionString			= MDF_VERSION_STRING_V4_11,
+		.data					= MDF_FILE_ID_BLOCK_DATA
+	};
+
+	// Copy the program ID into the file ID block.
+	strncpy (fileIdBlock.programIdentification, programId, sizeof (fileIdBlock.programIdentification));
+	fileIdBlock.programIdentification [sizeof (fileIdBlock.programIdentification) - 1] = '\0';
+
+	// Write the file ID block
+	if (mdfWriteFileIdBlock (mdf, &fileIdBlock) != 0)
+		return NULL;
+
+	// The block immediately after the file ID must be the header block. This is the root of the MDF file's hierarchy.
+	mdfBlock_t* hd = malloc (sizeof (mdfBlock_t));
+	if (mdfHdBlockInit (hd,
+		&(mdfHdDataSection_t)
+		{
+			.unixTimeNs = unixTime * 1e9 // File timestamp
+		},
+		&(mdfHdLinkList_t)
+		{
+			// Link list is populated later, as we don't know the addresses of any of these yet.
+		}
+	) != 0)
+	{
+		free (hd);
+		return NULL;
+	}
+
+	// Write the header block
+	if (mdfBlockWrite (mdf, hd) == 0)
+	{
+		mdfBlockDealloc (hd);
+		free (hd);
+		return NULL;
+	}
+
+	return hd;
+}
+
+uint64_t mdfCanLogWriteAcquisitionSource (FILE* mdf)
+{
+	// Write the name / path text block.
+	uint64_t nameAddr = mdfTxBlockWrite (mdf, "CAN");
+	if (nameAddr == 0)
+		return 0;
+
+	// TODO(Barach): Variadic args for this?
+	// Write the comment block.
+	uint64_t commentAddr = mdfMdBlockWrite (mdf,
+			"<SIcomment>\n"
+			"<TX>\n"
+			"    CAN\n"
+			"</TX>\n"
+			"<bus name=\"CAN\"/>\n"
+			"    <common_properties>\n"
+			"        <tree name=\"ASAM Measurement Environment\">\n"
+			"            <tree name=\"node\">\n"
+			"                <e name=\"type\">Device</e>\n"
+			"                <e name=\"software configuration\">01.04.02</e>\n"
+			"                <e name=\"hardware version\">00.02</e>\n"
+			"                <e name=\"serial number\">846DD296</e>\n"
+			"            </tree>\n"
+			"        </tree>\n"
+			"        <tree name=\"Bus Information\">\n"
+			"            <e name=\"CAN1 Bit-rate\" unit=\"Hz\">1000000</e>\n"
+			"            <e name=\"CAN2 Bit-rate\" unit=\"Hz\">1000000</e>\n"
+			"        </tree>\n"
+			"    </common_properties>\n"
+			"</SIcomment>");
+	if (commentAddr == 0)
+		return 0;
+
+	// Write the acquisition source block.
+	return mdfSiBlockWrite (mdf,
+		&(mdfSiDataSection_t)
+		{
+			.sourceType	= MDF_SOURCE_TYPE_BUS,
+			.busType	= MDF_BUS_TYPE_CAN
+		},
+		&(mdfSiLinkList_t)
+		{
+			.nameAddr		= nameAddr,
+			.pathAddr		= nameAddr,
+			.commentAddr	= commentAddr
+		});
+}
+
+uint64_t mdfCanLogWriteDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acquisitionSourceAddr, uint64_t timestampCcAddr)
+{
+	// Component Channels -----------------------------------------------------------------------------------------------------
+
+	// Write the name block
+	uint64_t dataBytesNameAddr = mdfTxBlockWrite (mdf, "CAN_DataFrame.DataBytes");
+	if (dataBytesNameAddr == 0)
+		return 0;
+
+	// Write the channel block
+	uint64_t dataBytesCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_BYTE_ARRAY,
+			.bitOffset		= 0,
+			.byteOffset		= DATA_BYTES_BYTE_OFFSET,
+			.bitLength		= DATA_BYTES_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= dataBytesNameAddr,
+			.nextCnAddr	= 0
+		});
+	if (dataBytesCnAddr == 0)
+		return 0;
+
+	uint64_t dirNameAddr = mdfTxBlockWrite (mdf, "CAN_DataFrame.Dir");
+	if (dirNameAddr == 0)
+		return 0;
+
+	uint64_t dirCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= 4,
+			.byteOffset		= 10,
+			.bitLength		= 1,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= dirNameAddr,
+			.nextCnAddr	= dataBytesCnAddr
+		});
+	if (dirCnAddr == 0)
+		return 0;
+
+	uint64_t dataLengthNameAddr = mdfTxBlockWrite (mdf, "CAN_DataFrame.DataLength");
+	if (dataLengthNameAddr == 0)
+		return 0;
+
+	uint64_t dataLengthCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= DLC_BIT_OFFSET,
+			.byteOffset		= DLC_BYTE_OFFSET,
+			.bitLength		= DLC_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= dataLengthNameAddr,
+			.nextCnAddr	= dirCnAddr
+		});
+	if (dataLengthCnAddr == 0)
+		return 0;
+
+	uint64_t dlcNameAddr = mdfTxBlockWrite (mdf, "CAN_DataFrame.DLC");
+	if (dlcNameAddr == 0)
+		return 0;
+
+	uint64_t dlcCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= DLC_BIT_OFFSET,
+			.byteOffset		= DLC_BYTE_OFFSET,
+			.bitLength		= DLC_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= dlcNameAddr,
+			.nextCnAddr	= dataLengthCnAddr
+		});
+	if (dlcCnAddr == 0)
+		return 0;
+
+	uint64_t busChannelNameAddr = mdfTxBlockWrite (mdf, "CAN_DataFrame.BusChannel");
+	if (busChannelNameAddr == 0)
+		return 0;
+
+	uint64_t busChannelCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= BUS_CHANNEL_BIT_OFFSET,
+			.byteOffset		= BUS_CHANNEL_BYTE_OFFSET,
+			.bitLength		= BUS_CHANNEL_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= busChannelNameAddr,
+			.nextCnAddr	= dlcCnAddr
+		});
+	if (busChannelCnAddr == 0)
+		return 0;
+
+	uint64_t ideNameAddr = mdfTxBlockWrite (mdf, "CAN_DataFrame.IDE");
+	if (ideNameAddr == 0)
+		return 0;
+
+	uint64_t ideCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= IDE_BIT_OFFSET,
+			.byteOffset		= IDE_BYTE_OFFSET,
+			.bitLength		= IDE_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= ideNameAddr,
+			.nextCnAddr	= busChannelCnAddr
+		});
+	if (ideCnAddr == 0)
+		return 0;
+
+	uint64_t idNameAddr = mdfTxBlockWrite (mdf, "CAN_DataFrame.ID");
+	if (idNameAddr == 0)
+		return 0;
+
+	uint64_t idCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= 0,
+			.byteOffset		= ID_BYTE_OFFSET,
+			.bitLength		= ID_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= idNameAddr,
+			.nextCnAddr	= ideCnAddr
+		});
+	if (idCnAddr == 0)
+		return 0;
+
+	// Channels ---------------------------------------------------------------------------------------------------------------
+
+	uint64_t dataFrameNameAddr = mdfTxBlockWrite (mdf, "CAN_DataFrame");
+	if (dataFrameNameAddr == 0)
+		return 0;
+
+	uint64_t dataFrameCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_BYTE_ARRAY,
+			.bitOffset		= 0,
+			.byteOffset		= CAN_DATA_FRAME_BYTE_OFFSET,
+			.bitLength		= CAN_DATA_FRAME_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr		= dataFrameNameAddr,
+			.componentAddr	= idCnAddr,
+			.nextCnAddr		= 0,
+		});
+
+	uint64_t timestampNameAddr = mdfTxBlockWrite (mdf, "Timestamp");
+	if (timestampNameAddr == 0)
+		return 0;
+
+	uint64_t timestampCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= 0,
+			.byteOffset		= TIMESTAMP_BYTE_OFFSET,
+			.bitLength		= TIMESTAMP_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_NONE
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr		= timestampNameAddr,
+			.nextCnAddr		= dataFrameCnAddr,
+			.conversionAddr	= timestampCcAddr
+		});
+	if (timestampCnAddr == 0)
+		return 0;
+
+	// Channel Group ----------------------------------------------------------------------------------------------------------
+
+	return mdfCgBlockWrite (mdf,
+		&(mdfCgDataSection_t)
+		{
+			.recordId		= 0x01,
+			.flags			= MDF_CG_FLAGS_BUS_EVENT | MDF_CG_FLAGS_PLAIN_BUS_EVENT,
+			.pathSeparator	= '.',
+			.byteLength		= 19
+		},
+		&(mdfCgLinkList_t)
+		{
+			.nextCgAddr				= nextCgAddr,
+			.firstCnAddr			= timestampCnAddr,
+			.acquisitionNameAddr	= dataFrameNameAddr,
+			.acquisitionSourceAddr	= acquisitionSourceAddr
+		});
+}
+
+uint64_t mdfCanLogWriteTimestampCc (FILE* mdf)
+{
+	uint64_t timestampUnitAddr = mdfTxBlockWrite (mdf, "s");
+	if (timestampUnitAddr == 0)
+		return 0;
+
+	return mdfCcBlockWrite (mdf,
+		&(mdfCcDataSection_t)
+		{
+			.conversionType				= MDF_CC_CONVERSION_TYPE_LINEAR,
+			.precision					= 0,
+			.flags						= MDF_CC_FLAGS_NONE,
+			.referenceParameterNumber	= 0,
+			.valueParameterNumber		= 2,
+			.minPhysicalValue			= 0.0,
+			.maxPhysicalValue			= 0.0,
+			.b							= 0.0,
+			.a							= 1e-6,
+		},
+		&(mdfCcLinkList_t)
+		{
+			.unitAddr = timestampUnitAddr
+		});
+}
+
+uint64_t mdfCanLogWriteFileHistory (FILE* mdf, time_t unixTime)
+{
+	// TODO(Barach): Variadic format specifiers?
+
+	return mdfFhBlockWrite (mdf,
+		&(mdfFhDataSection_t)
+		{
+			.unixTimeNs = unixTime * 1e9
+		},
+		&(mdfFhLinkList_t)
+		{
+			.commentAddr = mdfMdBlockWrite (mdf,
+				"<FHcomment>\n"
+				"	<TX>\n"
+				"		Creation and logging of data.\n"
+				"	</TX>\n"
+				"	<tool_id>CE</tool_id>\n"
+				"	<tool_vendor></tool_vendor>\n"
+				"	<tool_version>01.04.02</tool_version>\n"
+				"</FHcomment>")
+		});
+}
+
+uint64_t mdfCanLogWriteComment (FILE* mdf)
+{
+	// TODO(Barach): Variadic format specifiers?
+
+	return mdfMdBlockWrite (mdf,
+		"<HDcomment>\n"
+		"    <TX/>\n"
+		"    <common_properties>\n"
+		"        <tree name=\"Device Information\">\n"
+		"            <e name=\"firmware version\" ro=\"true\">01.04.02</e>\n"
+		"            <e name=\"hardware version\" ro=\"true\">00.02</e>\n"
+		"            <e name=\"serial number\" ro=\"true\">846DD296</e>\n"
+		"            <e name=\"device type\" ro=\"true\">0000001D</e>\n"
+		"            <e name=\"storage total\" ro=\"true\">  7746768</e>\n"
+		"            <e name=\"storage free\" ro=\"true\">  7746708</e>\n"
+		"            <e name=\"config crc32 checksum\" ro=\"true\">5611BDB3</e>\n"
+		"        </tree>\n"
+		"        <tree name=\"File Information\">\n"
+		"            <e name=\"session\" ro=\"true\">     273</e>\n"
+		"            <e name=\"split\" ro=\"true\">       1</e>\n"
+		"            <e name=\"comment\" ro=\"true\">                              </e>\n"
+		"        </tree>\n"
+		"    </common_properties>\n"
+		"</HDcomment>");
+}
+
+mdfBlock_t* mdfCanLogWriteDg (FILE* mdf, uint64_t firstCgAddr)
+{
+	mdfBlock_t* dg = malloc (sizeof (mdfBlock_t));
+	if (mdfDgBlockInit (dg,
+		&(mdfDgDataSection_t)
+		{
+			.recordIdLength = 1
+		},
+		&(mdfDgLinkList_t)
+		{
+			.firstCgAddr = firstCgAddr
+		}) != 0)
+	{
+		return NULL;
+	}
+
+	return dg;
+}
+
+void writeDataFrameRecord (FILE* mdf, canFrame_t* frame, uint64_t timestamp, uint8_t busChannel)
 {
 	uint8_t record [20] = {};
 
@@ -84,373 +513,54 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
+	// Open the MDF file for writing
 	char* filePath = argv [argc - 1];
 	FILE* mdf = fopen (filePath, "w");
 	if (mdf == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to open MDF file '%s': %s\n", filePath, errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to open MDF file '%s'", filePath);
 
-	// Header -----------------------------------------------------------------------------------------------------------------
+	// Write the log header
+	time_t unixTime = time (NULL);
+	mdfBlock_t* hd = mdfCanLogWriteHeader (mdf, "ZREDART", unixTime);
+	if (hd == NULL)
+		return errorPrintf ("Failed to write MDF header");
 
-	time_t timeUtc = time (NULL);
-	time_t timeLocal = timeUtc + localtime (&timeUtc)->tm_gmtoff;
+	uint64_t acquisitionSourceAddr = mdfCanLogWriteAcquisitionSource (mdf);
+	if (acquisitionSourceAddr == 0)
+		return errorPrintf ("Failed to write MDF acquisition source block");
 
-	mdfFileIdBlock_t fileIdBlock =
-	{
-		.fileIdentification		= MDF_FILE_IDENTIFICATION_UNFINALIZED,
-		.versionString			= MDF_VERSION_STRING_V4_11,
-		.programIdentification	= "ZREDART",
-		.data					= MDF_FILE_ID_BLOCK_DATA
-	};
-	mdfWriteFileIdBlock (mdf, &fileIdBlock);
+	uint64_t timestampCcAddr = mdfCanLogWriteTimestampCc (mdf);
+	if (timestampCcAddr == 0)
+		return errorPrintf ("Failed to write MDF timestamp conversion block");
 
-	mdfBlock_t hd;
-	mdfHdBlockInit (&hd,
-		&(mdfHdDataSection_t)
-		{
-			.unixTimeNs = timeLocal * 1e9
-		},
-		&(mdfHdLinkList_t) {});
-	mdfBlockWrite (mdf, &hd);
+	uint64_t dataFrameCgAddr = mdfCanLogWriteDataFrameCg (mdf, 0, acquisitionSourceAddr, timestampCcAddr);
+	if (dataFrameCgAddr)
+		return errorPrintf ("Failed to write MDF CAN data frame channel group block");
 
-	// CAN_DataFrame Component Channels ---------------------------------------------------------------------------------------
+	uint64_t fileHistoryAddr = mdfCanLogWriteFileHistory (mdf, unixTime);
+	if (fileHistoryAddr == 0)
+		return errorPrintf ("Failed to write MDF file history");
 
-	uint64_t addrDataBytes = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_BYTE_ARRAY,
-			.bitOffset		= 0,
-			.byteOffset		= DATA_BYTES_BYTE_OFFSET,
-			.bitLength		= DATA_BYTES_BIT_LENGTH,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.DataBytes"),
-			.nextCnAddr	= 0
-		});
+	mdfHdBlockLinkList (hd)->firstFhAddr = fileHistoryAddr;
 
-	uint64_t addrBrs = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= 7,
-			.byteOffset		= 10,
-			.bitLength		= 1,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.BRS"),
-			.nextCnAddr	= addrDataBytes
-		});
+	uint64_t commentAddr = mdfCanLogWriteComment (mdf);
+	if (commentAddr == 0)
+		return errorPrintf ("Failed to write MDF comment");
 
-	uint64_t addrEsi = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= 6,
-			.byteOffset		= 10,
-			.bitLength		= 1,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.ESI"),
-			.nextCnAddr	= addrBrs
-		});
+	mdfHdBlockLinkList (hd)->commentAddr = commentAddr;
 
-	uint64_t addrEdl = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= 5,
-			.byteOffset		= 10,
-			.bitLength		= 1,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.EDL"),
-			.nextCnAddr	= addrEsi
-		});
+	//
 
-	uint64_t addrDir = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= 4,
-			.byteOffset		= 10,
-			.bitLength		= 1,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.Dir"),
-			.nextCnAddr	= addrEdl
-		});
-
-	uint64_t addrDataLength = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= DLC_BIT_OFFSET,
-			.byteOffset		= DLC_BYTE_OFFSET,
-			.bitLength		= DLC_BIT_LENGTH,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.DataLength"),
-			.nextCnAddr	= addrDir
-		});
-
-	uint64_t addrDlc = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= DLC_BIT_OFFSET,
-			.byteOffset		= DLC_BYTE_OFFSET,
-			.bitLength		= DLC_BIT_LENGTH,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.DLC"),
-			.nextCnAddr	= addrDataLength
-		});
-
-	uint64_t addrBusChannel = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= BUS_CHANNEL_BIT_OFFSET,
-			.byteOffset		= BUS_CHANNEL_BYTE_OFFSET,
-			.bitLength		= BUS_CHANNEL_BIT_LENGTH,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.BusChannel"),
-			.nextCnAddr	= addrDlc
-		});
-
-	uint64_t addrIde = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= IDE_BIT_OFFSET,
-			.byteOffset		= IDE_BYTE_OFFSET,
-			.bitLength		= IDE_BIT_LENGTH,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.IDE"),
-			.nextCnAddr	= addrBusChannel
-		});
-
-	uint64_t addrId = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= 0,
-			.byteOffset		= ID_BYTE_OFFSET,
-			.bitLength		= ID_BIT_LENGTH,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame.ID"),
-			.nextCnAddr	= addrIde
-		});
-
-	// CAN_DataFrame Channel Group --------------------------------------------------------------------------------------------
-
-	uint64_t addrCanDataFrame = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_BYTE_ARRAY,
-			.bitOffset		= 0,
-			.byteOffset		= CAN_DATA_FRAME_BYTE_OFFSET,
-			.bitLength		= CAN_DATA_FRAME_BIT_LENGTH,
-			.flags			= MDF_CN_FLAGS_BUS_EVENT
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr		= mdfTxBlockWrite (mdf, "CAN_DataFrame"),
-			.componentAddr	= addrId,
-			.nextCnAddr		= 0,
-		});
-
-	uint64_t addrSi = mdfSiBlockWrite (mdf,
-		&(mdfSiDataSection_t)
-		{
-			.sourceType	= MDF_SOURCE_TYPE_BUS,
-			.busType	= MDF_BUS_TYPE_CAN
-		},
-		&(mdfSiLinkList_t)
-		{
-			.nameAddr		= mdfTxBlockWrite (mdf, "CAN"),
-			.pathAddr		= mdfTxBlockWrite (mdf, "CAN"),
-			.commentAddr	= mdfMdBlockWrite (mdf,
-			"<SIcomment>\n"
-			"<TX>\n"
-			"    CAN\n"
-			"</TX>\n"
-			"<bus name=\"CAN\"/>\n"
-			"    <common_properties>\n"
-			"        <tree name=\"ASAM Measurement Environment\">\n"
-			"            <tree name=\"node\">\n"
-			"                <e name=\"type\">Device</e>\n"
-			"                <e name=\"software configuration\">01.04.02</e>\n"
-			"                <e name=\"hardware version\">00.02</e>\n"
-			"                <e name=\"serial number\">846DD296</e>\n"
-			"            </tree>\n"
-			"        </tree>\n"
-			"        <tree name=\"Bus Information\">\n"
-			"            <e name=\"CAN1 Bit-rate\" unit=\"Hz\">1000000</e>\n"
-			"            <e name=\"CAN2 Bit-rate\" unit=\"Hz\">1000000</e>\n"
-			"        </tree>\n"
-			"    </common_properties>\n"
-			"</SIcomment>")
-		});
-
-	mdfHdBlockLinkList (&hd)->firstFhAddr = mdfFhBlockWrite (mdf,
-		&(mdfFhDataSection_t)
-		{
-			.unixTimeNs = timeLocal * 1e9
-		},
-		&(mdfFhLinkList_t)
-		{
-			.commentAddr = mdfMdBlockWrite (mdf,
-				"<FHcomment>\n"
-				"	<TX>\n"
-				"		Creation and logging of data.\n"
-				"	</TX>\n"
-				"	<tool_id>CE</tool_id>\n"
-				"	<tool_vendor></tool_vendor>\n"
-				"	<tool_version>01.04.02</tool_version>\n"
-				"</FHcomment>")
-		});
-
-	mdfHdBlockLinkList (&hd)->commentAddr = mdfMdBlockWrite (mdf,
-		"<HDcomment>\n"
-		"    <TX/>\n"
-		"    <common_properties>\n"
-		"        <tree name=\"Device Information\">\n"
-		"            <e name=\"firmware version\" ro=\"true\">01.04.02</e>\n"
-		"            <e name=\"hardware version\" ro=\"true\">00.02</e>\n"
-		"            <e name=\"serial number\" ro=\"true\">846DD296</e>\n"
-		"            <e name=\"device type\" ro=\"true\">0000001D</e>\n"
-		"            <e name=\"storage total\" ro=\"true\">  7746768</e>\n"
-		"            <e name=\"storage free\" ro=\"true\">  7746708</e>\n"
-		"            <e name=\"config crc32 checksum\" ro=\"true\">5611BDB3</e>\n"
-		"        </tree>\n"
-		"        <tree name=\"File Information\">\n"
-		"            <e name=\"session\" ro=\"true\">     273</e>\n"
-		"            <e name=\"split\" ro=\"true\">       1</e>\n"
-		"            <e name=\"comment\" ro=\"true\">                              </e>\n"
-		"        </tree>\n"
-		"    </common_properties>\n"
-		"</HDcomment>");
-
-	uint64_t addrCc = mdfCcBlockWrite (mdf,
-		&(mdfCcDataSection_t)
-		{
-			.conversionType				= MDF_CC_CONVERSION_TYPE_LINEAR,
-			.precision					= 0,
-			.flags						= MDF_CC_FLAGS_NONE,
-			.referenceParameterNumber	= 0,
-			.valueParameterNumber		= 2,
-			.minPhysicalValue			= 0.0,
-			.maxPhysicalValue			= 0.0,
-			.b							= 0.0,
-			.a							= 1e-6,
-		},
-		&(mdfCcLinkList_t)
-		{
-			.unitAddr = mdfTxBlockWrite (mdf, "s")
-		});
-
-	uint64_t addrTimestamp = mdfCnBlockWrite (mdf,
-		&(mdfCnDataSection_t)
-		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
-			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= 0,
-			.byteOffset		= TIMESTAMP_BYTE_OFFSET,
-			.bitLength		= TIMESTAMP_BIT_LENGTH,
-			.flags			= MDF_CN_FLAGS_NONE
-		},
-		&(mdfCnLinkList_t)
-		{
-			.nameAddr		= mdfTxBlockWrite (mdf, "Timestamp"),
-			.nextCnAddr		= addrCanDataFrame,
-			.conversionAddr	= addrCc
-		});
-
-	uint64_t cgAddr = mdfCgBlockWrite (mdf,
-		&(mdfCgDataSection_t)
-		{
-			.recordId		= 0x01,
-			.flags			= MDF_CG_FLAGS_BUS_EVENT | MDF_CG_FLAGS_PLAIN_BUS_EVENT,
-			.pathSeparator	= '.',
-			.byteLength		= 19
-		},
-		&(mdfCgLinkList_t)
-		{
-			.firstCnAddr			= addrTimestamp,
-			.acquisitionNameAddr	= mdfTxBlockWrite (mdf, "CAN_DataFrame"),
-			.acquisitionSourceAddr	= addrSi
-		});
-
-	mdfBlock_t dg;
-	mdfDgBlockInit (&dg,
-		&(mdfDgDataSection_t)
-		{
-			.recordIdLength = 1
-		},
-		&(mdfDgLinkList_t)
-		{
-			.firstCgAddr = cgAddr
-		});
-	mdfHdBlockLinkList (&hd)->firstDgAddr = mdfBlockWrite (mdf, &dg);
+	mdfHdBlockLinkList (hd)->firstDgAddr = mdfBlockWrite (mdf, &dg);
 
 	mdfDgBlockLinkList (&dg)->dataBlockAddr = mdfDtBlockWrite (mdf);
 
 	// Rewrite Link Lists -----------------------------------------------------------------------------------------------------
 
-	mdfRewriteBlockLinkList (mdf, &hd);
+	mdfRewriteBlockLinkList (mdf, hd);
 	mdfRewriteBlockLinkList (mdf, &dg);
 
-	mdfBlockDealloc (&hd);
+	mdfBlockDealloc (hd);
 	mdfBlockDealloc (&dg);
 
 	// Data Block Data Section ------------------------------------------------------------------------------------------------
@@ -472,13 +582,13 @@ int main (int argc, char** argv)
 		.dlc = 8
 	};
 
-	writeCan1RxRecord (mdf, &frame, 0, 1);
+	writeDataFrameRecord (mdf, &frame, 0, 1);
 	frame.id = 0x001;
-	writeCan1RxRecord (mdf, &frame, 1000, 1);
+	writeDataFrameRecord (mdf, &frame, 1000, 1);
 	frame.id = 0x010;
-	writeCan1RxRecord (mdf, &frame, 2000, 1);
+	writeDataFrameRecord (mdf, &frame, 2000, 1);
 	frame.id = 0x100;
-	writeCan1RxRecord (mdf, &frame, 3000, 1);
+	writeDataFrameRecord (mdf, &frame, 3000, 1);
 
 	return 0;
 }
