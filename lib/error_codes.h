@@ -9,6 +9,9 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // C Standard Library
+#include <errno.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 // General Errors -------------------------------------------------------------------------------------------------------------
@@ -275,6 +278,38 @@ static inline const char* errorMessage (int errorCode)
 	default:
 	 	return strerror (errorCode);
 	}
+}
+
+/**
+ * @brief Prints an error message to @c stderr . The resulting message takes the following format:
+ * "<User Message>: <Error Message>"
+ *
+ * For example:
+ * "Failed to open file 'test.txt': No such file or directory."
+ *
+ * @param message The user message to preface the error message with. Note this can be a format string, in which case the
+ * following arguments should be the values to be inserted in place of the format specifiers.
+ * @param ... The variadic arguments to insert into the format string. Same convention as the @c printf family of functions.
+ * @return The error code associated with the error, that is, the value of @c errno upon entry to the function. Note this
+ * resets @c errno , so this return code must be used to determine what the errno was.
+ */
+static inline int errorPrintf (const char* message, ...)
+{
+	// Store the error that caused the issue and reset errno for later usage.
+	int code = errno;
+	errno = 0;
+
+	// Print the user message, along with variadic arguments.
+	va_list args;
+    va_start(args, message);
+    vfprintf(stderr, message, args);
+    va_end(args);
+
+	// Print the error message.
+	fprintf (stderr, ": %s.\n", errorMessage (code));
+
+	// Return the errno value.
+	return code;
 }
 
 #endif // ERROR_CODES_H
