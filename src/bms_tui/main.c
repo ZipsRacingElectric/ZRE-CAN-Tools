@@ -52,26 +52,27 @@
 void printStatPanel (int row, int column, bms_t* bms);
 
 /** 
- * @brief Prints all information known about a segment.
- * @param scrlTop The coordinate of the top of the scrolling window.
- * @param scrlBottom The coordinate of the bottom of the scrolling window.
- * @param scrRow The row on the screen to print at.
- * @param column The column to print at.
- * @param bms The BMS owning the segment.
- * @param segmentIndex The index of the segment.
- */
-int printSegment (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t column, bms_t* bms, uint16_t segmentIndex);
-
-/** 
  * @brief Prints all the signals on the BMS_Status message
  * @param scrlTop The coordinate of the top of the scrolling window.
  * @param scrlBottom The coordinate of the bottom of the scrolling window.
  * @param scrRow The row on the screen to print at.
- * @param row The actual row of the panel.
+ * @param row The row of the panel.
  * @param column The column to print at.
  * @param bms The BMS to print the stats of. 
 */
 void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, bms_t* bms);
+
+/** 
+ * @brief Prints all information known about a segment.
+ * @param scrlTop The coordinate of the top of the scrolling window.
+ * @param scrlBottom The coordinate of the bottom of the scrolling window.
+ * @param scrRow The row on the screen to print at.
+ * @param row The row of the segment.
+ * @param column The column to print at.
+ * @param bms The BMS owning the segment.
+ * @param segmentIndex The index of the segment.
+ */
+int printSegment (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, bms_t* bms, uint16_t segmentIndex);
 
 /**
  * @brief Prints the voltage of a cell.
@@ -179,7 +180,7 @@ int main (int argc, char** argv)
 	}
 
 	// The total # of rows in the window
-	const int TOTAL_ROWS = BMS_STAT_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT; 
+	const int TOTAL_ROWS = BMS_STAT_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT + 2; // two blank rows seperate the bms status signals panel from the first segment  
 
 	// Set OS-specific locale for wide character support
 	#ifdef __unix__
@@ -241,15 +242,18 @@ int main (int argc, char** argv)
 		// Print the top-most statistics panel
 		printStatPanel (0, 0, &bms);
 
+		// Print the bms status signals panel 
+		uint16_t bmsStatusStartingRow = BMS_STAT_HEIGHT; // the bms status signals panel is displayed after each segment 
+		printBmsStatusSignals (scrlTop, scrlBottom, &scrRow, bmsStatusStartingRow, 0, &bms); // TODO(DiBacco): pass BMS_STAT_HEGIHT constant directly into the function
+		
+		scrRow += 2; // two blank rows seperate the bms status signals panel from the first segment  
+
 		// Print each battery segment
 		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
-		{	
-			printSegment (scrlTop, scrlBottom, &scrRow, 0, &bms, segmentIndex);
+		{	// Get the actual row from the segment content
+			uint16_t segmentStartingRow = BMS_STAT_HEIGHT + BMS_STATUS_SIGNALS_PANEL_HEIGHT + (BMS_SEGMENT_HEIGHT * segmentIndex); // The segments are displayed after the bms status signals panel
+			printSegment (scrlTop, scrlBottom, &scrRow, segmentStartingRow, 0, &bms, segmentIndex);
 		}
-
-		// Print the bms status signals panel
-		uint16_t startingRow = BMS_STAT_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT); // the bms status signals panel is displayed after each segment 
-		printBmsStatusSignals (scrlTop, scrlBottom, &scrRow, startingRow, 0, &bms); 
 
 		// Render the frame to the screen and wait for the next update
 		refresh ();
@@ -498,7 +502,130 @@ void printStatPanel (int row, int column, bms_t* bms)
 	mvprintw (row + 4, column, "─┘");
 }
 
-int printSegment (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t column, bms_t* bms, uint16_t segmentIndex)
+void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, bms_t* bms) 
+{
+	// The height of the header of the panel
+	size_t const BMS_STATUS_SIGNALS_HEADER_HEIGHT = 3;
+
+	// The index of the bms status message
+	ssize_t bmsStatusMessageIndex = bms->bmsStatusMessageIndex;
+
+	// The database associated with the bms instance
+	canDatabase_t* database = bms->database;
+
+	// The bms status message 
+	canMessage_t bmsStatusMessage = database->messages [bmsStatusMessageIndex];
+	
+	// Validate the rows of the BMS Status Signals Panel Header
+	bool validRows [BMS_SEGMENT_HEIGHT];
+
+	// Map each row of the segment to its position in the terminal window
+	int mapRowToPosition [BMS_SEGMENT_HEIGHT];
+
+	// Validate & map position for each row of the bms status signals panel  
+	for (int i = 0; i < BMS_STATUS_SIGNALS_HEADER_HEIGHT; i++) {
+		if (checkRow(scrlTop, scrlBottom, row++)) { 
+			validRows[i] = true;
+			mapRowToPosition[i] = *scrRow += 1; 
+		}
+		else {
+			validRows[i] = false;
+		} 
+	}	
+
+	// Set row position for displaying the signals
+	*scrRow += 1;
+
+	// Print the header of the BMS Status Signals Panel
+	for (int i = 0; i < 3; i++) {
+		if (validRows[0]) mvprintw (mapRowToPosition[0], column + (i * 12), "────────────");
+		if (validRows[2]) mvprintw (mapRowToPosition[2], column + (i * 12), "────────────");
+	}
+		
+	// Prints corners of the BMS Status Signals Panel header
+	if (validRows[0]) {
+		mvprintw (mapRowToPosition[0], column + 0,  "╭");
+		mvprintw (mapRowToPosition[0], column + 36, "╮");
+	}
+	
+	// Print headers 
+	if (validRows[1]) {
+		mvprintw (mapRowToPosition[1], column + 2,  "Signal");
+		mvprintw (mapRowToPosition[1], column + 31, "Value");
+	}
+	
+	// Print sides of the BMS Status Signals Panel header
+	for (int i = 1; i < 3; i++) {
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 0,  "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 29, "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 30, "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 36, "│");
+	}
+
+	// Fill in gaps in the frame of the BMS Status Signals Panel
+	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 29, "╮");
+	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 30, "╭");
+
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 0,  "├");
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 30, "├");
+
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 29, "┤");
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 36, "┤");
+
+	// Display each signal name and its corresponding value in a single row
+	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage.signalCount; signalIndex++) {
+		float value;
+		canSignal_t signal = bmsStatusMessage.signals[signalIndex];
+		
+		if (checkRow(scrlTop, scrlBottom, row++)) {
+			// Print boarders of the BMS Status Signals Panel row
+			mvprintw (*scrRow, column + 0,  "│");	
+			mvprintw (*scrRow, column + 29, "│");
+			mvprintw (*scrRow, column + 30, "│");
+			mvprintw (*scrRow, column + 36, "│");
+
+			// Get & display signal value or insert placeholder value
+			switch (bmsGetSignalValue(database, bmsStatusMessageIndex, signalIndex, &value)) 
+			{
+				case CAN_DATABASE_MISSING: {
+					// Shouldn't reach here
+					break;
+				}
+				case CAN_DATABASE_TIMEOUT: {
+					attron (COLOR_PAIR (COLOR_INVALID));
+					mvprintw (*scrRow, column + 2, signal.name);
+					mvprintw (*scrRow, column + 32, "---");
+					attroff (COLOR_PAIR (COLOR_INVALID));
+					break;
+				}
+				case CAN_DATABASE_VALID: {
+					mvprintw (*scrRow, column + 2, signal.name);
+					mvprintw (*scrRow, column + 32, "%.01f", value);
+					break;
+				}
+			}
+
+			*scrRow += 1;
+		}
+	}
+
+	// Print the bottom of the BMS Status Signals Panel
+	if (checkRow (scrlTop, scrlBottom, row)) {
+		for (int i = 0; i < 3; i++) 
+			mvprintw (*scrRow, column + (i * 12), "────────────");
+
+		mvprintw (*scrRow, column + 0,  "└");
+		mvprintw (*scrRow, column + 36, "┘");
+
+		// Fill in gaps in the frame of the BMS Status Signals Panel
+		mvprintw (*scrRow, column + 29, "┴");
+		mvprintw (*scrRow, column + 30, "┴");
+
+		*scrRow += 1;
+	} 
+}
+
+int printSegment (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, bms_t* bms, uint16_t segmentIndex)
 {	
 	// Column index for the cells
 	uint16_t columnCell = column;
@@ -515,9 +642,7 @@ int printSegment (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t column
 
 	// Validate & map position for each row of the segment 
 	for (int i = 0; i < BMS_SEGMENT_HEIGHT; i++) {
-		// Get the actual row from the segment content
-		int row = BMS_STAT_HEIGHT + (BMS_SEGMENT_HEIGHT * segmentIndex) + i;
-		if (checkRow(scrlTop, scrlBottom, row)) {
+		if (checkRow(scrlTop, scrlBottom, row + i)) {
 			validRows[i] = true;
 			validSegment = true;
 			mapRowToPosition[i] = *scrRow;
@@ -656,127 +781,6 @@ int printSegment (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t column
 			if (validRows[3]) mvprintw (mapRowToPosition[3], columnSense,	"│"); 
 		}
 	}
-}
-
-void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, bms_t* bms) 
-{
-	// The height of the header of the panel
-	size_t const BMS_STATUS_SIGNALS_HEADER_HEIGHT = 3;
-
-	// The index of the bms status message
-	ssize_t bmsStatusMessageIndex = bms->bmsStatusMessageIndex;
-
-	// The database associated with the bms instance
-	canDatabase_t* database = bms->database;
-
-	// The bms status message 
-	canMessage_t bmsStatusMessage = database->messages [bmsStatusMessageIndex];
-	
-	// Validate the rows of the BMS Status Signals Panel Header
-	bool validRows [BMS_SEGMENT_HEIGHT];
-
-	// Map each row of the segment to its position in the terminal window
-	int mapRowToPosition [BMS_SEGMENT_HEIGHT];
-
-	// Validate & map position for each row of the bms status signals panel  
-	for (int i = 0; i < BMS_STATUS_SIGNALS_HEADER_HEIGHT; i++) {
-		if (checkRow(scrlTop, scrlBottom, row++)) { 
-			validRows[i] = true;
-			mapRowToPosition[i] = *scrRow += 1; 
-		}
-		else {
-			validRows[i] = false;
-		} 
-	}	
-
-	// Set row position for displaying the signals
-	*scrRow += 1;
-
-	// Print the header of the BMS Status Signals Panel
-	for (int i = 0; i < 3; i++) {
-		if (validRows[0]) mvprintw (mapRowToPosition[0], column + (i * 12), "────────────");
-		if (validRows[2]) mvprintw (mapRowToPosition[2], column + (i * 12), "────────────");
-	}
-		
-	// Prints corners of the BMS Status Signals Panel header
-	if (validRows[0]) {
-		mvprintw (mapRowToPosition[0], column + 0,  "╭");
-		mvprintw (mapRowToPosition[0], column + 36, "╮");
-	}
-	
-	// Print headers 
-	if (validRows[1]) {
-		mvprintw (mapRowToPosition[1], column + 2,  "Signal");
-		mvprintw (mapRowToPosition[1], column + 31, "Value");
-	}
-	
-	// Print sides of the BMS Status Signals Panel header
-	for (int i = 1; i < 3; i++) {
-		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 0,  "│");
-		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 29, "│");
-		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 30, "│");
-		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 36, "│");
-	}
-
-	// Fill in gaps in the frame of the BMS Status Signals Panel
-	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 29, "╮");
-	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 30, "╭");
-
-	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 0,  "├");
-	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 30, "├");
-
-	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 29, "┤");
-	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 36, "┤");
-
-	// Display each signal name and its corresponding value in a single row
-	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage.signalCount; signalIndex++) {
-		float value;
-		canSignal_t signal = bmsStatusMessage.signals[signalIndex];
-		
-		if (checkRow(scrlTop, scrlBottom, row++)) {
-			// Print boarders of the BMS Status Signals Panel row
-			mvprintw (*scrRow, column + 0,  "│");	
-			mvprintw (*scrRow, column + 29, "│");
-			mvprintw (*scrRow, column + 30, "│");
-			mvprintw (*scrRow, column + 36, "│");
-
-			// Get & display signal value or insert placeholder value
-			switch (bmsGetSignalValue(database, bmsStatusMessageIndex, signalIndex, &value)) 
-			{
-				case CAN_DATABASE_MISSING: {
-					// Shouldn't reach here
-					break;
-				}
-				case CAN_DATABASE_TIMEOUT: {
-					attron (COLOR_PAIR (COLOR_INVALID));
-					mvprintw (*scrRow, column + 2, signal.name);
-					mvprintw (*scrRow, column + 32, "---");
-					attroff (COLOR_PAIR (COLOR_INVALID));
-					break;
-				}
-				case CAN_DATABASE_VALID: {
-					mvprintw (*scrRow, column + 2, signal.name);
-					mvprintw (*scrRow, column + 32, "%.01f", value);
-					break;
-				}
-			}
-
-			*scrRow += 1;
-		}
-	}
-
-	// Print the bottom of the BMS Status Signals Panel
-	if (checkRow (scrlTop, scrlBottom, row)) {
-		for (int i = 0; i < 3; i++) 
-			mvprintw (*scrRow, column + (i * 12), "────────────");
-
-		mvprintw (*scrRow, column + 0,  "└");
-		mvprintw (*scrRow, column + 36, "┘");
-
-		// Fill in gaps in the frame of the BMS Status Signals Panel
-		mvprintw (*scrRow, column + 29, "┴");
-		mvprintw (*scrRow, column + 30, "┴");
-	} 
 }
 
 void printVoltage (int row, int column, bms_t* bms, uint16_t cellIndex)
