@@ -573,6 +573,9 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 29, "╮");
 	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 30, "╭");
 
+	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 0,  "├");
+	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 36, "┤");
+
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 0,  "├");
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 30, "├");
 
