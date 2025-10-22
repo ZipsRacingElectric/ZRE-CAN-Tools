@@ -451,8 +451,8 @@ uint64_t mdfCanLogWriteComment (FILE* mdf)
 
 mdfBlock_t* mdfCanLogWriteDg (FILE* mdf, uint64_t firstCgAddr)
 {
-	mdfBlock_t* dg = malloc (sizeof (mdfBlock_t));
-	if (mdfDgBlockInit (dg,
+	mdfBlock_t* block = malloc (sizeof (mdfBlock_t));
+	if (mdfDgBlockInit (block,
 		&(mdfDgDataSection_t)
 		{
 			.recordIdLength = 1
@@ -465,10 +465,10 @@ mdfBlock_t* mdfCanLogWriteDg (FILE* mdf, uint64_t firstCgAddr)
 		return NULL;
 	}
 
-	return dg;
+	return block;
 }
 
-void writeDataFrameRecord (FILE* mdf, canFrame_t* frame, uint64_t timestamp, uint8_t busChannel)
+void mdfCanLogWriteDataFrameRecord (FILE* mdf, canFrame_t* frame, uint64_t timestamp, uint8_t busChannel)
 {
 	uint8_t record [20] = {};
 
@@ -549,19 +549,22 @@ int main (int argc, char** argv)
 
 	mdfHdBlockLinkList (hd)->commentAddr = commentAddr;
 
-	//
+	mdfBlock_t* dg = mdfCanLogWriteDg (mdf, dataFrameCgAddr);
 
-	mdfHdBlockLinkList (hd)->firstDgAddr = mdfBlockWrite (mdf, &dg);
+	mdfHdBlockLinkList (hd)->firstDgAddr = mdfBlockWrite (mdf, dg);
 
-	mdfDgBlockLinkList (&dg)->dataBlockAddr = mdfDtBlockWrite (mdf);
+	mdfDgBlockLinkList (dg)->dataBlockAddr = mdfDtBlockWrite (mdf);
 
 	// Rewrite Link Lists -----------------------------------------------------------------------------------------------------
 
+	mdfRewriteBlockLinkList (mdf, dg);
 	mdfRewriteBlockLinkList (mdf, hd);
-	mdfRewriteBlockLinkList (mdf, &dg);
 
+	mdfBlockDealloc (dg);
 	mdfBlockDealloc (hd);
-	mdfBlockDealloc (&dg);
+
+	free (dg);
+	free (hd);
 
 	// Data Block Data Section ------------------------------------------------------------------------------------------------
 
@@ -582,13 +585,13 @@ int main (int argc, char** argv)
 		.dlc = 8
 	};
 
-	writeDataFrameRecord (mdf, &frame, 0, 1);
+	mdfCanLogWriteDataFrameRecord (mdf, &frame, 0, 1);
 	frame.id = 0x001;
-	writeDataFrameRecord (mdf, &frame, 1000, 1);
+	mdfCanLogWriteDataFrameRecord (mdf, &frame, 1000, 1);
 	frame.id = 0x010;
-	writeDataFrameRecord (mdf, &frame, 2000, 1);
+	mdfCanLogWriteDataFrameRecord (mdf, &frame, 2000, 1);
 	frame.id = 0x100;
-	writeDataFrameRecord (mdf, &frame, 3000, 1);
+	mdfCanLogWriteDataFrameRecord (mdf, &frame, 3000, 1);
 
 	return 0;
 }
