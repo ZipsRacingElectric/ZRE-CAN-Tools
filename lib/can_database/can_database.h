@@ -144,6 +144,23 @@ canDatabaseSignalState_t canDatabaseGetInt32 (canDatabase_t* database, ssize_t i
 canDatabaseSignalState_t canDatabaseGetFloat (canDatabase_t* database, ssize_t index, float* value);
 
 /**
+ * @brief Gets a reference to a CAN signal, from its global index.
+ * @param database The database to get from.
+ * @param index The global index of the signal.
+ * @return A refernce to the CAN signal if successful, @c NULL otherwise.
+ */
+static inline canSignal_t* canDatabaseGetSignal (canDatabase_t* database, ssize_t index)
+{
+	if (index < 0)
+	{
+		errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
+		return NULL
+	}
+
+	return &database->signals [index];
+}
+
+/**
  * @brief Gets the value of a signal in a CAN database, as a @c bool .
  * @param database The database to get from.
  * @param index The global index of the signal to get. Note that a local index can be transformed using the
