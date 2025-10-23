@@ -214,6 +214,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	ssize_t bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
 	canMessage_t* bmsStatusMessage = canDatabaseGetMessage (database, bmsStatusMessageIndex);
 
+	bms->bmsStatusSignalsCount = 0;
 	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage->signalCount; signalIndex++) {
 		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bmsStatusMessageIndex, signalIndex); 
 
@@ -222,6 +223,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 
 		if (checkSignalRedundancy (signalName, &signalNames, &signalCount)) {
 			bms->bmsStatusSignals[signalIndex] = bmsStatusSignal;
+			bms->bmsStatusSignalsCount ++;
 		} 
 	}
 

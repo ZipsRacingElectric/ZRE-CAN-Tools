@@ -69,8 +69,9 @@ typedef struct
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
 	
+	uint16_t bmsStatusSignalsCount; 
 	canSignal_t* bmsStatusSignals [BMS_STATUS_SIGNAL_COUNT_MAX];
-
+	
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
