@@ -6,7 +6,7 @@
 // Author: Cole Barach
 // Date Created: 2025.10.09
 //
-// Description: Functions and datatypes related to reading MDF files.
+// Description: Functions and datatypes related to reading MDF files. // TODO(Barach): Better description
 //
 // References:
 // - https://www.asam.net/standards/detail/mdf/wiki/

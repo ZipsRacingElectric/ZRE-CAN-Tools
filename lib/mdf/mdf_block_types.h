@@ -6,7 +6,7 @@
 // Author: Cole Barach
 // Date Created: 2025.10.09
 //
-// Description: Definitions of specific types of MDF blocks.
+// Description: Definitions of specific types of MDF blocks. // TODO(Barach): Better description
 //
 // References:
 // - https://www.asam.net/standards/detail/mdf/wiki/
