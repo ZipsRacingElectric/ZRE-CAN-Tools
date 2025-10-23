@@ -854,10 +854,11 @@ void printTemperature (int row, int column, bms_t* bms, uint16_t senseLineIndex)
 
 		// Print the temperature
 		attron (COLOR_PAIR (color));
-		mvprintw (row, column, "%.1fC", temperature); 
-		// DiBacco: mvwprintw (pad, row, column, "%d\n", (int) temperature);
-		// DiBacco: mvwprintw (pad, row + 1, column, "%s%.1fC\n", temperature - (int) temperature);
-		// TODO: DiBacco: adjust temperature reading into mutliple lines
+
+		// Display the whole number and decimal of the temperature on seperate lines at allow it to fit in a cell
+		// TODO(DiBacco): INCOMPLETE => not tested
+		mvprintw(row, column, "%d.", (int) temperature);      
+		mvprintw(row + 1, column, "%01dC", (int) roundf( fabsf (temperature - (float) temperature) * 10.0f));   
 		attroff (COLOR_PAIR (color));
 
 		break;
