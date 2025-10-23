@@ -14,6 +14,11 @@
 #include "can_database/can_database.h"
 #include "cjson/cjson.h"
 
+
+/// @brief The maximum number of signals in the bms status message.
+// #define BMS_STATUS_SIGNAL_COUNT_MAX 38 // TODO(DiBacco): figure this line out
+// const int BMS_STATUS_SIGNAL_COUNT_MAX = 38; // TODO(DiBacco): also see below
+
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
 #define CELL_INDEX_LOCAL_TO_GLOBAL(bms, segmentIndex, ltcIndex, cellIndex)													\
@@ -65,7 +70,8 @@ typedef struct
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
 	
-	size_t bmsStatusMessageIndex;
+	canSignal_t* bmsStatusSignals [38];
+
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -100,7 +106,17 @@ bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
  * @param messageIndex the index of the CAN message.
  * @param signalIndex the index of the signal within the CAN message.
  * @param value the value of the signal.
-*/
+ */
 canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t messageIndex, size_t signalIndex, float* value);
+
+/**
+ * @brief Checks if signal has already been retreived to minimize signal redundancy. Dyanmically adds the signal's name to a list of signal names if not.  
+ * @param signalName A pointer to the name of the signal to check
+ * @param signalNames A pointer to a list of char pointers used to store the names of previously retreived signals
+ * @param signalCount A pointer to the number of signal names in the signal name list
+ * @return True if not already in list, False if already in list
+ */
+bool checkSignalRedundancy (char* signalName, char*** signalNames, size_t* signalCount);
+
 
 #endif // BMS_H

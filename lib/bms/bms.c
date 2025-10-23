@@ -56,6 +56,10 @@ static size_t printSenseLineIndex (bms_t* bms, uint16_t segmentIndex, uint16_t l
 
 int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 {
+	// Create list to contain signal names to avoid displaying signals redundantly in the bms tui
+	size_t signalCount = 0;
+	char** signalNames = NULL;
+	
 	bms->database = database;
 
 	// Get JSON config values
@@ -101,6 +105,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		char voltName [] = "CELL_VOLTAGE_###";
 		size_t offset = printIndex (index, voltName + 13);
 		voltName [offset + 13] = '\0'; 
+		checkSignalRedundancy (voltName, &signalNames, &signalCount); 
 		// DiBacco: offset is used to modify the signal name to contain one '#' per digit in the index
 		// index < 10 = CELL_VOLTAGE_# | index < 100 = CELL_VOLTAGE_## | etc
 
@@ -113,6 +118,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		char disName [] = "CELL_BALANCING_###";
 		offset = printIndex (index, disName + 15);
 		disName [offset + 15] = '\0';
+		checkSignalRedundancy (disName, &signalNames, &signalCount); 
 
 		bms->cellsDischargingIndices [index] = canDatabaseFindSignal (database, disName);
 		if (bms->cellsDischargingIndices [index] < 0)
@@ -138,12 +144,14 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 				char tempName [] = "SENSE_LINE_###_##_TEMPERATURE";
 				uint16_t offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, tempName + 11);
 				snprintf (tempName + 11 + offset, 13, "_TEMPERATURE");
+				checkSignalRedundancy (tempName, &signalNames, &signalCount); 
 
 				bms->senseLineTemperatureIndices [index] = canDatabaseFindSignal (database, tempName);
 
 				char openName [] = "SENSE_LINE_###_##_OPEN";
 				offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, openName + 11);
 				snprintf (openName + 11 + offset, 6, "_OPEN");
+				checkSignalRedundancy (openName, &signalNames, &signalCount); 
 
 				bms->senseLinesOpenIndices [index] = canDatabaseFindSignal (database, openName);
 				if (bms->senseLinesOpenIndices [index] < 0)
@@ -165,34 +173,56 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			char isoSpiName [] = "BMS_LTC_###_ISOSPI_FAULT";
 			uint16_t offset = printIndex (index, isoSpiName + 8);
 			snprintf (isoSpiName + 8 + offset, 14, "_ISOSPI_FAULT");
+			checkSignalRedundancy (isoSpiName, &signalNames, &signalCount); 
 
 			bms->ltcIsoSpiFaultIndices [index] = canDatabaseFindSignal (database, isoSpiName);
 
 			char selfTestName [] = "BMS_LTC_###_SELF_TEST_FAULT";
 			offset = printIndex (index, selfTestName + 8);
 			snprintf (selfTestName + 8 + offset, 17, "_SELF_TEST_FAULT");
+			checkSignalRedundancy (selfTestName, &signalNames, &signalCount); 
 
 			bms->ltcSelfTestFaultIndices [index] = canDatabaseFindSignal (database, selfTestName);
 
 			char temperatureName [] = "BMS_LTC_###_TEMPERATURE";
 			offset = printIndex (index, temperatureName + 8);
 			snprintf (temperatureName + 8 + offset, 13, "_TEMPERATURE");
+			checkSignalRedundancy (temperatureName, &signalNames, &signalCount);
 
 			bms->ltcTemperatureIndices [index] = canDatabaseFindSignal (database, temperatureName);
 		}
 	}
 
 	bms->packVoltageIndex = canDatabaseFindSignal (database, "PACK_VOLTAGE");
+	checkSignalRedundancy ("PACK_VOLTAGE", &signalNames, &signalCount); 
 	if (bms->packVoltageIndex < 0)
 		return errno;
 
 	bms->packCurrentIndex = canDatabaseFindSignal (database, "PACK_CURRENT");
+	checkSignalRedundancy ("PACK_CURRENT", &signalNames, &signalCount); 
 	if (bms->packCurrentIndex < 0)
 		return errno;
 
-	bms->bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
-	if (bms->bmsStatusMessageIndex < 0) {
-		return errno;
+	/*
+	TODO(DiBacco): remove reduntant signals in the bms status panel 
+		Begin with: 
+			- Glory: ISO-SPI, Fault_Test
+
+		Solution: use list to store names, which will be use to compare against the names of the messages in the panel
+	*/
+
+	ssize_t bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
+	canMessage_t* bmsStatusMessage = canDatabaseGetMessage (database, bmsStatusMessageIndex);
+
+	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage->signalCount; signalIndex++) {
+		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bmsStatusMessageIndex, signalIndex); 
+
+		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, signalGlobalIndex);
+		char* signalName = bmsStatusSignal->name;
+
+		if (checkSignalRedundancy (signalName, &signalNames, &signalCount)) {
+			bms->bmsStatusSignals[signalIndex] = bmsStatusSignal;
+		} 
 	}
 
 	return 0;
@@ -380,4 +410,17 @@ canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t mess
 	// Get the value of the message associated with the global index
 	// Timeout in canDatabaseGetFloat is result of no data in the BUS
 	return canDatabaseGetFloat (database, globalIndex, value);
+}
+
+bool checkSignalRedundancy (char* signalName, char*** signalNames, size_t* signalCount) {
+	for (size_t signalIndex = 0; signalIndex < *signalCount; signalIndex++) {
+		if (strcmp (signalName, (*signalNames)[signalIndex]) == 0) {
+			return false;
+		}
+	}
+
+	*signalNames = realloc (*signalNames, (*signalCount + 1) * sizeof (char*)); 
+	(*signalNames)[(*signalCount)++] = strdup (signalName);
+
+	return true;
 }
