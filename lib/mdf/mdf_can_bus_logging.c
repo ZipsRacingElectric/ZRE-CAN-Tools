@@ -336,8 +336,8 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 	uint64_t timestampCnAddr = mdfCnBlockWrite (mdf,
 		&(mdfCnDataSection_t)
 		{
-			.channelType	= MDF_CHANNEL_TYPE_VALUE,
-			.syncType		= MDF_SYNC_TYPE_NONE,
+			.channelType	= MDF_CHANNEL_TYPE_MASTER,
+			.syncType		= MDF_SYNC_TYPE_TIME,
 			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
 			.bitOffset		= 0,
 			.byteOffset		= TIMESTAMP_BYTE_OFFSET,
@@ -488,7 +488,7 @@ int mdfCanBusLogInit (FILE* mdf, const char* programId, time_t unixTime)
 		return errno;
 
 	uint64_t dataFrameCgAddr = writeDataFrameCg (mdf, 0, acquisitionSourceAddr, timestampCcAddr);
-	if (dataFrameCgAddr)
+	if (dataFrameCgAddr == 0)
 		return errno;
 
 	uint64_t fileHistoryAddr = writeFileHistory (mdf, unixTime);
@@ -505,7 +505,11 @@ int mdfCanBusLogInit (FILE* mdf, const char* programId, time_t unixTime)
 
 	// Rewrite Link Lists -----------------------------------------------------------------------------------------------------
 
-	mdfDgBlockLinkList (dg)->dataBlockAddr = mdfDtBlockWrite (mdf);
+	uint64_t dtAddr = mdfDtBlockWrite (mdf);
+	if (dtAddr == 0)
+		return errno;
+
+	mdfDgBlockLinkList (dg)->dataBlockAddr = dtAddr;
 
 	if (mdfRewriteBlockLinkList (mdf, dg) != 0)
 		return errno;

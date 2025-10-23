@@ -71,14 +71,19 @@ static inline mdfHdLinkList_t* mdfHdBlockLinkList (mdfBlock_t* block) { return (
 /// @brief The block ID of a channel block.
 #define MDF_BLOCK_ID_CN MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'C', 'N')
 
-/// @brief Channel type indicating a direct value.
+/// @brief Channel type used for regular channels. These channels have a physical value encoded in they.
 #define MDF_CHANNEL_TYPE_VALUE 0x00
 
-/// @note Uncertain on what this means.
-#define MDF_CHANNEL_TYPE_VLSD 0x01
+/// @brief Channel type used for a timestamp channel.
+/// @note This may have other uses, timestamps are the only context I've seen them in however.
+#define MDF_CHANNEL_TYPE_MASTER 0x02
 
-/// @note Uncertain on what this means.
+/// @brief Sync type used for regular channels.
 #define MDF_SYNC_TYPE_NONE 0x00
+
+/// @brief Sync type used to indicate a timestamp channel. This channel synchronizes the other channels in the group to its
+/// value (the timestamp).
+#define MDF_SYNC_TYPE_TIME 0x01
 
 /// @brief Channel data type indicating an unsigned integer encoded in the intel (little endian) format.
 #define MDF_DATA_TYPE_UNSIGNED_INTEL 0x00
