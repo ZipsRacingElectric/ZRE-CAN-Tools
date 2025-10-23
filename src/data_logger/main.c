@@ -2,61 +2,77 @@
 #include "can_device/can_device.h"
 #include "debug.h"
 #include "error_codes.h"
+#include "mdf/mdf_can_bus_logging.h"
 
 // C Standard Library
-#include <errno.h>
+#include <signal.h>
+#include <sys/time.h>
+
+bool logging = true;
+
+void sigtermHandler (int sig)
+{
+	(void) sig;
+
+	printf ("Terminating...\n");
+	logging = false;
+}
 
 int main (int argc, char** argv)
 {
 	debugInit ();
 
-	if (argc < 2)
+	if (argc < 3)
 	{
-		fprintf (stderr, "Invalid arguments, usage: data-logger <options> <CAN device>.\n");
+		fprintf (stderr, "Invalid arguments, usage: data-logger <options> <CAN device> <MDF file>.\n");
 		return -1;
 	}
 
-	FILE* file = stdout;
-	for (int index = 1; index < argc - 1; ++index)
-	{
-		if (argv [index][0] == '-' && argv [index][1] == 'f' && argv [index][2] == '=')
-		{
-			file = fopen (argv [index] + 3, "w");
-			if (file == NULL)
-			{
-				int code = errno;
-				fprintf (stderr, "Failed to open MDF file: %s.\n", errorMessage (code));
-				return code;
-			}
-			continue;
-		}
-
-		fprintf (stderr, "Warning: Unrecognized option '%s'.\n", argv [index]);
-	}
-
-	char* deviceName = argv [argc - 1];
+	char* deviceName = argv [argc - 2];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to initialize CAN device: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
-	while (1)
+	char* mdfPath = argv [argc - 1];
+	FILE* mdf = fopen (mdfPath, "w");
+	if (mdf == NULL)
+		return errorPrintf ("Failed to open MDF file '%s'", mdfPath);
+
+	time_t timeStart = time (NULL);
+	if (mdfCanBusLogInit (mdf, "ZREDART", timeStart) != 0)
+		return errorPrintf ("Failed to initialize CAN bus MDF log");
+
+	if (signal (SIGTERM, sigtermHandler) == SIG_ERR)
+		return errorPrintf ("Failed to bind SIGTERM handler");
+
+	if (signal (SIGINT, sigtermHandler) == SIG_ERR)
+		return errorPrintf ("Failed to bind SIGINT handler");
+
+	canSetTimeout (device, 100);
+
+	while (logging)
 	{
 		canFrame_t frame;
 		if (canReceive (device, &frame) != 0)
+			continue;
+
+		printf ("Received CAN frame: 0x%03X\n", frame.id);
+
+		struct timeval timeCurrent;
+		gettimeofday (&timeCurrent, NULL);
+		uint64_t timestamp = (timeCurrent.tv_sec - timeStart) * 1e6 + timeCurrent.tv_usec;
+
+		printf ("Timestamp: %lu.\n", timestamp);
+
+		if (mdfCanBusLogWriteDataFrame (mdf, &frame, timestamp, 1) != 0)
 		{
-			fprintf (stderr, "Warning, failed to recieve CAN frame: %s.\n", errorMessage (errno));
+			errorPrintf ("Warning, failed to log CAN frame");
 			continue;
 		}
-
-		fprintf (file, "0x%03X", frame.id);
-		for (size_t index = 0; index < frame.dlc; ++index)
-			fprintf (file, "[0x%02X]", frame.data [index]);
-		fprintf (file, "\n");
 	}
+
+	printf ("Closing MDF file...\n");
+	fclose (mdf);
 
 	return 0;
 }
