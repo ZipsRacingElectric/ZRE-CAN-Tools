@@ -16,8 +16,7 @@
 
 
 /// @brief The maximum number of signals in the bms status message.
-// #define BMS_STATUS_SIGNAL_COUNT_MAX 38 // TODO(DiBacco): figure this line out
-// const int BMS_STATUS_SIGNAL_COUNT_MAX = 38; // TODO(DiBacco): also see below
+#define BMS_STATUS_SIGNAL_COUNT_MAX 38 
 
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +69,7 @@ typedef struct
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
 	
-	canSignal_t* bmsStatusSignals [38];
+	canSignal_t* bmsStatusSignals [BMS_STATUS_SIGNAL_COUNT_MAX];
 
 } bms_t;
 
