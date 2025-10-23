@@ -225,7 +225,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 
 	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage->signalCount; signalIndex++) {
 		// Get signal using the signal index
-		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bmsStatusMessageIndex, signalIndex); 
+		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bms->bmsStatusMessageIndex, signalIndex); 
 		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, signalGlobalIndex);
 
 		// Check that the signal has not been retreived previously
