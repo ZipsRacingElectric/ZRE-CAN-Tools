@@ -38,9 +38,6 @@
 // The height of each BMS Segment
 #define BMS_SEGMENT_HEIGHT 9 
 
-// The height of BMS_Status Signals panels
-#define BMS_STATUS_SIGNALS_PANEL_HEIGHT 44
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -179,8 +176,12 @@ int main (int argc, char** argv)
 		return code;
 	}
 
+	
+	// The height of BMS_Status Signals panels
+	const size_t BMS_STATUS_SIGNALS_PANEL_HEIGHT = 5 + bms.bmsStatusSignalsCount; // the header + footer + the total number of signals
+
 	// The total # of rows in the window
-	const int TOTAL_ROWS = BMS_STAT_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT + 2; // two blank rows seperate the bms status signals panel from the first segment  
+	const size_t TOTAL_ROWS = BMS_STAT_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT + 2; // two blank rows seperate the bms status signals panel from the first segment  
 
 	// Set OS-specific locale for wide character support
 	#ifdef __unix__
