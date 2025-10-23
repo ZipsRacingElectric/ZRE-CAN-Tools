@@ -511,10 +511,6 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 
 	// Get the database associated with the bms instance
 	canDatabase_t* database = bms->database;
-	
-	// Get the bmsStatusMessage associated with the bmsStatusMessageIndex
-	// DiBacco: not used (yet?)
-	canMessage_t bmsStatusMessage = database->messages[bms->bmsStatusMessageIndex];
 
 	// Validate the rows of the BMS Status Signals Panel Header
 	bool validRows [BMS_SEGMENT_HEIGHT];
@@ -585,12 +581,7 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 	// Display each signal name and its corresponding value in a single row
 	for (size_t signalIndex = 0; signalIndex < bms->bmsStatusSignalsCount; signalIndex++) { 
 		float value;
-		// TODO(DiBacco): store canSignal_t* instead of indexes in the bmsStatusSignalIndices attribute of the bms 
-		// otherwise canDatabaseGetMessage and canDatabaseGetSignal will be called in bms.c and bms_tui/main.c
-
-		// Get signal using the signal index
-		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bms->bmsStatusMessageIndex, signalIndex); 
-		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, signalGlobalIndex);
+		canSignal_t* bmsStatusSignal = bms->bmsStatusSignals[signalIndex];
 
 		if (checkRow(scrlTop, scrlBottom, row++)) {
 			// Print boarders of the BMS Status Signals Panel row

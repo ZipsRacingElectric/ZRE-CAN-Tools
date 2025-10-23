@@ -14,10 +14,6 @@
 #include "can_database/can_database.h"
 #include "cjson/cjson.h"
 
-
-/// @brief The maximum number of signals in the bms status message.
-#define BMS_STATUS_SIGNAL_COUNT_MAX 38 
-
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
 #define CELL_INDEX_LOCAL_TO_GLOBAL(bms, segmentIndex, ltcIndex, cellIndex)													\
@@ -66,10 +62,11 @@ typedef struct
 	ssize_t* ltcIsoSpiFaultIndices;
 	ssize_t* ltcSelfTestFaultIndices;
 	ssize_t* ltcTemperatureIndices;
-	ssize_t* bmsStatusSignalIndices;
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
 	ssize_t bmsStatusMessageIndex;
+
+	canSignal_t** bmsStatusSignals 
 		
 } bms_t;
 
