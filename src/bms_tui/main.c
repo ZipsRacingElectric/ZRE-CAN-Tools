@@ -245,6 +245,7 @@ int main (int argc, char** argv)
 		// Print the bms status signals panel 
 		uint16_t bmsStatusStartingRow = BMS_STAT_HEIGHT; // the bms status signals panel is displayed after each segment 
 		printBmsStatusSignals (scrlTop, scrlBottom, &scrRow, bmsStatusStartingRow, 0, &bms); // TODO(DiBacco): pass BMS_STAT_HEGIHT constant directly into the function
+		// TODO(DiBacco): uncomment printBmsStatusSignals
 		
 		scrRow += 2; // two blank rows seperate the bms status signals panel from the first segment  
 
@@ -503,19 +504,17 @@ void printStatPanel (int row, int column, bms_t* bms)
 }
 
 void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, bms_t* bms) 
-{
+{	
 	// The height of the header of the panel
 	size_t const BMS_STATUS_SIGNALS_HEADER_HEIGHT = 4;
 
-	// The index of the bms status message
-	ssize_t bmsStatusMessageIndex = bms->bmsStatusMessageIndex;
-
-	// The database associated with the bms instance
+	// Get the database associated with the bms instance
 	canDatabase_t* database = bms->database;
-
-	// The bms status message 
-	canMessage_t bmsStatusMessage = database->messages [bmsStatusMessageIndex];
 	
+	// Get the bmsStatusMessage associated with the bmsStatusMessageIndex
+	// DiBacco: not used (yet?)
+	canMessage_t bmsStatusMessage = database->messages[bms->bmsStatusMessageIndex];
+
 	// Validate the rows of the BMS Status Signals Panel Header
 	bool validRows [BMS_SEGMENT_HEIGHT];
 
@@ -531,7 +530,7 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 		else {
 			validRows[i] = false;
 		} 
-	}	
+	}
 
 	// Set row position for displaying the signals
 	*scrRow += 1;
@@ -583,10 +582,15 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 36, "┤");
 
 	// Display each signal name and its corresponding value in a single row
-	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage.signalCount; signalIndex++) {
+	for (size_t signalIndex = 0; signalIndex < bms->bmsStatusSignalsCount; signalIndex++) { 
 		float value;
-		canSignal_t signal = bmsStatusMessage.signals[signalIndex];
-		
+		// TODO(DiBacco): store canSignal_t* instead of indexes in the bmsStatusSignalIndices attribute of the bms 
+		// otherwise canDatabaseGetMessage and canDatabaseGetSignal will be called in bms.c and bms_tui/main.c
+
+		// Get signal using the signal index
+		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bms->bmsStatusMessageIndex, signalIndex); 
+		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, signalGlobalIndex);
+
 		if (checkRow(scrlTop, scrlBottom, row++)) {
 			// Print boarders of the BMS Status Signals Panel row
 			mvprintw (*scrRow, column + 0,  "│");	
@@ -595,7 +599,7 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 			mvprintw (*scrRow, column + 36, "│");
 
 			// Get & display signal value or insert placeholder value
-			switch (bmsGetSignalValue(database, bmsStatusMessageIndex, signalIndex, &value)) 
+			switch (bmsGetSignalValue(database, bms->bmsStatusMessageIndex, signalIndex, &value)) 
 			{
 				case CAN_DATABASE_MISSING: {
 					// Shouldn't reach here
@@ -603,13 +607,13 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 				}
 				case CAN_DATABASE_TIMEOUT: {
 					attron (COLOR_PAIR (COLOR_INVALID));
-					mvprintw (*scrRow, column + 2, signal.name);
+					mvprintw (*scrRow, column + 2, bmsStatusSignal->name);
 					mvprintw (*scrRow, column + 32, "---");
 					attroff (COLOR_PAIR (COLOR_INVALID));
 					break;
 				}
 				case CAN_DATABASE_VALID: {
-					mvprintw (*scrRow, column + 2, signal.name);
+					mvprintw (*scrRow, column + 2, bmsStatusSignal->name);
 					mvprintw (*scrRow, column + 32, "%.01f", value);
 					break;
 				}
