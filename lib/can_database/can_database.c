@@ -135,15 +135,14 @@ canDatabaseSignalState_t canDatabaseGetBool (canDatabase_t* database, ssize_t in
 	return CAN_DATABASE_VALID;
 }
 
-static inline canSignal_t* canDatabaseGetSignal (canDatabase_t* database, ssize_t index)
+ssize_t canDatabaseFindMessage (canDatabase_t* database, const char* name)
 {
-	if (index < 0)
-	{
-		errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
-		return NULL;
-	}
+	for (size_t index = 0; index < database->messageCount; ++index)
+		if (strcmp (database->messages [index].name, name) == 0)
+			return (ssize_t) index;
 
-	return &database->signals [index];
+	errno = ERRNO_CAN_DATABASE_MESSAGE_MISSING;
+	return -1; 
 }
 
 void* canDatabaseRxThreadEntrypoint (void* arg)
