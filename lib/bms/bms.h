@@ -44,7 +44,6 @@ typedef struct
 {
 	canDatabase_t* database;
 	
-
 	uint16_t segmentCount;
 
 	uint16_t cellCount;
@@ -52,6 +51,7 @@ typedef struct
 	uint16_t ltcsPerSegment;
 	uint16_t cellsPerLtc;
 	uint16_t senseLinesPerLtc;
+	uint16_t bmsStatusSignalsCount; 
 
 	float minCellVoltage;
 	float maxCellVoltage;
@@ -66,12 +66,11 @@ typedef struct
 	ssize_t* ltcIsoSpiFaultIndices;
 	ssize_t* ltcSelfTestFaultIndices;
 	ssize_t* ltcTemperatureIndices;
+	ssize_t* bmsStatusSignalIndices;
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
-	
-	uint16_t bmsStatusSignalsCount; 
-	canSignal_t* bmsStatusSignals [BMS_STATUS_SIGNAL_COUNT_MAX];
-	
+	ssize_t bmsStatusMessageIndex;
+		
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

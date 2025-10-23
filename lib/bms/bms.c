@@ -211,19 +211,28 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		Solution: use list to store names, which will be use to compare against the names of the messages in the panel
 	*/
 
-	ssize_t bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
-	canMessage_t* bmsStatusMessage = canDatabaseGetMessage (database, bmsStatusMessageIndex);
+	// TODO(DiBacco): store canSignal_t* instead of indexes in the bmsStatusSignalIndices attribute of the bms 
+	// otherwise canDatabaseGetMessage and canDatabaseGetSignal will be called in bms.c and bms_tui/main.c
+	// (canSignal_t** bmsStatusSignals [BMS_STATUS_SIGNAL_COUNT_MAX])
 
+	// Get bms status index and message
+	bms->bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
+	canMessage_t* bmsStatusMessage = canDatabaseGetMessage (database, bms->bmsStatusMessageIndex);
+
+	// Used to store the bms status signal indexes
 	bms->bmsStatusSignalsCount = 0;
+	bms->bmsStatusSignalIndices = malloc (sizeof (ssize_t) * bmsStatusMessage->signalCount);
+
 	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage->signalCount; signalIndex++) {
+		// Get signal using the signal index
 		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bmsStatusMessageIndex, signalIndex); 
-
 		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, signalGlobalIndex);
-		char* signalName = bmsStatusSignal->name;
 
+		// Check that the signal has not been retreived previously
+		char* signalName = bmsStatusSignal->name;
 		if (checkSignalRedundancy (signalName, &signalNames, &signalCount)) {
-			bms->bmsStatusSignals[signalIndex] = bmsStatusSignal;
-			bms->bmsStatusSignalsCount ++;
+			// Append local index to the bms status signal indices
+			bms->bmsStatusSignalIndices[bms->bmsStatusSignalsCount++] = signalIndex;  
 		} 
 	}
 
@@ -415,13 +424,19 @@ canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t mess
 }
 
 bool checkSignalRedundancy (char* signalName, char*** signalNames, size_t* signalCount) {
+	// return false if signal has previously been retreived
 	for (size_t signalIndex = 0; signalIndex < *signalCount; signalIndex++) {
 		if (strcmp (signalName, (*signalNames)[signalIndex]) == 0) {
 			return false;
 		}
 	}
 
+	// add signal name to the list
 	*signalNames = realloc (*signalNames, (*signalCount + 1) * sizeof (char*)); 
+	if (! (*signalName)) {
+		printf ("Error: couldn't allocate memory for list\n");
+	}
+
 	(*signalNames)[(*signalCount)++] = strdup (signalName);
 
 	return true;
