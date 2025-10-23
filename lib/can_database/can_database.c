@@ -71,14 +71,14 @@ ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name)
 	return -1;
 }
 
-canMessage_t* canDatabaseFindMessage (canDatabase_t* database, const char* name)
+ssize_t canDatabaseFindMessage (canDatabase_t* database, const char* name)
 {
 	for (size_t index = 0; index < database->messageCount; ++index)
 		if (strcmp (database->messages [index].name, name) == 0)
-			return &database->messages [index];
+			return (ssize_t) index;
 
 	errno = ERRNO_CAN_DATABASE_MESSAGE_MISSING;
-	return NULL; 
+	return -1; 
 }
 
 canDatabaseSignalState_t canDatabaseGetUint32 (canDatabase_t* database, ssize_t index, uint32_t* value)
@@ -133,16 +133,6 @@ canDatabaseSignalState_t canDatabaseGetBool (canDatabase_t* database, ssize_t in
 	// C-style bool definition. If value != 0, then true.
 	*value = database->signalValues [index] >= FLT_EPSILON || database->signalValues [index] <= -FLT_EPSILON;
 	return CAN_DATABASE_VALID;
-}
-
-ssize_t canDatabaseFindMessage (canDatabase_t* database, const char* name)
-{
-	for (size_t index = 0; index < database->messageCount; ++index)
-		if (strcmp (database->messages [index].name, name) == 0)
-			return (ssize_t) index;
-
-	errno = ERRNO_CAN_DATABASE_MESSAGE_MISSING;
-	return -1; 
 }
 
 void* canDatabaseRxThreadEntrypoint (void* arg)
