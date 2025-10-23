@@ -135,6 +135,17 @@ canDatabaseSignalState_t canDatabaseGetBool (canDatabase_t* database, ssize_t in
 	return CAN_DATABASE_VALID;
 }
 
+static inline canSignal_t* canDatabaseGetSignal (canDatabase_t* database, ssize_t index)
+{
+	if (index < 0)
+	{
+		errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
+		return NULL;
+	}
+
+	return &database->signals [index];
+}
+
 void* canDatabaseRxThreadEntrypoint (void* arg)
 {
 	canDatabase_t* database = (canDatabase_t*) arg;
