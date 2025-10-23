@@ -291,7 +291,7 @@ static inline const char* errorMessage (int errorCode)
  * following arguments should be the values to be inserted in place of the format specifiers.
  * @param ... The variadic arguments to insert into the format string. Same convention as the @c printf family of functions.
  * @return The error code associated with the error, that is, the value of @c errno upon entry to the function. Note this
- * resets @c errno , so this return code must be used to determine what the errno was.
+ * resets @c errno , so this return code must be used to determine what the error was.
  */
 static inline int errorPrintf (const char* message, ...)
 {
