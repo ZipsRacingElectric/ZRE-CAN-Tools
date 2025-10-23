@@ -14,7 +14,9 @@
 // Includes
 #include "can_device/can_device.h"
 #include "can_signals.h"
+#include "error_codes.h"
 #include "time_port.h"
+
 
 // POSIX Libraries
 #include <pthread.h>
@@ -149,7 +151,33 @@ canDatabaseSignalState_t canDatabaseGetFloat (canDatabase_t* database, ssize_t i
  * @param index The global index of the signal.
  * @return A refernce to the CAN signal if successful, @c NULL otherwise.
  */
-static inline canSignal_t* canDatabaseGetSignal (canDatabase_t* database, ssize_t index);
+static inline canSignal_t* canDatabaseGetSignal (canDatabase_t* database, ssize_t index)
+{
+	if (index < 0)
+	{
+		errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
+		return NULL;
+	}
+
+	return &database->signals[index];
+}
+
+/**
+ * @brief Gets a reference to a CAN message, from its global index.
+ * @param database The database to get from.
+ * @param index The global index of the signal.
+ * @return A refernce to the CAN message if successful, @c NULL otherwise.
+ */
+static inline canMessage_t* canDatabaseGetMessage (canDatabase_t* database, ssize_t index)
+{
+	if (index < 0)
+	{
+		errno = ERRNO_CAN_DATABASE_MESSAGE_MISSING;
+		return NULL;
+	}
+
+	return &database->messages[index];
+}
 
 /**
  * @brief Gets the value of a signal in a CAN database, as a @c bool .
