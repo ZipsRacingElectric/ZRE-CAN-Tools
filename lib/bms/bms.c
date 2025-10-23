@@ -211,13 +211,16 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		Solution: use list to store names, which will be use to compare against the names of the messages in the panel
 	*/
 
+	// TODO(DiBacco): create a feature that allows for manually inserting signals to ignore
+
 	// Get bms status index and message
 	bms->bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
 	canMessage_t* bmsStatusMessage = canDatabaseGetMessage (database, bms->bmsStatusMessageIndex);
 
-	// Used to store the bms status signal indexes
+	// Used to store the bms status signals and bms status indices indexes
 	bms->bmsStatusSignalsCount = 0;
 	bms->bmsStatusSignals = malloc (sizeof (canSignal_t*) * bmsStatusMessage->signalCount);
+	bms->bmsStatusSignalIndices = malloc (sizeof (size_t) * bmsStatusMessage->signalCount);
 
 	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage->signalCount; signalIndex++) {
 		// Get signal using the signal index
@@ -227,8 +230,9 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		// Check that the signal has not been retreived previously
 		char* signalName = bmsStatusSignal->name;
 		if (checkSignalRedundancy (signalName, &signalNames, &signalCount)) {
-			// Append signal to the bms status signals
-			bms->bmsStatusSignals[bms->bmsStatusSignalsCount++] = bmsStatusSignal;
+			// Append signal to the bms status signals and index to the bms status signals indices
+			bms->bmsStatusSignals[bms->bmsStatusSignalsCount] = bmsStatusSignal;
+			bms->bmsStatusSignalIndices[bms->bmsStatusSignalsCount++] = signalIndex;
 		} 
 	}
 

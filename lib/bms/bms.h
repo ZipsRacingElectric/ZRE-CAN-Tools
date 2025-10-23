@@ -62,6 +62,7 @@ typedef struct
 	ssize_t* ltcIsoSpiFaultIndices;
 	ssize_t* ltcSelfTestFaultIndices;
 	ssize_t* ltcTemperatureIndices;
+	ssize_t* bmsStatusSignalIndices;
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
 	ssize_t bmsStatusMessageIndex;

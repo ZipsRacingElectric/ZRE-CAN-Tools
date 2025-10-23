@@ -178,7 +178,7 @@ int main (int argc, char** argv)
 
 	
 	// The height of BMS_Status Signals panels
-	const size_t BMS_STATUS_SIGNALS_PANEL_HEIGHT = 5 + bms.bmsStatusSignalsCount; // the header + footer + the total number of signals
+	const size_t BMS_STATUS_SIGNALS_PANEL_HEIGHT = 5 + bms.bmsStatusSignalsCount; // the header + footer + the total number of signals 
 
 	// The total # of rows in the window
 	const size_t TOTAL_ROWS = BMS_STAT_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT + 2; // two blank rows seperate the bms status signals panel from the first segment  
@@ -581,6 +581,7 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 	// Display each signal name and its corresponding value in a single row
 	for (size_t signalIndex = 0; signalIndex < bms->bmsStatusSignalsCount; signalIndex++) { 
 		float value;
+		ssize_t bmsStatusSignalIndex = bms->bmsStatusSignalIndices[signalIndex];
 		canSignal_t* bmsStatusSignal = bms->bmsStatusSignals[signalIndex];
 
 		if (checkRow(scrlTop, scrlBottom, row++)) {
@@ -591,7 +592,7 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 			mvprintw (*scrRow, column + 36, "│");
 
 			// Get & display signal value or insert placeholder value
-			switch (bmsGetSignalValue(database, bms->bmsStatusMessageIndex, signalIndex, &value)) 
+			switch (bmsGetSignalValue(database, bms->bmsStatusMessageIndex, bmsStatusSignalIndex, &value)) 
 			{
 				case CAN_DATABASE_MISSING: {
 					// Shouldn't reach here
