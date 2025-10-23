@@ -178,7 +178,7 @@ int main (int argc, char** argv)
 
 	
 	// The height of BMS_Status Signals panels
-	const size_t BMS_STATUS_SIGNALS_PANEL_HEIGHT = 5 + bms.bmsStatusSignalsCount; // the header + footer + the total number of signals 
+	const size_t BMS_STATUS_SIGNALS_PANEL_HEIGHT = 7 + bms.bmsStatusSignalsCount; // the header + footer + the total number of signals
 
 	// The total # of rows in the window
 	const size_t TOTAL_ROWS = BMS_STAT_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT + 2; // two blank rows seperate the bms status signals panel from the first segment  
