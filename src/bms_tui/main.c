@@ -41,6 +41,13 @@
 // Functions ------------------------------------------------------------------------------------------------------------------
  
 /** 
+ * @param row The row to print at.
+ * @param column The column to print at.
+ * @param bms The BMS to print the stats of.
+ */
+void printControlPanel (int row, int column, bms_t* bms);
+
+/** 
  * @brief Prints a panel of statistics about a BMS.
  * @param scrlTop The coordinate of the top of the scrolling window.
  * @param scrlBottom The coordinate of the bottom of the scrolling window.
@@ -247,7 +254,10 @@ int main (int argc, char** argv)
 		int scrlBottom = offset + scr_y -1; // the bottom row of the content in the scrolling implementation (the bottom of the terminal window)
 		if (scrlTop < 0) scrlTop = 0; // ensures the scrolling implementation does not extend past the top of the content
 		if (scrlTop > TOTAL_ROWS -1) scrlTop = TOTAL_ROWS; // ensures the scrolling implementation does not extend past the bottom of the content
-			
+		
+		// Print the control panel
+		printControlPanel (0, 0, &bms);
+
 		uint16_t bmsStatusStartingRow = CONTROL_PANEL_HEIGHT; // the bms status signals panel is displayed after each segment
 		uint16_t bmsStatStartingColumn = 64; // the bms stat panel is displaying on the right side of the tui (the middle is 64)
 		
@@ -309,6 +319,82 @@ int main (int argc, char** argv)
 }
 
 // Functions ------------------------------------------------------------------------------------------------------------------
+
+void printControlPanel (int row, int column, bms_t* bms)
+{
+	// Print the start of the panel
+	mvprintw (row + 0, column, "┌─");
+	mvprintw (row + 1, column, "│");
+	mvprintw (row + 2, column, "│");
+	mvprintw (row + 3, column, "│");
+	mvprintw (row + 4, column, "└─");
+	column += 2;
+
+	// Print the top and bottom
+	mvprintw (row + 0, column, "────────────────────");
+	mvprintw (row + 4, column, "────────────────────");
+
+	// Print the title of the control panel
+	mvprintw (row + 0, column + 1, "Control Panel");
+	
+	// Next column
+	column += 20;	
+
+	// Print space instruction
+
+	char* spaceInstruction = "Space -- Refresh the Terminal";
+	mvprintw (row + 2, column - (strlen (spaceInstruction) / 2), spaceInstruction);
+
+	// Print the top and bottom
+	mvprintw (row + 0, column, "────────────────────");
+	mvprintw (row + 4, column, "────────────────────");
+
+	// Next column
+	column += 20;
+
+	// Print the top and bottom
+	mvprintw (row + 0, column, "────────────────────");
+	mvprintw (row + 4, column, "────────────────────");
+
+	// Next column
+	column += 20;
+
+	// Print scroll up instuction
+	char* scrollInstruction = "Up / Down -- Scroll";
+	mvprintw (row + 2, column - (strlen (scrollInstruction) / 2), scrollInstruction);
+
+	// Print the top and bottom
+	mvprintw (row + 0, column, "────────────────────");
+	mvprintw (row + 4, column, "────────────────────");
+
+	// Next column
+	column += 20;
+
+	// Print the top and bottom
+	mvprintw (row + 0, column, "────────────────────");
+	mvprintw (row + 4, column, "────────────────────");
+
+	// Next column
+	column += 20;
+
+	// Print quit instruction
+	char* quitInstruction = "Q -- Quit";
+	mvprintw (row + 2, column - (strlen (quitInstruction) / 2), quitInstruction);
+
+	// Print the top and bottom
+	mvprintw (row + 0, column, "────────────────────");
+	mvprintw (row + 4, column, "────────────────────");
+
+	// Next column
+	column += 20;
+
+	// Print the end of the panel
+	mvprintw (row + 0, column, "─┐");
+	mvprintw (row + 1, column, " │");
+	mvprintw (row + 2, column, " │");
+	mvprintw (row + 3, column, " │");
+	mvprintw (row + 4, column, "─┘");
+}
 
 void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row, uint16_t column, size_t height, bms_t* bms)
 {
