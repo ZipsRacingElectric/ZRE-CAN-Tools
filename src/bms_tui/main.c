@@ -33,31 +33,36 @@
 #define COLOR_BALANCING		3
 
 // The height of the BMS Stat Panel
-#define BMS_STAT_HEIGHT 6
+#define CONTROL_PANEL_HEIGHT 6 
 
 // The height of each BMS Segment
 #define BMS_SEGMENT_HEIGHT 9 
 
 // Functions ------------------------------------------------------------------------------------------------------------------
-
-/**
+ 
+/** 
  * @brief Prints a panel of statistics about a BMS.
+ * @param scrlTop The coordinate of the top of the scrolling window.
+ * @param scrlBottom The coordinate of the bottom of the scrolling window.
+ * @param scrRow The row on the screen to print at.
  * @param row The row to print at.
  * @param column The column to print at.
+ * @param height The height of the panel.
  * @param bms The BMS to print the stats of.
  */
-void printStatPanel (int row, int column, bms_t* bms);
+void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row, uint16_t column, size_t height, bms_t* bms);
 
-/** 
+/**
  * @brief Prints all the signals on the BMS_Status message
  * @param scrlTop The coordinate of the top of the scrolling window.
  * @param scrlBottom The coordinate of the bottom of the scrolling window.
  * @param scrRow The row on the screen to print at.
  * @param row The row of the panel.
  * @param column The column to print at.
+ * @param height The height of the panel.
  * @param bms The BMS to print the stats of. 
 */
-void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, bms_t* bms);
+void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, size_t height, bms_t* bms);
 
 /** 
  * @brief Prints all information known about a segment.
@@ -177,11 +182,14 @@ int main (int argc, char** argv)
 	}
 
 	
-	// The height of BMS_Status Signals panels
-	const size_t BMS_STATUS_SIGNALS_PANEL_HEIGHT = 7 + bms.bmsStatusSignalsCount; // the header + footer + the total number of signals
+	// The height of BMS_Status Signals panel
+	const size_t BMS_STATUS_SIGNALS_PANEL_HEIGHT = 4 + bms.bmsStatusSignalsCount; // the header + footer + the total number of signals
+
+	// The height of the BMS Stat panel
+	const size_t BMS_STAT_FRAME_HEIGHT = 16; // # of rows in the header (4) + the # of signals (11) + footer (1)
 
 	// The total # of rows in the window
-	const size_t TOTAL_ROWS = BMS_STAT_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT + 2; // two blank rows seperate the bms status signals panel from the first segment  
+	const size_t TOTAL_ROWS = CONTROL_PANEL_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT + 10;  
 
 	// Set OS-specific locale for wide character support
 	#ifdef __unix__
@@ -219,7 +227,7 @@ int main (int argc, char** argv)
 	while (true)
 	{	
 		// The row to begin displaying content at in the terminal (after the BMS Stat Panel)
-		uint16_t scrRow = BMS_STAT_HEIGHT; 
+		uint16_t scrRow = CONTROL_PANEL_HEIGHT; 
 		
 		// Refine terminal dimensions
 		getmaxyx (stdscr, scr_y, scr_x);
@@ -235,25 +243,29 @@ int main (int argc, char** argv)
 		if (offset > overflow_y) offset = overflow_y; // associates the last row of the content with the last row of the terminal
 
 		// Get the top and bottom row of the terminal window that can display bms content
-		int scrlTop = offset + BMS_STAT_HEIGHT; // the top row of the content in the scrolling implementation (after the bms stat panel)
+		int scrlTop = offset + CONTROL_PANEL_HEIGHT; // the top row of the content in the scrolling implementation (after the bms stat panel)
 		int scrlBottom = offset + scr_y -1; // the bottom row of the content in the scrolling implementation (the bottom of the terminal window)
 		if (scrlTop < 0) scrlTop = 0; // ensures the scrolling implementation does not extend past the top of the content
 		if (scrlTop > TOTAL_ROWS -1) scrlTop = TOTAL_ROWS; // ensures the scrolling implementation does not extend past the bottom of the content
-
-		// Print the top-most statistics panel
-		printStatPanel (0, 0, &bms);
-
-		// Print the bms status signals panel 
-		uint16_t bmsStatusStartingRow = BMS_STAT_HEIGHT; // the bms status signals panel is displayed after each segment 
-		printBmsStatusSignals (scrlTop, scrlBottom, &scrRow, bmsStatusStartingRow, 0, &bms); // TODO(DiBacco): pass BMS_STAT_HEGIHT constant directly into the function
-		// TODO(DiBacco): uncomment printBmsStatusSignals
+			
+		uint16_t bmsStatusStartingRow = CONTROL_PANEL_HEIGHT; // the bms status signals panel is displayed after each segment
+		uint16_t bmsStatStartingColumn = 64; // the bms stat panel is displaying on the right side of the tui (the middle is 64)
 		
-		scrRow += 2; // two blank rows seperate the bms status signals panel from the first segment  
+		// Get the height of the bms status signals panel and the bms stat panel 
+		size_t height;
+		if (BMS_STATUS_SIGNALS_PANEL_HEIGHT > BMS_STAT_FRAME_HEIGHT) height = BMS_STATUS_SIGNALS_PANEL_HEIGHT;
+		else height = BMS_STAT_FRAME_HEIGHT;
+
+		// Print the bms status signals panel & the top-most statistics panel	
+		printStatPanel (scrlTop, scrlBottom, scrRow, bmsStatusStartingRow, bmsStatStartingColumn, height, &bms);
+		printBmsStatusSignals (scrlTop, scrlBottom, &scrRow, bmsStatusStartingRow, 0, height, &bms);
+		
+		scrRow += 3; // two blank rows seperate the bms status signals panel from the first segment  
 
 		// Print each battery segment
 		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
 		{	// Get the actual row from the segment content
-			uint16_t segmentStartingRow = BMS_STAT_HEIGHT + BMS_STATUS_SIGNALS_PANEL_HEIGHT + (BMS_SEGMENT_HEIGHT * segmentIndex); // The segments are displayed after the bms status signals panel
+			uint16_t segmentStartingRow = CONTROL_PANEL_HEIGHT + height + (BMS_SEGMENT_HEIGHT * segmentIndex); // The segments are displayed after the bms status signals panel
 			printSegment (scrlTop, scrlBottom, &scrRow, segmentStartingRow, 0, &bms, segmentIndex);
 		}
 
@@ -298,8 +310,28 @@ int main (int argc, char** argv)
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-void printStatPanel (int row, int column, bms_t* bms)
+void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row, uint16_t column, size_t height, bms_t* bms)
 {
+	// TODO(DiBacco): find out why the top right corner of the panel turns red when the user scrolls down 2 rows
+		// The entire panel seems to turn red at certain rows in the scroll
+
+	// Validate the rows in the BMS Stat Panel
+	bool validRows [height + 1];
+
+	// Map each row of the segment to its position in the terminal window
+	int mapRowToPosition [height + 1];
+
+	// Validate & map position for each row of the bms stat panel  
+	for (int i = 0; i < height + 1; i++) {
+		if (checkRow(scrlTop, scrlBottom, row++)) { 
+			validRows[i] = true;
+			mapRowToPosition[i] = scrRow += 1; 
+		}
+		else {
+			validRows[i] = false;
+		} 
+	}
+
 	// Get the stats to print
 	float cellMin, cellMax, cellAvg;
 	bool cellsValid = bmsGetCellVoltageStats (bms, &cellMin, &cellMax, &cellAvg);
@@ -309,217 +341,258 @@ void printStatPanel (int row, int column, bms_t* bms)
 
 	float tempMin, tempMax, tempAvg;
 	bool tempsValid = bmsGetTemperatureStats (bms, &tempMin, &tempMax, &tempAvg);
+	
+	// Print header
+	for (int i = 0; i < 13; i++) {
+		if (validRows[0]) mvprintw (mapRowToPosition[0], column + (i * 5), "─────");
+		if (validRows[1]) mvprintw (mapRowToPosition[1], column + (i * 5), "─────");
+		if (validRows[3]) mvprintw (mapRowToPosition[3], column + (i * 5), "─────");
+	}
 
-	// Print the start of the panel
-	mvprintw (row + 0, column, "┌─");
-	mvprintw (row + 1, column, "│");
-	mvprintw (row + 2, column, "│");
-	mvprintw (row + 3, column, "│");
-	mvprintw (row + 4, column, "└─");
-	column += 2;
+	// Print the title of the BMS Stat Panel
+	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 2, " BMS Stats ");
 
-	// Print the top and bottom
-	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
+	// Print headers 
+	if (validRows[2]) {
+		mvprintw (mapRowToPosition[2], column + 2,  "Stat");
+		mvprintw (mapRowToPosition[2], column + 42, "Value");
+	}
+
+	// Print each (valid) side of the BMS Stat Panel 
+	for (int i = 1; i < height; i++) { 
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 0,  "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 39, "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 40, "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 64, "│");
+	}
+
+	// Fill in gaps in the frame of the BMS Stat Panel
+	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 64,  "┐");
+
+	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 39, "╮");
+	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 40, "╭");
+
+	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 0,  "─");
+	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 64, "┤");
+
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 0,  "┊");
+	
+	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 0,  "┬");
+	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 40, "├");
+
+	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 39, "┤");
+	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 64, "┤");
 
 	// Print the pack voltage
 	float packVoltage;
 	bool packVoltageValid = bmsGetPackVoltage (bms, &packVoltage) == CAN_DATABASE_VALID;
-	if (packVoltageValid)
-	{
-		mvprintw (row + 2, column, "Voltage: %-.2f V", packVoltage);
+	if (validRows[4]) {
+		if (packVoltageValid)
+		{
+			mvprintw (mapRowToPosition[4], column + 2,  "Voltage");
+			mvprintw (mapRowToPosition[4], column + 42, "%-.2f V", packVoltage);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[4], column + 2,  "Voltage");
+			mvprintw (mapRowToPosition[4], column + 42, "-- V");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 2, column, "Voltage: -- V");
-		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
+	
 
 	// Print the min cell
-	if (cellsValid)
-	{
-		mvprintw (row + 3, column, "Min Cell: %-.2f V", cellMin);
+	if (validRows[5]) {
+		if (cellsValid)
+		{
+			mvprintw (mapRowToPosition[5], column + 2,  "Min Cell");
+			mvprintw (mapRowToPosition[5], column + 42, "%-.2f V", cellMin);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[5], column + 2,  "Min Cell");
+			mvprintw (mapRowToPosition[5], column + 42, "-- V");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 3, column, "Min Cell: -- V");
-		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-
-	// Next column
-	column += 20;
-
-	// Print the top and bottom
-	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
 
 	// Print the pack current
 	float packCurrent;
 	bool packCurrentValid = bmsGetPackCurrent (bms, &packCurrent) == CAN_DATABASE_VALID;
-	if (packCurrentValid)
-	{
-		mvprintw (row + 2, column, "Current: %-.2f A", packCurrent);
-	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 2, column, "Current: -- A");
-		attroff (COLOR_PAIR (COLOR_INVALID));
+	if (validRows[6]) {
+		if (packCurrentValid)
+		{
+			mvprintw (mapRowToPosition[6], column + 2,  "Current");
+			mvprintw (mapRowToPosition[6], column + 42, "%-.2f A", packCurrent);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[6], column + 2,  "Current");
+			mvprintw (mapRowToPosition[6], column + 42, "-- A");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
 
 	// Print the max cell
-	if (cellsValid)
-	{
-		mvprintw (row + 3, column, "Max Cell: %-.2f V", cellMax);
+	if (validRows[7]) {
+		if (cellsValid)
+		{
+			mvprintw (mapRowToPosition[7], column + 2,  "Max Cell");
+			mvprintw (mapRowToPosition[7], column + 42, "%-.2f V", cellMax);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[7], column + 2,  "Max Cell");
+			mvprintw (mapRowToPosition[7], column + 42, "-- V");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 3, column, "Max Cell: -- V");
-		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-
-	// Next column
-	column += 20;
-
-	// Print the top and bottom
-	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
 
 	// Print the power consumption
-	if (packVoltageValid && packCurrentValid)
-	{
-		mvprintw (row + 2, column, "Power: %-.2f W", packVoltage * packCurrent);
-	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 2, column, "Power: -- W");
-		attroff (COLOR_PAIR (COLOR_INVALID));
+	if (validRows[8]) {
+		if (packVoltageValid && packCurrentValid)
+		{
+			mvprintw (mapRowToPosition[8], column + 2,  "Power");
+			mvprintw (mapRowToPosition[8], column + 42, "%-.2f W", packVoltage * packCurrent);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[8], column + 2,  "Power");
+			mvprintw (mapRowToPosition[8], column + 42, "-- W");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
 
 	// Print the average cell
-	if (cellsValid)
-	{
-		mvprintw (row + 3, column, "Avg Cell: %-.2f V", cellAvg);
+	if (validRows[9]) {
+		if (cellsValid)
+		{
+			mvprintw (mapRowToPosition[9], column + 2,  "Avg Cell");
+			mvprintw (mapRowToPosition[9], column + 42, "%-.2f V", cellAvg);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[9], column + 2,  "Avg Cell");
+			mvprintw (mapRowToPosition[9], column + 42, "-- V");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 3, column, "Avg Cell: -- V");
-		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-
-	// Next column
-	column += 20;
-
-	// Print the top and bottom.
-	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
 
 	// Print the min temp
-	if (tempsValid)
-	{
-		mvprintw (row + 2, column, "Min Temp: %-.2f C", tempMin);
-	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 2, column, "Min Temp: -- C");
-		attroff (COLOR_PAIR (COLOR_INVALID));
+	if (validRows[10]) {
+		if (tempsValid)
+		{
+			mvprintw (mapRowToPosition[10], column + 2,  "Min Temp");
+			mvprintw (mapRowToPosition[10], column + 42, "%-.2f C", tempMin);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[10], column + 2,  "Min Temp");
+			mvprintw (mapRowToPosition[10], column + 42, "-- C");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
 
 	// Print the max delta
-	if (deltasValid)
-	{
-		mvprintw (row + 3, column, "Max Delta: %-.2f V", deltaMax);
+	if (validRows[11]) {
+		if (deltasValid)
+		{
+			mvprintw (mapRowToPosition[11], column + 2,  "Max Delta");
+			mvprintw (mapRowToPosition[11], column + 42, "%-.2f V", deltaMax);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[11], column + 2,  "Max Delta");
+			mvprintw (mapRowToPosition[11], column + 42, "-- V");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 3, column, "Max Delta: -- V");
-		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-
-	// Next column
-	column += 20;
-
-	// Print the top and bottom
-	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
 
 	// Print the max temp
-	if (tempsValid)
-	{
-		mvprintw (row + 2, column, "Max Temp: %-.2f C", tempMax);
-	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 2, column, "Max Temp: -- C");
-		attroff (COLOR_PAIR (COLOR_INVALID));
+	if (validRows[12]) {
+		if (tempsValid)
+		{
+			mvprintw (mapRowToPosition[12], column + 2,  "Max Temp");
+			mvprintw (mapRowToPosition[12], column + 42, "%-.2f C", tempMax);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[12], column + 2,  "Max Temp");
+			mvprintw (mapRowToPosition[12], column + 42, "-- C");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
 
 	// Print the average delta
-	if (deltasValid)
-	{
-		mvprintw (row + 3, column, "Avg Delta: %-.2f V", deltaAvg);
+	if (validRows[13]) {
+		if (deltasValid)
+		{
+			mvprintw (mapRowToPosition[13], column + 2,  "Avg Delta");
+			mvprintw (mapRowToPosition[13], column + 42, "%-.2f V", deltaAvg);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[13], column + 2,  "Avg Delta");
+			mvprintw (mapRowToPosition[13], column + 42, "-- V");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 3, column, "Avg Delta: -- V");
-		attroff (COLOR_PAIR (COLOR_INVALID));
-	}
-
-	// Next column
-	column += 20;
-
-	// Print the top and bottom
-	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
 
 	// Print the average temp
-	if (tempsValid)
-	{
-		mvprintw (row + 2, column, "Avg Temp: %-.2f C", tempAvg);
-	}
-	else
-	{
-		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row + 2, column, "Avg Temp: -- C");
-		attroff (COLOR_PAIR (COLOR_INVALID));
+	if (validRows[14]) { 
+		if (tempsValid)
+		{
+			mvprintw (mapRowToPosition[14], column + 2,  "Avg Temp");
+			mvprintw (mapRowToPosition[14], column + 42, "%-.2f C", tempAvg);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[14], column + 2,  "Avg Temp");
+			mvprintw (mapRowToPosition[14], column + 42, "-- C");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
 	}
 
-	// Next column
-	column += 20;
+	// Print bottom of the stat panel
+	if (validRows[height]) {
+		for (int i = 0; i < 13; i++) {
+			mvprintw (mapRowToPosition[height], column + (i * 5), "─────"); 
+		}
 
-	// Print the end of the panel
-	mvprintw (row + 0, column, "─┐");
-	mvprintw (row + 1, column, " │");
-	mvprintw (row + 2, column, " │");
-	mvprintw (row + 3, column, " │");
-	mvprintw (row + 4, column, "─┘");
+		mvprintw (mapRowToPosition[height], column + 0,  "┴");
+		mvprintw (mapRowToPosition[height], column + 64, "┘");
+
+		// Fill in gaps in the frame of the BMS Stat Panel
+		mvprintw (mapRowToPosition[height], column + 39, "┴");
+		mvprintw (mapRowToPosition[height], column + 40, "┴");
+	}
+	
 }
 
-void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, bms_t* bms) 
+void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, size_t height, bms_t* bms) 
 {	
-	// The height of the header of the panel
-	size_t const BMS_STATUS_SIGNALS_HEADER_HEIGHT = 4;
-
 	// Get the database associated with the bms instance
 	canDatabase_t* database = bms->database;
 
-	// Validate the rows of the BMS Status Signals Panel Header
-	bool validRows [BMS_SEGMENT_HEIGHT];
+	// Validate the rows of the BMS Status Signals Panel 
+	bool validRows [height + 1];
 
 	// Map each row of the segment to its position in the terminal window
-	int mapRowToPosition [BMS_SEGMENT_HEIGHT];
+	int mapRowToPosition [height + 1];
 
 	// Validate & map position for each row of the bms status signals panel  
-	for (int i = 0; i < BMS_STATUS_SIGNALS_HEADER_HEIGHT; i++) {
+	for (int i = 0; i < height + 1; i++) {
 		if (checkRow(scrlTop, scrlBottom, row++)) { 
 			validRows[i] = true;
 			mapRowToPosition[i] = *scrRow += 1; 
@@ -529,14 +602,11 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 		} 
 	}
 
-	// Set row position for displaying the signals
-	*scrRow += 1;
-
 	// Print the header of the BMS Status Signals Panel
-	for (int i = 0; i < 3; i++) {
-		if (validRows[0]) mvprintw (mapRowToPosition[0], column + (i * 12), "────────────");
-		if (validRows[1]) mvprintw (mapRowToPosition[1], column + (i * 12), "────────────");
-		if (validRows[3]) mvprintw (mapRowToPosition[3], column + (i * 12), "────────────");
+	for (int i = 0; i < 13; i++) { // (prints to the middle of the screen)
+		if (validRows[0]) mvprintw (mapRowToPosition[0], column + (i * 5), "─────");
+		if (validRows[1]) mvprintw (mapRowToPosition[1], column + (i * 5), "─────");
+		if (validRows[3]) mvprintw (mapRowToPosition[3], column + (i * 5), "─────");
 	}
 
 	// Print the title of the BMS Status Signals Panel
@@ -545,51 +615,51 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 	// Prints corners of the BMS Status Signals Panel header
 	if (validRows[1]) {
 		mvprintw (mapRowToPosition[1], column + 0,  "┌");
-		mvprintw (mapRowToPosition[1], column + 36, "┐");
 	}
 	
 	// Print headers 
 	if (validRows[2]) {
 		mvprintw (mapRowToPosition[2], column + 2,  "Signal");
-		mvprintw (mapRowToPosition[2], column + 31, "Value");
+		mvprintw (mapRowToPosition[2], column + 42, "Value");
 	}
 	
-	// Print sides of the BMS Status Signals Panel header
-	for (int i = 1; i < BMS_STATUS_SIGNALS_HEADER_HEIGHT; i++) {
+	// Print every (valid) side of the BMS Status Signals Panel
+	for (int i = 1; i < height; i++) {
 		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 0,  "│");
-		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 29, "│");
-		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 30, "│");
-		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 36, "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 39, "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 40, "│");
+		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 64, "│");
 	}
 
 	// Fill in gaps in the frame of the BMS Status Signals Panel
 	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 0,  "┌");
-	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 36, "┐");
+	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 64, "─");
 
-	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 29, "╮");
-	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 30, "╭");
+	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 39, "╮");
+	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 40, "╭");
 
 	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 0,  "├");
-	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 36, "┤");
+	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 64, "─");
 
+	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 64, "┊");
+	
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 0,  "├");
-	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 30, "├");
+	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 40, "├");
 
-	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 29, "┤");
-	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 36, "┤");
+	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 39, "┤");
+	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 64, "┬");
 
 	// Display each signal name and its corresponding value in a single row
 	for (size_t signalIndex = 0; signalIndex < bms->bmsStatusSignalsCount; signalIndex++) { 
 		float value;
+
+		// Get the signal and the local index 
 		ssize_t bmsStatusSignalIndex = bms->bmsStatusSignalIndices[signalIndex];
 		canSignal_t* bmsStatusSignal = bms->bmsStatusSignals[signalIndex];
 
-		if (checkRow(scrlTop, scrlBottom, row++)) {
-			// Print boarders of the BMS Status Signals Panel row
-			mvprintw (*scrRow, column + 0,  "│");	
-			mvprintw (*scrRow, column + 29, "│");
-			mvprintw (*scrRow, column + 30, "│");
-			mvprintw (*scrRow, column + 36, "│");
+		// Set the row of the current signal
+		row = signalIndex + 4;  
+		if (validRows[row]) {
 
 			// Get & display signal value or insert placeholder value
 			switch (bmsGetSignalValue(database, bms->bmsStatusMessageIndex, bmsStatusSignalIndex, &value)) 
@@ -600,35 +670,31 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 				}
 				case CAN_DATABASE_TIMEOUT: {
 					attron (COLOR_PAIR (COLOR_INVALID));
-					mvprintw (*scrRow, column + 2, bmsStatusSignal->name);
-					mvprintw (*scrRow, column + 32, "---");
+					mvprintw (mapRowToPosition[row], column + 2, bmsStatusSignal->name);
+					mvprintw (mapRowToPosition[row], column + 42, "---");
 					attroff (COLOR_PAIR (COLOR_INVALID));
 					break;
 				}
 				case CAN_DATABASE_VALID: {
-					mvprintw (*scrRow, column + 2, bmsStatusSignal->name);
-					mvprintw (*scrRow, column + 32, "%.01f", value);
+					mvprintw (mapRowToPosition[row], column + 2, bmsStatusSignal->name);
+					mvprintw (mapRowToPosition[row], column + 42, "%.01f", value);
 					break;
 				}
 			}
-
-			*scrRow += 1;
 		}
 	}
 
 	// Print the bottom of the BMS Status Signals Panel
-	if (checkRow (scrlTop, scrlBottom, row)) {
-		for (int i = 0; i < 3; i++) 
-			mvprintw (*scrRow, column + (i * 12), "────────────");
+	if (validRows[height]) {
+		for (int i = 0; i < 13; i++) 
+			mvprintw (mapRowToPosition[height], column + (i * 5), "─────");
 
-		mvprintw (*scrRow, column + 0,  "└");
-		mvprintw (*scrRow, column + 36, "┘");
+		mvprintw (mapRowToPosition[height], column + 0,  "└");
+		mvprintw (mapRowToPosition[height], column + 64, "┴");
 
 		// Fill in gaps in the frame of the BMS Status Signals Panel
-		mvprintw (*scrRow, column + 29, "┴");
-		mvprintw (*scrRow, column + 30, "┴");
-
-		*scrRow += 1;
+		mvprintw (mapRowToPosition[height], column + 39, "┴");
+		mvprintw (mapRowToPosition[height], column + 40, "┴");
 	} 
 }
 
@@ -853,7 +919,6 @@ void printTemperature (int row, int column, bms_t* bms, uint16_t senseLineIndex)
 		attron (COLOR_PAIR (color));
 
 		// Display the whole number and decimal of the temperature on seperate lines at allow it to fit in a cell
-		// TODO(DiBacco): INCOMPLETE => not tested
 		mvprintw(row, column, "%d.", (int) temperature);      
 		mvprintw(row + 1, column, "%01dC", (int) roundf( fabsf (temperature - (float) temperature) * 10.0f));   
 		attroff (COLOR_PAIR (color));
