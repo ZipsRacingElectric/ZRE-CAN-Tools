@@ -322,6 +322,24 @@ int main (int argc, char** argv)
 
 void printControlPanel (int row, int column, bms_t* bms)
 {
+	size_t const CTRL_PANEL_WIDTH = 112;
+
+	// Print instructions
+	char* instruction1 = "Space - Refresh the Terminal";
+	char* instruction2 = "↑/↓ - Scroll";
+	char* instruction3 = "Q - Quit";
+	
+	// Calculate gap between instructions
+	int gap = (CTRL_PANEL_WIDTH - 
+		strlen(instruction1) - 
+		strlen(instruction2) - 
+		strlen(instruction3)) / 4;
+	
+	// Display instructions
+	mvprintw(row + 2, column + gap, "%s", instruction1);
+	mvprintw(row + 2, column + gap * 2 + strlen(instruction1), "%s", instruction2);
+	mvprintw(row + 2, column + gap * 3 + strlen(instruction1) + strlen(instruction2), "%s", instruction3);	
+
 	// Print the start of the panel
 	mvprintw (row + 0, column, "┌─");
 	mvprintw (row + 1, column, "│");
@@ -340,28 +358,12 @@ void printControlPanel (int row, int column, bms_t* bms)
 	// Next column
 	column += 20;	
 
-	// Print space instruction
-
-	char* spaceInstruction = "Space -- Refresh the Terminal";
-	mvprintw (row + 2, column - (strlen (spaceInstruction) / 2), spaceInstruction);
-
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
 	mvprintw (row + 4, column, "────────────────────");
 
 	// Next column
 	column += 20;
-
-	// Print the top and bottom
-	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
-
-	// Next column
-	column += 20;
-
-	// Print scroll up instuction
-	char* scrollInstruction = "Up / Down -- Scroll";
-	mvprintw (row + 2, column - (strlen (scrollInstruction) / 2), scrollInstruction);
 
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
@@ -377,9 +379,12 @@ void printControlPanel (int row, int column, bms_t* bms)
 	// Next column
 	column += 20;
 
-	// Print quit instruction
-	char* quitInstruction = "Q -- Quit";
-	mvprintw (row + 2, column - (strlen (quitInstruction) / 2), quitInstruction);
+	// Print the top and bottom
+	mvprintw (row + 0, column, "────────────────────");
+	mvprintw (row + 4, column, "────────────────────");
+
+	// Next column
+	column += 20;
 
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
