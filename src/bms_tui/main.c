@@ -474,150 +474,166 @@ void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row,
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 39, "┤");
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 64, "┤");
 
-	// Print the pack voltage
-	float packVoltage;
-	bool packVoltageValid = bmsGetPackVoltage (bms, &packVoltage) == CAN_DATABASE_VALID;
+	// TODO(DiBacco): reorder stat panel signals
+	/*
+	Current 4
+	Power 5
+	Voltage 6
+	Avg Cell 7 
+	Max Cell 8
+	Min Cell 9
+	Avg Temp 10
+	Max Temp 11
+	Min Temp 12
+	Avg Delta 13
+	Max Delta 
+	*/
+
+	// Print the pack current
+	float packCurrent;
+	bool packCurrentValid = bmsGetPackCurrent (bms, &packCurrent) == CAN_DATABASE_VALID;
 	if (validRows[4]) {
-		if (packVoltageValid)
+		if (packCurrentValid)
 		{
-			mvprintw (mapRowToPosition[4], column + 2,  "Voltage");
-			mvprintw (mapRowToPosition[4], column + 42, "%-.2f V", packVoltage);
+			mvprintw (mapRowToPosition[4], column + 2,  "Current");
+			mvprintw (mapRowToPosition[4], column + 42, "%.2f A", packCurrent);
 		}
 		else
 		{
 			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[4], column + 2,  "Voltage");
-			mvprintw (mapRowToPosition[4], column + 42, "-- V");
+			mvprintw (mapRowToPosition[4], column + 2,  "Current");
+			mvprintw (mapRowToPosition[4], column + 42, "-- A");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
+	}
+
+	// Print the pack voltage
+	float packVoltage;
+	bool packVoltageValid = bmsGetPackVoltage (bms, &packVoltage) == CAN_DATABASE_VALID;
+	if (validRows[5]) {
+		if (packVoltageValid)
+		{
+			//TODO(Barach): Round consistently?
+			mvprintw (mapRowToPosition[5], column + 2,  "Voltage");
+			mvprintw (mapRowToPosition[5], column + 42, "%.2f V", packVoltage);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[5], column + 2,  "Voltage");
+			mvprintw (mapRowToPosition[5], column + 42, "-- V");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
+	}
+
+	// Print the power consumption
+	if (validRows[5]) {
+		if (packVoltageValid && packCurrentValid)
+		{
+			mvprintw (mapRowToPosition[6], column + 2,  "Power");
+			mvprintw (mapRowToPosition[6], column + 42, "%.2f W", packVoltage * packCurrent);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[6], column + 2,  "Power");
+			mvprintw (mapRowToPosition[6], column + 42, "-- W");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
+	}
+
+	// Print the average cell
+	if (validRows[7]) {
+		if (cellsValid)
+		{
+			mvprintw (mapRowToPosition[7], column + 2,  "Avg Cell");
+			mvprintw (mapRowToPosition[7], column + 42, "%.2f V", cellAvg);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[7], column + 2,  "Avg Cell");
+			mvprintw (mapRowToPosition[7], column + 42, "-- V");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
+	}
+
+	// Print the max cell
+	if (validRows[8]) {
+		if (cellsValid)
+		{
+			mvprintw (mapRowToPosition[8], column + 2,  "Max Cell");
+			mvprintw (mapRowToPosition[8], column + 42, "%.2f V", cellMax);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[8], column + 2,  "Max Cell");
+			mvprintw (mapRowToPosition[8], column + 42, "-- V");
 			attroff (COLOR_PAIR (COLOR_INVALID));
 		}
 	}
 	
 
 	// Print the min cell
-	if (validRows[5]) {
-		if (cellsValid)
-		{
-			mvprintw (mapRowToPosition[5], column + 2,  "Min Cell");
-			mvprintw (mapRowToPosition[5], column + 42, "%-.2f V", cellMin);
-		}
-		else
-		{
-			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[5], column + 2,  "Min Cell");
-			mvprintw (mapRowToPosition[5], column + 42, "-- V");
-			attroff (COLOR_PAIR (COLOR_INVALID));
-		}
-	}
-
-	// Print the pack current
-	float packCurrent;
-	bool packCurrentValid = bmsGetPackCurrent (bms, &packCurrent) == CAN_DATABASE_VALID;
-	if (validRows[6]) {
-		if (packCurrentValid)
-		{
-			mvprintw (mapRowToPosition[6], column + 2,  "Current");
-			mvprintw (mapRowToPosition[6], column + 42, "%-.2f A", packCurrent);
-		}
-		else
-		{
-			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[6], column + 2,  "Current");
-			mvprintw (mapRowToPosition[6], column + 42, "-- A");
-			attroff (COLOR_PAIR (COLOR_INVALID));
-		}
-	}
-
-	// Print the max cell
-	if (validRows[7]) {
-		if (cellsValid)
-		{
-			mvprintw (mapRowToPosition[7], column + 2,  "Max Cell");
-			mvprintw (mapRowToPosition[7], column + 42, "%-.2f V", cellMax);
-		}
-		else
-		{
-			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[7], column + 2,  "Max Cell");
-			mvprintw (mapRowToPosition[7], column + 42, "-- V");
-			attroff (COLOR_PAIR (COLOR_INVALID));
-		}
-	}
-
-	// Print the power consumption
-	if (validRows[8]) {
-		if (packVoltageValid && packCurrentValid)
-		{
-			mvprintw (mapRowToPosition[8], column + 2,  "Power");
-			mvprintw (mapRowToPosition[8], column + 42, "%-.2f W", packVoltage * packCurrent);
-		}
-		else
-		{
-			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[8], column + 2,  "Power");
-			mvprintw (mapRowToPosition[8], column + 42, "-- W");
-			attroff (COLOR_PAIR (COLOR_INVALID));
-		}
-	}
-
-	// Print the average cell
 	if (validRows[9]) {
 		if (cellsValid)
 		{
-			mvprintw (mapRowToPosition[9], column + 2,  "Avg Cell");
-			mvprintw (mapRowToPosition[9], column + 42, "%-.2f V", cellAvg);
+			mvprintw (mapRowToPosition[9], column + 2,  "Min Cell");
+			mvprintw (mapRowToPosition[9], column + 42, "%.2f V", cellMin);
 		}
 		else
 		{
 			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[9], column + 2,  "Avg Cell");
+			mvprintw (mapRowToPosition[9], column + 2,  "Min Cell");
 			mvprintw (mapRowToPosition[9], column + 42, "-- V");
 			attroff (COLOR_PAIR (COLOR_INVALID));
 		}
 	}
 
-	// Print the min temp
-	if (validRows[10]) {
+	// Print the average temp
+	if (validRows[10]) { 
 		if (tempsValid)
 		{
-			mvprintw (mapRowToPosition[10], column + 2,  "Min Temp");
-			mvprintw (mapRowToPosition[10], column + 42, "%-.2f C", tempMin);
+			mvprintw (mapRowToPosition[10], column + 2,  "Avg Temp");
+			mvprintw (mapRowToPosition[10], column + 42, "%.2f C", tempAvg);
 		}
 		else
 		{
 			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[10], column + 2,  "Min Temp");
+			mvprintw (mapRowToPosition[10], column + 2,  "Avg Temp");
 			mvprintw (mapRowToPosition[10], column + 42, "-- C");
 			attroff (COLOR_PAIR (COLOR_INVALID));
 		}
 	}
 
-	// Print the max delta
+	// Print the max temp
 	if (validRows[11]) {
-		if (deltasValid)
+		if (tempsValid)
 		{
-			mvprintw (mapRowToPosition[11], column + 2,  "Max Delta");
-			mvprintw (mapRowToPosition[11], column + 42, "%-.2f V", deltaMax);
+			mvprintw (mapRowToPosition[11], column + 2,  "Max Temp");
+			mvprintw (mapRowToPosition[11], column + 42, "%.2f C", tempMax);
 		}
 		else
 		{
 			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[11], column + 2,  "Max Delta");
-			mvprintw (mapRowToPosition[11], column + 42, "-- V");
+			mvprintw (mapRowToPosition[11], column + 2,  "Max Temp");
+			mvprintw (mapRowToPosition[11], column + 42, "-- C");
 			attroff (COLOR_PAIR (COLOR_INVALID));
 		}
 	}
 
-	// Print the max temp
+	// Print the min temp
 	if (validRows[12]) {
 		if (tempsValid)
 		{
-			mvprintw (mapRowToPosition[12], column + 2,  "Max Temp");
-			mvprintw (mapRowToPosition[12], column + 42, "%-.2f C", tempMax);
+			mvprintw (mapRowToPosition[12], column + 2,  "Min Temp");
+			mvprintw (mapRowToPosition[12], column + 42, "%.2f C", tempMin);
 		}
 		else
 		{
 			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[12], column + 2,  "Max Temp");
+			mvprintw (mapRowToPosition[12], column + 2,  "Min Temp");
 			mvprintw (mapRowToPosition[12], column + 42, "-- C");
 			attroff (COLOR_PAIR (COLOR_INVALID));
 		}
@@ -628,7 +644,7 @@ void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row,
 		if (deltasValid)
 		{
 			mvprintw (mapRowToPosition[13], column + 2,  "Avg Delta");
-			mvprintw (mapRowToPosition[13], column + 42, "%-.2f V", deltaAvg);
+			mvprintw (mapRowToPosition[13], column + 42, "%.2f V", deltaAvg);
 		}
 		else
 		{
@@ -639,18 +655,18 @@ void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row,
 		}
 	}
 
-	// Print the average temp
-	if (validRows[14]) { 
-		if (tempsValid)
+	// Print the max delta
+	if (validRows[14]) {
+		if (deltasValid)
 		{
-			mvprintw (mapRowToPosition[14], column + 2,  "Avg Temp");
-			mvprintw (mapRowToPosition[14], column + 42, "%-.2f C", tempAvg);
+			mvprintw (mapRowToPosition[14], column + 2,  "Max Delta");
+			mvprintw (mapRowToPosition[14], column + 42, "%.2f V", deltaMax);
 		}
 		else
 		{
 			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[14], column + 2,  "Avg Temp");
-			mvprintw (mapRowToPosition[14], column + 42, "-- C");
+			mvprintw (mapRowToPosition[14], column + 2,  "Max Delta");
+			mvprintw (mapRowToPosition[14], column + 42, "-- V");
 			attroff (COLOR_PAIR (COLOR_INVALID));
 		}
 	}
@@ -1011,7 +1027,7 @@ void printTemperature (int row, int column, bms_t* bms, uint16_t senseLineIndex)
 
 		// Display the whole number and decimal of the temperature on seperate lines at allow it to fit in a cell
 		mvprintw(row, column, "%d.", (int) temperature);      
-		mvprintw(row + 1, column, "%01dC", (int) roundf( fabsf (temperature - (float) temperature) * 10.0f));   
+		mvprintw(row + 1, column, "%01dC", (int) roundf( fabsf ((int) temperature - (float) temperature) * 10.0f));   
 		attroff (COLOR_PAIR (color));
 
 		break;
