@@ -33,7 +33,7 @@
 #define COLOR_BALANCING		3
 
 // The height of the BMS Stat Panel
-#define CONTROL_PANEL_HEIGHT 6 
+#define CONTROL_PANEL_HEIGHT 3
 
 // The height of each BMS Segment
 #define BMS_SEGMENT_HEIGHT 9 
@@ -196,7 +196,7 @@ int main (int argc, char** argv)
 	const size_t BMS_STAT_FRAME_HEIGHT = 16; // # of rows in the header (4) + the # of signals (11) + footer (1)
 
 	// The total # of rows in the window
-	const size_t TOTAL_ROWS = CONTROL_PANEL_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT + 10;  
+	const size_t TOTAL_ROWS = CONTROL_PANEL_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STATUS_SIGNALS_PANEL_HEIGHT + 10; // extra 10 rows after the content
 
 	// Set OS-specific locale for wide character support
 	#ifdef __unix__
@@ -251,7 +251,7 @@ int main (int argc, char** argv)
 
 		// Get the top and bottom row of the terminal window that can display bms content
 		int scrlTop = offset + CONTROL_PANEL_HEIGHT; // the top row of the content in the scrolling implementation (after the bms stat panel)
-		int scrlBottom = offset + scr_y -1; // the bottom row of the content in the scrolling implementation (the bottom of the terminal window)
+		int scrlBottom = offset + scr_y; // the bottom row of the content in the scrolling implementation (the bottom of the terminal window)
 		if (scrlTop < 0) scrlTop = 0; // ensures the scrolling implementation does not extend past the top of the content
 		if (scrlTop > TOTAL_ROWS -1) scrlTop = TOTAL_ROWS; // ensures the scrolling implementation does not extend past the bottom of the content
 		
@@ -270,8 +270,6 @@ int main (int argc, char** argv)
 		printStatPanel (scrlTop, scrlBottom, scrRow, bmsStatusStartingRow, bmsStatStartingColumn, height, &bms);
 		printBmsStatusSignals (scrlTop, scrlBottom, &scrRow, bmsStatusStartingRow, 0, height, &bms);
 		
-		scrRow += 3; // two blank rows seperate the bms status signals panel from the first segment  
-
 		// Print each battery segment
 		for (uint16_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
 		{	// Get the actual row from the segment content
@@ -336,21 +334,19 @@ void printControlPanel (int row, int column, bms_t* bms)
 		strlen(instruction3)) / 4;
 	
 	// Display instructions
-	mvprintw(row + 2, column + gap, "%s", instruction1);
-	mvprintw(row + 2, column + gap * 2 + strlen(instruction1), "%s", instruction2);
-	mvprintw(row + 2, column + gap * 3 + strlen(instruction1) + strlen(instruction2), "%s", instruction3);	
+	mvprintw(row + 1, column + gap, "%s", instruction1);
+	mvprintw(row + 1, column + gap * 2 + strlen(instruction1), "%s", instruction2);
+	mvprintw(row + 1, column + gap * 3 + strlen(instruction1) + strlen(instruction2), "%s", instruction3);	
 
 	// Print the start of the panel
 	mvprintw (row + 0, column, "┌─");
 	mvprintw (row + 1, column, "│");
-	mvprintw (row + 2, column, "│");
-	mvprintw (row + 3, column, "│");
-	mvprintw (row + 4, column, "└─");
+	mvprintw (row + 2, column, "└─");
 	column += 2;
 
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
+	mvprintw (row + 2, column, "────────────────────");
 
 	// Print the title of the control panel
 	mvprintw (row + 0, column + 1, "Control Panel");
@@ -360,35 +356,35 @@ void printControlPanel (int row, int column, bms_t* bms)
 
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
+	mvprintw (row + 2, column, "────────────────────");
 
 	// Next column
 	column += 20;
 
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
+	mvprintw (row + 2, column, "────────────────────");
 
 	// Next column
 	column += 20;
 
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
+	mvprintw (row + 2, column, "────────────────────");
 
 	// Next column
 	column += 20;
 
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
+	mvprintw (row + 2, column, "────────────────────");
 
 	// Next column
 	column += 20;
 
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
-	mvprintw (row + 4, column, "────────────────────");
+	mvprintw (row + 2, column, "────────────────────");
 
 	// Next column
 	column += 20;
@@ -396,16 +392,11 @@ void printControlPanel (int row, int column, bms_t* bms)
 	// Print the end of the panel
 	mvprintw (row + 0, column, "─┐");
 	mvprintw (row + 1, column, " │");
-	mvprintw (row + 2, column, " │");
-	mvprintw (row + 3, column, " │");
-	mvprintw (row + 4, column, "─┘");
+	mvprintw (row + 2, column, "─┘");
 }
 
 void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row, uint16_t column, size_t height, bms_t* bms)
 {
-	// TODO(DiBacco): find out why the top right corner of the panel turns red when the user scrolls down 2 rows
-		// The entire panel seems to turn red at certain rows in the scroll
-
 	// Validate the rows in the BMS Stat Panel
 	bool validRows [height + 1];
 
@@ -416,7 +407,7 @@ void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row,
 	for (int i = 0; i < height + 1; i++) {
 		if (checkRow(scrlTop, scrlBottom, row++)) { 
 			validRows[i] = true;
-			mapRowToPosition[i] = scrRow += 1; 
+			mapRowToPosition[i] = scrRow++; 
 		}
 		else {
 			validRows[i] = false;
@@ -473,21 +464,6 @@ void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row,
 
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 39, "┤");
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 64, "┤");
-
-	// TODO(DiBacco): reorder stat panel signals
-	/*
-	Current 4
-	Power 5
-	Voltage 6
-	Avg Cell 7 
-	Max Cell 8
-	Min Cell 9
-	Avg Temp 10
-	Max Temp 11
-	Min Temp 12
-	Avg Delta 13
-	Max Delta 
-	*/
 
 	// Print the pack current
 	float packCurrent;
@@ -702,7 +678,7 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 	for (int i = 0; i < height + 1; i++) {
 		if (checkRow(scrlTop, scrlBottom, row++)) { 
 			validRows[i] = true;
-			mapRowToPosition[i] = *scrRow += 1; 
+			mapRowToPosition[i] = (*scrRow)++; 
 		}
 		else {
 			validRows[i] = false;
