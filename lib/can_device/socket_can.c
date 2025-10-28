@@ -88,7 +88,7 @@ canDevice_t* socketCanInit (const char* name)
 	}
 
 	// TODO(Barach): Docs
-	can_err_mask_t err_mask = CAN_ERR_PROT | CAN_ERR_BUSOFF;
+	can_err_mask_t err_mask = 0xFFFF;
 	if (setsockopt(descriptor, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &err_mask, sizeof(err_mask)) != 0)
 	{
 		close (descriptor);
