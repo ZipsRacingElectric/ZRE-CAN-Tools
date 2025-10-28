@@ -203,21 +203,11 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	if (bms->packCurrentIndex < 0)
 		return errno;
 
-	/*
-	TODO(DiBacco): remove reduntant signals in the bms status panel 
-		Begin with: 
-			- Glory: ISO-SPI, Fault_Test
-
-		Solution: use list to store names, which will be use to compare against the names of the messages in the panel
-	*/
-
-	// TODO(DiBacco): create a feature that allows for manually inserting signals to ignore
-
 	// Get bms status index and message
 	bms->bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
 	canMessage_t* bmsStatusMessage = canDatabaseGetMessage (database, bms->bmsStatusMessageIndex);
 
-	// Used to store the bms status signals and bms status indices indexes
+	// Used to store the bms status signals and bms status indices
 	bms->bmsStatusSignalsCount = 0;
 	bms->bmsStatusSignals = malloc (sizeof (canSignal_t*) * bmsStatusMessage->signalCount);
 	bms->bmsStatusSignalIndices = malloc (sizeof (size_t) * bmsStatusMessage->signalCount);
@@ -419,7 +409,6 @@ canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t mess
 	ssize_t globalIndex = canDatabaseGetGlobalIndex (database, messageIndex, signalIndex); 
 
 	// Get the value of the message associated with the global index
-	// Timeout in canDatabaseGetFloat is result of no data in the BUS
 	return canDatabaseGetFloat (database, globalIndex, value);
 }
 
@@ -434,7 +423,7 @@ bool checkSignalRedundancy (char* signalName, char*** signalNames, size_t* signa
 	// add signal name to the list
 	*signalNames = realloc (*signalNames, (*signalCount + 1) * sizeof (char*)); 
 	if (! (*signalName)) {
-		printf ("Error: couldn't allocate memory for list\n");
+		printf ("Error: couldn't allocate memory for list \n");
 	}
 
 	(*signalNames)[(*signalCount)++] = strdup (signalName);
