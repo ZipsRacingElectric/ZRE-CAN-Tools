@@ -27,6 +27,37 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+static int convertErrorCode (int code)
+{
+	// Convert any known errors into the general error code.
+
+	// TODO(Barach): Supposedly these are all deprecated? Do some testing...
+
+	if (code == CANERR_BOFF)
+		return ERRNO_CAN_DEVICE_BUS_OFF;
+
+	if (code == CANERR_LEC_STUFF)
+		return ERRNO_CAN_DEVICE_BIT_STUFF_ERROR;
+
+	if (code == CANERR_LEC_FORM)
+		return ERRNO_CAN_DEVICE_FORM_ERROR;
+
+	if (code == CANERR_LEC_ACK)
+		return ERRNO_CAN_DEVICE_ACK_ERROR;
+
+	if (code == CANERR_LEC_BIT1 || code == CANERR_LEC_BIT0)
+		return ERRNO_CAN_DEVICE_BIT_ERROR;
+
+	if (code == CANERR_LEC_CRC)
+		return ERRNO_CAN_DEVICE_CRC_ERROR;
+
+	if (code == CANERR_BERR)
+		return ERRNO_CAN_DEVICE_UNSPEC_ERROR;
+
+	// Otherwise, offset the error code to match this project's convention.
+	return code + 10000;
+}
+
 bool slcanNameDomain (const char* name)
 {
 	// POSIX device format
@@ -68,8 +99,7 @@ canDevice_t* slcanInit (char* name)
 	int handle = can_init (CAN_BOARD (CANLIB_SERIALCAN, CANDEV_SERIAL), CANMODE_DEFAULT, (const void*) &port);
 	if (handle < 0)
 	{
-		// Offset the error code to match this project's convention.
-		errno = handle + 10000;
+		errno = convertErrorCode (handle);
 		return NULL;
 	}
 
@@ -102,8 +132,7 @@ canDevice_t* slcanInit (char* name)
 	int code = can_start (handle, &bitrate);
 	if (code < 0)
 	{
-		// Offset the error code to match this project's convention.
-		errno = code + 10000;
+		errno = convertErrorCode (code);
 		return NULL;
 	}
 
@@ -117,7 +146,7 @@ canDevice_t* slcanInit (char* name)
 	can->vmt.flushRx = slcanFlushRx;
 
 	// Default to blocking.
-	canSetTimeout (can, 0);
+	can->vmt.setTimeout (can, 0);
 
 	return (canDevice_t*) can;
 }
@@ -144,8 +173,7 @@ int slcanTransmit (void* device, canFrame_t* frame)
 	int code = can_write (can->handle, &message, can->timeoutMs);
 	if (code != 0)
 	{
-		// Offset the error code to match this project's convention.
-		errno = code + 10000;
+		errno = convertErrorCode (code);
 		return errno;
 	}
 
@@ -154,38 +182,30 @@ int slcanTransmit (void* device, canFrame_t* frame)
 
 int slcanReceive (void* device, canFrame_t* frame)
 {
-	int code;
 	slcan_t* can = device;
 
-	can_message_t message;
+	can_message_t slcanFrame;
 
-	/*
-		can_read() = -30 (Recevier Empty) Overview
-
-		Context:
-			- Windows only
-			- Intermittent -- replicable when receiving from the CAN bus with no valid ids as input
-		Error: Can_Read is returning -30 (Recevier Empty)
-			- timout value is set to 65535 which should create blocking functionality in the function (is not working in this context)
-	 	Fix: repeat the can_read() function which essentially creates a blocking operation
-	*/
+	// Read the CAN frame.
+	// - Note there is an intermittent bug on the Windows implementation where can_read can return CANERR_RX_EMPTY even when
+	//   the device is set to non-blocking operation. To patch this, the function call is re-attempted in these specific
+	//   conditions.
+	int code;
 	do
 	{
-		code = can_read (can->handle, &message, can->timeoutMs);
-	} while (can->timeoutMs == 65535 && code == -30);
+		code = can_read (can->handle, &slcanFrame, can->timeoutMs);
+	} while (can->timeoutMs == 65535 && code == CANERR_RX_EMPTY);
 
 	if (code != 0)
 	{
-		// Offset the error code to match this project's convention.
-		errno = code + 10000;
+		errno = convertErrorCode (code);
 		return errno;
 	}
 
-
-
-	frame->id = message.id;
-	frame->dlc = message.dlc;
-	memcpy (frame->data, message.data, message.dlc);
+	// TODO(Barach): IDE and RTR
+	frame->id = slcanFrame.id;
+	frame->dlc = slcanFrame.dlc;
+	memcpy (frame->data, slcanFrame.data, slcanFrame.dlc);
 	return 0;
 }
 
@@ -194,8 +214,8 @@ int slcanFlushRx (void* device)
 	slcan_t* can = device;
 
 	// Read all available data from the device.
-	can_message_t message;
-	while (can_read (can->handle, &message, 0) == 0);
+	can_message_t slcanFrame;
+	while (can_read (can->handle, &slcanFrame, 0) == 0);
 
 	return 0;
 }

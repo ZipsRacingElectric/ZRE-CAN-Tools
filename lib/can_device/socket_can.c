@@ -9,6 +9,7 @@
 
 // SocketCAN Libraries
 #include <linux/can.h>
+#include <linux/can/error.h>
 #include <linux/can/raw.h>
 
 // POSIX Libraries
@@ -81,6 +82,14 @@ canDevice_t* socketCanInit (const char* name)
 
 	// Bind the socket to the specified address
 	if (bind (descriptor, (struct sockaddr*) (&address), (socklen_t) (sizeof(address))) == -1)
+	{
+		close (descriptor);
+		return NULL;
+	}
+
+	// TODO(Barach): Docs
+	can_err_mask_t err_mask = CAN_ERR_PROT | CAN_ERR_BUSOFF;
+	if (setsockopt(descriptor, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &err_mask, sizeof(err_mask)) != 0)
 	{
 		close (descriptor);
 		return NULL;
@@ -183,13 +192,48 @@ int socketCanReceive (void* device, canFrame_t* frame)
 	if (code < (long int) sizeof (struct can_frame))
 		return errno;
 
-	// TODO(Barach): Check status for return value?
-	// Mask out status bits
-	frame->id = socketFrame.can_id & 0x1FFFFFFF;
-
-	// Convert to canFrame_t
+	// Copy frame DLC and payload
 	frame->dlc = socketFrame.can_dlc;
 	memcpy (frame->data, socketFrame.data, socketFrame.can_dlc);
+
+	// TODO(Barach): IDE & RTR
+
+	frame->id = socketFrame.can_id & CAN_EFF_MASK;
+
+	// Check for error flags, if set, handle the error frame
+	if (socketFrame.can_id & CAN_ERR_FLAG)
+	{
+		// Default to unspecified
+		errno = ERRNO_CAN_DEVICE_UNSPEC_ERROR;
+
+		if (socketFrame.can_id & CAN_ERR_PROT)
+		{
+			uint8_t typeFlags = socketFrame.data [2];
+			uint8_t locFlags = socketFrame.data [3];
+
+			if (typeFlags & CAN_ERR_PROT_FORM)
+				errno = ERRNO_CAN_DEVICE_FORM_ERROR;
+
+			else if (typeFlags & CAN_ERR_PROT_STUFF)
+				errno = ERRNO_CAN_DEVICE_BIT_STUFF_ERROR;
+
+			else if (locFlags & CAN_ERR_PROT_LOC_CRC_SEQ || locFlags & CAN_ERR_PROT_LOC_CRC_DEL)
+				errno = ERRNO_CAN_DEVICE_CRC_ERROR;
+
+			else if (typeFlags & CAN_ERR_PROT_BIT)
+				errno = ERRNO_CAN_DEVICE_BIT_ERROR;
+
+			else if (locFlags & CAN_ERR_PROT_LOC_ACK || locFlags & CAN_ERR_PROT_LOC_ACK_DEL)
+				errno = ERRNO_CAN_DEVICE_ACK_ERROR;
+		}
+		else if ((socketFrame.can_id & CAN_ERR_BUSOFF) == CAN_ERR_BUSOFF)
+		{
+			errno = ERRNO_CAN_DEVICE_BUS_OFF;
+		}
+
+		// Return the determined error code
+		return errno;
+	}
 
 	// Success
 	return 0;

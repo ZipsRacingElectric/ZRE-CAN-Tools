@@ -111,7 +111,7 @@ void printFrame (canFrame_t* frame)
 			printf (",");
 	}
 
-	printf ("]\n");
+	printf ("]");
 	return;
 }
 
@@ -249,6 +249,7 @@ int transmitFrame (canDevice_t* device, char* command)
 		{
 			// Displays the transmitted CAN Frame
 			printFrame (&frame);
+			printf ("\n");
 		}
 		else
 		{
@@ -318,6 +319,7 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
 				// checks that the user has input ids
 
 				printFrame (&frame);
+				printf ("\n");
 				receiveIterations--;
 				continue;
 			}
@@ -328,6 +330,7 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
 					if (canIds[i] == frame.id)
 					{
 						printFrame (&frame);
+						printf ("\n");
 						receiveIterations--;
 						break;
 					}
@@ -336,7 +339,16 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
 		}
 		else
 		{
-			printf ("Error: %s.\n", errorMessage (errno));
+			int code = errno;
+
+			if (canIsErrorFrame (code))
+			{
+				printFrame (&frame);
+				printf (" - [%s]\n", canErrorFrameShorthand (code));
+				errno = 0;
+			}
+			else
+				errorPrintf ("Failed to receive CAN frame");
 		}
 	}
 

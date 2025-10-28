@@ -10,6 +10,9 @@
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
+// Includes
+#include "error_codes.h"
+
 // C Standard Library
 #include <stdint.h>
 #include <stdbool.h>
@@ -22,9 +25,9 @@ typedef struct
 	/// @brief The ID of the CAN message, may be either a SID (standard identifier) or EID (extended identifier).
 	uint32_t id;
 
-	// TODO(Barach): can_database needs to correctly parse the EID bit for this to work.
-	/// @brief The EID (extended ID) bit of the message. Indicates the ID is an extended CAN ID rather than a standard CAN ID.
-	// bool eid;
+	// TODO(Barach): can_database needs to correctly parse the IDE bit for this to work.
+	/// @brief The IDE (extended ID) bit of the message. Indicates the ID is an extended CAN ID rather than a standard CAN ID.
+	// bool ide;
 
 	/// @brief The payload of the message. Note that only @c dlc elements are used.
 	uint8_t data [8];
@@ -84,28 +87,34 @@ typedef struct
  * @brief Function for transmitting a CAN frame.
  * @param device The device to transmit with.
  * @param frame The frame to transmit.
- * @return 0 if successful, the error code otherwise.
+ * @return 0 if successful, the error code otherwise. Note @c errno is set on failure.
  */
-#define canTransmit(device, frame)						\
-	(device)->vmt.transmit (device, frame)
+static inline int canTransmit (canDevice_t* device, canFrame_t* frame)
+{
+	return device->vmt.transmit (device, frame);
+}
 
 /**
  * @brief Function for receiving a CAN frame.
  * @param device The device to receive from.
  * @param frame The frame to receive.
- * @return 0 if successful, the error code otherwise.
+ * @return 0 if successful, the error code otherwise. Note @c errno is set on failure. TODO(Barach): Docs
  */
-#define canReceive(device, frame)						\
-	(device)->vmt.receive (device, frame)
+static inline int canReceive (canDevice_t* device, canFrame_t* frame)
+{
+	return device->vmt.receive (device, frame);
+}
 
 /**
  * @brief Function for 'flushing' the receive buffer of a CAN device. This is used to indicate all previously received messages
  * should be disposed rather than returned in the next call to @c canReceive .
  * @param device The device to flush.
- * @return 0 if successful, the error code otherwise.
+ * @return 0 if successful, the error code otherwise. Note @c errno is set on failure.
  */
-#define canFlushRx(device)								\
-	(device)->vmt.flushRx (device)
+static inline int canFlushRx (canDevice_t* device)
+{
+	return device->vmt.flushRx (device);
+}
 
 /**
  * @brief Function for setting the timeout period of a CAN device. This timeout determines the maximum amount of time a call to
@@ -113,10 +122,12 @@ typedef struct
  * @param device The device to set the timeout of.
  * @param timeoutMs The timeout interval, in milliseconds. Use 0 to indicate no timeout should be used (all calls are
  * blocking).
- * @return 0 if successful, the error code otherwise.
+ * @return 0 if successful, the error code otherwise. Note @c errno is set on failure.
  */
-#define canSetTimeout(device, timeoutMs)				\
-	(device)->vmt.setTimeout (device, timeoutMs)
+static inline int canSetTimeout (canDevice_t* device, unsigned long timeoutMs)
+{
+	return device->vmt.setTimeout (device, timeoutMs);
+}
 
 /**
  * @brief Identifies and initializes a CAN device based on its name handle. This function will attempt to identify the type of
@@ -125,5 +136,40 @@ typedef struct
  * @return The initialized CAN device if successful, @c NULL otherwise. Note @c errno is set on failure.
  */
 canDevice_t* canInit (char* name);
+
+static inline bool canIsErrorFrame (int code)
+{
+	return
+		code == ERRNO_CAN_DEVICE_BIT_ERROR ||
+		code == ERRNO_CAN_DEVICE_BIT_STUFF_ERROR ||
+		code == ERRNO_CAN_DEVICE_FORM_ERROR ||
+		code == ERRNO_CAN_DEVICE_ACK_ERROR ||
+		code == ERRNO_CAN_DEVICE_CRC_ERROR ||
+		code == ERRNO_CAN_DEVICE_BUS_OFF ||
+		code == ERRNO_CAN_DEVICE_UNSPEC_ERROR;
+}
+
+static inline char* canErrorFrameShorthand (int code)
+{
+	if (code == ERRNO_CAN_DEVICE_BIT_ERROR)
+		return "BIT ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_BIT_STUFF_ERROR)
+		return "BIT STUFF ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_FORM_ERROR)
+		return "FORM ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_ACK_ERROR)
+		return "ACK ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_CRC_ERROR)
+		return "CRC ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_BUS_OFF)
+		return "BUS-OFF ERROR";
+
+	return "UNSPECIFIED ERROR";
+}
 
 #endif // CAN_DEVICE_H
