@@ -105,7 +105,8 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 				strcpy (message->name, dataBuffer0);
 
 				// Copy message metadata
-				message->id = (uint32_t) messageId;
+				// TODO(Barach): Hacky workaround.
+				message->id = (uint32_t) messageId & 0x1FFFFFFF;
 				message->dlc = (uint8_t) messageDlc;
 			}
 		}

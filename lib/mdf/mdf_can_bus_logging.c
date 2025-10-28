@@ -539,26 +539,28 @@ int mdfCanBusLogWriteDataFrame (FILE* mdf, canFrame_t* frame, uint64_t timestamp
 
 	// Timestamp
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (TIMESTAMP_BIT_LENGTH); ++index)
-		record [index + TIMESTAMP_BYTE_OFFSET + 1] = timestamp >> (index * 8);
+		record [index + TIMESTAMP_BYTE_OFFSET + 1] |= timestamp >> (index * 8);
 
 	// CAN ID
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (ID_BIT_LENGTH); ++index)
-		record [index + ID_BYTE_OFFSET + 1] = frame->id >> (index * 8);
+		record [index + ID_BYTE_OFFSET + 1] |= frame->id >> (index * 8);
 
 	// IDE
-	record [IDE_BYTE_OFFSET + 1] = (0 & BIT_LENGTH_TO_BIT_MASK (IDE_BIT_LENGTH)) << IDE_BIT_OFFSET;
+	// TODO(Barach): Hacky workaround.
+	bool ide = frame->id >= (1 << 11);
+	record [IDE_BYTE_OFFSET + 1] |= (ide & BIT_LENGTH_TO_BIT_MASK (IDE_BIT_LENGTH)) << IDE_BIT_OFFSET;
 
 	// Bus channel
-	record [BUS_CHANNEL_BYTE_OFFSET + 1] =
+	record [BUS_CHANNEL_BYTE_OFFSET + 1] |=
 		(busChannel & BIT_LENGTH_TO_BIT_MASK (BUS_CHANNEL_BIT_LENGTH)) << BUS_CHANNEL_BIT_OFFSET;
 
 	// DLC
-	record [DLC_BYTE_OFFSET + 1] =
+	record [DLC_BYTE_OFFSET + 1] |=
 		(frame->dlc & BIT_LENGTH_TO_BIT_MASK (DLC_BIT_LENGTH)) << DLC_BIT_OFFSET;
 
 	// Data Bytes
 	for (size_t index = 0; index < frame->dlc; ++index)
-		record [DATA_BYTES_BYTE_OFFSET + index + 1] = frame->data [index];
+		record [DATA_BYTES_BYTE_OFFSET + index + 1] |= frame->data [index];
 
 	// Write the record to the file.
 	if (fwrite (record, 1, sizeof (record), mdf) != sizeof (record))

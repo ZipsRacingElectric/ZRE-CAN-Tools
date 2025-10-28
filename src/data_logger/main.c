@@ -56,13 +56,13 @@ int main (int argc, char** argv)
 		if (canReceive (device, &frame) != 0)
 			continue;
 
-		printf ("Received CAN frame: 0x%03X\n", frame.id);
+		// printf ("Received CAN frame: 0x%03X\n", frame.id);
 
 		struct timeval timeCurrent;
 		gettimeofday (&timeCurrent, NULL);
 		uint64_t timestamp = (timeCurrent.tv_sec - timeStart) * 1e6 + timeCurrent.tv_usec;
 
-		printf ("Timestamp: %lu.\n", timestamp);
+		// printf ("Timestamp: %lu.\n", timestamp);
 
 		if (mdfCanBusLogWriteDataFrame (mdf, &frame, timestamp, 1) != 0)
 		{
