@@ -251,7 +251,7 @@ int main (int argc, char** argv)
 
 		// Get the top and bottom row of the terminal window that can display bms content
 		int scrlTop = offset + CONTROL_PANEL_HEIGHT; // the top row of the content in the scrolling implementation (after the bms stat panel)
-		int scrlBottom = offset + scr_y; // the bottom row of the content in the scrolling implementation (the bottom of the terminal window)
+		int scrlBottom = offset + scr_y -2; // the bottom row of the content in the scrolling implementation (the bottom of the terminal window)
 		if (scrlTop < 0) scrlTop = 0; // ensures the scrolling implementation does not extend past the top of the content
 		if (scrlTop > TOTAL_ROWS -1) scrlTop = TOTAL_ROWS; // ensures the scrolling implementation does not extend past the bottom of the content
 		
@@ -465,45 +465,45 @@ void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row,
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 39, "┤");
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 64, "┤");
 
-	// Print the pack current
-	float packCurrent;
-	bool packCurrentValid = bmsGetPackCurrent (bms, &packCurrent) == CAN_DATABASE_VALID;
-	if (validRows[4]) {
-		if (packCurrentValid)
-		{
-			mvprintw (mapRowToPosition[4], column + 2,  "Current");
-			mvprintw (mapRowToPosition[4], column + 42, "%.2f A", packCurrent);
-		}
-		else
-		{
-			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[4], column + 2,  "Current");
-			mvprintw (mapRowToPosition[4], column + 42, "-- A");
-			attroff (COLOR_PAIR (COLOR_INVALID));
-		}
-	}
-
 	// Print the pack voltage
 	float packVoltage;
 	bool packVoltageValid = bmsGetPackVoltage (bms, &packVoltage) == CAN_DATABASE_VALID;
-	if (validRows[5]) {
+	if (validRows[4]) {
 		if (packVoltageValid)
 		{
 			//TODO(Barach): Round consistently?
-			mvprintw (mapRowToPosition[5], column + 2,  "Voltage");
-			mvprintw (mapRowToPosition[5], column + 42, "%.2f V", packVoltage);
+			mvprintw (mapRowToPosition[4], column + 2,  "Voltage");
+			mvprintw (mapRowToPosition[4], column + 42, "%.2f V", packVoltage);
 		}
 		else
 		{
 			attron (COLOR_PAIR (COLOR_INVALID));
-			mvprintw (mapRowToPosition[5], column + 2,  "Voltage");
-			mvprintw (mapRowToPosition[5], column + 42, "-- V");
+			mvprintw (mapRowToPosition[4], column + 2,  "Voltage");
+			mvprintw (mapRowToPosition[4], column + 42, "-- V");
+			attroff (COLOR_PAIR (COLOR_INVALID));
+		}
+	}
+	
+	// Print the pack current
+	float packCurrent;
+	bool packCurrentValid = bmsGetPackCurrent (bms, &packCurrent) == CAN_DATABASE_VALID;
+	if (validRows[5]) {
+		if (packCurrentValid)
+		{
+			mvprintw (mapRowToPosition[5], column + 2,  "Current");
+			mvprintw (mapRowToPosition[5], column + 42, "%.2f A", packCurrent);
+		}
+		else
+		{
+			attron (COLOR_PAIR (COLOR_INVALID));
+			mvprintw (mapRowToPosition[5], column + 2,  "Current");
+			mvprintw (mapRowToPosition[5], column + 42, "-- A");
 			attroff (COLOR_PAIR (COLOR_INVALID));
 		}
 	}
 
 	// Print the power consumption
-	if (validRows[5]) {
+	if (validRows[6]) {
 		if (packVoltageValid && packCurrentValid)
 		{
 			mvprintw (mapRowToPosition[6], column + 2,  "Power");
@@ -665,6 +665,11 @@ void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row,
 
 void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, size_t height, bms_t* bms) 
 {	
+	// TODO(DiBacco): 
+	/*
+		canDBC: get units for bms status signals
+	*/
+
 	// Get the database associated with the bms instance
 	canDatabase_t* database = bms->database;
 
@@ -1083,7 +1088,7 @@ void printLtcStatus (int row, int column, bms_t* bms, uint16_t ltcIndex)
 		// If the signal is timed out, print so.
 		attron (COLOR_PAIR (COLOR_INVALID));
 		printw ("(-- C) ");
-		attron (COLOR_PAIR (COLOR_INVALID));
+		attroff (COLOR_PAIR (COLOR_INVALID));
 		break;
 
 	case CAN_DATABASE_VALID:
