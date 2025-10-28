@@ -8,6 +8,8 @@
 //
 // Description: Objects and functions for interacting with CAN devices (also called CAN adapters, CAN interfaces, etc.).
 
+// TODO(Barach): Could consider replacing SLCAN with Candlelight API?
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
