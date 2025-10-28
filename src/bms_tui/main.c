@@ -660,16 +660,10 @@ void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row,
 		mvprintw (mapRowToPosition[height], column + 39, "┴");
 		mvprintw (mapRowToPosition[height], column + 40, "┴");
 	}
-	
 }
 
 void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint16_t row, uint16_t column, size_t height, bms_t* bms) 
 {	
-	// TODO(DiBacco): 
-	/*
-		canDBC: get units for bms status signals
-	*/
-
 	// Get the database associated with the bms instance
 	canDatabase_t* database = bms->database;
 
