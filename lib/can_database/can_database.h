@@ -17,11 +17,11 @@
 #include "error_codes.h"
 #include "time_port.h"
 
-
 // POSIX Libraries
 #include <pthread.h>
 
 // C Standard Library
+#include <errno.h>
 #include <float.h>
 
 // Constants ------------------------------------------------------------------------------------------------------------------

@@ -5,6 +5,37 @@
 //
 // Description: Terminal user interface for monitoring a battery management system.
 
+// REVIEW(Barach): This is compiling with some warnings. All warnings should be resolved if possible.
+
+// REVIEW(Barach): Also, while not a huge deal, its quite a pain to read code that is inconsistent with formatting. Preferred
+//   formatting for ZRs code is:
+//
+// file_names_in_lower_snake_case
+// CONSTANTS_IN_UPPER_SNAKE_CASE
+// localVariablesInCamelCase
+//
+// Function and if statements should have a space before the parentheses:
+//   foo (...);
+//
+// Function definitions should have a newline before the code block:
+//   void foo (...)
+//   {
+//
+//   }
+//
+// Same with if and else statements:
+//   if (...)
+//   {
+//
+//   }
+//   else
+//   {
+//
+//   }
+//
+// I know all this isn't really specified anywhere, so just try to mimic the style of the code that you're working on. When
+//   starting new projects it isn't a big deal, just when adding new things to existing code.
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -188,7 +219,6 @@ int main (int argc, char** argv)
 		return code;
 	}
 
-	
 	// The height of BMS_Status Signals panel
 	const size_t BMS_STATUS_SIGNALS_PANEL_HEIGHT = 4 + bms.bmsStatusSignalsCount; // the header + footer + the total number of signals
 
@@ -228,6 +258,7 @@ int main (int argc, char** argv)
 	// Get terminal size
 	int scr_x, scr_y;
 	getmaxyx (stdscr, scr_y, scr_x);
+	// REVEIW(Barach): Warning about src_x being unused can be resolved by putting (void) scr_x shortly after.
 
 	// Specifies the first row from the content that will be displayed in the terminal 
 	int offset = 0;
@@ -401,6 +432,8 @@ void printStatPanel (int scrlTop, int scrlBottom, uint16_t scrRow, uint16_t row,
 	bool validRows [height + 1];
 
 	// Map each row of the segment to its position in the terminal window
+	// REVIEW(Barach): Variable length arrays are very iffy. If you absolutely have to do something like this, it should be
+	//   done via malloc and free.
 	int mapRowToPosition [height + 1];
 
 	// Validate & map position for each row of the bms stat panel  
@@ -732,6 +765,8 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 64, "┬");
 
 	// Display each signal name and its corresponding value in a single row
+	// REVIEW(Barach): Instead of directly accessing this, I'd prefer a function (can be static inline to not reduce
+	// performance). Ideally something like: size_t bmsGetStatusSignalCount (bms_t* bms);
 	for (size_t signalIndex = 0; signalIndex < bms->bmsStatusSignalsCount; signalIndex++) { 
 		float value;
 
@@ -752,6 +787,9 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 				}
 				case CAN_DATABASE_TIMEOUT: {
 					attron (COLOR_PAIR (COLOR_INVALID));
+					// REVIEW(Barach): Bad practice to use user-defined string in place of a format string. What is the
+					// string has %f inside of it? Undefined behavior. Better to use the %s specifier with the string as the
+					// first and only argument.
 					mvprintw (mapRowToPosition[row], column + 2, bmsStatusSignal->name);
 					mvprintw (mapRowToPosition[row], column + 42, "---");
 					attroff (COLOR_PAIR (COLOR_INVALID));

@@ -9,7 +9,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-// Calculate the length of the index (primarily used to calculate offset for signal names)
+/**
+ * @brief Prints an index into an existing string.
+ * @param index The index to print
+ * @param name The string to print into.
+ * @return The number of characters written.
+ */
 static size_t printIndex (uint16_t index, char* name)
 {
 	snprintf (name, 4, "%-3i", index);
@@ -56,10 +61,13 @@ static size_t printSenseLineIndex (bms_t* bms, uint16_t segmentIndex, uint16_t l
 
 int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 {
-	// Create list to contain signal names to avoid displaying signals redundantly in the bms tui
+	// Create list to contain signal names to storing redundant information.
+	// REVIEW(Barach): Because these are local variables and dynamically allocated, they must be deallocated by the end of
+	//   this function (no other way prevent a memory leak). While there is quite a bit of memory in here that gets allocated
+	//   it is all stored in the bms object so that it can be deallocated correctly later.
 	size_t signalCount = 0;
 	char** signalNames = NULL;
-	
+
 	bms->database = database;
 
 	// Get JSON config values
@@ -104,7 +112,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		// DiBacco: signal name is used to locate data from the dbc file
 		char voltName [] = "CELL_VOLTAGE_###";
 		size_t offset = printIndex (index, voltName + 13);
-		voltName [offset + 13] = '\0'; 
+		voltName [offset + 13] = '\0';
 		checkSignalRedundancy (voltName, &signalNames, &signalCount); 
 		// DiBacco: offset is used to modify the signal name to contain one '#' per digit in the index
 		// index < 10 = CELL_VOLTAGE_# | index < 100 = CELL_VOLTAGE_## | etc
@@ -128,30 +136,26 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	bms->senseLineTemperatureIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
 	bms->senseLinesOpenIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
 
-	// DiBacco: iterate over each segment in the module
 	for (uint16_t segmentIndex = 0; segmentIndex < bms->segmentCount; ++segmentIndex)
 	{
-		// DiBacco: iterate over each LTC chip (batter monitor IC) 
 		for (uint16_t ltcIndex = 0; ltcIndex < bms->ltcsPerSegment; ++ltcIndex)
 		{
-			// DiBacco: iterate over each sense line (voltage measurement line)
 			for (uint16_t senseLineIndex = 0; senseLineIndex < bms->senseLinesPerLtc; ++senseLineIndex)
 			{
-				// DiBacco: get index of the sense line in reference to the entire bms
 				uint16_t index = SENSE_LINE_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex, senseLineIndex);
-				
+
 				// Get sense line temperature signal index
 				char tempName [] = "SENSE_LINE_###_##_TEMPERATURE";
 				uint16_t offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, tempName + 11);
 				snprintf (tempName + 11 + offset, 13, "_TEMPERATURE");
-				checkSignalRedundancy (tempName, &signalNames, &signalCount); 
+				checkSignalRedundancy (tempName, &signalNames, &signalCount);
 
 				bms->senseLineTemperatureIndices [index] = canDatabaseFindSignal (database, tempName);
 
 				char openName [] = "SENSE_LINE_###_##_OPEN";
 				offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, openName + 11);
 				snprintf (openName + 11 + offset, 6, "_OPEN");
-				checkSignalRedundancy (openName, &signalNames, &signalCount); 
+				checkSignalRedundancy (openName, &signalNames, &signalCount);
 
 				bms->senseLinesOpenIndices [index] = canDatabaseFindSignal (database, openName);
 				if (bms->senseLinesOpenIndices [index] < 0)
@@ -173,14 +177,14 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			char isoSpiName [] = "BMS_LTC_###_ISOSPI_FAULT";
 			uint16_t offset = printIndex (index, isoSpiName + 8);
 			snprintf (isoSpiName + 8 + offset, 14, "_ISOSPI_FAULT");
-			checkSignalRedundancy (isoSpiName, &signalNames, &signalCount); 
+			checkSignalRedundancy (isoSpiName, &signalNames, &signalCount);
 
 			bms->ltcIsoSpiFaultIndices [index] = canDatabaseFindSignal (database, isoSpiName);
 
 			char selfTestName [] = "BMS_LTC_###_SELF_TEST_FAULT";
 			offset = printIndex (index, selfTestName + 8);
 			snprintf (selfTestName + 8 + offset, 17, "_SELF_TEST_FAULT");
-			checkSignalRedundancy (selfTestName, &signalNames, &signalCount); 
+			checkSignalRedundancy (selfTestName, &signalNames, &signalCount);
 
 			bms->ltcSelfTestFaultIndices [index] = canDatabaseFindSignal (database, selfTestName);
 
@@ -194,12 +198,12 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	}
 
 	bms->packVoltageIndex = canDatabaseFindSignal (database, "PACK_VOLTAGE");
-	checkSignalRedundancy ("PACK_VOLTAGE", &signalNames, &signalCount); 
+	checkSignalRedundancy ("PACK_VOLTAGE", &signalNames, &signalCount);
 	if (bms->packVoltageIndex < 0)
 		return errno;
 
 	bms->packCurrentIndex = canDatabaseFindSignal (database, "PACK_CURRENT");
-	checkSignalRedundancy ("PACK_CURRENT", &signalNames, &signalCount); 
+	checkSignalRedundancy ("PACK_CURRENT", &signalNames, &signalCount);
 	if (bms->packCurrentIndex < 0)
 		return errno;
 
@@ -214,7 +218,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 
 	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage->signalCount; signalIndex++) {
 		// Get signal using the signal index
-		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bms->bmsStatusMessageIndex, signalIndex); 
+		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bms->bmsStatusMessageIndex, signalIndex);
 		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, signalGlobalIndex);
 
 		// Check that the signal has not been retreived previously
@@ -223,7 +227,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			// Append signal to the bms status signals and index to the bms status signals indices
 			bms->bmsStatusSignals[bms->bmsStatusSignalsCount] = bmsStatusSignal;
 			bms->bmsStatusSignalIndices[bms->bmsStatusSignalsCount++] = signalIndex;
-		} 
+		}
 	}
 
 	return 0;
@@ -406,12 +410,29 @@ bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg)
 
 canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t messageIndex, size_t signalIndex, float* value) {
 	// Convert index within the message to index within the databaseS
-	ssize_t globalIndex = canDatabaseGetGlobalIndex (database, messageIndex, signalIndex); 
+	ssize_t globalIndex = canDatabaseGetGlobalIndex (database, messageIndex, signalIndex);
 
 	// Get the value of the message associated with the global index
 	return canDatabaseGetFloat (database, globalIndex, value);
 }
 
+void bmsDealloc (bms_t* bms)
+{
+	// TODO(Barach): Init doesn't deallocate correctly on failure.
+	// Deallocate all dynamically allocated memory.
+	free (bms->bmsStatusSignals);
+	free (bms->bmsStatusSignalIndices);
+	free (bms->ltcTemperatureIndices);
+	free (bms->ltcSelfTestFaultIndices);
+	free (bms->ltcIsoSpiFaultIndices);
+	free (bms->senseLinesOpenIndices);
+	free (bms->senseLineTemperatureIndices);
+	free (bms->cellsDischargingIndices);
+	free (bms->cellVoltageIndices);
+}
+
+// REVIEW(Barach): Because you are storing strings, this function is a bit complex. You can just store the global index of
+//   the signal instead (signal names don't change, so the two are interchangable).
 bool checkSignalRedundancy (char* signalName, char*** signalNames, size_t* signalCount) {
 	// return false if signal has previously been retreived
 	for (size_t signalIndex = 0; signalIndex < *signalCount; signalIndex++) {
@@ -421,10 +442,21 @@ bool checkSignalRedundancy (char* signalName, char*** signalNames, size_t* signa
 	}
 
 	// add signal name to the list
-	*signalNames = realloc (*signalNames, (*signalCount + 1) * sizeof (char*)); 
+	*signalNames = realloc (*signalNames, (*signalCount + 1) * sizeof (char*));
 	if (! (*signalName)) {
+		// REVIEW(Barach): Library functions should not print error messages, rather, they should return the error code that
+		// triggered the message.
 		printf ("Error: couldn't allocate memory for list \n");
 	}
+
+	// REVIEW(Barach): If the memory allocation above failed, accessing the array will cause undefined behavior, likely
+	// crashing the program. This function needs a way to gracefully fail. Ex. return int error code and write result to a
+	// bool* parameter.
+
+	// REVIEW(Barach): It is not obvious what this is doing. While it consolidates code, doing multiple operations in a single
+	// line like this really isn't good practice. Preferrable to do:
+	//   *signalNames [*signalCount] = ...
+	//   ++(*signalCount)
 
 	(*signalNames)[(*signalCount)++] = strdup (signalName);
 
