@@ -154,10 +154,7 @@ int transmitFrame (canDevice_t* device, char* command)
 
 		}
 		else
-		{
-			fprintf (stderr, "Error: %s.\n", errorMessage (errno));
-			return errno;
-		}
+			return errorPrintf ("Failed to transmit frame");
 	}
 
 	// Set Iterations
@@ -252,9 +249,7 @@ int transmitFrame (canDevice_t* device, char* command)
 			printf ("\n");
 		}
 		else
-		{
-			printf ("Error: %s.\n", errorMessage (errno));
-		}
+			return errorPrintf ("Failed to transmit CAN frame");
 
 		// Wait until deadline is reached
 		while (timercmp (&currentTime, &deadline, <) && i != transmitIterations -1)
@@ -341,10 +336,11 @@ int receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
 		{
 			int code = errno;
 
-			if (canIsErrorFrame (code))
+			if (canCheckBusError (code))
 			{
+				// If the error was a bus error, print the error frame and bus error name.
 				printFrame (&frame);
-				printf (" - [%s]\n", canErrorFrameShorthand (code));
+				printf (" - [%s]\n", canGetBusErrorName (code));
 				errno = 0;
 			}
 			else
@@ -430,11 +426,7 @@ int main (int argc, char** argv)
 		return 0;
 
 	if (device == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to create CAN device");
 
 	// Directly From Command Line
 	if (argc == 3)

@@ -39,6 +39,43 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+static int getErrorCode (struct can_frame* frame)
+{
+	// Check for protocol error
+	if (frame->can_id & CAN_ERR_PROT)
+	{
+		uint8_t typeFlags = frame->data [2];
+		uint8_t locFlags = frame->data [3];
+
+		// Form error
+		if (typeFlags & CAN_ERR_PROT_FORM)
+			return ERRNO_CAN_DEVICE_FORM_ERROR;
+
+		// Bit stuff error
+		if (typeFlags & CAN_ERR_PROT_STUFF)
+			return ERRNO_CAN_DEVICE_BIT_STUFF_ERROR;
+
+		// CRC error
+		if (locFlags & CAN_ERR_PROT_LOC_CRC_SEQ || locFlags & CAN_ERR_PROT_LOC_CRC_DEL)
+			return ERRNO_CAN_DEVICE_CRC_ERROR;
+
+		// Bit error
+		if (typeFlags & CAN_ERR_PROT_BIT)
+			return ERRNO_CAN_DEVICE_BIT_ERROR;
+
+		// ACK error
+		if (locFlags & CAN_ERR_PROT_LOC_ACK || locFlags & CAN_ERR_PROT_LOC_ACK_DEL)
+			return ERRNO_CAN_DEVICE_ACK_ERROR;
+	}
+
+	// Bus-off error
+	if ((frame->can_id & CAN_ERR_BUSOFF) == CAN_ERR_BUSOFF)
+		return ERRNO_CAN_DEVICE_BUS_OFF;
+
+	// Unspecified error
+	return ERRNO_CAN_DEVICE_UNSPEC_ERROR;
+}
+
 bool socketCanNameDomain (const char* name)
 {
 	if (strncmp("can", name, strlen ("can")) == 0)
@@ -192,46 +229,17 @@ int socketCanReceive (void* device, canFrame_t* frame)
 	if (code < (long int) sizeof (struct can_frame))
 		return errno;
 
-	// Copy frame DLC and payload
+	// Populate the frame's ID, DLC, and payload.
+	frame->id = socketFrame.can_id & CAN_EFF_MASK;
 	frame->dlc = socketFrame.can_dlc;
 	memcpy (frame->data, socketFrame.data, socketFrame.can_dlc);
 
 	// TODO(Barach): IDE & RTR
 
-	frame->id = socketFrame.can_id & CAN_EFF_MASK;
-
 	// Check for error flags, if set, handle the error frame
 	if (socketFrame.can_id & CAN_ERR_FLAG)
 	{
-		// Default to unspecified
-		errno = ERRNO_CAN_DEVICE_UNSPEC_ERROR;
-
-		if (socketFrame.can_id & CAN_ERR_PROT)
-		{
-			uint8_t typeFlags = socketFrame.data [2];
-			uint8_t locFlags = socketFrame.data [3];
-
-			if (typeFlags & CAN_ERR_PROT_FORM)
-				errno = ERRNO_CAN_DEVICE_FORM_ERROR;
-
-			else if (typeFlags & CAN_ERR_PROT_STUFF)
-				errno = ERRNO_CAN_DEVICE_BIT_STUFF_ERROR;
-
-			else if (locFlags & CAN_ERR_PROT_LOC_CRC_SEQ || locFlags & CAN_ERR_PROT_LOC_CRC_DEL)
-				errno = ERRNO_CAN_DEVICE_CRC_ERROR;
-
-			else if (typeFlags & CAN_ERR_PROT_BIT)
-				errno = ERRNO_CAN_DEVICE_BIT_ERROR;
-
-			else if (locFlags & CAN_ERR_PROT_LOC_ACK || locFlags & CAN_ERR_PROT_LOC_ACK_DEL)
-				errno = ERRNO_CAN_DEVICE_ACK_ERROR;
-		}
-		else if ((socketFrame.can_id & CAN_ERR_BUSOFF) == CAN_ERR_BUSOFF)
-		{
-			errno = ERRNO_CAN_DEVICE_BUS_OFF;
-		}
-
-		// Return the determined error code
+		errno = getErrorCode (&socketFrame);
 		return errno;
 	}
 

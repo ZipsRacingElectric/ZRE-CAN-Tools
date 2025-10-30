@@ -86,6 +86,14 @@ typedef struct
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 /**
+ * @brief Identifies and initializes a CAN device based on its name handle. This function will attempt to identify the type of
+ * adapter based on context in the provided name.
+ * @param name The name (handler) of the CAN device. Note this should either be a SocketCAN name or an SLCAN name.
+ * @return The initialized CAN device if successful, @c NULL otherwise. Note @c errno is set on failure.
+ */
+canDevice_t* canInit (char* name);
+
+/**
  * @brief Function for transmitting a CAN frame.
  * @param device The device to transmit with.
  * @param frame The frame to transmit.
@@ -99,8 +107,9 @@ static inline int canTransmit (canDevice_t* device, canFrame_t* frame)
 /**
  * @brief Function for receiving a CAN frame.
  * @param device The device to receive from.
- * @param frame The frame to receive.
- * @return 0 if successful, the error code otherwise. Note @c errno is set on failure. TODO(Barach): Docs
+ * @param frame The buffer to receive the frame into.
+ * @return 0 if successful, the error code otherwise. If the error code, as tested by @c canCheckBusError indicates an error
+ * frame was generated, said frame is written to the @c frame buffer. Note @c errno is also set on failure.
  */
 static inline int canReceive (canDevice_t* device, canFrame_t* frame)
 {
@@ -132,14 +141,11 @@ static inline int canSetTimeout (canDevice_t* device, unsigned long timeoutMs)
 }
 
 /**
- * @brief Identifies and initializes a CAN device based on its name handle. This function will attempt to identify the type of
- * adapter based on context in the provided name.
- * @param name The name (handler) of the CAN device. Note this should either be a SocketCAN name or an SLCAN name.
- * @return The initialized CAN device if successful, @c NULL otherwise. Note @c errno is set on failure.
+ * @brief Checks whether a given return code corresponds to a CAN bus error.
+ * @param code The error code, as returned from the function or read from @c errno .
+ * @return True if the error is specific to the CAN bus, false otherwise. If true, this indicates an error frame was generated.
  */
-canDevice_t* canInit (char* name);
-
-static inline bool canIsErrorFrame (int code)
+static inline bool canCheckBusError (int code)
 {
 	return
 		code == ERRNO_CAN_DEVICE_BIT_ERROR ||
@@ -151,7 +157,13 @@ static inline bool canIsErrorFrame (int code)
 		code == ERRNO_CAN_DEVICE_UNSPEC_ERROR;
 }
 
-static inline char* canErrorFrameShorthand (int code)
+/**
+ * @brief Gets a string describing the type of CAN bus error that occurred.
+ * @param code The error code, as returned from the function or read from @c errno . Note this error code should first be
+ * tested by @c canCheckBusError to determine if it is a CAN bus related error.
+ * @return The shorthand string naming the error.
+ */
+static inline char* canGetBusErrorName (int code)
 {
 	if (code == ERRNO_CAN_DEVICE_BIT_ERROR)
 		return "BIT ERROR";

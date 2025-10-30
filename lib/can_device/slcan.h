@@ -11,6 +11,10 @@
 //
 // References:
 // - https://github.com/mac-can/SerialCAN
+//
+// Unsupported features:
+// - SerialCAN library does not implement CAN bus error detection or error frames. If a bus error occurs while trying to
+//   receive a CAN frame, the canReceive function will simply ignore it and continue waiting.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 

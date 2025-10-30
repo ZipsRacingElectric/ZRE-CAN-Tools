@@ -27,34 +27,9 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-static int convertErrorCode (int code)
+static int getErrorCode (int code)
 {
-	// Convert any known errors into the general error code.
-
-	// TODO(Barach): Supposedly these are all deprecated? Do some testing...
-
-	if (code == CANERR_BOFF)
-		return ERRNO_CAN_DEVICE_BUS_OFF;
-
-	if (code == CANERR_LEC_STUFF)
-		return ERRNO_CAN_DEVICE_BIT_STUFF_ERROR;
-
-	if (code == CANERR_LEC_FORM)
-		return ERRNO_CAN_DEVICE_FORM_ERROR;
-
-	if (code == CANERR_LEC_ACK)
-		return ERRNO_CAN_DEVICE_ACK_ERROR;
-
-	if (code == CANERR_LEC_BIT1 || code == CANERR_LEC_BIT0)
-		return ERRNO_CAN_DEVICE_BIT_ERROR;
-
-	if (code == CANERR_LEC_CRC)
-		return ERRNO_CAN_DEVICE_CRC_ERROR;
-
-	if (code == CANERR_BERR)
-		return ERRNO_CAN_DEVICE_UNSPEC_ERROR;
-
-	// Otherwise, offset the error code to match this project's convention.
+	// Offset the error code to match this project's convention.
 	return code + 10000;
 }
 
@@ -99,7 +74,7 @@ canDevice_t* slcanInit (char* name)
 	int handle = can_init (CAN_BOARD (CANLIB_SERIALCAN, CANDEV_SERIAL), CANMODE_DEFAULT, (const void*) &port);
 	if (handle < 0)
 	{
-		errno = convertErrorCode (handle);
+		errno = getErrorCode (handle);
 		return NULL;
 	}
 
@@ -132,7 +107,7 @@ canDevice_t* slcanInit (char* name)
 	int code = can_start (handle, &bitrate);
 	if (code < 0)
 	{
-		errno = convertErrorCode (code);
+		errno = getErrorCode (code);
 		return NULL;
 	}
 
@@ -173,7 +148,7 @@ int slcanTransmit (void* device, canFrame_t* frame)
 	int code = can_write (can->handle, &message, can->timeoutMs);
 	if (code != 0)
 	{
-		errno = convertErrorCode (code);
+		errno = getErrorCode (code);
 		return errno;
 	}
 
@@ -196,12 +171,14 @@ int slcanReceive (void* device, canFrame_t* frame)
 		code = can_read (can->handle, &slcanFrame, can->timeoutMs);
 	} while (can->timeoutMs == 65535 && code == CANERR_RX_EMPTY);
 
+	// Check the error code.
 	if (code != 0)
 	{
-		errno = convertErrorCode (code);
+		errno = getErrorCode (code);
 		return errno;
 	}
 
+	// Populate the frame's ID, DLC, and payload.
 	// TODO(Barach): IDE and RTR
 	frame->id = slcanFrame.id;
 	frame->dlc = slcanFrame.dlc;
