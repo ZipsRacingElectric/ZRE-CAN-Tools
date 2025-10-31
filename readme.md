@@ -82,10 +82,10 @@ Examples:
         can-dev-cli -d <Device Name>
 
     Periodically transmit a CAN message (50 times at 10 Hz):
-        can-dev-cli -t=0x123[0xAB, 0xCD]@50,10
+        can-dev-cli -t=0x123[0xAB,0xCD]@50,10
 
     Dump all received CAN messages from a list:
-        can-dev-cli -d=[0x005, 0x006, 0x007, 0x008]
+        can-dev-cli -d=[0x005,0x006,0x007,0x008]
 
 
 ```
