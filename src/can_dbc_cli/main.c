@@ -146,6 +146,7 @@ canFrame_t promptMessageValue (canMessage_t* message)
 	canFrame_t frame =
 	{
 		.id = message->id,
+		.ide = message->ide,
 		.dlc = message->dlc
 	};
 	uint64_t* payload = (uint64_t*) frame.data;
