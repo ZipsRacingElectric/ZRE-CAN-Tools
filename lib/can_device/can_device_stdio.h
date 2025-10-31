@@ -31,6 +31,8 @@ int strToCanId (uint32_t* id, bool* ide, const char* str);
 /**
  * @brief Converts a string to a CAN frame. String should take the following format:
  * "<CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]"
+ * @note The @c str parameter is modified by this function. A copy of the string must be made if the original need be
+ * preserved.
  * @param frame Buffer to write the CAN frame into.
  * @param str The string to parse.
  * @return 0 if successful, the error code otherwise.

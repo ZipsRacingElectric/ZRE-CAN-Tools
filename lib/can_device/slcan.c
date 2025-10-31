@@ -138,14 +138,16 @@ int slcanTransmit (void* device, canFrame_t* frame)
 {
 	slcan_t* can = device;
 
-	can_message_t message =
+	// Populate the SLCAN frame
+	can_message_t slcanFrame =
 	{
 		.id = frame->id,
-		.dlc = frame->dlc
+		.dlc = frame->dlc,
+		.xtd = frame->ide
 	};
-	memcpy (message.data, frame->data, frame->dlc);
+	memcpy (slcanFrame.data, frame->data, frame->dlc);
 
-	int code = can_write (can->handle, &message, can->timeoutMs);
+	int code = can_write (can->handle, &slcanFrame, can->timeoutMs);
 	if (code != 0)
 	{
 		errno = getErrorCode (code);
@@ -179,9 +181,10 @@ int slcanReceive (void* device, canFrame_t* frame)
 	}
 
 	// Populate the frame's ID, DLC, and payload.
-	// TODO(Barach): IDE and RTR
+	// TODO(Barach): RTR
 	frame->id = slcanFrame.id;
 	frame->dlc = slcanFrame.dlc;
+	frame->ide = slcanFrame.xtd;
 	memcpy (frame->data, slcanFrame.data, slcanFrame.dlc);
 	return 0;
 }
