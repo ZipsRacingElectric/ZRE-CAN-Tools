@@ -24,7 +24,7 @@ int main (int argc, char** argv)
 
 	if (argc < 3)
 	{
-		fprintf (stderr, "Invalid arguments, usage: data-logger <options> <CAN device> <MDF file>.\n");
+		fprintf (stderr, "Invalid arguments, usage: can-mdf-logger <options> <Device Name> <MDF file>.\n");
 		return -1;
 	}
 
