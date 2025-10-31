@@ -24,12 +24,12 @@
 /// @brief Structure representing a CAN message, also called a CAN frame.
 typedef struct
 {
-	/// @brief The ID of the CAN message, may be either a SID (standard identifier) or EID (extended identifier).
+	/// @brief The ID of the CAN message, may be either a SID (standard identifier) or EID (extended identifier). Test the
+	/// @c ide field to determine which type it is.
 	uint32_t id;
 
-	// TODO(Barach): can_database needs to correctly parse the IDE bit for this to work.
 	/// @brief The IDE (extended ID) bit of the message. Indicates the ID is an extended CAN ID rather than a standard CAN ID.
-	// bool ide;
+	bool ide;
 
 	/// @brief The payload of the message. Note that only @c dlc elements are used.
 	uint8_t data [8];

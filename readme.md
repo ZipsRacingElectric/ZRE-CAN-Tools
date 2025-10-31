@@ -20,17 +20,89 @@ A set of shell scripts are provided to simplify usage of the applications.
  - `cross-bms` - Application for monitoring the BMS of ZRE24.
  - `cross-can` - Application for monitoring the CAN bus of ZRE24.
 
-### CAN DBC CLI
+### CAN-DBC-TUI
 
-`can-dbc-cli <device name> <DBC file path>`
-This program is used to interact with a CAN node in real-time. Received messages are parsed and stored in a relational database which can be queried. Arbitrary messages can be transmitted by the user.
-
-### CAN DBC TUI
-
-`can-dbc-tui <device name> <DBC file path>`
+`can-dbc-tui <Device Name> <DBC file path>`
 This program is used to monitor the activity of a CAN bus in real-time.
 
-### CAN EEPROM CLI
+### CAN-DEV-CLI
+
+```
+Usage:
+
+can-dev-cli <Options> <Device Name>
+
+Options:
+    Transmiting Frames:
+        -t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]
+            Transmits a single CAN frame.
+
+        -t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]@<Count>,<Freq>
+            Transmits a CAN frame at a specified frequency.
+
+        Parameters:
+            ID     - The CAN ID of the frame to transmit.
+            Byte n - The n'th byte of the payload, in little-endian.
+            Freq   - The frequency to transmit at, in Hertz.
+            Count  - The number of times to transmit the message.
+
+    Receiving Frames:
+        -r - Receives the first available CAN message.
+
+        -r=<ID>
+            Receives the first available CAN message matching said ID.
+
+        -r=<ID>@<Count>
+            Receives the set of available CAN message matching said ID.
+
+        -r=[<ID 0>,<ID 1>,...<ID n>]
+            Receives the first available CAN message from a list of IDs.
+
+        -r=[<ID 0>,<ID 1>,...<ID n>]@<Count>
+            Receives the first set of available CAN messages from a list of IDs.
+
+        -r=[]@<Count>
+            Receives the first set of available CAN messages.
+
+        -d - Dumps all received CAN messages.
+
+        -d=<ID>
+            Dumps all received CAN messages matching said ID.
+
+        -d=[<ID 0>,<ID 1>,...<ID n>]
+            Dumps all received CAN messages from a list of IDs.
+
+        Parameters:
+            ID n  - The n'th CAN ID to filter for.
+            Count - Specifies the number CAN frames to receive
+
+Examples:
+
+    Dump all received CAN messages:
+        can-dev-cli -d <Device Name>
+
+    Periodically transmit a CAN message (50 times at 10 Hz):
+        can-dev-cli -t=0x123[0xAB, 0xCD]@50,10
+
+    Dump all received CAN messages from a list:
+        can-dev-cli -d=[0x005, 0x006, 0x007, 0x008]
+
+
+```
+
+### CAN-Dump
+
+`can-dump <Device Name>` - Dumps all received CAN messages to the standard output.
+
+`can-dump <Device Name> <CAN IDs>` - Dumps all received CAN messages matching a list of IDs to the standard output.
+
+### CAN-Send
+
+`can-send <Device Name> <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]` - Transmits a single CAN message.
+
+`can-send <Device Name> <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]@<Count>,<Frequency>` - Transmits a specified number of CAN messages at a specified frequency, in Hertz.
+
+### CAN-EEPROM-CLI
 
 ```
 Usage:
@@ -39,11 +111,11 @@ can-eeprom-cli <options> <device name> <config JSON path>
 
 Options:
 
-    -p=<data JSON path>   - Programming mode. Reads a data JSON from the
+    -p=<Data JSON path>   - Programming mode. Reads a data JSON from the
                             specified path and programs the key-value pairs to
                             the device. If no path is specified, the file is
                             read from stdin.
-    -r=<data JSON path>   - Recovery mode. Writes the EEPROM's memory to a data
+    -r=<Data JSON path>   - Recovery mode. Writes the EEPROM's memory to a data
                             JSON file. If no path is specified, the file is
                             written to stdout.
     -v                    - Verbose. Enables more verbose output to stderr for
@@ -53,15 +125,20 @@ Options:
 
 This program is used to program a device's EEPROM via CAN bus.
 
-### BMS TUI
+### CAN-DBC-CLI
 
-`bms-tui <device name> <DBC file path> <config JSON path>`
+`can-dbc-cli <Device Name> <DBC file path>`
+This program is used to interact with a CAN node in real-time. Received messages are parsed and stored in a relational database which can be queried. Arbitrary messages can be transmitted by the user.
+
+### BMS-TUI
+
+`bms-tui <Device Name> <DBC file path> <Config JSON path>`
 This program is used to monitor a battery management system in real-time.
 
 ### Command-line Arguments
 
 ```
-<device name>         - The adapter-specific identity of the CAN device.
+<Device Name>         - The adapter-specific identity of the CAN device.
     can*              - SocketCAN device, must be already initialized and
                         setup. Ex. 'can0'.
     vcan*             - Virtual SocketCAN device, must be already initialized
@@ -70,11 +147,14 @@ This program is used to monitor a battery management system in real-time.
                         indicated by the baud field. Ex 'COM3@1000000' for
                         Windows and '/dev/ttyACM0@1000000' for Linux.
 <DBC file path>       - The path to the DBC file to use.
-<config JSON path>    - The configuration JSON file to use. Configuration files
+<Config JSON path>    - The configuration JSON file to use. Configuration files
                         indicate the identity and unit-specific parameters of
                         a CAN node.
-<data JSON path>      - The data JSON file to use. Data files contain the
+<Data JSON path>      - The data JSON file to use. Data files contain the
                         values of the unit-specific parameters of a CAN node.
+<CAN ID>              - The CAN ID to use, in either decimal or hexadecimal.
+                        Use the '0x' prefix to specify hexadecimal. Extended
+                        CAN IDs should end in 'x'.
 ```
 
 ## Installation (For General Usage)

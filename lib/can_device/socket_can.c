@@ -124,9 +124,9 @@ canDevice_t* socketCanInit (const char* name)
 		return NULL;
 	}
 
-	// TODO(Barach): Docs
-	can_err_mask_t err_mask = 0xFFFF;
-	if (setsockopt(descriptor, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &err_mask, sizeof(err_mask)) != 0)
+	// Set the socket's error filter to include all error types.
+	can_err_mask_t errorMask = 0xFFFF;
+	if (setsockopt(descriptor, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &errorMask, sizeof (errorMask)) != 0)
 	{
 		close (descriptor);
 		return NULL;
@@ -189,11 +189,11 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 
 	socketCan_t* socket = device;
 
-	// Create the can_frame struct
+	// Create the SocketCAN frame
 	struct can_frame socketFrame =
 	{
 		.can_dlc = frame->dlc,
-		.can_id = frame->id,
+		.can_id = frame->id | (frame->ide ? CAN_EFF_FLAG : 0),
 	};
 	memcpy (socketFrame.data, frame->data, frame->dlc);
 
@@ -229,12 +229,13 @@ int socketCanReceive (void* device, canFrame_t* frame)
 	if (code < (long int) sizeof (struct can_frame))
 		return errno;
 
-	// Populate the frame's ID, DLC, and payload.
+	// Populate the frame's ID, IDE, DLC, and payload.
 	frame->id = socketFrame.can_id & CAN_EFF_MASK;
+	frame->ide = (socketFrame.can_id & CAN_EFF_FLAG) == CAN_EFF_FLAG;
 	frame->dlc = socketFrame.can_dlc;
 	memcpy (frame->data, socketFrame.data, socketFrame.can_dlc);
 
-	// TODO(Barach): IDE & RTR
+	// TODO(Barach): RTR
 
 	// Check for error flags, if set, handle the error frame
 	if (socketFrame.can_id & CAN_ERR_FLAG)
