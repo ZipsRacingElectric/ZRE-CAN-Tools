@@ -104,7 +104,7 @@ int fprintCanFrame (FILE* stream, canFrame_t* frame)
 			return code;
 		cumulative += code;
 
-		if (index != frame->dlc - 1)
+		if (index + 1 != frame->dlc)
 		{
 			code = fprintf (stream, ",");
 			if (code < 0)
