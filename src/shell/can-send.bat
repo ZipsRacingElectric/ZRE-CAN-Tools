@@ -1,6 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: TODO(Barach): This is broken because batch is batch...
+:: TODO(Barach): Consider distributing mintty...
+
 :: Check args
 if "%~1"=="" ( goto printUsage )
 if "%~2"=="" ( goto printUsage )
