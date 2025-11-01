@@ -39,6 +39,8 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+#if defined (__unix__)
+
 static int getErrorCode (struct can_frame* frame)
 {
 	// Check for protocol error
@@ -75,6 +77,8 @@ static int getErrorCode (struct can_frame* frame)
 	// Unspecified error
 	return ERRNO_CAN_DEVICE_UNSPEC_ERROR;
 }
+
+#endif // __unix__
 
 bool socketCanNameDomain (const char* name)
 {
