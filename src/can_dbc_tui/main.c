@@ -10,6 +10,7 @@
 // Includes
 #include "can_database/can_database.h"
 #include "can_device/can_device.h"
+#include "can_device/can_device_stdio.h"
 #include "error_codes.h"
 
 // Curses
@@ -148,7 +149,9 @@ void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 		if (startRow <= currentRow && currentRow < endRow)
 		{
 			char buffer [130];
-			snprintf (buffer, sizeof (buffer), "%s - ID 0x%3X", message->name, message->id);
+			int pos = snprintf (buffer, sizeof (buffer), "%s - ID ", message->name);
+			if (pos >= 0 && (size_t) pos <= sizeof (buffer) - 1)
+				snprintCanId (buffer + pos, sizeof (buffer) - pos, message->id, message->ide);
 
 			printw ("┌─ %s ", buffer);
 			for (size_t index = strlen (buffer) + 4; index < 138; ++index)

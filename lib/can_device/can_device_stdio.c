@@ -65,38 +65,31 @@ int strToCanFrame (canFrame_t* frame, char* str)
 
 int fprintCanId (FILE* stream, uint32_t id, bool ide)
 {
-	int cumulative = 0;
-
-	int code = fprintf (stream, "0x%03X", id);
-	if (code < 0)
-		return code;
-	cumulative += code;
-
+	// Extended ID
 	if (ide)
-	{
-		code = fprintf (stream, "x");
-		if (code < 0)
-			return code;
-		cumulative += code;
-	}
+		return fprintf (stream, "0x%03Xx", id);
 
-	return cumulative;
+	// Standard ID
+	return fprintf (stream, "0x%03X", id);
 }
 
 int fprintCanFrame (FILE* stream, canFrame_t* frame)
 {
 	int cumulative = 0;
 
+	// Print the CAN ID
 	int code = fprintCanId (stream, frame->id, frame->ide);
 	if (code < 0)
 		return code;
 	cumulative += code;
 
+	// Print the start of the payload
 	code = fprintf (stream, "[");
 	if (code < 0)
 		return code;
 	cumulative += code;
 
+	// Print the payload contents
 	for (size_t index = 0; index < frame->dlc; ++index)
 	{
 		code = fprintf (stream, "0x%02X", frame->data [index]);
@@ -113,10 +106,21 @@ int fprintCanFrame (FILE* stream, canFrame_t* frame)
 		}
 	}
 
+	// Print the end of the payload
 	code = fprintf (stream, "]");
 	if (code < 0)
 		return code;
 	cumulative += code;
 
 	return cumulative;
+}
+
+int snprintCanId (char* str, size_t n, uint32_t id, bool ide)
+{
+	// Extended ID
+	if (ide)
+		return snprintf (str, n, "0x%03Xx", id);
+
+	// Standard ID
+	return snprintf (str, n, "0x%03X", id);
 }

@@ -58,4 +58,17 @@ int fprintCanId (FILE* stream, uint32_t id, bool ide);
  */
 int fprintCanFrame (FILE* stream, canFrame_t* frame);
 
+/**
+ * @brief Prints CAN ID into an existing string. Printed as either:
+ * "<Standard CAN ID>" or "<Extended CAN ID>x"
+ * @param str The string to print into.
+ * @param n The size of the buffer to write into, including termination. At most @c n-1 characters are written, plus
+ * terminator.
+ * @param id The CAN ID.
+ * @param ide The IDE bit.
+ * @return The number of characters that would be written to @c str , regardless of buffer size, or a negative value if
+ * unsuccessful. Only when this returned value is non-negative and less than @c n has the string has been completely written.
+ */
+int snprintCanId (char* str, size_t n, uint32_t id, bool ide);
+
 #endif // CAN_DEVICE_STDIO_H
