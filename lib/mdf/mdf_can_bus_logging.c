@@ -532,6 +532,8 @@ int mdfCanBusLogInit (FILE* mdf, const char* programId, time_t unixTime)
 
 int mdfCanBusLogWriteDataFrame (FILE* mdf, canFrame_t* frame, uint64_t timestamp, uint8_t busChannel)
 {
+	// TODO(Barach): RTR?
+
 	uint8_t record [20] = {};
 
 	// Record ID

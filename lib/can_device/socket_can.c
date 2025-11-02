@@ -193,11 +193,11 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 
 	socketCan_t* socket = device;
 
-	// Create the SocketCAN frame
+	// Convert to a SocketCAN frame
 	struct can_frame socketFrame =
 	{
 		.can_dlc = frame->dlc,
-		.can_id = frame->id | (frame->ide ? CAN_EFF_FLAG : 0),
+		.can_id = frame->id | (frame->ide ? CAN_EFF_FLAG : 0) | (frame->rtr ? CAN_RTR_FLAG : 0),
 	};
 	memcpy (socketFrame.data, frame->data, frame->dlc);
 
@@ -233,13 +233,12 @@ int socketCanReceive (void* device, canFrame_t* frame)
 	if (code < (long int) sizeof (struct can_frame))
 		return errno;
 
-	// Populate the frame's ID, IDE, DLC, and payload.
+	// Convert back from the SocketCAN frame
 	frame->id = socketFrame.can_id & CAN_EFF_MASK;
 	frame->ide = (socketFrame.can_id & CAN_EFF_FLAG) == CAN_EFF_FLAG;
+	frame->rtr = (socketFrame.can_id & CAN_RTR_FLAG) == CAN_RTR_FLAG;
 	frame->dlc = socketFrame.can_dlc;
 	memcpy (frame->data, socketFrame.data, socketFrame.can_dlc);
-
-	// TODO(Barach): RTR
 
 	// Check for error flags, if set, handle the error frame
 	if (socketFrame.can_id & CAN_ERR_FLAG)

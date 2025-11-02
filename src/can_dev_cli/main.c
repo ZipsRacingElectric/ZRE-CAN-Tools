@@ -40,7 +40,7 @@ void promptFrame (canFrame_t* frame)
 		printf ("Enter the CAN ID of the frame: ");
 		fgets (buffer, sizeof (buffer), stdin);
 		buffer [strcspn (buffer, "\r\n")] = '\0';
-		if (strToCanId (&frame->id, &frame->ide, buffer) == 0)
+		if (strToCanId (&frame->id, &frame->ide, &frame->rtr, buffer) == 0)
 			break;
 
 		fprintf (stderr, "Invalid CAN ID.\n");
@@ -86,7 +86,7 @@ unsigned long int promptTimeout ()
 /// @brief Prints the program usage.
 void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: can-dev-cli <options> <device name>\n");
+	fprintf (stream, "Usage: can-dev-cli <Options> <Device Name>\n");
 }
 
 /// @brief Prints examples for how to use the program.
@@ -103,6 +103,12 @@ void fprintExamples (FILE* stream)
 		"\n"
 		"    Dump all received CAN messages from a list:\n"
 		"        can-dev-cli -d=[0x005,0x006,0x007,0x008]\n"
+		"\n"
+		"    Transmit a remote transmission request frame:\n"
+		"        can-dev-cli -t=0x123r\n"
+		"\n"
+		"    Receive a frame with an extended CAN ID:\n"
+		"        can-dev-cli -r=0xABCDEFx\n"
 		"\n");
 }
 
@@ -113,49 +119,44 @@ void fprintHelp (FILE* stream)
 
 	fprintf (stream,
 		"\nOptions:\n"
-		"    Transmiting Frames:\n"
-		"        -t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]\n"
-		"            Transmits a single CAN frame.\n"
+		"    -t=<CAN Frame>\n"
+		"        Transmits a single CAN frame.\n"
 		"\n"
-		"        -t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]@<Count>,<Freq>\n"
-		"            Transmits a CAN frame at a specified frequency.\n"
+		"    -t=<CAN Frame>@<Count>,<Freq>\n"
+		"        Transmits <Count> CAN frames at the frequency of <Freq> Hertz.\n"
 		"\n"
-		"        Parameters:\n"
-		"            ID     - The CAN ID of the frame to transmit.\n"
-		"            Byte n - The n'th byte of the payload, in little-endian.\n"
-		"            Freq   - The frequency to transmit at, in Hertz.\n"
-		"            Count  - The number of times to transmit the message.\n"
+		"    -r  Receives the first available CAN message.\n"
 		"\n"
-		"    Receiving Frames:\n"
-		"        -r - Receives the first available CAN message.\n"
+		"    -r=[]@<Count>\n"
+		"        Receives the first <Count> available CAN messages.\n"
 		"\n"
-		"        -r=<ID>\n"
-		"            Receives the first available CAN message matching said ID.\n"
+		"    -r=<CAN ID>\n"
+		"        Receives the first available CAN message matching the given ID.\n"
 		"\n"
-		"        -r=<ID>@<Count>\n"
-		"            Receives the set of available CAN message matching said ID.\n"
+		"    -r=<CAN ID>@<Count>\n"
+		"        Receives the <Count> available CAN message matching the given ID.\n"
 		"\n"
-		"        -r=[<ID 0>,<ID 1>,...<ID n>]\n"
-		"            Receives the first available CAN message from a list of IDs.\n"
+		"    -r=[<CAN ID 0>,<CAN ID 1>,...<CAN ID N>]\n"
+		"        Receives the first available CAN message matching any of the given IDs.\n"
 		"\n"
-		"        -r=[<ID 0>,<ID 1>,...<ID n>]@<Count>\n"
-		"            Receives the first set of available CAN messages from a list of IDs.\n"
+		"    -r=[<CAN ID 0>,<CAN ID 1>,...<CAN ID n>]@<Count>\n"
+		"        Receives the first <Count> available CAN messages matching any of the\n"
+		"        given IDs.\n"
 		"\n"
-		"        -r=[]@<Count>\n"
-		"            Receives the first set of available CAN messages.\n"
+		"    -d  Dumps all received CAN messages.\n"
 		"\n"
-		"        -d - Dumps all received CAN messages.\n"
+		"    -d=<CAN ID>\n"
+		"        Dumps all received CAN messages matching the given ID.\n"
 		"\n"
-		"        -d=<ID>\n"
-		"            Dumps all received CAN messages matching said ID.\n"
-		"\n"
-		"        -d=[<ID 0>,<ID 1>,...<ID n>]\n"
-		"            Dumps all received CAN messages from a list of IDs.\n"
-		"\n"
-		"        Parameters:\n"
-		"            ID n  - The n'th CAN ID to filter for.\n"
-		"            Count - Specifies the number CAN frames to receive\n"
+		"    -d=[<CAN ID 0>,<CAN ID 1>,...<CAN ID N>]\n"
+		"        Dumps all received CAN messages matching any of the given IDs.\n"
 		"\n");
+
+	fprintf (stream, "Parameters:\n\n");
+
+	fprintCanDeviceNameHelp (stream, "    ");
+	fprintCanFrameHelp (stream, "    ");
+	fprintCanIdHelp (stream, "    ");
 
 	fprintExamples (stream);
 }
@@ -260,6 +261,7 @@ void receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
 	size_t idCount = 0;
 	uint32_t ids [MAX_CAN_ID_COUNT];
 	bool ides [MAX_CAN_ID_COUNT];
+	bool rtrs [MAX_CAN_ID_COUNT];
 	if (command [1] == '=')
 	{
 		char* strtokArg = command + 2;
@@ -276,7 +278,7 @@ void receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
 				return;
 			}
 
-			if (strToCanId (&ids [idCount], &ides [idCount], id) != 0)
+			if (strToCanId (&ids [idCount], &ides [idCount], &rtrs [idCount], id) != 0)
 			{
 				fprintf (stderr, "Warning: Ignoring invalid CAN ID '%s'...\n", id);
 				continue;

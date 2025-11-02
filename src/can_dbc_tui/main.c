@@ -151,7 +151,7 @@ void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 			char buffer [130];
 			int pos = snprintf (buffer, sizeof (buffer), "%s - ID ", message->name);
 			if (pos >= 0 && (size_t) pos <= sizeof (buffer) - 1)
-				snprintCanId (buffer + pos, sizeof (buffer) - pos, message->id, message->ide);
+				snprintCanId (buffer + pos, sizeof (buffer) - pos, message->id, message->ide, false);
 
 			printw ("┌─ %s ", buffer);
 			for (size_t index = strlen (buffer) + 4; index < 138; ++index)

@@ -28,53 +28,40 @@ This program is used to monitor the activity of a CAN bus in real-time.
 ### CAN-DEV-CLI
 
 ```
-Usage:
-
-can-dev-cli <Options> <Device Name>
+Usage: can-dev-cli <Options> <Device Name>
 
 Options:
-    Transmiting Frames:
-        -t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]
-            Transmits a single CAN frame.
+    -t=<CAN Frame>
+        Transmits a single CAN frame.
 
-        -t=<ID>[<Byte 1>,<Byte 2>,...<Byte n>]@<Count>,<Freq>
-            Transmits a CAN frame at a specified frequency.
+    -t=<CAN Frame>@<Count>,<Freq>
+        Transmits <Count> CAN frames at the frequency of <Freq> Hertz.
 
-        Parameters:
-            ID     - The CAN ID of the frame to transmit.
-            Byte n - The n'th byte of the payload, in little-endian.
-            Freq   - The frequency to transmit at, in Hertz.
-            Count  - The number of times to transmit the message.
+    -r  Receives the first available CAN message.
 
-    Receiving Frames:
-        -r - Receives the first available CAN message.
+    -r=[]@<Count>
+        Receives the first <Count> available CAN messages.
 
-        -r=<ID>
-            Receives the first available CAN message matching said ID.
+    -r=<CAN ID>
+        Receives the first available CAN message matching the given ID.
 
-        -r=<ID>@<Count>
-            Receives the set of available CAN message matching said ID.
+    -r=<CAN ID>@<Count>
+        Receives the <Count> available CAN message matching the given ID.
 
-        -r=[<ID 0>,<ID 1>,...<ID n>]
-            Receives the first available CAN message from a list of IDs.
+    -r=[<CAN ID 0>,<CAN ID 1>,...<CAN ID N>]
+        Receives the first available CAN message matching any of the given IDs.
 
-        -r=[<ID 0>,<ID 1>,...<ID n>]@<Count>
-            Receives the first set of available CAN messages from a list of IDs.
+    -r=[<CAN ID 0>,<CAN ID 1>,...<CAN ID n>]@<Count>
+        Receives the first <Count> available CAN messages matching any of the
+        given IDs.
 
-        -r=[]@<Count>
-            Receives the first set of available CAN messages.
+    -d  Dumps all received CAN messages.
 
-        -d - Dumps all received CAN messages.
+    -d=<CAN ID>
+        Dumps all received CAN messages matching the given ID.
 
-        -d=<ID>
-            Dumps all received CAN messages matching said ID.
-
-        -d=[<ID 0>,<ID 1>,...<ID n>]
-            Dumps all received CAN messages from a list of IDs.
-
-        Parameters:
-            ID n  - The n'th CAN ID to filter for.
-            Count - Specifies the number CAN frames to receive
+    -d=[<CAN ID 0>,<CAN ID 1>,...<CAN ID N>]
+        Dumps all received CAN messages matching any of the given IDs.
 
 Examples:
 
@@ -87,6 +74,11 @@ Examples:
     Dump all received CAN messages from a list:
         can-dev-cli -d=[0x005,0x006,0x007,0x008]
 
+    Transmit a remote transmission request frame:
+        can-dev-cli -t=0x123r
+
+    Receive a frame with an extended CAN ID:
+        can-dev-cli -r=0xABCDEFx
 
 ```
 
@@ -135,7 +127,7 @@ This program is used to interact with a CAN node in real-time. Received messages
 `bms-tui <Device Name> <DBC file path> <Config JSON path>`
 This program is used to monitor a battery management system in real-time.
 
-### Command-line Arguments
+### Command-line Parameters
 
 ```
 <Device Name>         - The adapter-specific identity of the CAN device.
@@ -146,15 +138,30 @@ This program is used to monitor a battery management system in real-time.
     <port>@<baud>     - SLCAN device, must be a CANable device. CAN baudrate is
                         indicated by the baud field. Ex 'COM3@1000000' for
                         Windows and '/dev/ttyACM0@1000000' for Linux.
+
+<CAN Frame>           - A CAN frame. May be a data frame or RTR frame, based on
+                        the ID. Takes the following format:
+    <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]
+
+<Byte i>              - The i'th byte of a frame's data payload, indexed in
+                        little-endian (aka Intel format). May be either decimal
+                        or hexadecimal (prefixed with '0x').
+
+<CAN ID>              - The identifier of a frame.
+    <SID>             - Standard CAN ID, may be decimal or hexadecimal (prefixed
+                        with '0x').
+    <SID>r            - Standard CAN ID, for an RTR frame.
+    <EID>x            - Extended CAN ID.
+    <EID>xr           - Extended CAN identifier, for an RTR frame.
+
 <DBC file path>       - The path to the DBC file to use.
+
 <Config JSON path>    - The configuration JSON file to use. Configuration files
                         indicate the identity and unit-specific parameters of
                         a CAN node.
+
 <Data JSON path>      - The data JSON file to use. Data files contain the
                         values of the unit-specific parameters of a CAN node.
-<CAN ID>              - The CAN ID to use, in either decimal or hexadecimal.
-                        Use the '0x' prefix to specify hexadecimal. Extended
-                        CAN IDs should end in 'x'.
 ```
 
 ## Installation (For General Usage)

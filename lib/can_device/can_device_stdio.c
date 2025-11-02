@@ -3,18 +3,41 @@
 
 #include <stdlib.h>
 
-int strToCanId (uint32_t* id, bool* ide, const char* str)
+int strToCanId (uint32_t* id, bool* ide, bool* rtr, const char* str)
 {
+	// Parse the numeric part of the ID.
 	char* end;
-	uint32_t idValue = strtoul (str, &end, 0);
-	if (end == str || (*end != '\0' && *end != 'x'))
+	*id = strtoul (str, &end, 0);
+	if (end == str)
 	{
 		errno = EINVAL;
 		return errno;
 	}
 
-	*id = idValue;
-	*ide = *end == 'x';
+	// Horrible flag validation.
+	if (end [0] != '\0')
+	{
+		if (end [0] != 'r' && end [0] != 'x')
+		{
+			errno = EINVAL;
+			return errno;
+		}
+
+		if (end [1] != '\0')
+		{
+			if ((end [1] != 'x' && end [1] != 'r') || end [2] != '\0')
+			{
+				errno = EINVAL;
+				return errno;
+			}
+		}
+	}
+
+	// Parse the IDE flag
+	*ide = end [0] == 'x' || (end [0] != '\0' && end [1] == 'x');
+
+	// Parse the RTR flag
+	*rtr = end [0] == 'r' || (end [0] != '\0' && end [1] == 'r');
 
 	return 0;
 }
@@ -31,7 +54,7 @@ int strToCanFrame (canFrame_t* frame, char* str)
 		return errno;
 	}
 
-	if (strToCanId (&frame->id, &frame->ide, idStr) != 0)
+	if (strToCanId (&frame->id, &frame->ide, &frame->rtr, idStr) != 0)
 	{
 		errno = EINVAL;
 		return errno;
@@ -63,11 +86,21 @@ int strToCanFrame (canFrame_t* frame, char* str)
 	return 0;
 }
 
-int fprintCanId (FILE* stream, uint32_t id, bool ide)
+int fprintCanId (FILE* stream, uint32_t id, bool ide, bool rtr)
 {
-	// Extended ID
 	if (ide)
+	{
+		// Extended ID & RTR
+		if (rtr)
+			return fprintf (stream, "0x%03Xxr", id);
+
+		// Extended ID
 		return fprintf (stream, "0x%03Xx", id);
+	}
+
+	// RTR
+	if (rtr)
+		return fprintf (stream, "0x%03Xr", id);
 
 	// Standard ID
 	return fprintf (stream, "0x%03X", id);
@@ -78,7 +111,7 @@ int fprintCanFrame (FILE* stream, canFrame_t* frame)
 	int cumulative = 0;
 
 	// Print the CAN ID
-	int code = fprintCanId (stream, frame->id, frame->ide);
+	int code = fprintCanId (stream, frame->id, frame->ide, frame->rtr);
 	if (code < 0)
 		return code;
 	cumulative += code;
@@ -115,12 +148,64 @@ int fprintCanFrame (FILE* stream, canFrame_t* frame)
 	return cumulative;
 }
 
-int snprintCanId (char* str, size_t n, uint32_t id, bool ide)
+int snprintCanId (char* str, size_t n, uint32_t id, bool ide, bool rtr)
 {
-	// Extended ID
 	if (ide)
+	{
+		// Extended ID & RTR
+		if (rtr)
+			return snprintf (str, n, "0x%03Xxr", id);
+
+		// Extended ID
 		return snprintf (str, n, "0x%03Xx", id);
+	}
+
+	// RTR
+	if (rtr)
+		return snprintf (str, n, "0x%03Xr", id);
 
 	// Standard ID
 	return snprintf (str, n, "0x%03X", id);
+}
+
+int fprintCanDeviceNameHelp (FILE* stream, const char* indent)
+{
+	return fprintf (stream, ""
+		"%s<Device Name>         - The adapter-specific identity of the CAN device.\n"
+		"%s    can*              - SocketCAN device, must be already initialized and\n"
+		"%s                        setup. Ex. 'can0'.\n"
+		"%s    vcan*             - Virtual SocketCAN device, must be already initialized\n"
+		"%s                        and setup.\n"
+		"%s    <port>@<baud>     - SLCAN device, must be a CANable device. CAN baudrate is\n"
+		"%s                        indicated by the baud field. Ex 'COM3@1000000' for\n"
+		"%s                        Windows and '/dev/ttyACM0@1000000' for Linux.\n"
+		"\n",
+		indent, indent, indent, indent, indent, indent, indent, indent);
+}
+
+int fprintCanIdHelp (FILE* stream, const char* indent)
+{
+	return fprintf (stream, ""
+		"%s<CAN ID>              - The identifier of a frame.\n"
+		"%s    <SID>             - Standard CAN ID, may be decimal or hexadecimal (prefixed\n"
+		"%s                        with '0x').\n"
+		"%s    <SID>r            - Standard CAN ID, for an RTR frame.\n"
+		"%s    <EID>x            - Extended CAN ID.\n"
+		"%s    <EID>xr           - Extended CAN identifier, for an RTR frame.\n"
+		"\n",
+		indent, indent, indent, indent, indent, indent);
+}
+
+int fprintCanFrameHelp (FILE* stream, const char* indent)
+{
+	return fprintf (stream, ""
+		"%s<CAN Frame>           - A CAN frame. May be a data frame or RTR frame, based on\n"
+		"%s                        the ID. Takes the following format:\n"
+		"%s    <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]\n"
+		"\n"
+		"%s<Byte i>              - The i'th byte of a frame's data payload, indexed in\n"
+		"%s                        little-endian (aka Intel format). May be either decimal\n"
+		"%s                        or hexadecimal (prefixed with '0x').\n"
+		"\n",
+		indent, indent, indent, indent, indent, indent);
 }

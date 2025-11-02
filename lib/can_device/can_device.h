@@ -37,10 +37,11 @@ typedef struct
 	/// @brief The DLC (data length code) of the message.
 	uint8_t dlc;
 
-	// TODO(Barach): This is going to break a lot of things.
 	/// @brief The RTR (remote transmission request) bit of the message. Indicates a request for data, rather than a frame
 	/// containing data.
-	// bool rtr;
+	/// @note Not all can devices support this, for said devices, a request to transmit an RTR frame will return an error, when
+	/// an RTR frame is received, it will be ignored.
+	bool rtr;
 } canFrame_t;
 
 /// @brief Function signature for the @c canTransmit function.

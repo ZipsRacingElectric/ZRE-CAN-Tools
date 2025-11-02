@@ -140,12 +140,13 @@ canFrame_t promptMessageValue (canMessage_t* message)
 	{
 		.id = message->id,
 		.ide = message->ide,
+		.rtr = false,
 		.dlc = message->dlc
 	};
 	uint64_t* payload = (uint64_t*) frame.data;
 
 	printf ("- Message: (");
-	fprintCanId (stdout, message->id, message->ide);
+	fprintCanId (stdout, message->id, message->ide, false);
 	printf (") -\n");
 
 	for (size_t index = 0; index < message->signalCount; ++index)
@@ -190,7 +191,7 @@ void printDatabase (FILE* stream, canDatabase_t* database)
 		canMessage_t* message = database->messages + messageIndex;
 
 		fprintf (stream, "%s - ID: ", message->name);
-		fprintCanId (stream, message->id, message->ide);
+		fprintCanId (stream, message->id, message->ide, false);
 		fprintf (stream, "\n");
 
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
@@ -228,7 +229,7 @@ void printMessageValue (FILE* stream, canDatabase_t* database, size_t index)
 	float* signalValues = database->signalValues + (size_t) (message->signals - database->signals);
 
 	fprintf (stream, "- Message %s (", message->name);
-	fprintCanId (stream, message->id, message->ide);
+	fprintCanId (stream, message->id, message->ide, false);
 	fprintf (stream, ") -\n");
 	for (size_t index = 0; index < message->signalCount; ++index)
 		fprintf (stream, "%s: %f\n", message->signals [index].name, signalValues [index]);
