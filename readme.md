@@ -60,16 +60,16 @@ Examples:
         can-dev-cli -d <Device Name>
 
     Periodically transmit a CAN message (50 times at 10 Hz):
-        can-dev-cli -t=0x123[0xAB,0xCD]@50,10
+        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 <Device Name>
 
     Dump all received CAN messages from a list:
-        can-dev-cli -d=0x005,0x006,0x007,0x008
+        can-dev-cli -d=0x005,0x006,0x007,0x008 <Device Name>
 
     Transmit a remote transmission request frame:
-        can-dev-cli -t=0x123r
+        can-dev-cli -t=0x123r <Device Name>
 
     Receive a frame with an extended CAN ID:
-        can-dev-cli -r=0xABCDEFx
+        can-dev-cli -r=0xABCDEFx <Device Name>
 
 ```
 

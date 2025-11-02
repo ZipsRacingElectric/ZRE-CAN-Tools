@@ -99,16 +99,16 @@ void fprintExamples (FILE* stream)
 		"        can-dev-cli -d <Device Name>\n"
 		"\n"
 		"    Periodically transmit a CAN message (50 times at 10 Hz):\n"
-		"        can-dev-cli -t=0x123[0xAB,0xCD]@50,10\n"
+		"        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 <Device Name>\n"
 		"\n"
 		"    Dump all received CAN messages from a list:\n"
-		"        can-dev-cli -d=0x005,0x006,0x007,0x008\n"
+		"        can-dev-cli -d=0x005,0x006,0x007,0x008 <Device Name>\n"
 		"\n"
 		"    Transmit a remote transmission request frame:\n"
-		"        can-dev-cli -t=0x123r\n"
+		"        can-dev-cli -t=0x123r <Device Name>\n"
 		"\n"
 		"    Receive a frame with an extended CAN ID:\n"
-		"        can-dev-cli -r=0xABCDEFx\n"
+		"        can-dev-cli -r=0xABCDEFx <Device Name>\n"
 		"\n");
 }
 
