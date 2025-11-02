@@ -22,7 +22,7 @@
 // Constants ------------------------------------------------------------------------------------------------------------------
 
 /// @brief The maximum number of CAN IDs that can be filtered during receiving.
-const size_t MAX_CAN_ID_COUNT = 2;
+const size_t MAX_CAN_ID_COUNT = 64;
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
@@ -102,7 +102,7 @@ void fprintExamples (FILE* stream)
 		"        can-dev-cli -t=0x123[0xAB,0xCD]@50,10\n"
 		"\n"
 		"    Dump all received CAN messages from a list:\n"
-		"        can-dev-cli -d=[0x005,0x006,0x007,0x008]\n"
+		"        can-dev-cli -d=0x005,0x006,0x007,0x008\n"
 		"\n"
 		"    Transmit a remote transmission request frame:\n"
 		"        can-dev-cli -t=0x123r\n"
@@ -127,28 +127,19 @@ void fprintHelp (FILE* stream)
 		"\n"
 		"    -r  Receives the first available CAN message.\n"
 		"\n"
-		"    -r=[]@<Count>\n"
+		"    -r=@<Count>\n"
 		"        Receives the first <Count> available CAN messages.\n"
 		"\n"
-		"    -r=<CAN ID>\n"
-		"        Receives the first available CAN message matching the given ID.\n"
-		"\n"
-		"    -r=<CAN ID>@<Count>\n"
-		"        Receives the <Count> available CAN message matching the given ID.\n"
-		"\n"
-		"    -r=[<CAN ID 0>,<CAN ID 1>,...<CAN ID N>]\n"
+		"    -r=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>\n"
 		"        Receives the first available CAN message matching any of the given IDs.\n"
 		"\n"
-		"    -r=[<CAN ID 0>,<CAN ID 1>,...<CAN ID n>]@<Count>\n"
+		"    -r=<CAN ID 0>,<CAN ID 1>,...<CAN ID n>@<Count>\n"
 		"        Receives the first <Count> available CAN messages matching any of the\n"
 		"        given IDs.\n"
 		"\n"
 		"    -d  Dumps all received CAN messages.\n"
 		"\n"
-		"    -d=<CAN ID>\n"
-		"        Dumps all received CAN messages matching the given ID.\n"
-		"\n"
-		"    -d=[<CAN ID 0>,<CAN ID 1>,...<CAN ID N>]\n"
+		"    -d=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>\n"
 		"        Dumps all received CAN messages matching any of the given IDs.\n"
 		"\n");
 
@@ -267,7 +258,7 @@ void receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
 		char* strtokArg = command + 2;
 		while (true)
 		{
-			char* id = strtok (strtokArg, ",]");
+			char* id = strtok (strtokArg, ",");
 			strtokArg = NULL;
 			if (id == NULL)
 				break;

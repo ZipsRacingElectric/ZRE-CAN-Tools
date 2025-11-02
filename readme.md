@@ -39,28 +39,19 @@ Options:
 
     -r  Receives the first available CAN message.
 
-    -r=[]@<Count>
+    -r=@<Count>
         Receives the first <Count> available CAN messages.
 
-    -r=<CAN ID>
-        Receives the first available CAN message matching the given ID.
-
-    -r=<CAN ID>@<Count>
-        Receives the <Count> available CAN message matching the given ID.
-
-    -r=[<CAN ID 0>,<CAN ID 1>,...<CAN ID N>]
+    -r=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>
         Receives the first available CAN message matching any of the given IDs.
 
-    -r=[<CAN ID 0>,<CAN ID 1>,...<CAN ID n>]@<Count>
+    -r=<CAN ID 0>,<CAN ID 1>,...<CAN ID n>@<Count>
         Receives the first <Count> available CAN messages matching any of the
         given IDs.
 
     -d  Dumps all received CAN messages.
 
-    -d=<CAN ID>
-        Dumps all received CAN messages matching the given ID.
-
-    -d=[<CAN ID 0>,<CAN ID 1>,...<CAN ID N>]
+    -d=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>
         Dumps all received CAN messages matching any of the given IDs.
 
 Examples:
@@ -72,7 +63,7 @@ Examples:
         can-dev-cli -t=0x123[0xAB,0xCD]@50,10
 
     Dump all received CAN messages from a list:
-        can-dev-cli -d=[0x005,0x006,0x007,0x008]
+        can-dev-cli -d=0x005,0x006,0x007,0x008
 
     Transmit a remote transmission request frame:
         can-dev-cli -t=0x123r
