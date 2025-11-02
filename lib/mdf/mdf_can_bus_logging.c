@@ -546,9 +546,7 @@ int mdfCanBusLogWriteDataFrame (FILE* mdf, canFrame_t* frame, uint64_t timestamp
 		record [index + ID_BYTE_OFFSET + 1] |= frame->id >> (index * 8);
 
 	// IDE
-	// TODO(Barach): Hacky workaround.
-	bool ide = frame->id >= (1 << 11);
-	record [IDE_BYTE_OFFSET + 1] |= (ide & BIT_LENGTH_TO_BIT_MASK (IDE_BIT_LENGTH)) << IDE_BIT_OFFSET;
+	record [IDE_BYTE_OFFSET + 1] |= (frame->ide & BIT_LENGTH_TO_BIT_MASK (IDE_BIT_LENGTH)) << IDE_BIT_OFFSET;
 
 	// Bus channel
 	record [BUS_CHANNEL_BYTE_OFFSET + 1] |=
