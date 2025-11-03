@@ -54,22 +54,32 @@ Options:
     -d=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>
         Dumps all received CAN messages matching any of the given IDs.
 
+    -m=<Timeout Ms>
+        Sets the device's receive timeout to <Timeout Ms>, in milliseconds.
+
+    -f  Flushes the device's receive buffer.
+
+    -i  Prints information about the CAN device.
+
 Examples:
 
     Dump all received CAN messages:
-        can-dev-cli -d <Device Name>
+        can-dev-cli -d COM5@1000000
 
     Periodically transmit a CAN message (50 times at 10 Hz):
-        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 <Device Name>
+        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 COM5@1000000
 
     Dump all received CAN messages from a list:
-        can-dev-cli -d=0x005,0x006,0x007,0x008 <Device Name>
+        can-dev-cli -d=0x005,0x006,0x007,0x008 COM5@1000000
 
     Transmit a remote transmission request frame:
-        can-dev-cli -t=0x123r <Device Name>
+        can-dev-cli -t=0x123r COM5@1000000
 
     Receive a frame with an extended CAN ID:
-        can-dev-cli -r=0xABCDEFx <Device Name>
+        can-dev-cli -r=0xABCDEFx COM5@1000000
+
+    Transmits a frame and listens for a specific response, with timeout:
+        can-dev-cli -m=100 -t=0x123 -r=0x124 COM5@1000000
 
 ```
 

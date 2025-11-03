@@ -96,19 +96,22 @@ void fprintExamples (FILE* stream)
 		"Examples:\n"
 		"\n"
 		"    Dump all received CAN messages:\n"
-		"        can-dev-cli -d <Device Name>\n"
+		"        can-dev-cli -d COM5@1000000\n"
 		"\n"
 		"    Periodically transmit a CAN message (50 times at 10 Hz):\n"
-		"        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 <Device Name>\n"
+		"        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 COM5@1000000\n"
 		"\n"
 		"    Dump all received CAN messages from a list:\n"
-		"        can-dev-cli -d=0x005,0x006,0x007,0x008 <Device Name>\n"
+		"        can-dev-cli -d=0x005,0x006,0x007,0x008 COM5@1000000\n"
 		"\n"
 		"    Transmit a remote transmission request frame:\n"
-		"        can-dev-cli -t=0x123r <Device Name>\n"
+		"        can-dev-cli -t=0x123r COM5@1000000\n"
 		"\n"
 		"    Receive a frame with an extended CAN ID:\n"
-		"        can-dev-cli -r=0xABCDEFx <Device Name>\n"
+		"        can-dev-cli -r=0xABCDEFx COM5@1000000\n"
+		"\n"
+		"    Transmits a frame and listens for a specific response, with timeout:\n"
+		"        can-dev-cli -m=100 -t=0x123 -r=0x124 COM5@1000000\n"
 		"\n");
 }
 
@@ -141,6 +144,13 @@ void fprintHelp (FILE* stream)
 		"\n"
 		"    -d=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>\n"
 		"        Dumps all received CAN messages matching any of the given IDs.\n"
+		"\n"
+		"    -m=<Timeout Ms>\n"
+		"        Sets the device's receive timeout to <Timeout Ms>, in milliseconds.\n"
+		"\n"
+		"    -f  Flushes the device's receive buffer.\n"
+		"\n"
+		"    -i  Prints information about the CAN device.\n"
 		"\n");
 
 	fprintf (stream, "Parameters:\n\n");
@@ -297,6 +307,9 @@ void receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
 			}
 			else
 				errorPrintf ("Failed to receive CAN frame");
+
+			--iterationCount;
+			continue;
 		}
 
 		// Check whether the frame should be filtered or not
@@ -319,6 +332,31 @@ void receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
 	}
 }
 
+int setTimeout (canDevice_t* device, char* command)
+{
+	long unsigned int timeoutMs;
+
+	if (command [1] == '=')
+	{
+		char* end;
+		timeoutMs = strtoul (command + 2, &end, 0);
+		if (end == command + 2)
+		{
+			fprintf (stderr, "Invalid timeout: %s\n", command + 2);
+			return -1;
+		}
+	}
+	else
+	{
+		timeoutMs = promptTimeout ();
+	}
+
+	if (canSetTimeout (device, timeoutMs) != 0)
+		return errorPrintf ("Failed to set timeout");
+
+	return 0;
+}
+
 /**
  * @brief Handles a user-specified command from either the standard arguments or standard input.
  * @param device The CAN device to use.
@@ -327,8 +365,6 @@ void receiveFrame (canDevice_t* device, char* command, bool infiniteIterations)
  */
 int processCommand (canDevice_t* device, char* command)
 {
-	long unsigned int timeoutMs;
-
 	// Get and check the command type
 	char commandType = command[0];
 	switch (commandType)
@@ -351,9 +387,12 @@ int processCommand (canDevice_t* device, char* command)
 		break;
 
 	case 'm':
-		timeoutMs = promptTimeout ();
-		if (canSetTimeout (device, timeoutMs) != 0)
-			errorPrintf ("Failed to set timeout");
+		setTimeout (device, command);
+		break;
+
+	case 'i':
+		printf ("Device Name: '%s'\n", canGetDeviceName (device));
+		printf ("Device Type: '%s'\n", canGetDeviceType (device));
 		break;
 
 	case 'h':
@@ -403,15 +442,18 @@ int main (int argc, char** argv)
 	if (queryMode)
 		return 0;
 
-	if (argc == 3)
+	if (argc >= 3)
 	{
 		// Run from standard arguments
 
-		char* command = argv [1];
-		if (command[0] == '-')
-			processCommand (device, command + 1);
-		else
-			printf ("Options must start with '-'\n");
+		for (int index = 1; index < argc - 1; ++index)
+		{
+			char* option = argv [index];
+			if (option [0] == '-')
+				processCommand (device, option + 1);
+			else
+				printf ("Unknown option '%s'\n", option);
+		}
 
 		return 0;
 	}
@@ -424,9 +466,10 @@ int main (int argc, char** argv)
 		printf (" t - Transmit a CAN message.\n");
 		printf (" r - Receive a CAN message.\n");
 		printf (" d - Dump received CAN messages.\n");
-		printf (" h - Display the help page.\n");
 		printf (" f - Flush the receive buffer.\n");
 		printf (" m - Set the device's timeout.\n");
+		printf (" i - Print info about the CAN device.\n");
+		printf (" h - Display the help page.\n");
 		printf (" q - Quit the program.\n");
 
 		// Get and handle the command
