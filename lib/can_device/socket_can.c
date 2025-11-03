@@ -233,7 +233,13 @@ int socketCanReceive (void* device, canFrame_t* frame)
 	// Read the frame
 	int code = read (sock->descriptor, &socketFrame, sizeof (struct can_frame));
 	if (code < (long int) sizeof (struct can_frame))
+	{
+		// Translate the "would block" error into a timeout error.
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			errno = ERRNO_CAN_DEVICE_TIMEOUT;
+
 		return errno;
+	}
 
 	// Convert back from the SocketCAN frame
 	frame->id = socketFrame.can_id & CAN_EFF_MASK;

@@ -29,6 +29,10 @@ typedef struct
 
 static int getErrorCode (int code)
 {
+	// The receiver empty error indicates a timeout occurred, so translate that into a timeout error.
+	if (code == CANERR_RX_EMPTY)
+		return ERRNO_CAN_DEVICE_TIMEOUT;
+
 	// Offset the error code to match this project's convention.
 	return code + 10000;
 }

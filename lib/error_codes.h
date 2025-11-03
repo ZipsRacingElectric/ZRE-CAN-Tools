@@ -28,9 +28,11 @@
 
 #define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1030
 #define ERRNO_CAN_DEVICE_BAD_TIMEOUT			1031
+#define ERRNO_CAN_DEVICE_TIMEOUT				1032
 
 #define ERRMSG_CAN_DEVICE_UNKNOWN_NAME			"The device name does not belong to any known CAN device"
 #define ERRMSG_CAN_DEVICE_BAD_TIMEOUT			"The specified timeout is not possible"
+#define ERRMSG_CAN_DEVICE_TIMEOUT				"The operation has timed out"
 
 // CAN bus errors
 #define ERRNO_CAN_DEVICE_BIT_ERROR				1036
@@ -114,7 +116,6 @@
 #define ERRNO_SLCAN_RX_EMPTY					9970
 #define ERRNO_SLCAN_QUE_OVR						9960
 #define ERRNO_SLCAN_RESERVED3					9959
-#define ERRNO_SLCAN_TIMEOUT						9950
 #define ERRNO_SLCAN_RESOURCE					9910
 #define ERRNO_SLCAN_BAUDRATE					9909
 #define ERRNO_SLCAN_HANDLE						9908
@@ -137,7 +138,6 @@
 #define ERRMSG_SLCAN_RX_EMPTY					"The receiver queue is empty"
 #define ERRMSG_SLCAN_QUE_OVR					"The receiver queue has overrun"
 #define ERRMSG_SLCAN_RESERVED3					"Reserved macCAN error"
-#define ERRMSG_SLCAN_TIMEOUT					"A timeout occurred"
 #define ERRMSG_SLCAN_RESOURCE					"Resource allocation error"
 #define ERRMSG_SLCAN_BAUDRATE					"Illegal baudrate"
 #define ERRMSG_SLCAN_HANDLE						"Illegal handle"
@@ -168,6 +168,7 @@ static inline const char* errorMessage (int errorCode)
 	// can_device module
 	ERRNO_CASE (CAN_DEVICE_UNKNOWN_NAME);
 	ERRNO_CASE (CAN_DEVICE_BAD_TIMEOUT);
+	ERRNO_CASE (CAN_DEVICE_TIMEOUT);
 
 	ERRNO_CASE (CAN_DEVICE_BIT_ERROR);
 	ERRNO_CASE (CAN_DEVICE_BIT_STUFF_ERROR);
@@ -213,7 +214,6 @@ static inline const char* errorMessage (int errorCode)
 	ERRNO_CASE (SLCAN_RX_EMPTY);
 	ERRNO_CASE (SLCAN_QUE_OVR);
 	ERRNO_CASE (SLCAN_RESERVED3);
-	ERRNO_CASE (SLCAN_TIMEOUT);
 	ERRNO_CASE (SLCAN_RESOURCE);
 	ERRNO_CASE (SLCAN_BAUDRATE);
 	ERRNO_CASE (SLCAN_HANDLE);
