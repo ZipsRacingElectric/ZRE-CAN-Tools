@@ -122,17 +122,17 @@ uint64_t mdfFhBlockWrite (FILE* mdf, mdfFhDataSection_t* dataSection, mdfFhLinkL
 /**
  * @brief Creates and writes a channel group block to an MDF file.
  * @param mdf The file to write to.
- * @param text The text to write.
+ * @param text The text to write. Supports the @c printf function family of format specifiers.
  * @return The address of the block if successful, 0 otherwise.
  */
-uint64_t mdfTxBlockWrite (FILE* mdf, const char* text);
+uint64_t mdfTxBlockWrite (FILE* mdf, const char* text, ...);
 
 /**
  * @brief Creates and writes a markdown block to an MDF file.
  * @param mdf The file to write to.
- * @param xml The XML to write.
+ * @param xml The XML to write. Supports the @c printf function family of format specifiers.
  * @return The address of the block if successful, 0 otherwise.
  */
-uint64_t mdfMdBlockWrite (FILE* mdf, const char* xml);
+uint64_t mdfMdBlockWrite (FILE* mdf, const char* xml, ...);
 
 #endif // MDF_WRITER_H

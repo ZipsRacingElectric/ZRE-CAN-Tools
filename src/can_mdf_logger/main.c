@@ -8,6 +8,8 @@
 #include <signal.h>
 #include <sys/time.h>
 
+// TODO(Barach): Major testing...
+
 bool logging = true;
 
 void sigtermHandler (int sig)
@@ -33,13 +35,25 @@ int main (int argc, char** argv)
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
-	char* mdfPath = argv [argc - 1];
-	FILE* mdf = fopen (mdfPath, "w");
-	if (mdf == NULL)
-		return errorPrintf ("Failed to open MDF file '%s'", mdfPath);
+	// TODO(Barach): A lot of placeholders here.
+	mdfCanBusLogConfig_t config =
+	{
+		.filePath			= argv [argc - 1],
+		.programId			= "ZREDART",
+		.softwareVersion	= "0",
+		.hardwareVersion	= "0",
+		.serialNumber		= "0",
+		.channel1Baudrate	= 1000000,
+		.channel2Baudrate	= 1000000,
+		.timeStart			= time (NULL),
+		.storageSize		= 0,
+		.storageRemaining	= 0,
+		.sessionNumber		= 0,
+		.splitNumber		= 1
+	};
 
-	time_t timeStart = time (NULL);
-	if (mdfCanBusLogInit (mdf, "ZREDART", timeStart) != 0)
+	mdfCanBusLog_t log;
+	if (mdfCanBusLogInit (&log, &config) != 0)
 		return errorPrintf ("Failed to initialize CAN bus MDF log");
 
 	if (signal (SIGTERM, sigtermHandler) == SIG_ERR)
@@ -48,6 +62,7 @@ int main (int argc, char** argv)
 	if (signal (SIGINT, sigtermHandler) == SIG_ERR)
 		return errorPrintf ("Failed to bind SIGINT handler");
 
+	// Set a receive timeout so we can check for the termination signal.
 	canSetTimeout (device, 100);
 
 	while (logging)
@@ -56,15 +71,10 @@ int main (int argc, char** argv)
 		if (canReceive (device, &frame) != 0)
 			continue;
 
-		// printf ("Received CAN frame: 0x%03X\n", frame.id);
-
 		struct timeval timeCurrent;
 		gettimeofday (&timeCurrent, NULL);
-		uint64_t timestamp = (timeCurrent.tv_sec - timeStart) * 1e6 + timeCurrent.tv_usec;
 
-		// printf ("Timestamp: %lu.\n", timestamp);
-
-		if (mdfCanBusLogWriteDataFrame (mdf, &frame, timestamp, 1) != 0)
+		if (mdfCanBusLogWriteDataFrame (&log, &frame, 1, &timeCurrent) != 0)
 		{
 			errorPrintf ("Warning, failed to log CAN frame");
 			continue;
@@ -72,7 +82,7 @@ int main (int argc, char** argv)
 	}
 
 	printf ("Closing MDF file...\n");
-	fclose (mdf);
+	mdfCanBusLogClose (&log);
 
 	return 0;
 }

@@ -15,6 +15,7 @@
 #define BIT_LENGTH_TO_BYTE_LENGTH(bitLength) (((bitLength) + 7) / 8)
 #define BIT_LENGTH_TO_BIT_MASK(bitLength) ((1 << (bitLength)) - 1)
 
+#define TIMESTAMP_SCALE_FACTOR	1e6
 #define TIMESTAMP_BYTE_OFFSET	0
 #define TIMESTAMP_BIT_LENGTH	48
 
@@ -36,15 +37,7 @@
 #define DATA_BYTES_BYTE_OFFSET	11
 #define DATA_BYTES_BIT_LENGTH	64
 
-/**
- * @brief Writes the header of a CAN bus MDF log.
- * @param mdf The MDF file to write to. Note this file cannot have anything else written to it before this call.
- * @param programId The ID of the program generating this file. Note, strings longer than 7 characters will be truncated.
- * @param unixTime The Unix timestamp at which this file was created.
- * @return The header block (##HD) of the MDF file. Note this is dynamically allocated, and must be deallocated using
- * @c mdfBlockDealloc followed by @c free .
- */
-static mdfBlock_t* writeHeader (FILE* mdf, const char* programId, time_t unixTime)
+static mdfBlock_t* writeHeader (FILE* mdf, const char* programId, time_t timeStart)
 {
 	// All MDF files start with the file ID block
 	mdfFileIdBlock_t fileIdBlock =
@@ -67,7 +60,7 @@ static mdfBlock_t* writeHeader (FILE* mdf, const char* programId, time_t unixTim
 	if (mdfHdBlockInit (block,
 		&(mdfHdDataSection_t)
 		{
-			.unixTimeNs = unixTime * 1e9 // File timestamp
+			.unixTimeNs = timeStart * 1e9 // File timestamp
 		},
 		&(mdfHdLinkList_t)
 		{
@@ -90,14 +83,14 @@ static mdfBlock_t* writeHeader (FILE* mdf, const char* programId, time_t unixTim
 	return block;
 }
 
-static uint64_t writeAcquisitionSource (FILE* mdf)
+static uint64_t writeAcquisitionSource (FILE* mdf, const char* softwareVersion, const char* hardwareVersion,
+	const char* serialNumber, uint32_t channel1Baudrate, uint32_t channel2Baudrate)
 {
 	// Write the name / path text block.
 	uint64_t nameAddr = mdfTxBlockWrite (mdf, "CAN");
 	if (nameAddr == 0)
 		return 0;
 
-	// TODO(Barach): Variadic args for this?
 	// Write the comment block.
 	uint64_t commentAddr = mdfMdBlockWrite (mdf,
 			"<SIcomment>\n"
@@ -109,17 +102,17 @@ static uint64_t writeAcquisitionSource (FILE* mdf)
 			"        <tree name=\"ASAM Measurement Environment\">\n"
 			"            <tree name=\"node\">\n"
 			"                <e name=\"type\">Device</e>\n"
-			"                <e name=\"software configuration\">01.04.02</e>\n"
-			"                <e name=\"hardware version\">00.02</e>\n"
-			"                <e name=\"serial number\">846DD296</e>\n"
+			"                <e name=\"software version\">%s</e>\n"
+			"                <e name=\"hardware version\">%s</e>\n"
+			"                <e name=\"serial number\">%s</e>\n"
 			"            </tree>\n"
 			"        </tree>\n"
 			"        <tree name=\"Bus Information\">\n"
-			"            <e name=\"CAN1 Bit-rate\" unit=\"Hz\">1000000</e>\n"
-			"            <e name=\"CAN2 Bit-rate\" unit=\"Hz\">1000000</e>\n"
+			"            <e name=\"CAN1 Bit-rate\" unit=\"Hz\">%u</e>\n"
+			"            <e name=\"CAN2 Bit-rate\" unit=\"Hz\">%u</e>\n"
 			"        </tree>\n"
 			"    </common_properties>\n"
-			"</SIcomment>");
+			"</SIcomment>", softwareVersion, hardwareVersion, serialNumber, channel1Baudrate, channel2Baudrate);
 	if (commentAddr == 0)
 		return 0;
 
@@ -389,7 +382,7 @@ static uint64_t writeTimestampCc (FILE* mdf)
 			.minPhysicalValue			= 0.0,
 			.maxPhysicalValue			= 0.0,
 			.b							= 0.0,
-			.a							= 1e-6,
+			.a							= 1.0f / TIMESTAMP_SCALE_FACTOR,
 		},
 		&(mdfCcLinkList_t)
 		{
@@ -397,14 +390,12 @@ static uint64_t writeTimestampCc (FILE* mdf)
 		});
 }
 
-static uint64_t writeFileHistory (FILE* mdf, time_t unixTime)
+static uint64_t writeFileHistory (FILE* mdf, time_t timeStart, char* programId, char* softwareVersion)
 {
-	// TODO(Barach): Variadic format specifiers?
-
 	return mdfFhBlockWrite (mdf,
 		&(mdfFhDataSection_t)
 		{
-			.unixTimeNs = unixTime * 1e9
+			.unixTimeNs = timeStart * 1e9
 		},
 		&(mdfFhLinkList_t)
 		{
@@ -413,37 +404,36 @@ static uint64_t writeFileHistory (FILE* mdf, time_t unixTime)
 				"	<TX>\n"
 				"		Creation and logging of data.\n"
 				"	</TX>\n"
-				"	<tool_id>CE</tool_id>\n"
+				"	<tool_id>%s</tool_id>\n"
 				"	<tool_vendor></tool_vendor>\n"
-				"	<tool_version>01.04.02</tool_version>\n"
-				"</FHcomment>")
+				"	<tool_version>%s</tool_version>\n"
+				"</FHcomment>", programId, softwareVersion)
 		});
 }
 
-static uint64_t writeComment (FILE* mdf)
+static uint64_t writeComment (FILE* mdf, const char* softwareVersion, const char* hardwareVersion, const char* serialNumber,
+	const char* programId, size_t storageSize, size_t storageRemaining, uint32_t sessionNumber, uint32_t splitNumber)
 {
-	// TODO(Barach): Variadic format specifiers?
-
 	return mdfMdBlockWrite (mdf,
 		"<HDcomment>\n"
 		"    <TX/>\n"
 		"    <common_properties>\n"
 		"        <tree name=\"Device Information\">\n"
-		"            <e name=\"firmware version\" ro=\"true\">01.04.02</e>\n"
-		"            <e name=\"hardware version\" ro=\"true\">00.02</e>\n"
-		"            <e name=\"serial number\" ro=\"true\">846DD296</e>\n"
-		"            <e name=\"device type\" ro=\"true\">0000001D</e>\n"
-		"            <e name=\"storage total\" ro=\"true\">  7746768</e>\n"
-		"            <e name=\"storage free\" ro=\"true\">  7746708</e>\n"
-		"            <e name=\"config crc32 checksum\" ro=\"true\">5611BDB3</e>\n"
+		"            <e name=\"software version\" ro=\"true\">%s</e>\n"
+		"            <e name=\"hardware version\" ro=\"true\">%s</e>\n"
+		"            <e name=\"serial number\" ro=\"true\">%s</e>\n"
+		"            <e name=\"device type\" ro=\"true\">%s</e>\n"
+		"            <e name=\"storage total\" ro=\"true\">%lu</e>\n"
+		"            <e name=\"storage free\" ro=\"true\">%lu</e>\n"
 		"        </tree>\n"
 		"        <tree name=\"File Information\">\n"
-		"            <e name=\"session\" ro=\"true\">     273</e>\n"
-		"            <e name=\"split\" ro=\"true\">       1</e>\n"
-		"            <e name=\"comment\" ro=\"true\">                              </e>\n"
+		"            <e name=\"session\" ro=\"true\">%u</e>\n"
+		"            <e name=\"split\" ro=\"true\">%u</e>\n"
+		"            <e name=\"comment\" ro=\"true\"></e>\n"
 		"        </tree>\n"
 		"    </common_properties>\n"
-		"</HDcomment>");
+		"</HDcomment>", softwareVersion, hardwareVersion, serialNumber, programId, storageSize, storageRemaining,
+			sessionNumber, splitNumber);
 }
 
 static mdfBlock_t* writeDg (FILE* mdf, uint64_t firstCgAddr)
@@ -473,52 +463,60 @@ static mdfBlock_t* writeDg (FILE* mdf, uint64_t firstCgAddr)
 	return block;
 }
 
-int mdfCanBusLogInit (FILE* mdf, const char* programId, time_t unixTime)
+int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 {
-	mdfBlock_t* hd = writeHeader (mdf, programId, unixTime);
+	log->config = config;
+
+	log->mdf = fopen (config->filePath, "w");
+	if (log->mdf == NULL)
+		return errno;
+
+	mdfBlock_t* hd = writeHeader (log->mdf, config->programId, config->timeStart);
 	if (hd == NULL)
 		return errno;
 
-	uint64_t acquisitionSourceAddr = writeAcquisitionSource (mdf);
+	uint64_t acquisitionSourceAddr = writeAcquisitionSource (log->mdf, config->softwareVersion, config->hardwareVersion,
+		config->serialNumber, config->channel1Baudrate, config->channel2Baudrate);
 	if (acquisitionSourceAddr == 0)
 		return errno;
 
-	uint64_t timestampCcAddr = writeTimestampCc (mdf);
+	uint64_t timestampCcAddr = writeTimestampCc (log->mdf);
 	if (timestampCcAddr == 0)
 		return errno;
 
-	uint64_t dataFrameCgAddr = writeDataFrameCg (mdf, 0, acquisitionSourceAddr, timestampCcAddr);
+	uint64_t dataFrameCgAddr = writeDataFrameCg (log->mdf, 0, acquisitionSourceAddr, timestampCcAddr);
 	if (dataFrameCgAddr == 0)
 		return errno;
 
-	uint64_t fileHistoryAddr = writeFileHistory (mdf, unixTime);
+	uint64_t fileHistoryAddr = writeFileHistory (log->mdf, config->timeStart, config->programId, config->softwareVersion);
 	if (fileHistoryAddr == 0)
 		return errno;
 
-	uint64_t commentAddr = writeComment (mdf);
+	uint64_t commentAddr = writeComment (log->mdf, config->softwareVersion, config->hardwareVersion, config->serialNumber,
+		config->programId, config->storageSize, config->storageRemaining, config->sessionNumber, config->splitNumber);
 	if (commentAddr == 0)
 		return errno;
 
-	mdfBlock_t* dg = writeDg (mdf, dataFrameCgAddr);
+	mdfBlock_t* dg = writeDg (log->mdf, dataFrameCgAddr);
 	if (dg == NULL)
 		return errno;
 
 	// Rewrite Link Lists -----------------------------------------------------------------------------------------------------
 
-	uint64_t dtAddr = mdfDtBlockWrite (mdf);
+	uint64_t dtAddr = mdfDtBlockWrite (log->mdf);
 	if (dtAddr == 0)
 		return errno;
 
 	mdfDgBlockLinkList (dg)->dataBlockAddr = dtAddr;
 
-	if (mdfRewriteBlockLinkList (mdf, dg) != 0)
+	if (mdfRewriteBlockLinkList (log->mdf, dg) != 0)
 		return errno;
 
 	mdfHdBlockLinkList (hd)->firstFhAddr = fileHistoryAddr;
 	mdfHdBlockLinkList (hd)->commentAddr = commentAddr;
 	mdfHdBlockLinkList (hd)->firstDgAddr = dg->addr;
 
-	if (mdfRewriteBlockLinkList (mdf, hd) != 0)
+	if (mdfRewriteBlockLinkList (log->mdf, hd) != 0)
 		return errno;
 
 	mdfBlockDealloc (dg);
@@ -530,7 +528,7 @@ int mdfCanBusLogInit (FILE* mdf, const char* programId, time_t unixTime)
 	return 0;
 }
 
-int mdfCanBusLogWriteDataFrame (FILE* mdf, canFrame_t* frame, uint64_t timestamp, uint8_t busChannel)
+int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, struct timeval* timestamp)
 {
 	// TODO(Barach): RTR?
 
@@ -540,8 +538,9 @@ int mdfCanBusLogWriteDataFrame (FILE* mdf, canFrame_t* frame, uint64_t timestamp
 	record [0] = 0x01;
 
 	// Timestamp
+	uint64_t timestampInt = (timestamp->tv_sec - log->config->timeStart) * TIMESTAMP_SCALE_FACTOR + timestamp->tv_usec * TIMESTAMP_SCALE_FACTOR / 1e6;
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (TIMESTAMP_BIT_LENGTH); ++index)
-		record [index + TIMESTAMP_BYTE_OFFSET + 1] |= timestamp >> (index * 8);
+		record [index + TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
 
 	// CAN ID
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (ID_BIT_LENGTH); ++index)
@@ -563,7 +562,15 @@ int mdfCanBusLogWriteDataFrame (FILE* mdf, canFrame_t* frame, uint64_t timestamp
 		record [DATA_BYTES_BYTE_OFFSET + index + 1] |= frame->data [index];
 
 	// Write the record to the file.
-	if (fwrite (record, 1, sizeof (record), mdf) != sizeof (record))
+	if (fwrite (record, 1, sizeof (record), log->mdf) != sizeof (record))
+		return errno;
+
+	return 0;
+}
+
+int mdfCanBusLogClose (mdfCanBusLog_t *log)
+{
+	if (fclose (log->mdf) != 0)
 		return errno;
 
 	return 0;

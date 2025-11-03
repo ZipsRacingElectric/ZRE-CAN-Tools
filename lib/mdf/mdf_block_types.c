@@ -3,6 +3,7 @@
 
 // C Standard Library
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
 
 int mdfHdBlockInit (mdfBlock_t* block, mdfHdDataSection_t* dataSection, mdfHdLinkList_t* linkList)
@@ -102,32 +103,64 @@ int mdfFhBlockInit (mdfBlock_t* block, mdfFhDataSection_t* dataSection, mdfFhLin
 	return 0;
 }
 
-int mdfTxBlockInit (mdfBlock_t* block, const char* text)
+int mdfTxBlockInit (mdfBlock_t* block, const char* text, ...)
 {
-	// Data section is 1:1 with the string
-	size_t dataSectionSize = strlen (text) + 1;
+	// Call the variadic version of this function with the given args.
+	va_list args;
+	va_start (args, text);
+	int code = mdfTxBlockInitVariadic (block, text, args);
+	va_end (args);
+
+	return code;
+}
+
+int mdfTxBlockInitVariadic (mdfBlock_t* block, const char* text, va_list args)
+{
+	// Copy the args for reuse
+	va_list argsCopy;
+	va_copy (argsCopy, args);
+
+	// Get the size of the data section based on the format string and args (plus terminator).
+	size_t dataSectionSize = vsnprintf (NULL, 0, text, args) + 1;
 
 	// Initialize the block
 	if (mdfBlockInit (block, MDF_BLOCK_ID_TX, 0, dataSectionSize) != 0)
 		return errno;
 
-	// Populate the data section
-	memcpy (block->dataSection, text, dataSectionSize);
+	// Populate the data section with the formatted string.
+	if (vsprintf (block->dataSection, text, argsCopy) < 0)
+		return errno;
 
 	return 0;
 }
 
-int mdfMdBlockInit (mdfBlock_t* block, const char* xml)
+int mdfMdBlockInit (mdfBlock_t* block, const char* xml, ...)
 {
-	// Data section is 1:1 with the string
-	size_t dataSectionSize = strlen (xml) + 1;
+	// Call the variadic version of this function with the given args.
+	va_list args;
+	va_start (args, xml);
+	int code = mdfMdBlockInitVariadic (block, xml, args);
+	va_end (args);
+
+	return code;
+}
+
+int mdfMdBlockInitVariadic (mdfBlock_t* block, const char* xml, va_list args)
+{
+	// Copy the args for reuse
+	va_list argsCopy;
+	va_copy (argsCopy, args);
+
+	// Get the size of the data section based on the format string and args (plus terminator).
+	size_t dataSectionSize = vsnprintf (NULL, 0, xml, args) + 1;
 
 	// Initialize the block
 	if (mdfBlockInit (block, MDF_BLOCK_ID_MD, 0, dataSectionSize) != 0)
 		return errno;
 
-	// Populate the data section
-	memcpy (block->dataSection, xml, dataSectionSize);
+	// Populate the data section with the formatted string.
+	if (vsprintf (block->dataSection, xml, argsCopy) < 0)
+		return errno;
 
 	return 0;
 }

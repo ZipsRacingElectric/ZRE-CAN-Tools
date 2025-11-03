@@ -17,6 +17,9 @@
 // Includes
 #include "mdf_block.h"
 
+// C Standard Library
+#include <stdarg.h>
+
 // ##HD - Header Block --------------------------------------------------------------------------------------------------------
 
 /// @brief The block ID of a header block.
@@ -467,10 +470,13 @@ static inline mdfFhLinkList_t* mdfFhBlockLinkList (mdfBlock_t* block) { return (
 /**
  * @brief Initializes a text block.
  * @param block The block to initialize. Must be deallocated using @c mdfBlockDealloc .
- * @param text The text to put in the block.
+ * @param text The text to put in the block. Supports the @c printf function family of format specifiers.
  * @return 0 if successful, the error code otherwise.
  */
-int mdfTxBlockInit (mdfBlock_t* block, const char* text);
+int mdfTxBlockInit (mdfBlock_t* block, const char* text, ...);
+
+/// @brief Variadic form of @c mdfTxBlockInit .
+int mdfTxBlockInitVariadic (mdfBlock_t* block, const char* text, va_list args);
 
 // ##MD - Markdown Block ------------------------------------------------------------------------------------------------------
 
@@ -480,9 +486,12 @@ int mdfTxBlockInit (mdfBlock_t* block, const char* text);
 /**
  * @brief Initializes a markdown block.
  * @param block The block to initialize. Must be deallocated using @c mdfBlockDealloc .
- * @param xml The XML to put in the block.
+ * @param xml The XML to put in the block. Supports the @c printf function family of format specifiers.
  * @return 0 if successful, the error code otherwise.
  */
-int mdfMdBlockInit (mdfBlock_t* block, const char* xml);
+int mdfMdBlockInit (mdfBlock_t* block, const char* xml, ...);
+
+/// @brief Variadic form of @c mdfTxBlockInit .
+int mdfMdBlockInitVariadic (mdfBlock_t* block, const char* xml, va_list args);
 
 #endif // MDF_BLOCK_TYPES_H
