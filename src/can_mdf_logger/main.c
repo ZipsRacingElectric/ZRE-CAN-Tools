@@ -38,10 +38,11 @@ int main (int argc, char** argv)
 	// TODO(Barach): A lot of placeholders here.
 	mdfCanBusLogConfig_t config =
 	{
+		// TODO(Barach): How much can I change this?
 		.filePath			= argv [argc - 1],
-		.programId			= "ZREDART",
-		.softwareVersion	= "0",
-		.hardwareVersion	= "0",
+		.programId			= "ZRECAN", // TODO(Barach): Should have long-hand and short-hand versions of this.
+		.softwareVersion	= __DATE__, // TODO(Barach): Want this to match the CAN-Tools release tag.
+		.hardwareVersion	= canGetDeviceType (device), // TODO(Barach): Const qual
 		.serialNumber		= "0",
 		.channel1Baudrate	= 1000000,
 		.channel2Baudrate	= 1000000,

@@ -140,10 +140,12 @@ canDevice_t* socketCanInit (const char* name)
 	socketCan_t* device = malloc (sizeof (socketCan_t));
 
 	// Setup the device's VMT
-	device->vmt.transmit	= socketCanTransmit;
-	device->vmt.receive 	= socketCanReceive;
-	device->vmt.flushRx 	= socketCanFlushRx;
-	device->vmt.setTimeout	= socketCanSetTimeout;
+	device->vmt.transmit		= socketCanTransmit;
+	device->vmt.receive 		= socketCanReceive;
+	device->vmt.flushRx 		= socketCanFlushRx;
+	device->vmt.setTimeout		= socketCanSetTimeout;
+	device->vmt.getDeviceName	= socketCanGetDeviceName;
+	device->vmt.getDeviceType	= socketCanGetDeviceType;
 
 	// Internal housekeeping
 	device->descriptor = descriptor;
@@ -167,14 +169,14 @@ int socketCanDealloc (void* device)
 	// TODO(Barach):
 	// #if defined (__unix__)
 
-	// socketCan_t* socket = device;
+	// socketCan_t* sock = device;
 
 	// // Close the socket.
-	// if (close (socket->descriptor) != 0)
+	// if (close (sock->descriptor) != 0)
 	// 	return errno;
 
 	// // Free the device's memory.
-	// free (socket);
+	// free (sock);
 
 	// return 0;
 
@@ -191,7 +193,7 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 {
 	#if defined (__unix__)
 
-	socketCan_t* socket = device;
+	socketCan_t* sock = device;
 
 	// Convert to a SocketCAN frame
 	struct can_frame socketFrame =
@@ -202,7 +204,7 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 	memcpy (socketFrame.data, frame->data, frame->dlc);
 
 	// Transmit the frame
-	int code = write (socket->descriptor, &socketFrame, sizeof (struct can_frame));
+	int code = write (sock->descriptor, &socketFrame, sizeof (struct can_frame));
 	if(code < (long int) sizeof (struct can_frame))
 		return errno;
 
@@ -224,12 +226,12 @@ int socketCanReceive (void* device, canFrame_t* frame)
 {
 	#if defined (__unix__)
 
-	socketCan_t* socket = device;
+	socketCan_t* sock = device;
 
 	struct can_frame socketFrame;
 
 	// Read the frame
-	int code = read (socket->descriptor, &socketFrame, sizeof (struct can_frame));
+	int code = read (sock->descriptor, &socketFrame, sizeof (struct can_frame));
 	if (code < (long int) sizeof (struct can_frame))
 		return errno;
 
@@ -265,25 +267,25 @@ int socketCanFlushRx (void* device)
 {
 	#if defined (__unix__)
 
-	socketCan_t* socket = device;
+	socketCan_t* sock = device;
 
 	// Get the sockets flags.
-	int flags = fcntl (socket->descriptor, F_GETFL);
+	int flags = fcntl (sock->descriptor, F_GETFL);
 	if (flags == -1)
 		return errno;
 
 	// Make the socket nonblocking.
 	flags |= O_NONBLOCK;
-	if (fcntl (socket->descriptor, F_SETFL, flags) != 0)
+	if (fcntl (sock->descriptor, F_SETFL, flags) != 0)
 		return errno;
 
 	// Read all available data from the socket.
 	struct can_frame frame;
-	while (read (socket->descriptor, &frame, sizeof (struct can_frame)) == sizeof (struct can_frame));
+	while (read (sock->descriptor, &frame, sizeof (struct can_frame)) == sizeof (struct can_frame));
 
 	// Make the socket blocking again.
 	flags &= ~O_NONBLOCK;
-	if (fcntl (socket->descriptor, F_SETFL, flags) != 0)
+	if (fcntl (sock->descriptor, F_SETFL, flags) != 0)
 		return errno;
 
 	return 0;
@@ -302,7 +304,7 @@ int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 {
 	#if defined (__unix__)
 
-	socketCan_t* socket = device;
+	socketCan_t* sock = device;
 
 	struct timeval timeout =
 	{
@@ -310,7 +312,7 @@ int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 		.tv_usec = (timeoutMs % 1000) * 1000
 	};
 
-	if (setsockopt (socket->descriptor, SOL_SOCKET, SO_RCVTIMEO, (void*) &timeout, (socklen_t) sizeof (timeout)) != 0)
+	if (setsockopt (sock->descriptor, SOL_SOCKET, SO_RCVTIMEO, (void*) &timeout, (socklen_t) sizeof (timeout)) != 0)
 		return errno;
 
 	return 0;
@@ -324,4 +326,14 @@ int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 	return errno;
 
 	#endif // __unix__
+}
+
+const char* socketCanGetDeviceName (void* device)
+{
+	return ((socketCan_t*) device)->name;
+}
+
+const char* socketCanGetDeviceType (void)
+{
+	return "SocketCAN";
 }

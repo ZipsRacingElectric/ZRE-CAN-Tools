@@ -60,4 +60,10 @@ int socketCanFlushRx (void* device);
 /// @brief SocketCAN implementation of the @c canSetTimeout function.
 int socketCanSetTimeout (void* device, unsigned long timeoutMs);
 
+/// @brief SocketCAN implementation of the @c canGetDeviceName function.
+const char* socketCanGetDeviceName (void* device);
+
+/// @brief SocketCAN implementation of the @c canGetDeviceType function.
+const char* socketCanGetDeviceType (void);
+
 #endif // SOCKET_CAN_H

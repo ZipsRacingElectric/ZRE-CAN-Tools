@@ -24,3 +24,38 @@ canDevice_t* canInit (char* name)
 	errno = ERRNO_CAN_DEVICE_UNKNOWN_NAME;
 	return NULL;
 }
+
+bool canCheckBusError (int code)
+{
+	return
+		code == ERRNO_CAN_DEVICE_BIT_ERROR ||
+		code == ERRNO_CAN_DEVICE_BIT_STUFF_ERROR ||
+		code == ERRNO_CAN_DEVICE_FORM_ERROR ||
+		code == ERRNO_CAN_DEVICE_ACK_ERROR ||
+		code == ERRNO_CAN_DEVICE_CRC_ERROR ||
+		code == ERRNO_CAN_DEVICE_BUS_OFF ||
+		code == ERRNO_CAN_DEVICE_UNSPEC_ERROR;
+}
+
+char* canGetBusErrorName (int code)
+{
+	if (code == ERRNO_CAN_DEVICE_BIT_ERROR)
+		return "BIT ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_BIT_STUFF_ERROR)
+		return "BIT STUFF ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_FORM_ERROR)
+		return "FORM ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_ACK_ERROR)
+		return "ACK ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_CRC_ERROR)
+		return "CRC ERROR";
+
+	if (code == ERRNO_CAN_DEVICE_BUS_OFF)
+		return "BUS-OFF ERROR";
+
+	return "UNSPECIFIED ERROR";
+}

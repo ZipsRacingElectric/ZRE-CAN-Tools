@@ -60,4 +60,10 @@ int slcanFlushRx (void* device);
 /// @brief SLCAN implementation of the @c canSetTimeout function.
 int slcanSetTimeout (void* device, unsigned long timeoutMs);
 
+/// @brief SLCAN implementation of the @c canGetDeviceType function.
+const char* slcanGetDeviceName (void* device);
+
+/// @brief SLCAN implementation of the @c canGetDeviceType function.
+const char* slcanGetDeviceType (void);
+
 #endif // SERIAL_CAN_H

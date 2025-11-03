@@ -111,19 +111,25 @@ canDevice_t* slcanInit (char* name)
 		return NULL;
 	}
 
-	// Setup the CAN device
-	slcan_t* can = malloc (sizeof (slcan_t));
-	can->handle = handle;
-	can->name = name;
-	can->vmt.transmit = slcanTransmit;
-	can->vmt.receive = slcanReceive;
-	can->vmt.setTimeout = slcanSetTimeout;
-	can->vmt.flushRx = slcanFlushRx;
+	// Device must be dynamically allocated
+	slcan_t* device = malloc (sizeof (slcan_t));
+
+	// Setup the device's VMT
+	device->vmt.transmit		= slcanTransmit;
+	device->vmt.receive			= slcanReceive;
+	device->vmt.setTimeout		= slcanSetTimeout;
+	device->vmt.flushRx			= slcanFlushRx;
+	device->vmt.getDeviceName	= slcanGetDeviceName;
+	device->vmt.getDeviceType	= slcanGetDeviceType;
+
+	// Internal housekeeping
+	device->handle = handle;
+	device->name = name;
 
 	// Default to blocking.
-	can->vmt.setTimeout (can, 0);
+	device->vmt.setTimeout (device, 0);
 
-	return (canDevice_t*) can;
+	return (canDevice_t*) device;
 }
 
 int slcanDealloc (void* device)
@@ -217,4 +223,14 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs)
 
 	can->timeoutMs = timeoutMs;
 	return 0;
+}
+
+const char* slcanGetDeviceName (void* device)
+{
+	return ((slcan_t*) device)->name;
+}
+
+const char* slcanGetDeviceType (void)
+{
+	return "SLCAN";
 }

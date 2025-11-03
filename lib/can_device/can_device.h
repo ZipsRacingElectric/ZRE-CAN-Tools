@@ -56,6 +56,12 @@ typedef int canFlushRx_t (void* device);
 /// @brief Function signature for the @c canSetTimeout function.
 typedef int canSetTimeout_t (void* device, unsigned long timeoutMs);
 
+/// @brief Function signature for the @c canGetDeviceName function.
+typedef const char* canGetDeviceName_t (void* device);
+
+/// @brief Function signature for the @c canGetDeviceType function.
+typedef const char* canGetDeviceType_t (void);
+
 /**
  * @brief Virtual method table for the @c canDevice_t structure.
  */
@@ -72,6 +78,12 @@ typedef struct
 
 	/// @brief A device's specific implementation of the @c canSetTimeout function.
 	canSetTimeout_t* setTimeout;
+
+	/// @brief A device's specific implementation of the @c canGetDeviceName function.
+	canGetDeviceName_t* getDeviceName;
+
+	/// @brief A device's specific implementation of the @c canGetDeviceType function.
+	canGetDeviceType_t* getDeviceType;
 } canDeviceVmt_t;
 
 // TODO(Barach): This needs to store baudrate
@@ -141,22 +153,34 @@ static inline int canSetTimeout (canDevice_t* device, unsigned long timeoutMs)
 	return device->vmt.setTimeout (device, timeoutMs);
 }
 
+// TODO(Barach): Should this include baudrate?
+/**
+ * @brief Gets the name of a CAN device.
+ * @param device The device to get the name of.
+ * @return The name of the device.
+ */
+static inline const char* canGetDeviceName (canDevice_t* device)
+{
+	return device->vmt.getDeviceName (device);
+}
+
+/**
+ * @brief Gets a string identifying the type of a CAN device. Note this only be used for debugging and record keeping. No
+ * specific programming behavior should be based on this return value.
+ * @param device The device to get the type of.
+ * @return A user friendly string identifying the type of the device.
+ */
+static inline const char* canGetDeviceType (canDevice_t* device)
+{
+	return device->vmt.getDeviceType ();
+}
+
 /**
  * @brief Checks whether a given return code corresponds to a CAN bus error.
  * @param code The error code, as returned from the function or read from @c errno .
  * @return True if the error is specific to the CAN bus, false otherwise. If true, this indicates an error frame was generated.
  */
-static inline bool canCheckBusError (int code)
-{
-	return
-		code == ERRNO_CAN_DEVICE_BIT_ERROR ||
-		code == ERRNO_CAN_DEVICE_BIT_STUFF_ERROR ||
-		code == ERRNO_CAN_DEVICE_FORM_ERROR ||
-		code == ERRNO_CAN_DEVICE_ACK_ERROR ||
-		code == ERRNO_CAN_DEVICE_CRC_ERROR ||
-		code == ERRNO_CAN_DEVICE_BUS_OFF ||
-		code == ERRNO_CAN_DEVICE_UNSPEC_ERROR;
-}
+bool canCheckBusError (int code);
 
 /**
  * @brief Gets a string describing the type of CAN bus error that occurred.
@@ -164,27 +188,6 @@ static inline bool canCheckBusError (int code)
  * tested by @c canCheckBusError to determine if it is a CAN bus related error.
  * @return The shorthand string naming the error.
  */
-static inline char* canGetBusErrorName (int code)
-{
-	if (code == ERRNO_CAN_DEVICE_BIT_ERROR)
-		return "BIT ERROR";
-
-	if (code == ERRNO_CAN_DEVICE_BIT_STUFF_ERROR)
-		return "BIT STUFF ERROR";
-
-	if (code == ERRNO_CAN_DEVICE_FORM_ERROR)
-		return "FORM ERROR";
-
-	if (code == ERRNO_CAN_DEVICE_ACK_ERROR)
-		return "ACK ERROR";
-
-	if (code == ERRNO_CAN_DEVICE_CRC_ERROR)
-		return "CRC ERROR";
-
-	if (code == ERRNO_CAN_DEVICE_BUS_OFF)
-		return "BUS-OFF ERROR";
-
-	return "UNSPECIFIED ERROR";
-}
+char* canGetBusErrorName (int code);
 
 #endif // CAN_DEVICE_H
