@@ -62,6 +62,9 @@ typedef const char* canGetDeviceName_t (void* device);
 /// @brief Function signature for the @c canGetDeviceType function.
 typedef const char* canGetDeviceType_t (void);
 
+/// @brief Function signature for the @c canDealloc function.
+typedef void canDealloc_t (void* device);
+
 /**
  * @brief Virtual method table for the @c canDevice_t structure.
  */
@@ -84,6 +87,9 @@ typedef struct
 
 	/// @brief A device's specific implementation of the @c canGetDeviceType function.
 	canGetDeviceType_t* getDeviceType;
+
+	/// @brief A device's specific implementation of the @c canDealloc function.
+	canDealloc_t* dealloc;
 } canDeviceVmt_t;
 
 // TODO(Barach): This needs to store baudrate
@@ -105,6 +111,16 @@ typedef struct
  * @return The initialized CAN device if successful, @c NULL otherwise. Note @c errno is set on failure.
  */
 canDevice_t* canInit (char* name);
+
+// TODO(Barach): This needs added in a lot of places.
+/**
+ * @brief Closes and deallocates and CAN device. The @c device pointer is no longer usable after a call to this function.
+ * @param device The device to deallocate.
+ */
+static inline void canDealloc (canDevice_t* device)
+{
+	device->vmt.dealloc (device);
+}
 
 /**
  * @brief Function for transmitting a CAN frame.

@@ -125,6 +125,7 @@ canDevice_t* slcanInit (char* name)
 	device->vmt.flushRx			= slcanFlushRx;
 	device->vmt.getDeviceName	= slcanGetDeviceName;
 	device->vmt.getDeviceType	= slcanGetDeviceType;
+	device->vmt.dealloc			= slcanDealloc;
 
 	// Internal housekeeping
 	device->handle = handle;
@@ -136,12 +137,17 @@ canDevice_t* slcanInit (char* name)
 	return (canDevice_t*) device;
 }
 
-int slcanDealloc (void* device)
+void slcanDealloc (void* device)
 {
-	// TODO(Barach):
-	(void) device;
-	errno = ERRNO_OS_NOT_SUPPORTED;
-	return errno;
+	slcan_t* slcan = device;
+
+	// TODO(Barach): Validate this works.
+	// Stop and terminate the SLCAN device
+	can_reset (slcan->handle);
+	can_exit (slcan->handle);
+
+	// Free the device's memory
+	free (device);
 }
 
 int slcanTransmit (void* device, canFrame_t* frame)

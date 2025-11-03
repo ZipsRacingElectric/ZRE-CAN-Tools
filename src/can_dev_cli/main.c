@@ -455,6 +455,7 @@ int main (int argc, char** argv)
 				printf ("Unknown option '%s'\n", option);
 		}
 
+		canDealloc (device);
 		return 0;
 	}
 
@@ -479,5 +480,6 @@ int main (int argc, char** argv)
 			break;
 	}
 
+	canDealloc (device);
 	return 0;
 }

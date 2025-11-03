@@ -84,6 +84,7 @@ int main (int argc, char** argv)
 
 	printf ("Closing MDF file...\n");
 	mdfCanBusLogClose (&log);
+	canDealloc (device);
 
 	return 0;
 }

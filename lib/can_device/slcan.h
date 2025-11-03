@@ -44,9 +44,8 @@ canDevice_t* slcanInit (char* name);
 /**
  * @brief De-allocates the memory owned by an SLCAN device.
  * @param device The device to de-allocate.
- * @return 0 if successful, the error code otherwise.
  */
-int slcanDealloc (void* device);
+void slcanDealloc (void* device);
 
 /// @brief SLCAN implementation of the @c canTransmit function.
 int slcanTransmit (void* device, canFrame_t* frame);

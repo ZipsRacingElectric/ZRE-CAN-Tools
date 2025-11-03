@@ -146,6 +146,7 @@ canDevice_t* socketCanInit (const char* name)
 	device->vmt.setTimeout		= socketCanSetTimeout;
 	device->vmt.getDeviceName	= socketCanGetDeviceName;
 	device->vmt.getDeviceType	= socketCanGetDeviceType;
+	device->vmt.dealloc			= socketCanDealloc;
 
 	// Internal housekeeping
 	device->descriptor = descriptor;
@@ -164,29 +165,19 @@ canDevice_t* socketCanInit (const char* name)
 	#endif // __unix__
 }
 
-int socketCanDealloc (void* device)
+void socketCanDealloc (void* device)
 {
-	// TODO(Barach):
-	// #if defined (__unix__)
+	#if defined (__unix__)
 
-	// socketCan_t* sock = device;
+	socketCan_t* sock = device;
 
-	// // Close the socket.
-	// if (close (sock->descriptor) != 0)
-	// 	return errno;
+	// Close the socket.
+	close (sock->descriptor);
 
-	// // Free the device's memory.
-	// free (sock);
+	// Free the device's memory.
+	free (sock);
 
-	// return 0;
-
-	// #else // __unix__
-
-	(void) device;
-	errno = ERRNO_OS_NOT_SUPPORTED;
-	return errno;
-
-	// #endif // __unix__
+	#endif // __unix__
 }
 
 int socketCanTransmit (void* device, canFrame_t* frame)

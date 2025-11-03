@@ -44,9 +44,8 @@ canDevice_t* socketCanInit (const char* name);
 /**
  * @brief De-allocates the memory owned by SocketCAN device.
  * @param device The device to de-allocate.
- * @return 0 if successful, the error code otherwise.
  */
-int socketCanDealloc (void* device);
+void socketCanDealloc (void* device);
 
 /// @brief SocketCAN implementation of the @c canTransmit function.
 int socketCanTransmit (void* device, canFrame_t* frame);
