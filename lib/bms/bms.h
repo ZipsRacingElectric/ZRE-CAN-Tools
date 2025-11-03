@@ -47,8 +47,7 @@ typedef struct
 	uint16_t ltcsPerSegment;
 	uint16_t cellsPerLtc;
 	uint16_t senseLinesPerLtc;
-	// REVIEW(Barach): Don't really need the bms prefix from context.
-	uint16_t bmsStatusSignalsCount;
+	uint16_t statusSignalsCount;
 
 	float minCellVoltage;
 	float maxCellVoltage;
@@ -63,15 +62,14 @@ typedef struct
 	ssize_t* ltcIsoSpiFaultIndices;
 	ssize_t* ltcSelfTestFaultIndices;
 	ssize_t* ltcTemperatureIndices;
-	ssize_t* bmsStatusSignalIndices;
+	ssize_t* statusSignalGlobalIndices;
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
-	// REVIEW(Barach): Instead of storing both the message index and local signal index, you can just store the global signal
-	// indices. This way the bmsGetSignalValue doesn't need the messageIndex as an input.
-	ssize_t bmsStatusMessageIndex;
 
-	// REVIEW(Barach): Should have a semicolon.
-	canSignal_t** bmsStatusSignals
+	// TODO(DiBacco): cannot compile .h file w. make
+	// 	- tried using make clean & make -b
+	//  - fixed: worked when I removed unessesary attributes
+	// 		- not a solution but allowed it to work 
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -100,6 +98,7 @@ bool bmsGetCellDeltaStats (bms_t* bms, float* max, float* avg);
 
 bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
 
+// TODO(DiBacco): review suggestions
 // REVIEW(Barach): If switching to global signal indices, there should be bmsGetStatusName and bmsGetStatusUnit functions to convert from a 0-based index.
 
 // REVIEW(Barach): Not a huge fan of how this function is set up, would prefer a bit more abstraction to it. To the end user,
@@ -133,5 +132,9 @@ canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t mess
 bool checkSignalRedundancy (char* signalName, char*** signalNames, size_t* signalCount);
 
 void bmsDealloc (bms_t* bms);
+
+static inline size_t bmsGetStatusSignalCount (bms_t* bms) {
+	return bms->statusSignalsCount;
+}
 
 #endif // BMS_H

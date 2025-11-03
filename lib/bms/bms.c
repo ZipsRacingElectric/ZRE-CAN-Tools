@@ -208,26 +208,24 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		return errno;
 
 	// Get bms status index and message
-	bms->bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
-	canMessage_t* bmsStatusMessage = canDatabaseGetMessage (database, bms->bmsStatusMessageIndex);
+	ssize_t bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
+	canMessage_t* bmsStatusMessage = canDatabaseGetMessage (database, bmsStatusMessageIndex);
 
 	// Used to store the bms status signals and bms status indices
-	bms->bmsStatusSignalsCount = 0;
-	bms->bmsStatusSignals = malloc (sizeof (canSignal_t*) * bmsStatusMessage->signalCount);
-	bms->bmsStatusSignalIndices = malloc (sizeof (size_t) * bmsStatusMessage->signalCount);
+	bms->statusSignalsCount = 0;
+	bms->statusSignalGlobalIndices = malloc (sizeof (size_t*) * bmsStatusMessage->signalCount);
 
 	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage->signalCount; signalIndex++) {
 		// Get signal using the signal index
-		ssize_t signalGlobalIndex = canDatabaseGetGlobalIndex (database, bms->bmsStatusMessageIndex, signalIndex);
-		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, signalGlobalIndex);
+		ssize_t bmsStatusSignalGlobalIndex = canDatabaseGetGlobalIndex (database, bmsStatusMessageIndex, signalIndex);
+		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, bmsStatusSignalGlobalIndex);
 
 		// Check that the signal has not been retreived previously
 		char* signalName = bmsStatusSignal->name;
 		if (checkSignalRedundancy (signalName, &signalNames, &signalCount)) {
 			// Append signal to the bms status signals and index to the bms status signals indices
-			bms->bmsStatusSignals[bms->bmsStatusSignalsCount] = bmsStatusSignal;
-			bms->bmsStatusSignalIndices[bms->bmsStatusSignalsCount++] = signalIndex;
-		}
+			bms->statusSignalGlobalIndices[bms->statusSignalsCount++] = bmsStatusSignalGlobalIndex;
+		}		
 	}
 
 	return 0;
@@ -408,20 +406,11 @@ bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg)
 	return valid;
 }
 
-canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t messageIndex, size_t signalIndex, float* value) {
-	// Convert index within the message to index within the databaseS
-	ssize_t globalIndex = canDatabaseGetGlobalIndex (database, messageIndex, signalIndex);
-
-	// Get the value of the message associated with the global index
-	return canDatabaseGetFloat (database, globalIndex, value);
-}
-
 void bmsDealloc (bms_t* bms)
 {
 	// TODO(Barach): Init doesn't deallocate correctly on failure.
 	// Deallocate all dynamically allocated memory.
-	free (bms->bmsStatusSignals);
-	free (bms->bmsStatusSignalIndices);
+	free (bms->statusSignalGlobalIndices);
 	free (bms->ltcTemperatureIndices);
 	free (bms->ltcSelfTestFaultIndices);
 	free (bms->ltcIsoSpiFaultIndices);
@@ -459,6 +448,5 @@ bool checkSignalRedundancy (char* signalName, char*** signalNames, size_t* signa
 	//   ++(*signalCount)
 
 	(*signalNames)[(*signalCount)++] = strdup (signalName);
-
 	return true;
 }
