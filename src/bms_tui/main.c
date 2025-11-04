@@ -758,7 +758,7 @@ void printstatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 		float value;
 
 		// Get the global index and signal
-		ssize_t bmsStatusSignalGlobalIndex = bms->statusSignalGlobalIndices[signalIndex];
+		ssize_t bmsStatusSignalGlobalIndex = bms->statusSignalIndices[signalIndex];
 		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, bmsStatusSignalGlobalIndex);
 
 		// Set the row of the current signal

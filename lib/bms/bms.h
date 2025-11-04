@@ -62,7 +62,7 @@ typedef struct
 	ssize_t* ltcIsoSpiFaultIndices;
 	ssize_t* ltcSelfTestFaultIndices;
 	ssize_t* ltcTemperatureIndices;
-	ssize_t* statusSignalGlobalIndices;
+	ssize_t* statusSignalIndices;
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
 
@@ -117,19 +117,6 @@ bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
  * @param value the value of the signal.
  */
 canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t messageIndex, size_t signalIndex, float* value);
-
-// REVIEW(Barach): If this isn't intended to be used by the user, it should be in the *.c file and marked as 'static'. Docs on
-//   this look good though.
-// REVIEW(Barach): Also just a sidenote, any functions in a library that aren't static should have a prefix to avoid naming
-//   collisions (this library uses the 'bms' prefix).
-/**
- * @brief Checks if signal has already been retreived to minimize signal redundancy. Dyanmically adds the signal's name to a list of signal names if not.
- * @param signalName A pointer to the name of the signal to check
- * @param signalNames A pointer to a list of char pointers used to store the names of previously retreived signals
- * @param signalCount A pointer to the number of signal names in the signal name list
- * @return True if not already in list, False if already in list
- */
-bool checkSignalRedundancy (char* signalName, char*** signalNames, size_t* signalCount);
 
 void bmsDealloc (bms_t* bms);
 
