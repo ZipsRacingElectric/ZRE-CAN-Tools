@@ -35,6 +35,7 @@ typedef struct
 	canDeviceVmt_t vmt;
 	const char* name;
 	int descriptor;
+	canBaudrate_t baudrate;
 } socketCan_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -91,7 +92,7 @@ bool socketCanNameDomain (const char* name)
 	return false;
 }
 
-canDevice_t* socketCanInit (const char* name)
+canDevice_t* socketCanInit (const char* name, canBaudrate_t baudrate)
 {
 	#if defined (__unix__)
 
@@ -144,6 +145,7 @@ canDevice_t* socketCanInit (const char* name)
 	device->vmt.receive 		= socketCanReceive;
 	device->vmt.flushRx 		= socketCanFlushRx;
 	device->vmt.setTimeout		= socketCanSetTimeout;
+	device->vmt.getBaudrate		= socketCanGetBaudrate;
 	device->vmt.getDeviceName	= socketCanGetDeviceName;
 	device->vmt.getDeviceType	= socketCanGetDeviceType;
 	device->vmt.dealloc			= socketCanDealloc;
@@ -151,6 +153,7 @@ canDevice_t* socketCanInit (const char* name)
 	// Internal housekeeping
 	device->descriptor = descriptor;
 	device->name = name;
+	device->baudrate = baudrate;
 
 	// Success
 	return (canDevice_t*) device;
@@ -323,6 +326,11 @@ int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 	return errno;
 
 	#endif // __unix__
+}
+
+canBaudrate_t socketCanGetBaudrate (void* device)
+{
+	return ((socketCan_t*) device)->baudrate;
 }
 
 const char* socketCanGetDeviceName (void* device)

@@ -44,6 +44,12 @@ typedef struct
 	bool rtr;
 } canFrame_t;
 
+/// @brief Indicates a baudrate is not known.
+#define CAN_BAUDRATE_UNKNOWN 0
+
+/// @brief Datatype representing a CAN bus's baudrate.
+typedef unsigned int canBaudrate_t;
+
 /// @brief Function signature for the @c canTransmit function.
 typedef int canTransmit_t (void* device, canFrame_t* frame);
 
@@ -55,6 +61,9 @@ typedef int canFlushRx_t (void* device);
 
 /// @brief Function signature for the @c canSetTimeout function.
 typedef int canSetTimeout_t (void* device, unsigned long timeoutMs);
+
+/// @brief Function signature for the @c canGetBaudrate function.
+typedef canBaudrate_t canGetBaudrate_t (void* device);
 
 /// @brief Function signature for the @c canGetDeviceName function.
 typedef const char* canGetDeviceName_t (void* device);
@@ -82,6 +91,9 @@ typedef struct
 	/// @brief A device's specific implementation of the @c canSetTimeout function.
 	canSetTimeout_t* setTimeout;
 
+	/// @brief A device's specific implementation of the @c canGetBaudrate function.
+	canGetBaudrate_t* getBaudrate;
+
 	/// @brief A device's specific implementation of the @c canGetDeviceName function.
 	canGetDeviceName_t* getDeviceName;
 
@@ -107,10 +119,10 @@ typedef struct
 /**
  * @brief Identifies and initializes a CAN device based on its name handle. This function will attempt to identify the type of
  * adapter based on context in the provided name.
- * @param name The name (handler) of the CAN device. Note this should either be a SocketCAN name or an SLCAN name.
+ * @param deviceName The name of the CAN device. Note this should either be a SocketCAN name or an SLCAN name.
  * @return The initialized CAN device if successful, @c NULL otherwise. Note @c errno is set on failure.
  */
-canDevice_t* canInit (char* name);
+canDevice_t* canInit (char* deviceName);
 
 // TODO(Barach): This needs added in a lot of places.
 /**
@@ -169,7 +181,16 @@ static inline int canSetTimeout (canDevice_t* device, unsigned long timeoutMs)
 	return device->vmt.setTimeout (device, timeoutMs);
 }
 
-// TODO(Barach): Should this include baudrate?
+/**
+ * @brief Gets the baudrate of a CAN device.
+ * @param device The device to get from.
+ * @return The baudrate of the CAN bus, if known. @c CAN_BAUDRATE_UNKNOWN otherwise.
+ */
+static inline canBaudrate_t canGetBaudrate (canDevice_t* device)
+{
+	return device->vmt.getBaudrate (device);
+}
+
 /**
  * @brief Gets the name of a CAN device.
  * @param device The device to get the name of.

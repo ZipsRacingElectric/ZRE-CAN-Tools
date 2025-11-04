@@ -357,6 +357,18 @@ int setTimeout (canDevice_t* device, char* command)
 	return 0;
 }
 
+void printInfo (canDevice_t* device)
+{
+	printf ("Device Name: %s\n", canGetDeviceName (device));
+	printf ("Device Type: %s\n", canGetDeviceType (device));
+
+	canBaudrate_t baudrate = canGetBaudrate (device);
+	if (baudrate == CAN_BAUDRATE_UNKNOWN)
+		printf ("Baudrate:    Unspecified\n");
+	else
+		printf ("Baudrate:    %u\n", baudrate);
+}
+
 /**
  * @brief Handles a user-specified command from either the standard arguments or standard input.
  * @param device The CAN device to use.
@@ -391,8 +403,7 @@ int processCommand (canDevice_t* device, char* command)
 		break;
 
 	case 'i':
-		printf ("Device Name: '%s'\n", canGetDeviceName (device));
-		printf ("Device Type: '%s'\n", canGetDeviceType (device));
+		printInfo (device);
 		break;
 
 	case 'h':

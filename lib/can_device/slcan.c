@@ -23,6 +23,7 @@ typedef struct
 	int handle;
 	const char* name;
 	long int timeoutMs;
+	canBaudrate_t baudrate;
 } slcan_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -50,14 +51,40 @@ bool slcanNameDomain (const char* name)
 	return false;
 }
 
-canDevice_t* slcanInit (char* name)
+canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 {
-	// Split the name into the device name and bitrate: Format <device>@<baud>
-	char* savePtr;
-	strtok_r (name, "@", &savePtr);
-	char* bitrateParam = strtok_r (NULL, "@", &savePtr);
-	if (bitrateParam == NULL)
+	// Map the baudrate to one of the available options.
+	can_bitrate_t slcanBaudrate;
+	switch (baudrate)
 	{
+	case 1000000:
+		slcanBaudrate.index = CANBTR_INDEX_1M;
+		break;
+	case 800000:
+		slcanBaudrate.index = CANBTR_INDEX_800K;
+		break;
+	case 500000:
+		slcanBaudrate.index = CANBTR_INDEX_500K;
+		break;
+	case 250000:
+		slcanBaudrate.index = CANBTR_INDEX_250K;
+		break;
+	case 125000:
+		slcanBaudrate.index = CANBTR_INDEX_125K;
+		break;
+	case 100000:
+		slcanBaudrate.index = CANBTR_INDEX_100K;
+		break;
+	case 50000:
+		slcanBaudrate.index = CANBTR_INDEX_50K;
+		break;
+	case 20000:
+		slcanBaudrate.index = CANBTR_INDEX_20K;
+		break;
+	case 10000:
+		slcanBaudrate.index = CANBTR_INDEX_10K;
+		break;
+	default:
 		errno = ERRNO_SLCAN_BAUDRATE;
 		return NULL;
 	}
@@ -82,33 +109,7 @@ canDevice_t* slcanInit (char* name)
 		return NULL;
 	}
 
-	// Identify the baudrate
-	can_bitrate_t bitrate;
-	if (strcmp (bitrateParam, "1000000") == 0)
-		bitrate.index = CANBTR_INDEX_1M;
-	else if (strcmp (bitrateParam, "800000") == 0)
-		bitrate.index = CANBTR_INDEX_800K;
-	else if (strcmp (bitrateParam, "500000") == 0)
-		bitrate.index = CANBTR_INDEX_500K;
-	else if (strcmp (bitrateParam, "250000") == 0)
-		bitrate.index = CANBTR_INDEX_250K;
-	else if (strcmp (bitrateParam, "125000") == 0)
-		bitrate.index = CANBTR_INDEX_125K;
-	else if (strcmp (bitrateParam, "100000") == 0)
-		bitrate.index = CANBTR_INDEX_100K;
-	else if (strcmp (bitrateParam, "50000") == 0)
-		bitrate.index = CANBTR_INDEX_50K;
-	else if (strcmp (bitrateParam, "20000") == 0)
-		bitrate.index = CANBTR_INDEX_20K;
-	else if (strcmp (bitrateParam, "10000") == 0)
-		bitrate.index = CANBTR_INDEX_10K;
-	else
-	{
-		errno = ERRNO_SLCAN_BAUDRATE;
-		return NULL;
-	}
-
-	int code = can_start (handle, &bitrate);
+	int code = can_start (handle, &slcanBaudrate);
 	if (code < 0)
 	{
 		errno = getErrorCode (code);
@@ -121,8 +122,9 @@ canDevice_t* slcanInit (char* name)
 	// Setup the device's VMT
 	device->vmt.transmit		= slcanTransmit;
 	device->vmt.receive			= slcanReceive;
-	device->vmt.setTimeout		= slcanSetTimeout;
 	device->vmt.flushRx			= slcanFlushRx;
+	device->vmt.setTimeout		= slcanSetTimeout;
+	device->vmt.getBaudrate		= slcanGetBaudrate;
 	device->vmt.getDeviceName	= slcanGetDeviceName;
 	device->vmt.getDeviceType	= slcanGetDeviceType;
 	device->vmt.dealloc			= slcanDealloc;
@@ -130,6 +132,7 @@ canDevice_t* slcanInit (char* name)
 	// Internal housekeeping
 	device->handle = handle;
 	device->name = name;
+	device->baudrate = baudrate;
 
 	// Default to blocking.
 	device->vmt.setTimeout (device, 0);
@@ -141,7 +144,6 @@ void slcanDealloc (void* device)
 {
 	slcan_t* slcan = device;
 
-	// TODO(Barach): Validate this works.
 	// Stop and terminate the SLCAN device
 	can_reset (slcan->handle);
 	can_exit (slcan->handle);
@@ -233,6 +235,11 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs)
 
 	can->timeoutMs = timeoutMs;
 	return 0;
+}
+
+canBaudrate_t slcanGetBaudrate (void *device)
+{
+	return ((slcan_t*) device)->baudrate;
 }
 
 const char* slcanGetDeviceName (void* device)

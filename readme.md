@@ -132,12 +132,14 @@ This program is used to monitor a battery management system in real-time.
 
 ```
 <Device Name>         - The adapter-specific identity of the CAN device.
-    can*              - SocketCAN device, must be already initialized and
-                        setup. Ex. 'can0'.
-    vcan*             - Virtual SocketCAN device, must be already initialized
-                        and setup.
-    <port>@<baud>     - SLCAN device, must be a CANable device. CAN baudrate is
-                        indicated by the baud field. Ex 'COM3@1000000' for
+    can*@<Baud>       - SocketCAN device, must be already initialized and
+                        setup. Ex. 'can0@1000000'. Note, baudrate is optional
+                        for most applications.
+    vcan*@<Baud>      - Virtual SocketCAN device, must be already initialized
+                        and setup. Note, baudrate is optional for most
+                        applications.
+    <Port>@<Baud>     - SLCAN device, must be a CANable device. CAN baudrate is
+                        initialized to <Baud> bit/s. Ex 'COM3@1000000' for
                         Windows and '/dev/ttyACM0@1000000' for Linux.
 
 <CAN Frame>           - A CAN frame. May be a data frame or RTR frame, based on
@@ -146,14 +148,15 @@ This program is used to monitor a battery management system in real-time.
 
 <Byte i>              - The i'th byte of a frame's data payload, indexed in
                         little-endian (aka Intel format). May be either decimal
-                        or hexadecimal (prefixed with '0x').
+                        or hexadecimal (hex should be prefixed with '0x').
 
 <CAN ID>              - The identifier of a frame.
-    <SID>             - Standard CAN ID, may be decimal or hexadecimal (prefixed
-                        with '0x').
+    <SID>             - Standard CAN ID, may be decimal or hexadecimal
+                        (hex should be prefixed with '0x').
     <SID>r            - Standard CAN ID, for an RTR frame.
     <EID>x            - Extended CAN ID.
     <EID>xr           - Extended CAN identifier, for an RTR frame.
+
 
 <DBC file path>       - The path to the DBC file to use.
 
