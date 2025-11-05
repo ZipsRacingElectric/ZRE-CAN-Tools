@@ -25,19 +25,19 @@
 typedef struct
 {
 	/// @brief The path of the file to create.
-	char* filePath;
+	const char* filePath;
 
 	/// @brief The ID of the program generating this file. Note, strings longer than 7 characters will be truncated.
-	char* programId;
+	const char* programId;
 
 	/// @brief Tag for the version of the software generating this file.
-	char* softwareVersion;
+	const char* softwareVersion;
 
 	/// @brief Tag for the version of the hardware generating this file.
-	char* hardwareVersion;
+	const char* hardwareVersion;
 
 	/// @brief Serial number of the device generating this file.
-	char* serialNumber;
+	const char* serialNumber;
 
 	/// @brief The baudrate of the first CAN bus.
 	uint32_t channel1Baudrate;

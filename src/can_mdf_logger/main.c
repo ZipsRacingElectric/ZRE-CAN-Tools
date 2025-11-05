@@ -42,10 +42,10 @@ int main (int argc, char** argv)
 		.filePath			= argv [argc - 1],
 		.programId			= "ZRECAN", // TODO(Barach): Should have long-hand and short-hand versions of this.
 		.softwareVersion	= __DATE__, // TODO(Barach): Want this to match the CAN-Tools release tag.
-		.hardwareVersion	= canGetDeviceType (device), // TODO(Barach): Const qual
+		.hardwareVersion	= canGetDeviceType (device),
 		.serialNumber		= "0",
-		.channel1Baudrate	= 1000000,
-		.channel2Baudrate	= 1000000,
+		.channel1Baudrate	= canGetBaudrate (device),
+		.channel2Baudrate	= 0,
 		.timeStart			= time (NULL),
 		.storageSize		= 0,
 		.storageRemaining	= 0,
