@@ -98,7 +98,7 @@ bool bmsGetCellDeltaStats (bms_t* bms, float* max, float* avg);
 
 bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
 
-// TODO(DiBacco): review suggestions
+// TODO(DiBacco): ask Cole what he means by a 0-based index. Likey local index, but would be good to clarify.
 // REVIEW(Barach): If switching to global signal indices, there should be bmsGetStatusName and bmsGetStatusUnit functions to convert from a 0-based index.
 
 // REVIEW(Barach): Not a huge fan of how this function is set up, would prefer a bit more abstraction to it. To the end user,
@@ -108,7 +108,7 @@ bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
 //   canDatabaseSignalState_t bmsGetStatusSignal (bms_t* bms, size_t index, float* value);
 //
 // Where index goes from 0 to (signalCount - 1).
-//
+
 /**
  * @brief Retreives the value of the signal associated with the signal index.
  * @param database the CAN database associated with the BMS.
@@ -116,11 +116,17 @@ bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
  * @param signalIndex the index of the signal within the CAN message.
  * @param value the value of the signal.
  */
+
+// TODO(DiBacco): function no longer used
+// bms_tui/main.c calls canDatabaseGetFloat directly instead of calling it through this function
+// the canDatabaseGetFloat function gets the value of the signal from the can database
+// this function might not be necessary because the function is not converting the local index into a global one prior to calling the canDatabaseGetFloat function 
 canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t messageIndex, size_t signalIndex, float* value);
 
 void bmsDealloc (bms_t* bms);
 
-static inline size_t bmsGetStatusSignalCount (bms_t* bms) {
+static inline size_t bmsGetStatusSignalCount (bms_t* bms)
+{
 	return bms->statusSignalsCount;
 }
 
