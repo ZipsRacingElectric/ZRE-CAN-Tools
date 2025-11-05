@@ -12,26 +12,26 @@
 /** 
  * @brief Checks if signal has already been retreived to minimize signal redundancy. Dyanmically adds the signal's index to a list of signal indices if not.
  * @param index The global index of the signal 
- * @param indices A list of signal indices used to store the indices of previously retreived signals
- * @param signalCount The number of signal names in the signal name list
- * @return True if not already in list, False if already in list
+ * @param indices A list used to store the indices of previously retreived signals
+ * @param signalCount The number of signal incices in the signal indices list
+ * @param result The result of the function (true indicates that the signal has not been previously retreived / false indicates that the signal has been previously retreived)
  */
-static bool checkSignalRedundancy (ssize_t index, size_t** indices, size_t* signalCount) {
+static int checkSignalRedundancy (ssize_t index, size_t** indices, size_t* signalCount, bool* result) {
 	// return false if signal has previously been retreived
 	for (size_t i = 0; i < *signalCount; i++) 
 	{
 		if ((*indices)[i] == index) 
 		{
-			return false;
+			*result = false;
+			return 0;
 		}
 	}
 
 	// add signal name to the list
 	*indices = realloc (*indices, (*signalCount + 1) * sizeof (size_t));
 	if (! (*indices)) {
-		// REVIEW(Barach): Library functions should not print error messages, rather, they should return the error code that
-		// triggered the message.
-		printf ("Error: couldn't allocate memory for list \n");
+		errno = ENOMEM;
+		return -1;
 	}
 
 	// REVIEW(Barach): If the memory allocation above failed, accessing the array will cause undefined behavior, likely
@@ -44,7 +44,8 @@ static bool checkSignalRedundancy (ssize_t index, size_t** indices, size_t* sign
 	//   ++(*signalCount)
 
 	(*indices)[(*signalCount)++] = index;
-	return true;
+	*result = true;
+	return 0;
 }
 
 /**
@@ -103,6 +104,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	// REVIEW(Barach): Because these are local variables and dynamically allocated, they must be deallocated by the end of
 	//   this function (no other way prevent a memory leak). While there is quite a bit of memory in here that gets allocated
 	//   it is all stored in the bms object so that it can be deallocated correctly later.
+	bool result;
 	size_t signalCount = 0;
 	size_t* signalIndices = NULL;
 
@@ -153,7 +155,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		// Get the cell voltage global index & append it to the indicies + the signal redundancy list
 		ssize_t cellVoltageIndex = canDatabaseFindSignal (database, voltName);
 		bms->cellVoltageIndices [index] = cellVoltageIndex;
-		checkSignalRedundancy (cellVoltageIndex, &signalIndices, &signalCount);
+		checkSignalRedundancy (cellVoltageIndex, &signalIndices, &signalCount, &result);
 		if (bms->cellVoltageIndices [index] < 0) 
 			return errno;
 
@@ -167,7 +169,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		// Get the cell balancing global index & append it to the indicies + the signal redundancy list
 		ssize_t cellsDischargingIndex = canDatabaseFindSignal (database, disName);
 		bms->cellsDischargingIndices [index] = cellsDischargingIndex;
-		checkSignalRedundancy (cellsDischargingIndex, &signalIndices, &signalCount); 
+		checkSignalRedundancy (cellsDischargingIndex, &signalIndices, &signalCount, &result); 
 		if (bms->cellsDischargingIndices [index] < 0)
 			return errno;
 	}
@@ -191,7 +193,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 				// Get the sense line temperature global index & append it to the indicies + the signal redundancy list
 				ssize_t senseLineTemperatureIndex = canDatabaseFindSignal (database, tempName);
 				bms->senseLineTemperatureIndices [index] = senseLineTemperatureIndex;
-				checkSignalRedundancy (senseLineTemperatureIndex, &signalIndices, &signalCount);
+				checkSignalRedundancy (senseLineTemperatureIndex, &signalIndices, &signalCount, &result);
 
 				// TODO(DiBacco): consider asking Cole what this is just for the sake of knowing
 				// Format the sense line open signal name
@@ -202,7 +204,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 				// Get the sense line open global index & append it to the indicies + the signal redundancy list
 				ssize_t senseLinesOpenIndex = canDatabaseFindSignal (database, openName);
 				bms->senseLinesOpenIndices [index] = senseLinesOpenIndex;
-				checkSignalRedundancy (senseLinesOpenIndex, &signalIndices, &signalCount);
+				checkSignalRedundancy (senseLinesOpenIndex, &signalIndices, &signalCount, &result);
 				if (bms->senseLinesOpenIndices [index] < 0)
 					return errno;
 			}
@@ -227,7 +229,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			// Get the LTC ISOSPI fault global index & append it to the indicies + the signal redundancy list
 			ssize_t ltcIsoSpiFaultIndices = canDatabaseFindSignal (database, isoSpiName);
 			bms->ltcIsoSpiFaultIndices [index] = ltcIsoSpiFaultIndices;
-			checkSignalRedundancy (ltcIsoSpiFaultIndices, &signalIndices, &signalCount);
+			checkSignalRedundancy (ltcIsoSpiFaultIndices, &signalIndices, &signalCount, &result);
 
 			// Format the LTC ISOSPI test fault signal name
 			char selfTestName [] = "BMS_LTC_###_SELF_TEST_FAULT";
@@ -237,7 +239,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			// Get the LTC ISOSPI test fault global index & append it to the indicies + the signal redundancy list
 			ssize_t ltcSelfTestFaultIndex = canDatabaseFindSignal (database, selfTestName);
 			bms->ltcSelfTestFaultIndices [index] = ltcSelfTestFaultIndex;
-			checkSignalRedundancy (ltcSelfTestFaultIndex, &signalIndices, &signalCount);
+			checkSignalRedundancy (ltcSelfTestFaultIndex, &signalIndices, &signalCount, &result);
 
 			// Format the LTC temperature signal name
 			char temperatureName [] = "BMS_LTC_###_TEMPERATURE";
@@ -247,21 +249,21 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			// Get the LTC temperature global index & append it to the indicies + the signal redundancy list
 			ssize_t ltcTemperatureIndex = canDatabaseFindSignal (database, temperatureName);
 			bms->ltcTemperatureIndices [index] = ltcTemperatureIndex;
-			checkSignalRedundancy (ltcTemperatureIndex, &signalIndices, &signalCount);
+			checkSignalRedundancy (ltcTemperatureIndex, &signalIndices, &signalCount, &result);
 		}
 	}
 
 	// Get the pack voltage global index & append it to the indicies + the signal redundancy list
 	ssize_t packVoltageIndex = canDatabaseFindSignal (database, "PACK_VOLTAGE");
 	bms->packVoltageIndex = packVoltageIndex;
-	checkSignalRedundancy (packVoltageIndex, &signalIndices, &signalCount);
+	checkSignalRedundancy (packVoltageIndex, &signalIndices, &signalCount, &result);
 	if (bms->packVoltageIndex < 0)
 		return errno;
 
 	// Get the pack current global index & append it to the indicies + the signal redundancy list
 	size_t packCurrentIndex = canDatabaseFindSignal (database, "PACK_CURRENT");
 	bms->packCurrentIndex = packCurrentIndex;
-	checkSignalRedundancy (packCurrentIndex, &signalIndices, &signalCount);
+	checkSignalRedundancy (packCurrentIndex, &signalIndices, &signalCount, &result);
 	
 	if (bms->packCurrentIndex < 0)
 		return errno;
@@ -281,7 +283,11 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 
 		// Check that the signal has not been retreived previously
 		char* signalName = bmsStatusSignal->name;
-		if (checkSignalRedundancy (bmsStatusSignalGlobalIndex, &signalIndices, &signalCount)) 
+		if (checkSignalRedundancy (bmsStatusSignalGlobalIndex, &signalIndices, &signalCount, &result))
+			// Check if memory allocation failed
+			return -1; 
+
+		if (result) 
 		{
 			// Append signal to the bms status signals and index to the bms status signals indices
 			bms->statusSignalIndices[bms->statusSignalsCount++] = bmsStatusSignalGlobalIndex;
