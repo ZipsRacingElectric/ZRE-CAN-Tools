@@ -743,16 +743,12 @@ void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 		// Stores the value of the signal
 		float value;
 
-		// Get the global index and signal
-		ssize_t bmsStatusSignalGlobalIndex = bms->statusSignalIndices[signalIndex];
-		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, bmsStatusSignalGlobalIndex);
-
 		// Set the row of the current signal
 		row = signalIndex + 4;  
 		if (validRows[row]) {
 
 			// Get & display signal value or insert placeholder value
-			switch (canDatabaseGetFloat (database, bmsStatusSignalGlobalIndex, &value))
+			switch (bmsGetStatusValue (bms, signalIndex, &value))
 			{
 				case CAN_DATABASE_MISSING: 
 				{
@@ -761,15 +757,15 @@ void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 				}
 				case CAN_DATABASE_TIMEOUT: 
 				{
-					attron (COLOR_PAIR (COLOR_INVALID));
-					mvprintw (mapRowToPosition[row], column + 2, "%s", bmsStatusSignal->name);
+					attron (COLOR_PAIR (COLOR_INVALID)); 
+					mvprintw (mapRowToPosition[row], column + 2, "%s", bmsGetStatusName (bms, signalIndex));
 					mvprintw (mapRowToPosition[row], column + 42, "---");
 					attroff (COLOR_PAIR (COLOR_INVALID));
 					break;
 				}
 				case CAN_DATABASE_VALID: 
 				{
-					mvprintw (mapRowToPosition[row], column + 2,"%s", bmsStatusSignal->name);
+					mvprintw (mapRowToPosition[row], column + 2,"%s", bmsGetStatusName (bms, signalIndex));
 					mvprintw (mapRowToPosition[row], column + 42, "%.01f", value);
 					break;
 				}
