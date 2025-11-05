@@ -182,7 +182,7 @@ This program is used to monitor a battery management system in real-time.
 - Run `make` to compile all of the programs.
 - Run the `install` script to create the needed environment variables.
   - Note that on Linux, you will need to logout and log back in after this.
-- On Windows, it is useful to add the `bin` directory to your system path (not needed, just conventient).
+- On Windows, it is useful to add the `bin` directory to your system path (not needed, just convenient).
 
 ### For Linux
 
