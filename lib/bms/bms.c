@@ -30,20 +30,13 @@ static int checkSignalRedundancy (ssize_t index, size_t** indices, size_t* signa
 	// add signal name to the list
 	*indices = realloc (*indices, (*signalCount + 1) * sizeof (size_t));
 	if (! (*indices)) {
+		// Set errno to indicate that the program failed to allocate the requested memory
 		errno = ENOMEM;
 		return -1;
 	}
 
-	// REVIEW(Barach): If the memory allocation above failed, accessing the array will cause undefined behavior, likely
-	// crashing the program. This function needs a way to gracefully fail. Ex. return int error code and write result to a
-	// bool* parameter.
-
-	// REVIEW(Barach): It is not obvious what this is doing. While it consolidates code, doing multiple operations in a single
-	// line like this really isn't good practice. Preferrable to do:
-	//   *signalIndices [*signalCount] = ...
-	//   ++(*signalCount)
-
-	(*indices)[(*signalCount)++] = index;
+	(*indices)[*signalCount] = index;
+	++(*signalCount);
 	*result = true;
 	return 0;
 }
@@ -100,10 +93,6 @@ static size_t printSenseLineIndex (bms_t* bms, uint16_t segmentIndex, uint16_t l
 
 int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 {
-	// Create list to contain signal names to storing redundant information.
-	// REVIEW(Barach): Because these are local variables and dynamically allocated, they must be deallocated by the end of
-	//   this function (no other way prevent a memory leak). While there is quite a bit of memory in here that gets allocated
-	//   it is all stored in the bms object so that it can be deallocated correctly later.
 	bool result;
 	size_t signalCount = 0;
 	size_t* signalIndices = NULL;
@@ -293,6 +282,9 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 			bms->statusSignalIndices[bms->statusSignalsCount++] = bmsStatusSignalGlobalIndex;
 		}		
 	}
+
+	// Deallocate the memory allocated to the list storing the previously retreived signals
+	free (signalIndices);
 
 	return 0;
 }
