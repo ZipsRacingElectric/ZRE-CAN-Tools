@@ -105,7 +105,8 @@ static inline size_t bmsGetStatusSignalCount (bms_t* bms)
 	return bms->statusSignalsCount;
 }
 
-static inline char* bmsGetStatusName (bms_t* bms, size_t index) {
+static inline char* bmsGetStatusName (bms_t* bms, size_t index)
+{
 	canDatabase_t* database = bms->database;
 
 	ssize_t bmsStatusSignalGlobalIndex = bms->statusSignalIndices[index];
