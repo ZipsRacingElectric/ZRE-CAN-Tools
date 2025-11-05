@@ -5,37 +5,6 @@
 //
 // Description: Terminal user interface for monitoring a battery management system.
 
-// REVIEW(Barach): This is compiling with some warnings. All warnings should be resolved if possible.
-
-// REVIEW(Barach): Also, while not a huge deal, its quite a pain to read code that is inconsistent with formatting. Preferred
-//   formatting for ZRs code is:
-//
-// file_names_in_lower_snake_case
-// CONSTANTS_IN_UPPER_SNAKE_CASE
-// localVariablesInCamelCase
-//
-// Function and if statements should have a space before the parentheses:
-//   foo (...);
-//
-// Function definitions should have a newline before the code block:
-//   void foo (...)
-//   {
-//
-//   }
-//
-// Same with if and else statements:
-//   if (...)
-//   {
-//
-//   }
-//   else
-//   {
-//
-//   }
-//
-// I know all this isn't really specified anywhere, so just try to mimic the style of the code that you're working on. When
-//   starting new projects it isn't a big deal, just when adding new things to existing code.
-
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -101,7 +70,7 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
  * @param column The column to print at.
  * @param bms The BMS to print the stats of. 
 */
-void printstatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size_t column, bms_t* bms);
+void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size_t column, bms_t* bms);
 
 /** 
  * @brief Prints all information known about a segment.
@@ -289,7 +258,7 @@ int main (int argc, char** argv)
 
 		// Print the bms status signals panel & the top-most statistics panel	
 		printStatPanel (scrlTop, scrlBottom, scrRow, bmsStatusStartingRow, bmsStatStartingColumn, &bms);
-		printstatusSignals (scrlTop, scrlBottom, &scrRow, bmsStatusStartingRow, 0, &bms);
+		printStatusSignals (scrlTop, scrlBottom, &scrRow, bmsStatusStartingRow, 0, &bms);
 		
 		// Print each battery segment
 		for (size_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
@@ -489,7 +458,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	// Print the pack voltage
 	float packVoltage;
 	bool packVoltageValid = bmsGetPackVoltage (bms, &packVoltage) == CAN_DATABASE_VALID;
-	if (validRows[4]) {
+	if (validRows[4])
+	{
 		if (packVoltageValid)
 		{
 			//TODO(Barach): Round consistently?
@@ -508,7 +478,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	// Print the pack current
 	float packCurrent;
 	bool packCurrentValid = bmsGetPackCurrent (bms, &packCurrent) == CAN_DATABASE_VALID;
-	if (validRows[5]) {
+	if (validRows[5])
+	{
 		if (packCurrentValid)
 		{
 			mvprintw (mapRowToPosition[5], column + 2,  "Current");
@@ -524,7 +495,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 
 	// Print the power consumption
-	if (validRows[6]) {
+	if (validRows[6])
+	{
 		if (packVoltageValid && packCurrentValid)
 		{
 			mvprintw (mapRowToPosition[6], column + 2,  "Power");
@@ -540,7 +512,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 
 	// Print the average cell
-	if (validRows[7]) {
+	if (validRows[7])
+	{
 		if (cellsValid)
 		{
 			mvprintw (mapRowToPosition[7], column + 2,  "Avg Cell");
@@ -556,7 +529,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 
 	// Print the max cell
-	if (validRows[8]) {
+	if (validRows[8])
+	{
 		if (cellsValid)
 		{
 			mvprintw (mapRowToPosition[8], column + 2,  "Max Cell");
@@ -573,7 +547,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	
 
 	// Print the min cell
-	if (validRows[9]) {
+	if (validRows[9])
+	{
 		if (cellsValid)
 		{
 			mvprintw (mapRowToPosition[9], column + 2,  "Min Cell");
@@ -589,7 +564,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 
 	// Print the average temp
-	if (validRows[10]) { 
+	if (validRows[10]) 
+	{ 
 		if (tempsValid)
 		{
 			mvprintw (mapRowToPosition[10], column + 2,  "Avg Temp");
@@ -605,7 +581,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 
 	// Print the max temp
-	if (validRows[11]) {
+	if (validRows[11])
+	{
 		if (tempsValid)
 		{
 			mvprintw (mapRowToPosition[11], column + 2,  "Max Temp");
@@ -621,7 +598,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 
 	// Print the min temp
-	if (validRows[12]) {
+	if (validRows[12])
+	{
 		if (tempsValid)
 		{
 			mvprintw (mapRowToPosition[12], column + 2,  "Min Temp");
@@ -637,7 +615,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 
 	// Print the average delta
-	if (validRows[13]) {
+	if (validRows[13])
+	{
 		if (deltasValid)
 		{
 			mvprintw (mapRowToPosition[13], column + 2,  "Avg Delta");
@@ -653,7 +632,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 
 	// Print the max delta
-	if (validRows[14]) {
+	if (validRows[14])
+	{
 		if (deltasValid)
 		{
 			mvprintw (mapRowToPosition[14], column + 2,  "Max Delta");
@@ -669,7 +649,8 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 
 	// Print bottom of the stat panel
-	if (validRows[BMS_STAT_HEIGHT]) {
+	if (validRows[BMS_STAT_HEIGHT])
+	{
 		for (int i = 0; i < 13; i++) {
 			mvprintw (mapRowToPosition[BMS_STAT_HEIGHT], column + (i * 5), "─────"); 
 		}
@@ -683,7 +664,7 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 	}
 }
 
-void printstatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size_t column, bms_t* bms) 
+void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size_t column, bms_t* bms) 
 {	
 	// Get the database associated with the bms instance
 	canDatabase_t* database = bms->database;
@@ -696,17 +677,20 @@ void printstatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 
 	// Validate & map position for each row of the bms status signals panel  
 	for (int i = 0; i < BMS_STAT_HEIGHT + 1; i++) {
-		if (checkRow(scrlTop, scrlBottom, row++)) { 
+		if (checkRow(scrlTop, scrlBottom, row++))
+		{ 
 			validRows[i] = true;
 			mapRowToPosition[i] = (*scrRow)++; 
 		}
-		else {
+		else
+		{
 			validRows[i] = false;
 		} 
 	}
 
 	// Print the header of the BMS Status Signals Panel
-	for (int i = 0; i < 13; i++) { // (prints to the middle of the screen)
+	for (int i = 0; i < 13; i++) // (prints to the middle of the screen)
+	{ 
 		if (validRows[0]) mvprintw (mapRowToPosition[0], column + (i * 5), "─────");
 		if (validRows[1]) mvprintw (mapRowToPosition[1], column + (i * 5), "─────");
 		if (validRows[3]) mvprintw (mapRowToPosition[3], column + (i * 5), "─────");
@@ -716,12 +700,14 @@ void printstatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 	if (validRows[0]) mvprintw (mapRowToPosition[0], column + 2, " BMS Status ");
 		
 	// Prints corners of the BMS Status Signals Panel header
-	if (validRows[1]) {
+	if (validRows[1]) 
+	{
 		mvprintw (mapRowToPosition[1], column + 0,  "┌");
 	}
 	
 	// Print headers 
-	if (validRows[2]) {
+	if (validRows[2]) 
+	{
 		mvprintw (mapRowToPosition[2], column + 2,  "Signal");
 		mvprintw (mapRowToPosition[2], column + 42, "Value");
 	}
@@ -768,18 +754,21 @@ void printstatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 			// Get & display signal value or insert placeholder value
 			switch (canDatabaseGetFloat (database, bmsStatusSignalGlobalIndex, &value))
 			{
-				case CAN_DATABASE_MISSING: {
+				case CAN_DATABASE_MISSING: 
+				{
 					// Shouldn't reach here
 					break;
 				}
-				case CAN_DATABASE_TIMEOUT: {
+				case CAN_DATABASE_TIMEOUT: 
+				{
 					attron (COLOR_PAIR (COLOR_INVALID));
 					mvprintw (mapRowToPosition[row], column + 2, "%s", bmsStatusSignal->name);
 					mvprintw (mapRowToPosition[row], column + 42, "---");
 					attroff (COLOR_PAIR (COLOR_INVALID));
 					break;
 				}
-				case CAN_DATABASE_VALID: {
+				case CAN_DATABASE_VALID: 
+				{
 					mvprintw (mapRowToPosition[row], column + 2,"%s", bmsStatusSignal->name);
 					mvprintw (mapRowToPosition[row], column + 42, "%.01f", value);
 					break;
@@ -789,7 +778,8 @@ void printstatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 	}
 
 	// Print the bottom of the BMS Status Signals Panel
-	if (validRows[BMS_STAT_HEIGHT]) {
+	if (validRows[BMS_STAT_HEIGHT]) 
+	{
 		for (int i = 0; i < 13; i++) 
 			mvprintw (mapRowToPosition[BMS_STAT_HEIGHT], column + (i * 5), "─────");
 
@@ -819,14 +809,16 @@ void printSegment (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size
 
 	// Validate & map position for each row of the segment 
 	for (int i = 0; i < BMS_SEGMENT_HEIGHT; i++) {
-		if (checkRow(scrlTop, scrlBottom, row + i)) {
+		if (checkRow(scrlTop, scrlBottom, row + i)) 
+		{
 			validRows[i] = true;
 			validSegment = true;
 			mapRowToPosition[i] = *scrRow;
 			*scrRow += 1;
 			
 		}
-		else {
+		else 
+		{
 			validRows[i] = false;
 		} 
 	}
@@ -911,7 +903,6 @@ void printSegment (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size
 			// Print the sense line's box (or tab).
 			size_t increment;
 
-			int temperatureRowOffset = 0;
 			if (senseLineIndex != bms->senseLinesPerLtc - 1)
 			{
 				if (validRows[0]) mvprintw (mapRowToPosition[0], columnSense, "─────"); 
@@ -1119,7 +1110,8 @@ void printLtcStatus (int row, int column, bms_t* bms, size_t ltcIndex)
 	}
 }
 
-bool checkRow (int startRow, int endRow, int row) {
+bool checkRow (int startRow, int endRow, int row) 
+{
 	if (startRow <= row && row <= endRow) 
 		return true;
 	return false;
