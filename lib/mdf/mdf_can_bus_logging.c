@@ -9,33 +9,75 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define CAN_DATA_FRAME_BIT_LENGTH 104
-#define CAN_DATA_FRAME_BYTE_OFFSET 6
+// Macros ---------------------------------------------------------------------------------------------------------------------
 
 #define BIT_LENGTH_TO_BYTE_LENGTH(bitLength) (((bitLength) + 7) / 8)
 #define BIT_LENGTH_TO_BIT_MASK(bitLength) ((1 << (bitLength)) - 1)
 
-#define TIMESTAMP_SCALE_FACTOR	1e6
-#define TIMESTAMP_BYTE_OFFSET	0
-#define TIMESTAMP_BIT_LENGTH	48
+#define TIMESTAMP_SCALE_FACTOR 1e6
 
-#define ID_BYTE_OFFSET			6
-#define ID_BIT_LENGTH			29
+// CAN Data Frame Record ------------------------------------------------------------------------------------------------------
 
-#define IDE_BYTE_OFFSET			9
-#define IDE_BIT_OFFSET			5
-#define IDE_BIT_LENGTH			1
+#define DATA_FRAME_RECORD_ID					0x01
 
-#define BUS_CHANNEL_BYTE_OFFSET	9
-#define BUS_CHANNEL_BIT_OFFSET	6
-#define BUS_CHANNEL_BIT_LENGTH	2
+#define DATA_FRAME_BIT_LENGTH					104
+#define DATA_FRAME_BYTE_OFFSET					6
 
-#define DLC_BYTE_OFFSET			10
-#define DLC_BIT_OFFSET			0
-#define DLC_BIT_LENGTH			4
+#define DATA_FRAME_TIMESTAMP_BYTE_OFFSET		0
+#define DATA_FRAME_TIMESTAMP_BIT_LENGTH			48
 
-#define DATA_BYTES_BYTE_OFFSET	11
-#define DATA_BYTES_BIT_LENGTH	64
+#define DATA_FRAME_ID_BYTE_OFFSET				6
+#define DATA_FRAME_ID_BIT_LENGTH				29
+
+#define DATA_FRAME_IDE_BYTE_OFFSET				9
+#define DATA_FRAME_IDE_BIT_OFFSET				5
+#define DATA_FRAME_IDE_BIT_LENGTH				1
+
+#define DATA_FRAME_BUS_CHANNEL_BYTE_OFFSET		9
+#define DATA_FRAME_BUS_CHANNEL_BIT_OFFSET		6
+#define DATA_FRAME_BUS_CHANNEL_BIT_LENGTH		2
+
+#define DATA_FRAME_DLC_BYTE_OFFSET				10
+#define DATA_FRAME_DLC_BIT_OFFSET				0
+#define DATA_FRAME_DLC_BIT_LENGTH				4
+
+#define DATA_FRAME_DIR_BYTE_OFFSET				10
+#define DATA_FRAME_DIR_BIT_OFFSET				4
+#define DATA_FRAME_DIR_BIT_LENGTH				1
+
+#define DATA_FRAME_DATA_BYTES_BYTE_OFFSET		11
+#define DATA_FRAME_DATA_BYTES_BIT_LENGTH		64
+
+// CAN Remote Frame Record ----------------------------------------------------------------------------------------------------
+
+#define REMOTE_FRAME_RECORD_ID					0x02
+
+#define REMOTE_FRAME_BIT_LENGTH					37
+#define REMOTE_FRAME_BYTE_OFFSET				6
+
+#define REMOTE_FRAME_TIMESTAMP_BYTE_OFFSET		0
+#define REMOTE_FRAME_TIMESTAMP_BIT_LENGTH		48
+
+#define REMOTE_FRAME_ID_BYTE_OFFSET				6
+#define REMOTE_FRAME_ID_BIT_LENGTH				29
+
+#define REMOTE_FRAME_IDE_BYTE_OFFSET			9
+#define REMOTE_FRAME_IDE_BIT_OFFSET				5
+#define REMOTE_FRAME_IDE_BIT_LENGTH				1
+
+#define REMOTE_FRAME_BUS_CHANNEL_BYTE_OFFSET	9
+#define REMOTE_FRAME_BUS_CHANNEL_BIT_OFFSET		6
+#define REMOTE_FRAME_BUS_CHANNEL_BIT_LENGTH		2
+
+#define REMOTE_FRAME_DLC_BYTE_OFFSET			10
+#define REMOTE_FRAME_DLC_BIT_OFFSET				0
+#define REMOTE_FRAME_DLC_BIT_LENGTH				4
+
+#define REMOTE_FRAME_DIR_BYTE_OFFSET			10
+#define REMOTE_FRAME_DIR_BIT_OFFSET				4
+#define REMOTE_FRAME_DIR_BIT_LENGTH				1
+
+// Functions ------------------------------------------------------------------------------------------------------------------
 
 static mdfBlock_t* writeHeader (FILE* mdf, const char* programId, time_t timeStart)
 {
@@ -148,8 +190,8 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 			.syncType		= MDF_SYNC_TYPE_NONE,
 			.dataType		= MDF_DATA_TYPE_BYTE_ARRAY,
 			.bitOffset		= 0,
-			.byteOffset		= DATA_BYTES_BYTE_OFFSET,
-			.bitLength		= DATA_BYTES_BIT_LENGTH,
+			.byteOffset		= DATA_FRAME_DATA_BYTES_BYTE_OFFSET,
+			.bitLength		= DATA_FRAME_DATA_BYTES_BIT_LENGTH,
 			.flags			= MDF_CN_FLAGS_BUS_EVENT
 		},
 		&(mdfCnLinkList_t)
@@ -170,9 +212,9 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 			.channelType	= MDF_CHANNEL_TYPE_VALUE,
 			.syncType		= MDF_SYNC_TYPE_NONE,
 			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= 4,
-			.byteOffset		= 10,
-			.bitLength		= 1,
+			.bitOffset		= DATA_FRAME_DIR_BIT_OFFSET,
+			.byteOffset		= DATA_FRAME_DIR_BYTE_OFFSET,
+			.bitLength		= DATA_FRAME_DIR_BIT_LENGTH,
 			.flags			= MDF_CN_FLAGS_BUS_EVENT
 		},
 		&(mdfCnLinkList_t)
@@ -193,9 +235,9 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 			.channelType	= MDF_CHANNEL_TYPE_VALUE,
 			.syncType		= MDF_SYNC_TYPE_NONE,
 			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= DLC_BIT_OFFSET,
-			.byteOffset		= DLC_BYTE_OFFSET,
-			.bitLength		= DLC_BIT_LENGTH,
+			.bitOffset		= DATA_FRAME_DLC_BIT_OFFSET,
+			.byteOffset		= DATA_FRAME_DLC_BYTE_OFFSET,
+			.bitLength		= DATA_FRAME_DLC_BIT_LENGTH,
 			.flags			= MDF_CN_FLAGS_BUS_EVENT
 		},
 		&(mdfCnLinkList_t)
@@ -216,9 +258,9 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 			.channelType	= MDF_CHANNEL_TYPE_VALUE,
 			.syncType		= MDF_SYNC_TYPE_NONE,
 			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= DLC_BIT_OFFSET,
-			.byteOffset		= DLC_BYTE_OFFSET,
-			.bitLength		= DLC_BIT_LENGTH,
+			.bitOffset		= DATA_FRAME_DLC_BIT_OFFSET,
+			.byteOffset		= DATA_FRAME_DLC_BYTE_OFFSET,
+			.bitLength		= DATA_FRAME_DLC_BIT_LENGTH,
 			.flags			= MDF_CN_FLAGS_BUS_EVENT
 		},
 		&(mdfCnLinkList_t)
@@ -239,9 +281,9 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 			.channelType	= MDF_CHANNEL_TYPE_VALUE,
 			.syncType		= MDF_SYNC_TYPE_NONE,
 			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= BUS_CHANNEL_BIT_OFFSET,
-			.byteOffset		= BUS_CHANNEL_BYTE_OFFSET,
-			.bitLength		= BUS_CHANNEL_BIT_LENGTH,
+			.bitOffset		= DATA_FRAME_BUS_CHANNEL_BIT_OFFSET,
+			.byteOffset		= DATA_FRAME_BUS_CHANNEL_BYTE_OFFSET,
+			.bitLength		= DATA_FRAME_BUS_CHANNEL_BIT_LENGTH,
 			.flags			= MDF_CN_FLAGS_BUS_EVENT
 		},
 		&(mdfCnLinkList_t)
@@ -262,9 +304,9 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 			.channelType	= MDF_CHANNEL_TYPE_VALUE,
 			.syncType		= MDF_SYNC_TYPE_NONE,
 			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
-			.bitOffset		= IDE_BIT_OFFSET,
-			.byteOffset		= IDE_BYTE_OFFSET,
-			.bitLength		= IDE_BIT_LENGTH,
+			.bitOffset		= DATA_FRAME_IDE_BIT_OFFSET,
+			.byteOffset		= DATA_FRAME_IDE_BYTE_OFFSET,
+			.bitLength		= DATA_FRAME_IDE_BIT_LENGTH,
 			.flags			= MDF_CN_FLAGS_BUS_EVENT
 		},
 		&(mdfCnLinkList_t)
@@ -286,8 +328,8 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 			.syncType		= MDF_SYNC_TYPE_NONE,
 			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
 			.bitOffset		= 0,
-			.byteOffset		= ID_BYTE_OFFSET,
-			.bitLength		= ID_BIT_LENGTH,
+			.byteOffset		= DATA_FRAME_ID_BYTE_OFFSET,
+			.bitLength		= DATA_FRAME_ID_BIT_LENGTH,
 			.flags			= MDF_CN_FLAGS_BUS_EVENT
 		},
 		&(mdfCnLinkList_t)
@@ -311,8 +353,8 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 			.syncType		= MDF_SYNC_TYPE_NONE,
 			.dataType		= MDF_DATA_TYPE_BYTE_ARRAY,
 			.bitOffset		= 0,
-			.byteOffset		= CAN_DATA_FRAME_BYTE_OFFSET,
-			.bitLength		= CAN_DATA_FRAME_BIT_LENGTH,
+			.byteOffset		= DATA_FRAME_BYTE_OFFSET,
+			.bitLength		= DATA_FRAME_BIT_LENGTH,
 			.flags			= MDF_CN_FLAGS_BUS_EVENT
 		},
 		&(mdfCnLinkList_t)
@@ -333,8 +375,8 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 			.syncType		= MDF_SYNC_TYPE_TIME,
 			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
 			.bitOffset		= 0,
-			.byteOffset		= TIMESTAMP_BYTE_OFFSET,
-			.bitLength		= TIMESTAMP_BIT_LENGTH,
+			.byteOffset		= DATA_FRAME_TIMESTAMP_BYTE_OFFSET,
+			.bitLength		= DATA_FRAME_TIMESTAMP_BIT_LENGTH,
 			.flags			= MDF_CN_FLAGS_NONE
 		},
 		&(mdfCnLinkList_t)
@@ -351,10 +393,219 @@ static uint64_t writeDataFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acqui
 	return mdfCgBlockWrite (mdf,
 		&(mdfCgDataSection_t)
 		{
-			.recordId		= 0x01,
+			.recordId		= DATA_FRAME_RECORD_ID,
 			.flags			= MDF_CG_FLAGS_BUS_EVENT | MDF_CG_FLAGS_PLAIN_BUS_EVENT,
 			.pathSeparator	= '.',
-			.byteLength		= 19
+			.byteLength		= BIT_LENGTH_TO_BYTE_LENGTH (DATA_FRAME_BIT_LENGTH + DATA_FRAME_TIMESTAMP_BIT_LENGTH)
+		},
+		&(mdfCgLinkList_t)
+		{
+			.nextCgAddr				= nextCgAddr,
+			.firstCnAddr			= timestampCnAddr,
+			.acquisitionNameAddr	= dataFrameNameAddr,
+			.acquisitionSourceAddr	= acquisitionSourceAddr
+		});
+}
+
+static uint64_t writeRemoteFrameCg (FILE* mdf, uint64_t nextCgAddr, uint64_t acquisitionSourceAddr, uint64_t timestampCcAddr)
+{
+	// Component Channels -----------------------------------------------------------------------------------------------------
+
+	uint64_t dirNameAddr = mdfTxBlockWrite (mdf, "CAN_RemoteFrame.Dir");
+	if (dirNameAddr == 0)
+		return 0;
+
+	uint64_t dirCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= REMOTE_FRAME_DIR_BIT_OFFSET,
+			.byteOffset		= REMOTE_FRAME_DIR_BYTE_OFFSET,
+			.bitLength		= REMOTE_FRAME_DIR_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= dirNameAddr,
+			.nextCnAddr	= 0
+		});
+	if (dirCnAddr == 0)
+		return 0;
+
+	uint64_t dataLengthNameAddr = mdfTxBlockWrite (mdf, "CAN_RemoteFrame.DataLength");
+	if (dataLengthNameAddr == 0)
+		return 0;
+
+	uint64_t dataLengthCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= REMOTE_FRAME_DLC_BIT_OFFSET,
+			.byteOffset		= REMOTE_FRAME_DLC_BYTE_OFFSET,
+			.bitLength		= REMOTE_FRAME_DLC_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= dataLengthNameAddr,
+			.nextCnAddr	= dirCnAddr
+		});
+	if (dataLengthCnAddr == 0)
+		return 0;
+
+	uint64_t dlcNameAddr = mdfTxBlockWrite (mdf, "CAN_RemoteFrame.DLC");
+	if (dlcNameAddr == 0)
+		return 0;
+
+	uint64_t dlcCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= REMOTE_FRAME_DLC_BIT_OFFSET,
+			.byteOffset		= REMOTE_FRAME_DLC_BYTE_OFFSET,
+			.bitLength		= REMOTE_FRAME_DLC_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= dlcNameAddr,
+			.nextCnAddr	= dataLengthCnAddr
+		});
+	if (dlcCnAddr == 0)
+		return 0;
+
+	uint64_t busChannelNameAddr = mdfTxBlockWrite (mdf, "CAN_RemoteFrame.BusChannel");
+	if (busChannelNameAddr == 0)
+		return 0;
+
+	uint64_t busChannelCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= REMOTE_FRAME_BUS_CHANNEL_BIT_OFFSET,
+			.byteOffset		= REMOTE_FRAME_BUS_CHANNEL_BYTE_OFFSET,
+			.bitLength		= REMOTE_FRAME_BUS_CHANNEL_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= busChannelNameAddr,
+			.nextCnAddr	= dlcCnAddr
+		});
+	if (busChannelCnAddr == 0)
+		return 0;
+
+	uint64_t ideNameAddr = mdfTxBlockWrite (mdf, "CAN_RemoteFrame.IDE");
+	if (ideNameAddr == 0)
+		return 0;
+
+	uint64_t ideCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= REMOTE_FRAME_IDE_BIT_OFFSET,
+			.byteOffset		= REMOTE_FRAME_IDE_BYTE_OFFSET,
+			.bitLength		= REMOTE_FRAME_IDE_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= ideNameAddr,
+			.nextCnAddr	= busChannelCnAddr
+		});
+	if (ideCnAddr == 0)
+		return 0;
+
+	uint64_t idNameAddr = mdfTxBlockWrite (mdf, "CAN_RemoteFrame.ID");
+	if (idNameAddr == 0)
+		return 0;
+
+	uint64_t idCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= 0,
+			.byteOffset		= REMOTE_FRAME_ID_BYTE_OFFSET,
+			.bitLength		= REMOTE_FRAME_ID_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr	= idNameAddr,
+			.nextCnAddr	= ideCnAddr
+		});
+	if (idCnAddr == 0)
+		return 0;
+
+	// Channels ---------------------------------------------------------------------------------------------------------------
+
+	uint64_t dataFrameNameAddr = mdfTxBlockWrite (mdf, "CAN_RemoteFrame");
+	if (dataFrameNameAddr == 0)
+		return 0;
+
+	uint64_t dataFrameCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_VALUE,
+			.syncType		= MDF_SYNC_TYPE_NONE,
+			.dataType		= MDF_DATA_TYPE_BYTE_ARRAY,
+			.bitOffset		= 0,
+			.byteOffset		= REMOTE_FRAME_BYTE_OFFSET,
+			.bitLength		= REMOTE_FRAME_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_BUS_EVENT
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr		= dataFrameNameAddr,
+			.componentAddr	= idCnAddr,
+			.nextCnAddr		= 0,
+		});
+
+	uint64_t timestampNameAddr = mdfTxBlockWrite (mdf, "Timestamp");
+	if (timestampNameAddr == 0)
+		return 0;
+
+	uint64_t timestampCnAddr = mdfCnBlockWrite (mdf,
+		&(mdfCnDataSection_t)
+		{
+			.channelType	= MDF_CHANNEL_TYPE_MASTER,
+			.syncType		= MDF_SYNC_TYPE_TIME,
+			.dataType		= MDF_DATA_TYPE_UNSIGNED_INTEL,
+			.bitOffset		= 0,
+			.byteOffset		= REMOTE_FRAME_TIMESTAMP_BYTE_OFFSET,
+			.bitLength		= REMOTE_FRAME_TIMESTAMP_BIT_LENGTH,
+			.flags			= MDF_CN_FLAGS_NONE
+		},
+		&(mdfCnLinkList_t)
+		{
+			.nameAddr		= timestampNameAddr,
+			.nextCnAddr		= dataFrameCnAddr,
+			.conversionAddr	= timestampCcAddr
+		});
+	if (timestampCnAddr == 0)
+		return 0;
+
+	// Channel Group ----------------------------------------------------------------------------------------------------------
+
+	return mdfCgBlockWrite (mdf,
+		&(mdfCgDataSection_t)
+		{
+			.recordId		= REMOTE_FRAME_RECORD_ID,
+			.flags			= MDF_CG_FLAGS_BUS_EVENT | MDF_CG_FLAGS_PLAIN_BUS_EVENT,
+			.pathSeparator	= '.',
+			.byteLength		= BIT_LENGTH_TO_BYTE_LENGTH (REMOTE_FRAME_BIT_LENGTH + REMOTE_FRAME_TIMESTAMP_BIT_LENGTH)
 		},
 		&(mdfCgLinkList_t)
 		{
@@ -390,7 +641,7 @@ static uint64_t writeTimestampCc (FILE* mdf)
 		});
 }
 
-static uint64_t writeFileHistory (FILE* mdf, time_t timeStart, char* programId, char* softwareVersion)
+static uint64_t writeFileHistory (FILE* mdf, time_t timeStart, const char* programId, const char* softwareVersion)
 {
 	return mdfFhBlockWrite (mdf,
 		&(mdfFhDataSection_t)
@@ -414,6 +665,7 @@ static uint64_t writeFileHistory (FILE* mdf, time_t timeStart, char* programId, 
 static uint64_t writeComment (FILE* mdf, const char* softwareVersion, const char* hardwareVersion, const char* serialNumber,
 	const char* programId, size_t storageSize, size_t storageRemaining, uint32_t sessionNumber, uint32_t splitNumber)
 {
+	// TODO(Barach): Redo this.
 	return mdfMdBlockWrite (mdf,
 		"<HDcomment>\n"
 		"    <TX/>\n"
@@ -484,7 +736,11 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 	if (timestampCcAddr == 0)
 		return errno;
 
-	uint64_t dataFrameCgAddr = writeDataFrameCg (log->mdf, 0, acquisitionSourceAddr, timestampCcAddr);
+	uint64_t remoteFrameCgAddr = writeRemoteFrameCg (log->mdf, 0, acquisitionSourceAddr, timestampCcAddr);
+	if (remoteFrameCgAddr == 0)
+		return errno;
+
+	uint64_t dataFrameCgAddr = writeDataFrameCg (log->mdf, remoteFrameCgAddr, acquisitionSourceAddr, timestampCcAddr);
 	if (dataFrameCgAddr == 0)
 		return errno;
 
@@ -530,36 +786,76 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 
 int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, struct timeval* timestamp)
 {
-	// TODO(Barach): RTR?
-
-	uint8_t record [20] = {};
+	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (DATA_FRAME_BIT_LENGTH + DATA_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {};
 
 	// Record ID
-	record [0] = 0x01;
+	record [0] = DATA_FRAME_RECORD_ID;
 
 	// Timestamp
-	uint64_t timestampInt = (timestamp->tv_sec - log->config->timeStart) * TIMESTAMP_SCALE_FACTOR + timestamp->tv_usec * TIMESTAMP_SCALE_FACTOR / 1e6;
-	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (TIMESTAMP_BIT_LENGTH); ++index)
-		record [index + TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
+	uint64_t timestampInt = (timestamp->tv_sec - log->config->timeStart) * TIMESTAMP_SCALE_FACTOR +
+		timestamp->tv_usec * TIMESTAMP_SCALE_FACTOR / 1e6;
+	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (DATA_FRAME_TIMESTAMP_BIT_LENGTH); ++index)
+		record [index + DATA_FRAME_TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
 
 	// CAN ID
-	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (ID_BIT_LENGTH); ++index)
-		record [index + ID_BYTE_OFFSET + 1] |= frame->id >> (index * 8);
+	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (DATA_FRAME_ID_BIT_LENGTH); ++index)
+		record [index + DATA_FRAME_ID_BYTE_OFFSET + 1] |= frame->id >> (index * 8);
 
 	// IDE
-	record [IDE_BYTE_OFFSET + 1] |= (frame->ide & BIT_LENGTH_TO_BIT_MASK (IDE_BIT_LENGTH)) << IDE_BIT_OFFSET;
+	record [DATA_FRAME_IDE_BYTE_OFFSET + 1] |= (frame->ide & BIT_LENGTH_TO_BIT_MASK (DATA_FRAME_IDE_BIT_LENGTH))
+		<< DATA_FRAME_IDE_BIT_OFFSET;
 
 	// Bus channel
-	record [BUS_CHANNEL_BYTE_OFFSET + 1] |=
-		(busChannel & BIT_LENGTH_TO_BIT_MASK (BUS_CHANNEL_BIT_LENGTH)) << BUS_CHANNEL_BIT_OFFSET;
+	record [DATA_FRAME_BUS_CHANNEL_BYTE_OFFSET + 1] |=
+		(busChannel & BIT_LENGTH_TO_BIT_MASK (DATA_FRAME_BUS_CHANNEL_BIT_LENGTH)) << DATA_FRAME_BUS_CHANNEL_BIT_OFFSET;
 
 	// DLC
-	record [DLC_BYTE_OFFSET + 1] |=
-		(frame->dlc & BIT_LENGTH_TO_BIT_MASK (DLC_BIT_LENGTH)) << DLC_BIT_OFFSET;
+	record [DATA_FRAME_DLC_BYTE_OFFSET + 1] |=
+		(frame->dlc & BIT_LENGTH_TO_BIT_MASK (DATA_FRAME_DLC_BIT_LENGTH)) << DATA_FRAME_DLC_BIT_OFFSET;
+
+	// DIR = 0 for RX
 
 	// Data Bytes
 	for (size_t index = 0; index < frame->dlc; ++index)
-		record [DATA_BYTES_BYTE_OFFSET + index + 1] |= frame->data [index];
+		record [DATA_FRAME_DATA_BYTES_BYTE_OFFSET + index + 1] |= frame->data [index];
+
+	// Write the record to the file.
+	if (fwrite (record, 1, sizeof (record), log->mdf) != sizeof (record))
+		return errno;
+
+	return 0;
+}
+
+int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, struct timeval* timestamp)
+{
+	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (REMOTE_FRAME_BIT_LENGTH + REMOTE_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {};
+
+	// Record ID
+	record [0] = REMOTE_FRAME_RECORD_ID;
+
+	// Timestamp
+	uint64_t timestampInt = (timestamp->tv_sec - log->config->timeStart) * TIMESTAMP_SCALE_FACTOR +
+		timestamp->tv_usec * TIMESTAMP_SCALE_FACTOR / 1e6;
+	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (REMOTE_FRAME_TIMESTAMP_BIT_LENGTH); ++index)
+		record [index + REMOTE_FRAME_TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
+
+	// CAN ID
+	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (REMOTE_FRAME_ID_BIT_LENGTH); ++index)
+		record [index + REMOTE_FRAME_ID_BYTE_OFFSET + 1] |= frame->id >> (index * 8);
+
+	// IDE
+	record [REMOTE_FRAME_IDE_BYTE_OFFSET + 1] |= (frame->ide & BIT_LENGTH_TO_BIT_MASK (REMOTE_FRAME_IDE_BIT_LENGTH))
+		<< REMOTE_FRAME_IDE_BIT_OFFSET;
+
+	// Bus channel
+	record [REMOTE_FRAME_BUS_CHANNEL_BYTE_OFFSET + 1] |=
+		(busChannel & BIT_LENGTH_TO_BIT_MASK (REMOTE_FRAME_BUS_CHANNEL_BIT_LENGTH)) << REMOTE_FRAME_BUS_CHANNEL_BIT_OFFSET;
+
+	// DLC
+	record [REMOTE_FRAME_DLC_BYTE_OFFSET + 1] |=
+		(frame->dlc & BIT_LENGTH_TO_BIT_MASK (REMOTE_FRAME_DLC_BIT_LENGTH)) << REMOTE_FRAME_DLC_BIT_OFFSET;
+
+	// DIR = 0 for RX
 
 	// Write the record to the file.
 	if (fwrite (record, 1, sizeof (record), log->mdf) != sizeof (record))

@@ -90,6 +90,16 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config);
 int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, struct timeval* timestamp);
 
 /**
+ * @brief Writes an RTR CAN frame to an MDF log.
+ * @param log The log to write to.
+ * @param frame The RTR frame to write.
+ * @param busChannel The CAN bus channel the frame originated from.
+ * @param timestamp The time at which the frame arrived.
+ * @return 0 if successful, the error code otherwise.
+ */
+int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, struct timeval* timestamp);
+
+/**
  * @brief Closes a an MDF log.
  * @param log The log to close.
  * @return 0 if successful, the error code otherwise.
