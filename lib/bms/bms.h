@@ -106,6 +106,19 @@ bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
  */
 canDatabaseSignalState_t bmsGetSignalValue (canDatabase_t* database, size_t messageIndex, size_t signalIndex, float* value);
 
+// TODO(DiBacco): this function is not correct in current program state
+// Will work once the program merges
+static inline char* bmsGetStatusUnit (bms_t* bms, size_t index)
+{
+	canDatabase_t* database = bms->database;
+
+	ssize_t bmsStatusSignalGlobalIndex = bms->bmsStatusSignalIndices[index]; // TODO(DiBacco): will have to rename bmsStatusSignalIndices => statusSignalIndices on merge
+	canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, bmsStatusSignalGlobalIndex);
+
+	return bmsStatusSignal->unit;
+}
+
+
 /**
  * @brief Checks if signal has already been retreived to minimize signal redundancy. Dyanmically adds the signal's name to a list of signal names if not.  
  * @param signalName A pointer to the name of the signal to check

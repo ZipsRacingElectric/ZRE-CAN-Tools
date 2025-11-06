@@ -238,7 +238,6 @@ char** slcanEnumerateDevices(size_t* deviceCount)
 		char** deviceNames = malloc(devInfoData.cbSize * sizeof(char*));
 		*deviceCount = devInfoData.cbSize;
 
-
 		// Enumerate each device within the device information set
 		// SetupDiEnumDeviceInfo: retrieves information about the device @ position i in the device information set
 		// DWORD: 32-bit data type
