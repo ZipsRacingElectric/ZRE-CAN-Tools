@@ -1,20 +1,18 @@
 #include <gtk/gtk.h>
 #include "debug.h"
+#include "can_device/can_device.h"
+#include "can_database/can_database.h"
+
+canDatabase_t database; 
 
 static gboolean update_counter(GtkWidget *label) {
-    static int count = 1;
-    
-    // If the count exceeds 30, reset it
-    if (count > 30) {
-        count = 1;
-    }
-
-    // Update the label text with the current count
-    char text[4];  // Enough space for numbers 1-30
-    snprintf(text, sizeof(text), "%d", count);
+   
+	ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT"); //Check for faliure
+	float value;
+	canDatabaseGetFloat(&database, index, &value); //Check return code
+    char text[16];  // Enough space for numbers 1-30
+    snprintf(text, sizeof(text), "%f", value);
     gtk_label_set_text(GTK_LABEL(label), text);
-    
-    count++;
     return TRUE; // Continue calling this function
 }
 
@@ -100,13 +98,16 @@ int main (int argc, char** argv)
 	GtkApplication* app;
 	int status;
 
-	if (argc != 2)
+	if (argc != 4)
 	{
-		fprintf (stderr, "Invalid usage: dashboard <Application Name>\n");
+		fprintf (stderr, "Invalid usage: dashboard <Application Name> <Device Name> <DBC File Path>");
 		return -1;
 	}
 
 	debugInit ();
+
+	canDevice_t* device = canInit(argv [2]); //TODO Check if Null
+	canDatabaseInit(&database, device, argv [3]); //argv [3] = DBC File Path Check return code of the function
 
 	// Create application ID from application name
 	char* applicationName = argv [1];
@@ -117,7 +118,7 @@ int main (int argc, char** argv)
 
 	app = gtk_application_new (applicationId, G_APPLICATION_DEFAULT_FLAGS);
 	g_signal_connect (app, "activate", G_CALLBACK (activate), applicationName);
-	status = g_application_run (G_APPLICATION (app), argc - 1, argv);
+	status = g_application_run (G_APPLICATION (app), argc - 3, argv);
 	g_object_unref (app);
 
 	free (applicationId);
