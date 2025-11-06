@@ -734,14 +734,15 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 	// Display each signal name and its corresponding value in a single row
 	for (size_t signalIndex = 0; signalIndex < bms->bmsStatusSignalsCount; signalIndex++) { 
 		float value;
-
-		// Get the signal and the local index 
-		ssize_t bmsStatusSignalIndex = bms->bmsStatusSignalIndices[signalIndex];
-		canSignal_t* bmsStatusSignal = bms->bmsStatusSignals[signalIndex];
-
+		
 		// Set the row of the current signal
 		row = signalIndex + 4;  
 		if (validRows[row]) {
+
+			// TODO(DiBacco): the code below will create a merge conflict
+			// Get the signal and the local index 
+			ssize_t bmsStatusSignalIndex = bms->bmsStatusSignalIndices[signalIndex];
+			canSignal_t* bmsStatusSignal = bms->bmsStatusSignals[signalIndex];
 
 			// Get & display signal value or insert placeholder value
 			switch (bmsGetSignalValue(database, bms->bmsStatusMessageIndex, bmsStatusSignalIndex, &value)) 
@@ -754,12 +755,14 @@ void printBmsStatusSignals (int scrlTop, int scrlBottom, uint16_t* scrRow, uint1
 					attron (COLOR_PAIR (COLOR_INVALID));
 					mvprintw (mapRowToPosition[row], column + 2, bmsStatusSignal->name);
 					mvprintw (mapRowToPosition[row], column + 42, "---");
+					mvprintw (mapRowToPosition[row], column + 50, "%s", bmsStatusSignal->unit);
 					attroff (COLOR_PAIR (COLOR_INVALID));
 					break;
 				}
 				case CAN_DATABASE_VALID: {
 					mvprintw (mapRowToPosition[row], column + 2, bmsStatusSignal->name);
 					mvprintw (mapRowToPosition[row], column + 42, "%.01f", value);
+					mvprintw (mapRowToPosition[row], column + 50, "%s", bmsStatusSignal->unit);
 					break;
 				}
 			}

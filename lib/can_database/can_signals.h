@@ -55,6 +55,9 @@ struct canSignal
 	/// @brief The name of this signal.
 	char* name;
 
+	/// @brief The unit associated with the signal
+	char* unit;
+
 	/// @brief The position of the starting bit of this signal.
 	uint8_t bitPosition;
 

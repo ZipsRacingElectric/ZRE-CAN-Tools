@@ -15,6 +15,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+// TODO(DiBacco): headers required?
+#include <windows.h> // provides WIN32 types
+#include <setupapi.h> // provides SetupAPI declarations
+#include <initguid.h> // provides predefined GUID constants 
+#include <devguid.h> // provides predefined GUID constants for device setup classes
+#include <regstr.h> // provides predefined constants for registry keys and property names
+#include <tchar.h> // provides necessary macros and types for Unicode / ANSI compatibility 
+#include <stdio.h> // provides standard I/O functions
+
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
 typedef struct
@@ -198,4 +207,80 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs)
 
 	can->timeoutMs = timeoutMs;
 	return 0;
+}
+
+char** slcanEnumerateDevices() {
+	// Check the OS running the program based on system-defined macro 
+	#if defined (_WIN32) || defined (_WIN64)
+		// Lists the communication (COM) devices connected to the serial communication port
+		// SetupDiGetClassDevs: returns handle to a device information set that contians requested device information elements for a local computer
+		// Note: will automatically map to the function version with the A suffix (ANSI [narrow char]) or the W suffix (Unicode [wide char])
+    	// 		- GUID class
+		//			- GUID_DEVINTERFACE_COMPORT: identifies the device interface class for COM ports
+		// 		- Device Enumerator Name
+		// 			- 0 / Null disables enumerator filtering 
+		// 		- Window handle (hwndParent)
+		// 			- 0 / Null disables dialogs
+		// 		- DIGCF flags, which used to filter devices during enumeration
+		// 			- DIGCF_PRESENT: include devices that are physically attached
+		// 			- DIGCF_DEVICEINTERFACE: include devices that expose an interface
+		// 		- Returns handle to device information set (HDEVINFO) 
+		HDEVINFO hDevInfo = SetupDiGetClassDevs (&GUID_DEVINTERFACE_COMPORT, 0, 0, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+
+		// SP_DEVINFO_DATA: used to identify a specific device within a device information set
+		SP_DEVINFO_DATA devInfoData;
+		devInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+
+		// Store device names
+		char* deviceNames [devInfoData.cbSize];
+		
+		// Enumerate each device within the device information set
+		// SetupDiEnumDeviceInfo: retrieves information about the device @ position i in the device information set
+		// DWORD: 32-bit data type
+		for (DWORD i = 0; SetupDiEnumDeviceInfo(hDevInfo, i, &devInfoData); i++) {
+    		// TCHAR: generic-text character type
+			TCHAR friendlyName[256];
+			// SetupDiGetDeviceRegistryProperty: used to get properties of a device from its registry key
+			// 		- DeviceInfoSet (HDEVINFO): handle to the device information set
+			// 		- DeviceInfoData (PSP_DEVINFO_DATA): pointer to the structure identifying the specific device within the set
+			//			- PSP_DEVINFO_DATA: a pointer to SP_DEVINFO_DATA
+			// 			- SP_DEVINFO_DATA: represents a single device in a device information set
+			// 		- Property (DWORD): the device property to retrieve 
+			// 		- PropertyRegDataType (PWORD): [optional] retrieves the data type of the property 
+			// 		- PropertyBuffer (PBYTE): buffer where the property value will be stored
+			// 			- PBYTE: pointer to a byte
+			// 		- PropertyBufferSize (DWORD): size of property buffer (in bytes)
+			// 		- RequiredSize (PDWORD): [optional] retrieves the size of the data 
+			//			- PDWORD: pointer to DWORD
+			// 		- Returns true is PropertyBuffer contains information associated with the device and false otherwise
+			// PBYTE: a pointer to a byte 
+			if (SetupDiGetDeviceRegistryProperty (
+				hDevInfo, 
+				&devInfoData,
+				SPDRP_FRIENDLYNAME, 
+				NULL, 
+				(PBYTE)friendlyName, 
+				sizeof(friendlyName), 
+				NULL)) 
+				{	
+					printf ("Friendly Name: %s\n", friendlyName);
+
+					// Formats the friendly name, such that only the device name is displayed (ex. COM1)
+					strtok (friendlyName, "(");
+					char* deviceName = strtok (NULL, ")");
+					deviceNames[i] = deviceName;
+				}
+
+
+		}
+
+		// Frees the resources associated with the device information set
+		SetupDiDestroyDeviceInfoList(hDevInfo);
+
+	#elif defined (__linux__)
+   		printf("Running on Linux\n");
+
+	#endif
+
+	return deviceNames;
 }

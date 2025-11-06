@@ -162,6 +162,11 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 				signal->name = malloc (nameSize + 1);
 				strcpy (signal->name, dataBuffer0);
 
+				// Allocate and copy unit 
+				size_t unitSize = strlen (dataBuffer1);
+				signal->unit = malloc (unitSize + 1);
+				strcpy (signal->unit, dataBuffer1);
+
 				if (scaleFactor == 0)
 					scaleFactor = 1;
 

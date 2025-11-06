@@ -15,4 +15,6 @@ LIB :=						\
 
 $(BIN): $(SRC) $(LIB)
 	mkdir -p $(BIN_DIR)
-	gcc $^ $(CFLAGS) -o $@
+	gcc $^ $(CFLAGS) -o $@ -lsetupapi -luuid
+# TODO(DiBacco): find a better approach for including linker flags for the setupapi & libuuid libraries.
+# Ideally, this solution would provide os specificity and allow the linkage to be done centrally.
