@@ -1,12 +1,35 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 
+static gboolean update_counter(GtkWidget *label) {
+    static int count = 1;
+    
+    // If the count exceeds 30, reset it
+    if (count > 30) {
+        count = 1;
+    }
+
+    // Update the label text with the current count
+    char text[4];  // Enough space for numbers 1-30
+    snprintf(text, sizeof(text), "%d", count);
+    gtk_label_set_text(GTK_LABEL(label), text);
+    
+    count++;
+    return TRUE; // Continue calling this function
+}
+
 static void print_hello (GtkWidget* widget, gpointer data)
 {
 	g_print ("Hello, World!\n");
+	for (int i = 1; i <= 10; i++)
+	{
+		g_print("%d'\n",i);
+	}
 }
 static void winscreen (GtkWidget* widget, GtkWindow* window)
 {
+	//**Default is Fullscreen**//
+
 	//Set Window Unfullscreen
 	if (gtk_window_is_fullscreen (GTK_WINDOW(window)) == true)
 	{
@@ -34,6 +57,7 @@ static void activate (GtkApplication* app, gpointer title)
 	GtkWidget* window;
 	GtkWidget* button;
 	GtkWidget* grid;
+	GtkWidget* label;
 
 	/* Create a new window and set it's title*/
 	window = gtk_application_window_new (app);
@@ -45,6 +69,9 @@ static void activate (GtkApplication* app, gpointer title)
 
 	/* Pack the container in the window */
 	gtk_window_set_child (GTK_WINDOW(window), grid);
+
+	label = gtk_label_new("Hello World");
+	gtk_grid_attach (GTK_GRID(grid), label, 0, 2, 5, 1);
 
 	button = gtk_button_new_with_label ("Button 1");
 	g_signal_connect (button, "clicked", G_CALLBACK (print_hello), NULL);
@@ -61,6 +88,8 @@ static void activate (GtkApplication* app, gpointer title)
 	g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_window_destroy), window);
 
 	gtk_grid_attach (GTK_GRID(grid), button, 0, 1, 2, 1);
+	
+	g_timeout_add(33, (GSourceFunc)update_counter, label);
 
 	gtk_window_present (GTK_WINDOW (window));
 }
