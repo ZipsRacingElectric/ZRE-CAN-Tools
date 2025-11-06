@@ -14,6 +14,9 @@
 #include "can_device/can_device.h"
 #include "cjson/cjson_util.h"
 
+// TODO(DiBacco): will communication device enumeration be done in this file?
+#include "can_device/slcan.h" 
+
 // Curses
 #ifdef __unix__
 #include <curses.h>
@@ -22,6 +25,7 @@
 #endif // __unix__
 
 // C Standard Library
+#include <stdlib.h>
 #include <errno.h>
 #include <locale.h>
 #include <math.h>
@@ -151,6 +155,25 @@ int main (int argc, char** argv)
 	char* deviceName	= argv [1];
 	char* dbcPath		= argv [2];
 	char* configPath	= argv [3];
+
+	// Get the name of the communication device if one is not provided
+	// TODO(DiBacco): if no device name is found, then get device name from the device enumeration
+	// TODO(DiBacco): what symbol should indicate that the user doesn't know their device name? Likley a temporary implementation. 
+	// TODO(DiBacco): extend implementation to every instance in the application where canInit is called
+
+	size_t deviceCount;
+	char** deviceNames = slcanEnumerateDevices (&deviceCount);
+	if (deviceCount > 0) 
+	{
+		deviceName = slcanGetDevice (deviceNames, deviceCount, "1000000");
+	}
+	else 
+	{
+		fprintf (stderr, "Failed to enumerate communication device. \n");
+	}
+
+	// Deallocate the list of device names 
+	free (deviceNames);
 
 	// Initialize the CAN device
 	canDevice_t* device = canInit (deviceName);

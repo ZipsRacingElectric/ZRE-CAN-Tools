@@ -12,11 +12,6 @@
 
 canDevice_t* canInit (char* name)
 {
-
-	// TODO(DiBacco): enumerate CAN devices w. slcan_enumerate_device function 
-	// TODO(DiBacco): not sure where the best place to put this function would by, but it is okay here for testing 
-	char** deviceNames = slcanEnumerateDevices();
-	
 	// Handle SocketCAN device
 	if (socketCanNameDomain (name))
 		return socketCanInit (name);

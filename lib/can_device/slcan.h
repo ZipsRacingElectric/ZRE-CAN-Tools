@@ -56,12 +56,19 @@ int slcanFlushRx (void* device);
 /// @brief SLCAN implementation of the @c canSetTimeout function.
 int slcanSetTimeout (void* device, unsigned long timeoutMs);
 
-// TODO(DiBacco): might have to update the comment depending on whether or not the function ends up filtering for specific devices 
-/// @brief Enumerates & displays the name of each communication device connected to the serial communication port
-/// @return A list containing the names of each communication device connected to the serial communication port
-char** slcanEnumerateDevices ();
+/** 
+ * @brief Enumerates & displays the name of each communication device connected to the serial communication port.
+ * @param deviceCount The number of elements in the list of device names.
+ * @return The list containing the names of each communication device.
+ */ 
+char** slcanEnumerateDevices (size_t* deviceCount);
 
-/// @brief Gets the name of the first communication device from the list of communication device names
-char* slcanGetDevice (char** deviceNames);
+/** 
+ * @brief Gets the name of the first communication device from the list of communication device names
+ * @param deviceNames The list containing the names of each communication device.
+ * @param deviceCount The number of elements in the list of device names.
+ * @param baudRate The intended baud rate for the device.
+ */
+char* slcanGetDevice (char** deviceNames, size_t deviceCount, char* baudRate);
 
 #endif // SERIAL_CAN_H

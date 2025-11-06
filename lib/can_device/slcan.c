@@ -11,6 +11,7 @@
 #include "SerialCAN_Defines.h"
 
 // C Standard Library
+#include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -209,7 +210,8 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs)
 	return 0;
 }
 
-char** slcanEnumerateDevices() {
+char** slcanEnumerateDevices(size_t* deviceCount) 
+{
 	// Check the OS running the program based on system-defined macro 
 	#if defined (_WIN32) || defined (_WIN64)
 		// Lists the communication (COM) devices connected to the serial communication port
@@ -232,8 +234,11 @@ char** slcanEnumerateDevices() {
 		devInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
 
 		// Store device names
-		char* deviceNames [devInfoData.cbSize];
-		
+		// TODO(DiBacco): would like to not have to dynamically allocate this list
+		char** deviceNames = malloc(devInfoData.cbSize * sizeof(char*));
+		*deviceCount = devInfoData.cbSize;
+
+
 		// Enumerate each device within the device information set
 		// SetupDiEnumDeviceInfo: retrieves information about the device @ position i in the device information set
 		// DWORD: 32-bit data type
@@ -275,12 +280,19 @@ char** slcanEnumerateDevices() {
 		}
 
 		// Frees the resources associated with the device information set
-		SetupDiDestroyDeviceInfoList(hDevInfo);
-
+		SetupDiDestroyDeviceInfoList(hDevInfo);	
+		return deviceNames;
+		
 	#elif defined (__linux__)
    		printf("Running on Linux\n");
 
 	#endif
+}
 
-	return deviceNames;
+char* slcanGetDevice (char** deviceNames, size_t deviceCount, char* baudRate) 
+{
+	static char deviceName [20];
+	sprintf (deviceName, "%s@%s", deviceNames[0], baudRate);
+
+	return deviceName;
 }
