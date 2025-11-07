@@ -17,6 +17,7 @@
 #include <string.h>
 #include <windows.h> 
 #include <stdio.h>
+#include <dirent.h>
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -214,6 +215,9 @@ char** slcanEnumerateDevices(size_t* deviceCount)
 		// DWORD (Double-Word): 32-bit unsigned data type
 		// LPSTR (Long Pointer to a String): typedef (alias) for a char*
 
+		// TODO(DiBacco): uncomment Windows enumeration solution
+		// Removing implementation to see if it alleviates Linux segmentation fault
+		/*
 		LPSTR device;
 		char buffer [32768];
 		DWORD bufferSize = 32768;
@@ -234,9 +238,30 @@ char** slcanEnumerateDevices(size_t* deviceCount)
 		}
 
 		return deviceNames;
+		*/
 
 	#else
-   		printf("Running on Linux\n");
+   		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
+		// dirent (directory entry): represents an entry inside a directory
+		/* struct dirent {
+    	   		ino_t d_ino;            // inode number
+    			char d_name[256];       // filename
+    			unsigned char d_type;   // file type
+			};
+		*/
+		// DIR: data type representing a directory stream
+		// included in the dirent header file
+
+		const char* dev = "/dev";
+		struct dirent* entry;
+
+		DIR directory = opendir (dev);
+		if (! directory)
+		{
+			printf ("Boom!\n");
+		}
+
+		closedir (directory);
 
 	#endif
 }
