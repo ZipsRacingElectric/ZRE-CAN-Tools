@@ -12,12 +12,16 @@
 
 // C Standard Library
 #include <stdio.h>
+#include <stddef.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <string.h>
-#include <windows.h> 
+#include <string.h> 
 #include <stdio.h>
 #include <dirent.h>
+
+#if ! (__unix__)
+#include <windows.h>
+#endif
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -217,28 +221,26 @@ char** slcanEnumerateDevices(size_t* deviceCount)
 
 		// TODO(DiBacco): uncomment Windows enumeration solution
 		// Removing implementation to see if it alleviates Linux segmentation fault
-		/*
 		LPSTR device;
 		char buffer [32768];
 		DWORD bufferSize = 32768;
-    	
+
 		QueryDosDeviceA (NULL, buffer, bufferSize);
-		
+
 		device = buffer;
 		while (*device)
 		{
 
 			if (strstr (device, "COM") && strlen (device) <= 5)
 			{
-				deviceNames [*deviceCount] = device; 
-				++(*deviceCount);        	
+				deviceNames [*deviceCount] = device;
+				++(*deviceCount);
 			}
 
 			device += strlen (device) + 1;
 		}
 
 		return deviceNames;
-		*/
 
 	#else
    		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
@@ -255,14 +257,32 @@ char** slcanEnumerateDevices(size_t* deviceCount)
 		const char* dev = "/dev";
 		struct dirent* entry;
 
-		DIR directory = opendir (dev);
-		if (! directory)
+		DIR* directory = opendir (dev);
+
+		while (entry = readdir (directory))
 		{
-			printf ("Boom!\n");
+			if (entry == NULL)
+			{
+				break;
+			}
+
+			// tty: serial port representation in Linux
+			// S: indicates standard serial port
+			if (strstr (entry->d_name, "ttyS"))
+			{
+				// TODO(DiBacco): why are all serial ports showing up?
+				// Find way to detect whether the port is occupied
+
+				// ioctl: system call that manipulates the underlying device parameters of special files 
+				deviceNames[*deviceCount] = entry->d_name;
+				++(*deviceCount);
+			}
+
 		}
 
 		closedir (directory);
 
+		return deviceNames;
 	#endif
 }
 
