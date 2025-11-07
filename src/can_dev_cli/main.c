@@ -11,6 +11,7 @@
 #include "can_device/can_device.h"
 #include "error_codes.h"
 #include "time_port.h"
+#include "can_device/slcan.h"
 
 // C Standard Library
 #include <errno.h>
@@ -360,13 +361,27 @@ int processCommand (canDevice_t* device, char* command) {
 
 int main (int argc, char** argv)
 {	
+	// TODO(DiBacco): temporary removal before a more permanent implimentation
+	/*
 	if (argc < 2 || argc > 3)
 	{
 		fprintf (stderr, "Format: can-dev-cli -method (optional) <device name>\n");
 		return -1;
 	}
+	*/
 
-	char* deviceName = argv [argc - 1];
+	// Enumerates communication devices if one is not provided
+	char* deviceName;
+	if (argc == 3) 
+	{
+		deviceName = argv [argc - 1];
+	}
+	else 
+	{
+		size_t deviceCount = 0;
+		char** deviceNames = slcanEnumerateDevices (&deviceCount);
+		deviceName = slcanGetDevice (deviceNames, deviceCount, "1000000");
+	}
 
 	// Check for query mode
 	// TODO(Barach): This is pretty messy.
