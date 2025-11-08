@@ -268,7 +268,9 @@ char** slcanEnumerateDevices(size_t* deviceCount)
 
 			// tty: serial port representation in Linux
 			// S: indicates standard serial port
-			if (strstr (entry->d_name, "ttyS"))
+			// ACM: indicates a serial communication device over a usb connection
+
+			if (strstr (entry->d_name, "ttyACM"))
 			{
 				// TODO(DiBacco): why are all serial ports showing up?
 				// Find way to detect whether the port is occupied
@@ -283,6 +285,7 @@ char** slcanEnumerateDevices(size_t* deviceCount)
 		closedir (directory);
 
 		return deviceNames;
+
 	#endif
 }
 
