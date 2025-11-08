@@ -57,7 +57,7 @@ typedef struct
 	/// @brief The index of this data log, starting from 0 and incrementing monotonically.
 	uint32_t sessionNumber;
 
-	/// @brief The index of the split of this data log. When a log is split due to size, the session number should remaing the
+	/// @brief The index of the split of this data log. When a log is split due to size, the session number should remain the
 	/// same, but the split number should be incremented. Should start from 1.
 	uint32_t splitNumber;
 } mdfCanBusLogConfig_t;
@@ -83,21 +83,39 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config);
  * @brief Writes a CAN data frame to an MDF log.
  * @param log The log to write to.
  * @param frame The data frame to write.
- * @param busChannel The CAN bus channel the frame originated from.
+ * @param busChannel The CAN bus channel the frame originated from. Either 1 or 2.
+ * @param direction The direction of the frame. False => received, true => transmitted.
  * @param timestamp The time at which the frame arrived.
  * @return 0 if successful, the error code otherwise.
  */
-int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, struct timeval* timestamp);
+int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction,
+	struct timeval* timestamp);
 
 /**
- * @brief Writes an RTR CAN frame to an MDF log.
+ * @brief Writes an CAN RTR frame to an MDF log.
  * @param log The log to write to.
  * @param frame The RTR frame to write.
- * @param busChannel The CAN bus channel the frame originated from.
+ * @param busChannel The CAN bus channel the frame originated from. Either 1 or 2.
+ * @param direction The direction of the frame. False => received, true => transmitted.
  * @param timestamp The time at which the frame arrived.
  * @return 0 if successful, the error code otherwise.
  */
-int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, struct timeval* timestamp);
+int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction,
+	struct timeval* timestamp);
+
+/**
+ * @brief Writes a CAN error frame to an MDF log.
+ * @param log The log to write to.
+ * @param frame The error frame to write.
+ * @param busChannel The CAN bus channel the frame originated from. Either 1 or 2.
+ * @param direction The direction of the frame. False => received, true => transmitted.
+ * @param errorCode The error code that is associated with the frame (as returned by @c canReceive and checked by
+ * @c canCheckBusError ).
+ * @param timestamp The time at which the frame was generated.
+ * @return 0 if successful, the error code otherwise.
+ */
+int mdfCanBusLogWriteErrorFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, int errorCode,
+	struct timeval* timestamp);
 
 /**
  * @brief Closes a an MDF log.

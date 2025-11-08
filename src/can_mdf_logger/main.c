@@ -69,27 +69,28 @@ int main (int argc, char** argv)
 	while (logging)
 	{
 		canFrame_t frame;
-		if (canReceive (device, &frame) != 0)
-			continue;
+		int code = canReceive (device, &frame);
 
 		struct timeval timeCurrent;
 		gettimeofday (&timeCurrent, NULL);
 
-		if (!frame.rtr)
+		if (code == 0)
 		{
-			if (mdfCanBusLogWriteDataFrame (&log, &frame, 1, &timeCurrent) != 0)
+			if (!frame.rtr)
 			{
-				errorPrintf ("Warning, failed to log CAN data frame");
-				continue;
+				if (mdfCanBusLogWriteDataFrame (&log, &frame, 1, false, &timeCurrent) != 0)
+					errorPrintf ("Warning, failed to log CAN data frame");
+			}
+			else
+			{
+				if (mdfCanBusLogWriteRemoteFrame (&log, &frame, 1, false, &timeCurrent) != 0)
+					errorPrintf ("Warning, failed to log CAN remote frame");
 			}
 		}
-		else
+		else if (canCheckBusError (code))
 		{
-			if (mdfCanBusLogWriteRemoteFrame (&log, &frame, 1, &timeCurrent) != 0)
-			{
-				errorPrintf ("Warning, failed to log CAN remote frame");
-				continue;
-			}
+			if (mdfCanBusLogWriteErrorFrame (&log, &frame, 1, false, code, &timeCurrent) != 0)
+				errorPrintf ("Warning, failed to log CAN error frame");
 		}
 	}
 
