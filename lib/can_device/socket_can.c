@@ -130,7 +130,7 @@ canDevice_t* socketCanInit (const char* name, canBaudrate_t baudrate)
 	}
 
 	// Set the socket's error filter to include all error types.
-	can_err_mask_t errorMask = 0xFFFF;
+	can_err_mask_t errorMask = CAN_ERR_MASK;
 	if (setsockopt(descriptor, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &errorMask, sizeof (errorMask)) != 0)
 	{
 		close (descriptor);
