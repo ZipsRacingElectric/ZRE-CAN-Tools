@@ -372,7 +372,7 @@ int main (int argc, char** argv)
 
 	// Enumerates communication devices if one is not provided
 	char* deviceName;
-	if (argc == 3) 
+	if (argc == 2) 
 	{
 		deviceName = argv [argc - 1];
 	}
@@ -386,6 +386,7 @@ int main (int argc, char** argv)
 			printf ("Device Name: %s\n", deviceNames[i]);
 		}
 		deviceName = slcanGetDevice (deviceNames, deviceCount, "1000000");
+		printf ("Full Device Name: %s\n", deviceName);
 	}
 
 	// Check for query mode
