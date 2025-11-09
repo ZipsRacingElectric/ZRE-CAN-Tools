@@ -19,6 +19,7 @@
 #include "can_database/can_database.h"
 #include "can_device/can_device.h"
 #include "error_codes.h"
+#include "can_device/slcan.h"
 
 // C Standard Library
 #include <errno.h>
@@ -65,14 +66,33 @@ void printMessageValue (FILE* stream, canDatabase_t* database, size_t index);
 
 int main (int argc, char** argv)
 {
-	if (argc != 3)
+	static char deviceName[128];
+	char* dbcPath; 
+
+	// Enumerate devices if one is not provided
+	if (argc == 2)
+	{
+		if (slcanEnumerateDevice (deviceName, "1000000") == -1)
+		{
+			return -1;
+		}
+
+		dbcPath = argv [1];
+	}
+	// Validate standard arguments
+	else if (argc != 3)
 	{
 		fprintf (stderr, "Format: can-dbc-cli <device name> <DBC file path>\n");
 		return -1;
 	}
+	else 
+	{
+		strncpy(deviceName, argv[1], sizeof(deviceName) - 1);
+		deviceName[sizeof(deviceName) - 1] = '\0';
 
-	char* deviceName = argv [1];
-	char* dbcPath = argv [2];
+		dbcPath = argv [2];
+	}
+
 
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)

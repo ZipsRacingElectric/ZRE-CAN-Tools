@@ -361,24 +361,19 @@ int processCommand (canDevice_t* device, char* command) {
 
 int main (int argc, char** argv)
 {	
-	// TODO(DiBacco): temporary removal before a more permanent implimentation
-	/*
-	if (argc < 2 || argc > 3)
+	static char deviceName[128];
+	if (argc == 2)
 	{
-		fprintf (stderr, "Format: can-dev-cli -method (optional) <device name>\n");
-		return -1;
+		strncpy(deviceName, argv[argc - 1], sizeof(deviceName) - 1);
+		deviceName[sizeof(deviceName) - 1] = '\0';
 	}
-	*/
-
-	// Enumerates communication devices if one is not provided
-	char* deviceName;
-	if (argc == 2) 
+	// Enumerate devices if one is not provided
+	else if (argc == 1)
 	{
-		deviceName = argv [argc - 1];
-	}
-	else 
-	{
-		
+		if (slcanEnumerateDevice (deviceName, "1000000") == -1)
+		{
+			return -1;
+		}
 	}
 
 	// Check for query mode

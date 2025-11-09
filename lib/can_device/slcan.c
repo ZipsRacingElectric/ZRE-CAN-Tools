@@ -221,8 +221,6 @@ int slcanEnumerateDevice (char* deviceName, char* baudRate)
 	size_t deviceCount = 0;
 	static char* deviceNames [5];
 	
-	
-
 	// Check the OS running the program based on system-defined macro 
 	#if ! (__unix__)
 		// QueryDosDeviceA: retrieves information about MS-DOS (Microsoft Disk Operating System) device names 
@@ -295,7 +293,7 @@ int slcanEnumerateDevice (char* deviceName, char* baudRate)
 	#endif
 
 	// Gets the name of the first communication device from the list of communication device names
-	if (deviceCount)
+	if (!deviceCount)
 	{
 		printf ("No CAN devices detected \n");
 		return -1;

@@ -146,34 +146,33 @@ int main (int argc, char** argv)
 	// Debugging initialization
 	debugInit ();
 
+	char* dbcPath;	
+	char* configPath;
+	static char deviceName[128];
+	// Enumerate devices if one is not provided
+	if (argc == 3)
+	{
+		if (slcanEnumerateDevice (deviceName, "1000000") == -1)
+		{
+			return -1;
+		}
+
+		dbcPath		= argv [1];
+		configPath	= argv [2];
+	}
 	// Validate standard arguments
-	if (argc != 4)
+	else if (argc != 4)
 	{
 		fprintf (stderr, "Format: bms-tui <device name> <DBC file path> <config file path>\n");
 		return -1;
 	}
-	char* deviceName	= argv [1];
-	char* dbcPath		= argv [2];
-	char* configPath	= argv [3];
+	else {
+		strncpy(deviceName, argv[1], sizeof(deviceName) - 1);
+		deviceName[sizeof(deviceName) - 1] = '\0';
 
-	// Get the name of the communication device if one is not provided
-	// TODO(DiBacco): if no device name is found, then get device name from the device enumeration
-	// TODO(DiBacco): what symbol should indicate that the user doesn't know their device name? Likley a temporary implementation. 
-	// TODO(DiBacco): extend implementation to every instance in the application where canInit is called
-
-	// TODO(DiBacco): replace comment with the actual implementation
-	/*
-	size_t deviceCount = 0;
-	char** deviceNames = slcanEnumerateDevices (&deviceCount);
-
-	if (deviceCount > 0) 
-	{
-		deviceName = slcanGetDevice (deviceNames, deviceCount, "1000000");
+		dbcPath		= argv [2];
+		configPath	= argv [3];
 	}
-	else 
-	{
-		fprintf (stderr, "Failed to enumerate communication device. \n");
-	}*/
 
 	// Initialize the CAN device
 	canDevice_t* device = canInit (deviceName);
