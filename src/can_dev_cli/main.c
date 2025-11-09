@@ -378,15 +378,7 @@ int main (int argc, char** argv)
 	}
 	else 
 	{
-		size_t deviceCount = 0;
-		char** deviceNames = slcanEnumerateDevices (&deviceCount);
-		// TODO(DiBacco): remove device name listing
-		for (int i = 0; i < deviceCount; ++i)
-		{
-			printf ("Device Name: %s\n", deviceNames[i]);
-		}
-		deviceName = slcanGetDevice (deviceNames, deviceCount, "1000000");
-		printf ("Full Device Name: %s\n", deviceName);
+		
 	}
 
 	// Check for query mode

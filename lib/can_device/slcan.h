@@ -58,18 +58,10 @@ int slcanFlushRx (void* device);
 int slcanSetTimeout (void* device, unsigned long timeoutMs);
 
 /** 
- * @brief Enumerates & displays the name of each communication device connected to the serial communication port.
- * @param deviceCount The number of elements in the list of device names.
- * @return The list containing the names of each communication device.
+ * @brief Enumerates & assigns the first device w. the baud rate to the deviceName argument.
+ * @param deviceName The argument to be assigned the device's name.
+ * @param baudRate Specifies the baud rate for the device.
  */ 
-char** slcanEnumerateDevices (size_t* deviceCount);
-
-/** 
- * @brief Gets the name of the first communication device from the list of communication device names
- * @param deviceNames The list containing the names of each communication device.
- * @param deviceCount The number of elements in the list of device names.
- * @param baudRate The intended baud rate for the device.
- */
-char* slcanGetDevice (char** deviceNames, size_t deviceCount, char* baudRate);
+int slcanEnumerateDevice (char* deviceName, char* baudRate);
 
 #endif // SERIAL_CAN_H

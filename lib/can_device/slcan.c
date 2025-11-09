@@ -208,10 +208,20 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs)
 	return 0;
 }
 
-char** slcanEnumerateDevices(size_t* deviceCount) 
+int slcanEnumerateDevice (char* deviceName, char* baudRate) 
 {
+	// TODO(DiBacco): if the final implementation of this function involves returning the first devices detected, 
+	// Then change the funcion's structure to return the device's name once the first device is detected.
+
 	// List containing the names of the communication devices
+
+	// TODO(DiBacco): either declare variable outside function call or assign the deviceName parameter to a newly created function of this kind.
+	// static char deviceName [20];
+	
+	size_t deviceCount = 0;
 	static char* deviceNames [5];
+	
+	
 
 	// Check the OS running the program based on system-defined macro 
 	#if ! (__unix__)
@@ -233,14 +243,12 @@ char** slcanEnumerateDevices(size_t* deviceCount)
 
 			if (strstr (device, "COM") && strlen (device) <= 5)
 			{
-				deviceNames [*deviceCount] = device;
-				++(*deviceCount);
+				deviceNames [deviceCount] = device;
+				++deviceCount;
 			}
 
 			device += strlen (device) + 1;
 		}
-
-		return deviceNames;
 
 	#else
    		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
@@ -276,23 +284,23 @@ char** slcanEnumerateDevices(size_t* deviceCount)
 				// Find way to detect whether the port is occupied
 
 				// ioctl: system call that manipulates the underlying device parameters of special files 
-				deviceNames[*deviceCount] = entry->d_name;
-				++(*deviceCount);
+				deviceNames[deviceCount] = entry->d_name;
+				++deviceCount;
 			}
 
 		}
 
 		closedir (directory);
 
-		return deviceNames;
-
 	#endif
-}
 
-char* slcanGetDevice (char** deviceNames, size_t deviceCount, char* baudRate) 
-{
-	static char deviceName [20];
+	// Gets the name of the first communication device from the list of communication device names
+	if (deviceCount)
+	{
+		printf ("No CAN devices detected \n");
+		return -1;
+	}
+
 	sprintf (deviceName, "%s@%s", deviceNames[0], baudRate);
-
-	return deviceName;
+	return 0;
 }

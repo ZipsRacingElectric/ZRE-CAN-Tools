@@ -161,6 +161,8 @@ int main (int argc, char** argv)
 	// TODO(DiBacco): what symbol should indicate that the user doesn't know their device name? Likley a temporary implementation. 
 	// TODO(DiBacco): extend implementation to every instance in the application where canInit is called
 
+	// TODO(DiBacco): replace comment with the actual implementation
+	/*
 	size_t deviceCount = 0;
 	char** deviceNames = slcanEnumerateDevices (&deviceCount);
 
@@ -171,7 +173,7 @@ int main (int argc, char** argv)
 	else 
 	{
 		fprintf (stderr, "Failed to enumerate communication device. \n");
-	}
+	}*/
 
 	// Initialize the CAN device
 	canDevice_t* device = canInit (deviceName);
