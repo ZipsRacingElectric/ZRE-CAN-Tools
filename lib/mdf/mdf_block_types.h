@@ -6,7 +6,7 @@
 // Author: Cole Barach
 // Date Created: 2025.10.09
 //
-// Description: Definitions of specific types of MDF blocks.
+// Description: Definitions of specific types of MDF blocks. // TODO(Barach): Better description
 //
 // References:
 // - https://www.asam.net/standards/detail/mdf/wiki/
@@ -16,6 +16,9 @@
 
 // Includes
 #include "mdf_block.h"
+
+// C Standard Library
+#include <stdarg.h>
 
 // ##HD - Header Block --------------------------------------------------------------------------------------------------------
 
@@ -71,14 +74,19 @@ static inline mdfHdLinkList_t* mdfHdBlockLinkList (mdfBlock_t* block) { return (
 /// @brief The block ID of a channel block.
 #define MDF_BLOCK_ID_CN MDF_BLOCK_ID_STR_TO_VALUE ('#', '#', 'C', 'N')
 
-/// @brief Channel type indicating a direct value.
+/// @brief Channel type used for regular channels. These channels have a physical value encoded in they.
 #define MDF_CHANNEL_TYPE_VALUE 0x00
 
-/// @note Uncertain on what this means.
-#define MDF_CHANNEL_TYPE_VLSD 0x01
+/// @brief Channel type used for a timestamp channel.
+/// @note This may have other uses, timestamps are the only context I've seen them in however.
+#define MDF_CHANNEL_TYPE_MASTER 0x02
 
-/// @note Uncertain on what this means.
+/// @brief Sync type used for regular channels.
 #define MDF_SYNC_TYPE_NONE 0x00
+
+/// @brief Sync type used to indicate a timestamp channel. This channel synchronizes the other channels in the group to its
+/// value (the timestamp).
+#define MDF_SYNC_TYPE_TIME 0x01
 
 /// @brief Channel data type indicating an unsigned integer encoded in the intel (little endian) format.
 #define MDF_DATA_TYPE_UNSIGNED_INTEL 0x00
@@ -462,10 +470,13 @@ static inline mdfFhLinkList_t* mdfFhBlockLinkList (mdfBlock_t* block) { return (
 /**
  * @brief Initializes a text block.
  * @param block The block to initialize. Must be deallocated using @c mdfBlockDealloc .
- * @param text The text to put in the block.
+ * @param text The text to put in the block. Supports the @c printf function family of format specifiers.
  * @return 0 if successful, the error code otherwise.
  */
-int mdfTxBlockInit (mdfBlock_t* block, const char* text);
+int mdfTxBlockInit (mdfBlock_t* block, const char* text, ...);
+
+/// @brief Variadic form of @c mdfTxBlockInit .
+int mdfTxBlockInitVariadic (mdfBlock_t* block, const char* text, va_list args);
 
 // ##MD - Markdown Block ------------------------------------------------------------------------------------------------------
 
@@ -475,9 +486,12 @@ int mdfTxBlockInit (mdfBlock_t* block, const char* text);
 /**
  * @brief Initializes a markdown block.
  * @param block The block to initialize. Must be deallocated using @c mdfBlockDealloc .
- * @param xml The XML to put in the block.
+ * @param xml The XML to put in the block. Supports the @c printf function family of format specifiers.
  * @return 0 if successful, the error code otherwise.
  */
-int mdfMdBlockInit (mdfBlock_t* block, const char* xml);
+int mdfMdBlockInit (mdfBlock_t* block, const char* xml, ...);
+
+/// @brief Variadic form of @c mdfTxBlockInit .
+int mdfMdBlockInitVariadic (mdfBlock_t* block, const char* xml, va_list args);
 
 #endif // MDF_BLOCK_TYPES_H

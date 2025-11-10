@@ -23,9 +23,20 @@ typedef struct
 	int handle;
 	const char* name;
 	long int timeoutMs;
+	canBaudrate_t baudrate;
 } slcan_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
+
+static int getErrorCode (int code)
+{
+	// The receiver empty error indicates a timeout occurred, so translate that into a timeout error.
+	if (code == CANERR_RX_EMPTY)
+		return ERRNO_CAN_DEVICE_TIMEOUT;
+
+	// Offset the error code to match this project's convention.
+	return code + 10000;
+}
 
 bool slcanNameDomain (const char* name)
 {
@@ -40,14 +51,40 @@ bool slcanNameDomain (const char* name)
 	return false;
 }
 
-canDevice_t* slcanInit (char* name)
+canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 {
-	// Split the name into the device name and bitrate: Format <device>@<baud>
-	char* savePtr;
-	strtok_r (name, "@", &savePtr);
-	char* bitrateParam = strtok_r (NULL, "@", &savePtr);
-	if (bitrateParam == NULL)
+	// Map the baudrate to one of the available options.
+	can_bitrate_t slcanBaudrate;
+	switch (baudrate)
 	{
+	case 1000000:
+		slcanBaudrate.index = CANBTR_INDEX_1M;
+		break;
+	case 800000:
+		slcanBaudrate.index = CANBTR_INDEX_800K;
+		break;
+	case 500000:
+		slcanBaudrate.index = CANBTR_INDEX_500K;
+		break;
+	case 250000:
+		slcanBaudrate.index = CANBTR_INDEX_250K;
+		break;
+	case 125000:
+		slcanBaudrate.index = CANBTR_INDEX_125K;
+		break;
+	case 100000:
+		slcanBaudrate.index = CANBTR_INDEX_100K;
+		break;
+	case 50000:
+		slcanBaudrate.index = CANBTR_INDEX_50K;
+		break;
+	case 20000:
+		slcanBaudrate.index = CANBTR_INDEX_20K;
+		break;
+	case 10000:
+		slcanBaudrate.index = CANBTR_INDEX_10K;
+		break;
+	default:
 		errno = ERRNO_SLCAN_BAUDRATE;
 		return NULL;
 	}
@@ -68,84 +105,71 @@ canDevice_t* slcanInit (char* name)
 	int handle = can_init (CAN_BOARD (CANLIB_SERIALCAN, CANDEV_SERIAL), CANMODE_DEFAULT, (const void*) &port);
 	if (handle < 0)
 	{
-		// Offset the error code to match this project's convention.
-		errno = handle + 10000;
+		errno = getErrorCode (handle);
 		return NULL;
 	}
 
-	// Identify the baudrate
-	can_bitrate_t bitrate;
-	if (strcmp (bitrateParam, "1000000") == 0)
-		bitrate.index = CANBTR_INDEX_1M;
-	else if (strcmp (bitrateParam, "800000") == 0)
-		bitrate.index = CANBTR_INDEX_800K;
-	else if (strcmp (bitrateParam, "500000") == 0)
-		bitrate.index = CANBTR_INDEX_500K;
-	else if (strcmp (bitrateParam, "250000") == 0)
-		bitrate.index = CANBTR_INDEX_250K;
-	else if (strcmp (bitrateParam, "125000") == 0)
-		bitrate.index = CANBTR_INDEX_125K;
-	else if (strcmp (bitrateParam, "100000") == 0)
-		bitrate.index = CANBTR_INDEX_100K;
-	else if (strcmp (bitrateParam, "50000") == 0)
-		bitrate.index = CANBTR_INDEX_50K;
-	else if (strcmp (bitrateParam, "20000") == 0)
-		bitrate.index = CANBTR_INDEX_20K;
-	else if (strcmp (bitrateParam, "10000") == 0)
-		bitrate.index = CANBTR_INDEX_10K;
-	else
-	{
-		errno = ERRNO_SLCAN_BAUDRATE;
-		return NULL;
-	}
-
-	int code = can_start (handle, &bitrate);
+	int code = can_start (handle, &slcanBaudrate);
 	if (code < 0)
 	{
-		// Offset the error code to match this project's convention.
-		errno = code + 10000;
+		errno = getErrorCode (code);
 		return NULL;
 	}
 
-	// Setup the CAN device
-	slcan_t* can = malloc (sizeof (slcan_t));
-	can->handle = handle;
-	can->name = name;
-	can->vmt.transmit = slcanTransmit;
-	can->vmt.receive = slcanReceive;
-	can->vmt.setTimeout = slcanSetTimeout;
-	can->vmt.flushRx = slcanFlushRx;
+	// Device must be dynamically allocated
+	slcan_t* device = malloc (sizeof (slcan_t));
+
+	// Setup the device's VMT
+	device->vmt.transmit		= slcanTransmit;
+	device->vmt.receive			= slcanReceive;
+	device->vmt.flushRx			= slcanFlushRx;
+	device->vmt.setTimeout		= slcanSetTimeout;
+	device->vmt.getBaudrate		= slcanGetBaudrate;
+	device->vmt.getDeviceName	= slcanGetDeviceName;
+	device->vmt.getDeviceType	= slcanGetDeviceType;
+	device->vmt.dealloc			= slcanDealloc;
+
+	// Internal housekeeping
+	device->handle = handle;
+	device->name = name;
+	device->baudrate = baudrate;
 
 	// Default to blocking.
-	canSetTimeout (can, 0);
+	device->vmt.setTimeout (device, 0);
 
-	return (canDevice_t*) can;
+	return (canDevice_t*) device;
 }
 
-int slcanDealloc (void* device)
+void slcanDealloc (void* device)
 {
-	// TODO(Barach):
-	(void) device;
-	errno = ERRNO_OS_NOT_SUPPORTED;
-	return errno;
+	slcan_t* slcan = device;
+
+	// Stop and terminate the SLCAN device
+	can_reset (slcan->handle);
+	can_exit (slcan->handle);
+
+	// Free the device's memory
+	free (device);
 }
 
 int slcanTransmit (void* device, canFrame_t* frame)
 {
 	slcan_t* can = device;
 
-	can_message_t message =
+	// Convert to an SLCAN frame
+	can_message_t slcanFrame =
 	{
 		.id = frame->id,
-		.dlc = frame->dlc
+		.dlc = frame->dlc,
+		.xtd = frame->ide,
+		.rtr = frame->rtr
 	};
-	memcpy (message.data, frame->data, frame->dlc);
+	memcpy (slcanFrame.data, frame->data, frame->dlc);
 
-	int code = can_write (can->handle, &message, can->timeoutMs);
+	int code = can_write (can->handle, &slcanFrame, can->timeoutMs);
 	if (code != 0)
 	{
-		// Offset the error code to match this project's convention.
-		errno = code + 10000;
+		errno = getErrorCode (code);
 		return errno;
 	}
 
@@ -154,38 +178,33 @@ int slcanTransmit (void* device, canFrame_t* frame)
 
 int slcanReceive (void* device, canFrame_t* frame)
 {
-	int code;
 	slcan_t* can = device;
 
-	can_message_t message;
+	can_message_t slcanFrame;
 
-	/*
-		can_read() = -30 (Recevier Empty) Overview
-
-		Context:
-			- Windows only
-			- Intermittent -- replicable when receiving from the CAN bus with no valid ids as input
-		Error: Can_Read is returning -30 (Recevier Empty)
-			- timout value is set to 65535 which should create blocking functionality in the function (is not working in this context)
-	 	Fix: repeat the can_read() function which essentially creates a blocking operation
-	*/
+	// Read the CAN frame.
+	// - Note there is an intermittent bug on the Windows implementation where can_read can return CANERR_RX_EMPTY even when
+	//   the device is set to non-blocking operation. To patch this, the function call is re-attempted in these specific
+	//   conditions.
+	int code;
 	do
 	{
-		code = can_read (can->handle, &message, can->timeoutMs);
-	} while (can->timeoutMs == 65535 && code == -30);
+		code = can_read (can->handle, &slcanFrame, can->timeoutMs);
+	} while (can->timeoutMs == 65535 && code == CANERR_RX_EMPTY);
 
+	// Check the error code.
 	if (code != 0)
 	{
-		// Offset the error code to match this project's convention.
-		errno = code + 10000;
+		errno = getErrorCode (code);
 		return errno;
 	}
 
-
-
-	frame->id = message.id;
-	frame->dlc = message.dlc;
-	memcpy (frame->data, message.data, message.dlc);
+	// Convert back from the SLCAN frame
+	frame->id = slcanFrame.id;
+	frame->dlc = slcanFrame.dlc;
+	frame->ide = slcanFrame.xtd;
+	frame->rtr = slcanFrame.rtr;
+	memcpy (frame->data, slcanFrame.data, slcanFrame.dlc);
 	return 0;
 }
 
@@ -194,8 +213,8 @@ int slcanFlushRx (void* device)
 	slcan_t* can = device;
 
 	// Read all available data from the device.
-	can_message_t message;
-	while (can_read (can->handle, &message, 0) == 0);
+	can_message_t slcanFrame;
+	while (can_read (can->handle, &slcanFrame, 0) == 0);
 
 	return 0;
 }
@@ -216,4 +235,19 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs)
 
 	can->timeoutMs = timeoutMs;
 	return 0;
+}
+
+canBaudrate_t slcanGetBaudrate (void *device)
+{
+	return ((slcan_t*) device)->baudrate;
+}
+
+const char* slcanGetDeviceName (void* device)
+{
+	return ((slcan_t*) device)->name;
+}
+
+const char* slcanGetDeviceType (void)
+{
+	return "SLCAN";
 }

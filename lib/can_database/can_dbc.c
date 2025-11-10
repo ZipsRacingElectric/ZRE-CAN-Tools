@@ -9,6 +9,16 @@
 #include <stdio.h>
 #include <string.h>
 
+// Constants ------------------------------------------------------------------------------------------------------------------
+
+/// @brief Bitmask for the IDE bit in the CAN ID field. This bit indicates whether the ID is a standard identifer or an
+/// extended identifer. This mask is 31st bit set to 1.
+#define ID_IDE_BIT_MASK 0x80000000
+
+/// @brief Bitmask for the CAN ID inside the CAN ID field. This masks out the upper 3 bits which are not part of the ID. This
+/// mask is 1s for the first 29 bits.
+#define ID_ID_BIT_MASK 0x1FFFFFFF
+
 // DBC Keywords ---------------------------------------------------------------------------------------------------------------
 
 #define DBC_KEYWORD_NETWORK_NODE	"BU_:"			// CAN ECU
@@ -105,7 +115,8 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 				strcpy (message->name, dataBuffer0);
 
 				// Copy message metadata
-				message->id = (uint32_t) messageId;
+				message->id = (uint32_t) messageId & ID_ID_BIT_MASK;
+				message->ide = (messageId & ID_IDE_BIT_MASK) == ID_IDE_BIT_MASK;
 				message->dlc = (uint8_t) messageDlc;
 			}
 		}
@@ -143,7 +154,7 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 			if (charIndex > 0) dataBuffer1 [charIndex - 1] = '\0';
 
 			// Validate input
-			if(code != 11)
+			if (code != 11)
 			{
 				// Ignore remainder of line
 				fgets(dataBuffer0, CAN_DBC_LINE_LENGTH_MAX, file);

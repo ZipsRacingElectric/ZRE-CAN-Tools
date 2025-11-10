@@ -20,17 +20,82 @@ A set of shell scripts are provided to simplify usage of the applications.
  - `cross-bms` - Application for monitoring the BMS of ZRE24.
  - `cross-can` - Application for monitoring the CAN bus of ZRE24.
 
-### CAN DBC CLI
+### CAN-DBC-TUI
 
-`can-dbc-cli <device name> <DBC file path>`
-This program is used to interact with a CAN node in real-time. Received messages are parsed and stored in a relational database which can be queried. Arbitrary messages can be transmitted by the user.
-
-### CAN DBC TUI
-
-`can-dbc-tui <device name> <DBC file path>`
+`can-dbc-tui <Device Name> <DBC file path>`
 This program is used to monitor the activity of a CAN bus in real-time.
 
-### CAN EEPROM CLI
+### CAN-DEV-CLI
+
+```
+Usage: can-dev-cli <Options> <Device Name>
+
+Options:
+    -t=<CAN Frame>
+        Transmits a single CAN frame.
+
+    -t=<CAN Frame>@<Count>,<Freq>
+        Transmits <Count> CAN frames at the frequency of <Freq> Hertz.
+
+    -r  Receives the first available CAN message.
+
+    -r=@<Count>
+        Receives the first <Count> available CAN messages.
+
+    -r=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>
+        Receives the first available CAN message matching any of the given IDs.
+
+    -r=<CAN ID 0>,<CAN ID 1>,...<CAN ID n>@<Count>
+        Receives the first <Count> available CAN messages matching any of the
+        given IDs.
+
+    -d  Dumps all received CAN messages.
+
+    -d=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>
+        Dumps all received CAN messages matching any of the given IDs.
+
+    -m=<Timeout Ms>
+        Sets the device's receive timeout to <Timeout Ms>, in milliseconds.
+
+    -f  Flushes the device's receive buffer.
+
+    -i  Prints information about the CAN device.
+
+Examples:
+
+    Dump all received CAN messages:
+        can-dev-cli -d COM5@1000000
+
+    Periodically transmit a CAN message (50 times at 10 Hz):
+        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 COM5@1000000
+
+    Dump all received CAN messages from a list:
+        can-dev-cli -d=0x005,0x006,0x007,0x008 COM5@1000000
+
+    Transmit a remote transmission request frame:
+        can-dev-cli -t=0x123r COM5@1000000
+
+    Receive a frame with an extended CAN ID:
+        can-dev-cli -r=0xABCDEFx COM5@1000000
+
+    Transmits a frame and listens for a specific response, with timeout:
+        can-dev-cli -m=100 -t=0x123 -r=0x124 COM5@1000000
+
+```
+
+### CAN-Dump
+
+`can-dump <Device Name>` - Dumps all received CAN messages to the standard output.
+
+`can-dump <Device Name> <CAN IDs>` - Dumps all received CAN messages matching a list of IDs to the standard output.
+
+### CAN-Send
+
+`can-send <Device Name> <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]` - Transmits a single CAN message.
+
+`can-send <Device Name> <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]@<Count>,<Frequency>` - Transmits a specified number of CAN messages at a specified frequency, in Hertz.
+
+### CAN-EEPROM-CLI
 
 ```
 Usage:
@@ -39,11 +104,11 @@ can-eeprom-cli <options> <device name> <config JSON path>
 
 Options:
 
-    -p=<data JSON path>   - Programming mode. Reads a data JSON from the
+    -p=<Data JSON path>   - Programming mode. Reads a data JSON from the
                             specified path and programs the key-value pairs to
                             the device. If no path is specified, the file is
                             read from stdin.
-    -r=<data JSON path>   - Recovery mode. Writes the EEPROM's memory to a data
+    -r=<Data JSON path>   - Recovery mode. Writes the EEPROM's memory to a data
                             JSON file. If no path is specified, the file is
                             written to stdout.
     -v                    - Verbose. Enables more verbose output to stderr for
@@ -53,27 +118,53 @@ Options:
 
 This program is used to program a device's EEPROM via CAN bus.
 
-### BMS TUI
+### CAN-DBC-CLI
 
-`bms-tui <device name> <DBC file path> <config JSON path>`
+`can-dbc-cli <Device Name> <DBC file path>`
+This program is used to interact with a CAN node in real-time. Received messages are parsed and stored in a relational database which can be queried. Arbitrary messages can be transmitted by the user.
+
+### BMS-TUI
+
+`bms-tui <Device Name> <DBC file path> <Config JSON path>`
 This program is used to monitor a battery management system in real-time.
 
-### Command-line Arguments
+### Command-line Parameters
 
 ```
-<device name>         - The adapter-specific identity of the CAN device.
-    can*              - SocketCAN device, must be already initialized and
-                        setup. Ex. 'can0'.
-    vcan*             - Virtual SocketCAN device, must be already initialized
-                        and setup.
-    <port>@<baud>     - SLCAN device, must be a CANable device. CAN baudrate is
-                        indicated by the baud field. Ex 'COM3@1000000' for
+<Device Name>         - The adapter-specific identity of the CAN device.
+    can*@<Baud>       - SocketCAN device, must be already initialized and
+                        setup. Ex. 'can0@1000000'. Note, baudrate is optional
+                        for most applications.
+    vcan*@<Baud>      - Virtual SocketCAN device, must be already initialized
+                        and setup. Note, baudrate is optional for most
+                        applications.
+    <Port>@<Baud>     - SLCAN device, must be a CANable device. CAN baudrate is
+                        initialized to <Baud> bit/s. Ex 'COM3@1000000' for
                         Windows and '/dev/ttyACM0@1000000' for Linux.
+
+<CAN Frame>           - A CAN frame. May be a data frame or RTR frame, based on
+                        the ID. Takes the following format:
+    <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]
+
+<Byte i>              - The i'th byte of a frame's data payload, indexed in
+                        little-endian (aka Intel format). May be either decimal
+                        or hexadecimal (hex should be prefixed with '0x').
+
+<CAN ID>              - The identifier of a frame.
+    <SID>             - Standard CAN ID, may be decimal or hexadecimal
+                        (hex should be prefixed with '0x').
+    <SID>r            - Standard CAN ID, for an RTR frame.
+    <EID>x            - Extended CAN ID.
+    <EID>xr           - Extended CAN identifier, for an RTR frame.
+
+
 <DBC file path>       - The path to the DBC file to use.
-<config JSON path>    - The configuration JSON file to use. Configuration files
+
+<Config JSON path>    - The configuration JSON file to use. Configuration files
                         indicate the identity and unit-specific parameters of
                         a CAN node.
-<data JSON path>      - The data JSON file to use. Data files contain the
+
+<Data JSON path>      - The data JSON file to use. Data files contain the
                         values of the unit-specific parameters of a CAN node.
 ```
 
@@ -91,7 +182,7 @@ This program is used to monitor a battery management system in real-time.
 - Run `make` to compile all of the programs.
 - Run the `install` script to create the needed environment variables.
   - Note that on Linux, you will need to logout and log back in after this.
-- On Windows, it is useful to add the `bin` directory to your system path (not needed, just conventient).
+- On Windows, it is useful to add the `bin` directory to your system path (not needed, just convenient).
 
 ### For Linux
 

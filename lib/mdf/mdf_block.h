@@ -6,7 +6,7 @@
 // Author: Cole Barach
 // Date Created: 2025.10.09
 //
-// Description: Datatypes and definitions related to MDF blocks.
+// Description: Datatypes and definitions related to MDF blocks. // TODO(Barach): Better description
 //
 // References:
 // - https://www.asam.net/standards/detail/mdf/wiki/

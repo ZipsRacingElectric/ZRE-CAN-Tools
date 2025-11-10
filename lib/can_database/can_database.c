@@ -146,7 +146,8 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 		ssize_t messageIndex = -1;
 		for (size_t index = 0; index < database->messageCount; ++index)
 		{
-			if (frame.id == database->messages [index].id)
+			// Validate the ID is correct and the frame is not an RTR frame.
+			if (frame.id == database->messages [index].id && frame.ide == database->messages [index].ide && !frame.rtr)
 			{
 				messageIndex = index;
 				break;

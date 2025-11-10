@@ -84,6 +84,7 @@ canFrame_t writeCommandEncode (uint16_t canId, uint16_t address, uint8_t count, 
 
 	canFrame_t frame =
 	{
+		// TODO(Barach): Need to fix this
 		.id		= canId,
 		.dlc	= count + sizeof (address),
 		.data	=
@@ -103,6 +104,7 @@ canFrame_t readCommandEncode (uint16_t canId, uint16_t address, uint8_t count)
 
 	canFrame_t frame =
 	{
+		// TODO(Barach): Need to fix this
 		.id		= canId,
 		.dlc	= count + sizeof (address),
 		.data	=
@@ -117,6 +119,8 @@ canFrame_t readCommandEncode (uint16_t canId, uint16_t address, uint8_t count)
 
 int responseParse (uint16_t canId, canFrame_t* frame, bool rw, uint16_t address, uint8_t count)
 {
+	// TODO(Barach): Need to fix this.
+
 	// Check message ID is correct
 	if (frame->id != (uint16_t) (canId + 1))
 	{

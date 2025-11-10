@@ -11,6 +11,10 @@
 //
 // References:
 // - https://github.com/mac-can/SerialCAN
+//
+// Unsupported features:
+// - SerialCAN library does not implement CAN bus error detection or error frames. If a bus error occurs while trying to
+//   receive a CAN frame, the canReceive function will simply ignore it and continue waiting.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -31,18 +35,16 @@ bool slcanNameDomain (const char* name);
 
 /**
  * @brief Initializes an SLCAN device.
- * @param name The name (handler) of the device. This handle must also include the baudrate to initialize to, in the following
- * form: <Serial Port>@<Baudrate>. Note the serial port handler is OS-dependent.
+ * @param name The name (handler) of the device. Note the serial port handler is OS-dependent.
  * @return The initialized SLCAN device if successful, @c NULL otherwise.
  */
-canDevice_t* slcanInit (char* name);
+canDevice_t* slcanInit (char* name, canBaudrate_t baudrate);
 
 /**
  * @brief De-allocates the memory owned by an SLCAN device.
  * @param device The device to de-allocate.
- * @return 0 if successful, the error code otherwise.
  */
-int slcanDealloc (void* device);
+void slcanDealloc (void* device);
 
 /// @brief SLCAN implementation of the @c canTransmit function.
 int slcanTransmit (void* device, canFrame_t* frame);
@@ -55,5 +57,14 @@ int slcanFlushRx (void* device);
 
 /// @brief SLCAN implementation of the @c canSetTimeout function.
 int slcanSetTimeout (void* device, unsigned long timeoutMs);
+
+/// @brief SLCAN implementation of the @c canGetBaudrate function.
+canBaudrate_t slcanGetBaudrate (void* device);
+
+/// @brief SLCAN implementation of the @c canGetDeviceType function.
+const char* slcanGetDeviceName (void* device);
+
+/// @brief SLCAN implementation of the @c canGetDeviceType function.
+const char* slcanGetDeviceType (void);
 
 #endif // SERIAL_CAN_H

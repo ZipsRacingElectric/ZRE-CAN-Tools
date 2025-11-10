@@ -181,11 +181,18 @@ uint64_t mdfFhBlockWrite (FILE* mdf, mdfFhDataSection_t* dataSection, mdfFhLinkL
 	return addr;
 }
 
-uint64_t mdfTxBlockWrite (FILE* mdf, const char* text)
+uint64_t mdfTxBlockWrite (FILE* mdf, const char* text, ...)
 {
-	// Allocate the block
 	mdfBlock_t block;
-	if (mdfTxBlockInit (&block, text) != 0)
+
+	// Allocate the block.
+	va_list ap;
+	va_start (ap, text);
+	int code = mdfTxBlockInitVariadic (&block, text, ap);
+	va_end (ap);
+
+	// Exit early on failure
+	if (code != 0)
 		return 0;
 
 	// Write the block then deallocate
@@ -194,11 +201,18 @@ uint64_t mdfTxBlockWrite (FILE* mdf, const char* text)
 	return addr;
 }
 
-uint64_t mdfMdBlockWrite (FILE* mdf, const char* xml)
+uint64_t mdfMdBlockWrite (FILE* mdf, const char* xml, ...)
 {
-	// Allocate the block
 	mdfBlock_t block;
-	if (mdfMdBlockInit (&block, xml) != 0)
+
+	// Allocate the block
+	va_list ap;
+	va_start (ap, xml);
+	int code = mdfMdBlockInitVariadic (&block, xml, ap);
+	va_end (ap);
+
+	// Exit early on failure
+	if (code != 0)
 		return 0;
 
 	// Write the block then deallocate

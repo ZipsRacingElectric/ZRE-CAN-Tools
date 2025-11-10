@@ -9,6 +9,9 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // C Standard Library
+#include <errno.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 // General Errors -------------------------------------------------------------------------------------------------------------
@@ -25,9 +28,28 @@
 
 #define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1030
 #define ERRNO_CAN_DEVICE_BAD_TIMEOUT			1031
+#define ERRNO_CAN_DEVICE_TIMEOUT				1032
 
 #define ERRMSG_CAN_DEVICE_UNKNOWN_NAME			"The device name does not belong to any known CAN device"
 #define ERRMSG_CAN_DEVICE_BAD_TIMEOUT			"The specified timeout is not possible"
+#define ERRMSG_CAN_DEVICE_TIMEOUT				"The operation has timed out"
+
+// CAN bus errors
+#define ERRNO_CAN_DEVICE_BIT_ERROR				1036
+#define ERRNO_CAN_DEVICE_BIT_STUFF_ERROR		1037
+#define ERRNO_CAN_DEVICE_FORM_ERROR				1038
+#define ERRNO_CAN_DEVICE_ACK_ERROR				1039
+#define ERRNO_CAN_DEVICE_CRC_ERROR				1040
+#define ERRNO_CAN_DEVICE_BUS_OFF				1041
+#define ERRNO_CAN_DEVICE_UNSPEC_ERROR			1042
+
+#define ERRMSG_CAN_DEVICE_BIT_ERROR				"A bit transmission error was detected on the CAN bus"
+#define ERRMSG_CAN_DEVICE_BIT_STUFF_ERROR		"A bit stuffing error was detected on the CAN bus"
+#define ERRMSG_CAN_DEVICE_FORM_ERROR			"A form error was detected on the CAN bus"
+#define ERRMSG_CAN_DEVICE_ACK_ERROR				"An ACK error was detected on the CAN bus"
+#define ERRMSG_CAN_DEVICE_CRC_ERROR				"A CRC error was detected on the CAN bus"
+#define ERRMSG_CAN_DEVICE_BUS_OFF				"The device has entered the CAN bus-off state"
+#define ERRMSG_CAN_DEVICE_UNSPEC_ERROR			"Unspecified CAN device error"
 
 // can_database Module --------------------------------------------------------------------------------------------------------
 
@@ -84,25 +106,16 @@
 //   these as negative, however the can_device wrapper offsets these by 10000 to make the errors line up with standard errno
 //   values.
 
-#define ERRNO_SLCAN_BOFF						9999
 #define ERRNO_SLCAN_EWRN						9998
-#define ERRNO_SLCAN_BERR						9997
 #define ERRNO_SLCAN_OFFLINE						9991
 #define ERRNO_SLCAN_ONLINE						9992
 #define ERRNO_SLCAN_MSG_LST						9990
-#define ERRNO_SLCAN_LEC_STUFF					9989
-#define ERRNO_SLCAN_LEC_FORM					9988
-#define ERRNO_SLCAN_LEC_ACK						9987
-#define ERRNO_SLCAN_LEC_BIT1					9986
-#define ERRNO_SLCAN_LEC_BIT0					9985
-#define ERRNO_SLCAN_LEC_CRC						9984
 #define ERRNO_SLCAN_RESERVED1					9981
 #define ERRNO_SLCAN_TX_BUSY						9980
 #define ERRNO_SLCAN_RESERVED2					9979
 #define ERRNO_SLCAN_RX_EMPTY					9970
 #define ERRNO_SLCAN_QUE_OVR						9960
 #define ERRNO_SLCAN_RESERVED3					9959
-#define ERRNO_SLCAN_TIMEOUT						9950
 #define ERRNO_SLCAN_RESOURCE					9910
 #define ERRNO_SLCAN_BAUDRATE					9909
 #define ERRNO_SLCAN_HANDLE						9908
@@ -115,25 +128,16 @@
 #define ERRNO_SLCAN_FATAL						9901
 #define ERRNO_SLCAN_VENDOR						9900
 
-#define ERRMSG_SLCAN_BOFF						"CAN busoff status"
-#define ERRMSG_SLCAN_EWRN						"CAN error warning status"
-#define ERRMSG_SLCAN_BERR						"CAN bus error"
-#define ERRMSG_SLCAN_OFFLINE					"CAN device not started"
-#define ERRMSG_SLCAN_ONLINE						"CAN device already started"
-#define ERRMSG_SLCAN_MSG_LST					"CAN message lost"
-#define ERRMSG_SLCAN_LEC_STUFF					"LEC stuff error"
-#define ERRMSG_SLCAN_LEC_FORM					"LEC form error"
-#define ERRMSG_SLCAN_LEC_ACK					"LEC acknowledge error"
-#define ERRMSG_SLCAN_LEC_BIT1					"LEC recessive bit error"
-#define ERRMSG_SLCAN_LEC_BIT0					"LEC dominant bit error"
-#define ERRMSG_SLCAN_LEC_CRC					"LEC checksum error"
-#define ERRMSG_SLCAN_RESERVED1					"RIP error frame"
-#define ERRMSG_SLCAN_TX_BUSY					"Transmitter busy"
+#define ERRMSG_SLCAN_EWRN						"CAN controller has reached the error warning level"
+#define ERRMSG_SLCAN_OFFLINE					"The CAN device is offline"
+#define ERRMSG_SLCAN_ONLINE						"The CAN device is already online"
+#define ERRMSG_SLCAN_MSG_LST					"A CAN message was lost"
+#define ERRMSG_SLCAN_RESERVED1					"Reserved macCAN error"
+#define ERRMSG_SLCAN_TX_BUSY					"A transmisstion is already in progress"
 #define ERRMSG_SLCAN_RESERVED2					"Reserved macCAN error"
-#define ERRMSG_SLCAN_RX_EMPTY					"Receiver empty"
-#define ERRMSG_SLCAN_QUE_OVR					"Queue overrun"
+#define ERRMSG_SLCAN_RX_EMPTY					"The receiver queue is empty"
+#define ERRMSG_SLCAN_QUE_OVR					"The receiver queue has overrun"
 #define ERRMSG_SLCAN_RESERVED3					"Reserved macCAN error"
-#define ERRMSG_SLCAN_TIMEOUT					"A timeout occurred"
 #define ERRMSG_SLCAN_RESOURCE					"Resource allocation error"
 #define ERRMSG_SLCAN_BAUDRATE					"Illegal baudrate"
 #define ERRMSG_SLCAN_HANDLE						"Illegal handle"
@@ -148,133 +152,115 @@
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+#define ERRNO_CASE(name) \
+	case ERRNO_ ## name: \
+		return ERRMSG_ ## name
+
 static inline const char* errorMessage (int errorCode)
 {
 	switch (errorCode)
 	{
 	// General Errors
-	case ERRNO_UNKNOWN:
-		return ERRMSG_UNKNOWN;
-	case ERRNO_OS_NOT_SUPPORTED:
-		return ERRMSG_OS_NOT_SUPPORTED;
-	case ERRNO_END_OF_FILE:
-		return ERRMSG_END_OF_FILE;
+	ERRNO_CASE (UNKNOWN);
+	ERRNO_CASE (OS_NOT_SUPPORTED);
+	ERRNO_CASE (END_OF_FILE);
 
 	// can_device module
-	case ERRNO_CAN_DEVICE_UNKNOWN_NAME:
-		return ERRMSG_CAN_DEVICE_UNKNOWN_NAME;
-	case ERRNO_CAN_DEVICE_BAD_TIMEOUT:
-		return ERRMSG_CAN_DEVICE_BAD_TIMEOUT;
+	ERRNO_CASE (CAN_DEVICE_UNKNOWN_NAME);
+	ERRNO_CASE (CAN_DEVICE_BAD_TIMEOUT);
+	ERRNO_CASE (CAN_DEVICE_TIMEOUT);
+
+	ERRNO_CASE (CAN_DEVICE_BIT_ERROR);
+	ERRNO_CASE (CAN_DEVICE_BIT_STUFF_ERROR);
+	ERRNO_CASE (CAN_DEVICE_FORM_ERROR);
+	ERRNO_CASE (CAN_DEVICE_ACK_ERROR);
+	ERRNO_CASE (CAN_DEVICE_CRC_ERROR);
+	ERRNO_CASE (CAN_DEVICE_BUS_OFF);
+	ERRNO_CASE (CAN_DEVICE_UNSPEC_ERROR);
 
 	// can_database module
-	case ERRNO_CAN_DBC_MESSAGE_COUNT:
-		return ERRMSG_CAN_DBC_MESSAGE_COUNT;
-	case ERRNO_CAN_DBC_SIGNAL_COUNT:
-		return ERRMSG_CAN_DBC_SIGNAL_COUNT;
-	case ERRNO_CAN_DBC_MESSAGE_MISSING:
-		return ERRMSG_CAN_DBC_MESSAGE_MISSING;
-	case ERRNO_CAN_DATABASE_SIGNAL_MISSING:
-		return ERRMSG_CAN_DATABASE_SIGNAL_MISSING;
+	ERRNO_CASE (CAN_DBC_MESSAGE_COUNT);
+	ERRNO_CASE (CAN_DBC_SIGNAL_COUNT);
+	ERRNO_CASE (CAN_DBC_MESSAGE_MISSING);
+	ERRNO_CASE (CAN_DATABASE_SIGNAL_MISSING);
 
 	// cjson module
-	case ERRNO_CJSON_EOF:
-		return ERRMSG_CJSON_EOF;
-	case ERRNO_CJSON_PARSE_FAIL:
-		return ERRMSG_CJSON_PARSE_FAIL;
-	case ERRNO_CJSON_MISSING_KEY:
-		return ERRMSG_CJSON_MISSING_KEY;
-	case ERRNO_CJSON_MAX_SIZE:
-		return ERRMSG_CJSON_MAX_SIZE;
+	ERRNO_CASE (CJSON_EOF);
+	ERRNO_CASE (CJSON_PARSE_FAIL);
+	ERRNO_CASE (CJSON_MISSING_KEY);
+	ERRNO_CASE (CJSON_MAX_SIZE);
 
 	// can_eeprom module
-	case ERRNO_CAN_EEPROM_INVALID_TYPE:
-		return ERRMSG_CAN_EEPROM_INVALID_TYPE;
-	case ERRNO_CAN_EEPROM_INVALID_MODE:
-		return ERRMSG_CAN_EEPROM_INVALID_MODE;
-	case ERRNO_CAN_EEPROM_READ_TIMEOUT:
-		return ERRMSG_CAN_EEPROM_READ_TIMEOUT;
-	case ERRNO_CAN_EEPROM_WRITE_TIMEOUT:
-		return ERRMSG_CAN_EEPROM_WRITE_TIMEOUT;
-	case ERRNO_CAN_EEPROM_MALFORMED_RESPONSE:
-		return ERRMSG_CAN_EEPROM_MALFORMED_RESPONSE;
-	case ERRNO_CAN_EEPROM_BAD_RESPONSE_ID:
-		return ERRMSG_CAN_EEPROM_BAD_RESPONSE_ID;
-	case ERRNO_CAN_EEPROM_BAD_KEY:
-		return ERRMSG_CAN_EEPROM_BAD_KEY;
-	case ERRNO_CAN_EEPROM_BAD_VALUE:
-		return ERRMSG_CAN_EEPROM_BAD_VALUE;
-	case ERRNO_CAN_EEPROM_BAD_DIMENSION:
-		return ERRMSG_CAN_EEPROM_BAD_DIMENSION;
-	case ERRNO_CAN_EEPROM_READ_ONLY:
-		return ERRMSG_CAN_EEPROM_READ_ONLY;
-	case ERRNO_CAN_EEPROM_WRITE_ONLY:
-		return ERRMSG_CAN_EEPROM_WRITE_ONLY;
+	ERRNO_CASE (CAN_EEPROM_INVALID_TYPE);
+	ERRNO_CASE (CAN_EEPROM_INVALID_MODE);
+	ERRNO_CASE (CAN_EEPROM_READ_TIMEOUT);
+	ERRNO_CASE (CAN_EEPROM_WRITE_TIMEOUT);
+	ERRNO_CASE (CAN_EEPROM_MALFORMED_RESPONSE);
+	ERRNO_CASE (CAN_EEPROM_BAD_RESPONSE_ID);
+	ERRNO_CASE (CAN_EEPROM_BAD_KEY);
+	ERRNO_CASE (CAN_EEPROM_BAD_VALUE);
+	ERRNO_CASE (CAN_EEPROM_BAD_DIMENSION);
+	ERRNO_CASE (CAN_EEPROM_READ_ONLY);
+	ERRNO_CASE (CAN_EEPROM_WRITE_ONLY);
 
 	// serial_can module
-	case ERRNO_SLCAN_BOFF:
-		return ERRMSG_SLCAN_BOFF;
-	case ERRNO_SLCAN_EWRN:
-		return ERRMSG_SLCAN_EWRN;
-	case ERRNO_SLCAN_BERR:
-		return ERRMSG_SLCAN_BERR;
-	case ERRNO_SLCAN_OFFLINE:
-		return ERRMSG_SLCAN_OFFLINE;
-	case ERRNO_SLCAN_ONLINE:
-		return ERRMSG_SLCAN_ONLINE;
-	case ERRNO_SLCAN_MSG_LST:
-		return ERRMSG_SLCAN_MSG_LST;
-	case ERRNO_SLCAN_LEC_STUFF:
-		return ERRMSG_SLCAN_LEC_STUFF;
-	case ERRNO_SLCAN_LEC_FORM:
-		return ERRMSG_SLCAN_LEC_FORM;
-	case ERRNO_SLCAN_LEC_ACK:
-		return ERRMSG_SLCAN_LEC_ACK;
-	case ERRNO_SLCAN_LEC_BIT1:
-		return ERRMSG_SLCAN_LEC_BIT1;
-	case ERRNO_SLCAN_LEC_BIT0:
-		return ERRMSG_SLCAN_LEC_BIT0;
-	case ERRNO_SLCAN_LEC_CRC:
-		return ERRMSG_SLCAN_LEC_CRC;
-	case ERRNO_SLCAN_RESERVED1:
-		return ERRMSG_SLCAN_RESERVED1;
-	case ERRNO_SLCAN_TX_BUSY:
-		return ERRMSG_SLCAN_TX_BUSY;
-	case ERRNO_SLCAN_RESERVED2:
-		return ERRMSG_SLCAN_RESERVED2;
-	case ERRNO_SLCAN_RX_EMPTY:
-		return ERRMSG_SLCAN_RX_EMPTY;
-	case ERRNO_SLCAN_QUE_OVR:
-		return ERRMSG_SLCAN_QUE_OVR;
-	case ERRNO_SLCAN_RESERVED3:
-		return ERRMSG_SLCAN_RESERVED3;
-	case ERRNO_SLCAN_TIMEOUT:
-		return ERRMSG_SLCAN_TIMEOUT;
-	case ERRNO_SLCAN_RESOURCE:
-		return ERRMSG_SLCAN_RESOURCE;
-	case ERRNO_SLCAN_BAUDRATE:
-		return ERRMSG_SLCAN_BAUDRATE;
-	case ERRNO_SLCAN_HANDLE:
-		return ERRMSG_SLCAN_HANDLE;
-	case ERRNO_SLCAN_ILLPARA:
-		return ERRMSG_SLCAN_ILLPARA;
-	case ERRNO_SLCAN_NULLPTR:
-		return ERRMSG_SLCAN_NULLPTR;
-	case ERRNO_SLCAN_NOTINIT:
-		return ERRMSG_SLCAN_NOTINIT;
-	case ERRNO_SLCAN_YETINIT:
-		return ERRMSG_SLCAN_YETINIT;
-	case ERRNO_SLCAN_LIBRARY:
-		return ERRMSG_SLCAN_LIBRARY;
-	case ERRNO_SLCAN_NOTSUPP:
-		return ERRMSG_SLCAN_NOTSUPP;
-	case ERRNO_SLCAN_FATAL:
-		return ERRMSG_SLCAN_FATAL;
-	case ERRNO_SLCAN_VENDOR:
-		return ERRMSG_SLCAN_VENDOR;
+	ERRNO_CASE (SLCAN_EWRN);
+	ERRNO_CASE (SLCAN_OFFLINE);
+	ERRNO_CASE (SLCAN_ONLINE);
+	ERRNO_CASE (SLCAN_MSG_LST);
+	ERRNO_CASE (SLCAN_RESERVED1);
+	ERRNO_CASE (SLCAN_TX_BUSY);
+	ERRNO_CASE (SLCAN_RESERVED2);
+	ERRNO_CASE (SLCAN_RX_EMPTY);
+	ERRNO_CASE (SLCAN_QUE_OVR);
+	ERRNO_CASE (SLCAN_RESERVED3);
+	ERRNO_CASE (SLCAN_RESOURCE);
+	ERRNO_CASE (SLCAN_BAUDRATE);
+	ERRNO_CASE (SLCAN_HANDLE);
+	ERRNO_CASE (SLCAN_ILLPARA);
+	ERRNO_CASE (SLCAN_NULLPTR);
+	ERRNO_CASE (SLCAN_NOTINIT);
+	ERRNO_CASE (SLCAN_YETINIT);
+	ERRNO_CASE (SLCAN_LIBRARY);
+	ERRNO_CASE (SLCAN_NOTSUPP);
+	ERRNO_CASE (SLCAN_FATAL);
+	ERRNO_CASE (SLCAN_VENDOR);
 
 	default:
 	 	return strerror (errorCode);
 	}
+}
+
+/**
+ * @brief Prints an error message to @c stderr . The resulting message takes the following format:
+ * "<User Message>: <Error Message>"
+ *
+ * For example:
+ * "Failed to open file 'test.txt': No such file or directory."
+ *
+ * @param message The user message to preface the error message with. Note this can be a format string, in which case the
+ * following arguments should be the values to be inserted in place of the format specifiers.
+ * @param ... The variadic arguments to insert into the format string. Same convention as the @c printf family of functions.
+ * @return The error code associated with the error, that is, the value of @c errno upon entry to the function. Note this
+ * resets @c errno , so this return code must be used to determine what the error was.
+ */
+static inline int errorPrintf (const char* message, ...)
+{
+	// Store the error that caused the issue and reset errno for later usage.
+	int code = errno;
+	errno = 0;
+
+	// Print the user message, along with variadic arguments.
+	va_list args;
+    va_start(args, message);
+    vfprintf(stderr, message, args);
+    va_end(args);
+
+	// Print the error message.
+	fprintf (stderr, ": %s.\n", errorMessage (code));
+
+	// Return the errno value.
+	return code;
 }
 
 #endif // ERROR_CODES_H

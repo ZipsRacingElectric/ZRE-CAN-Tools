@@ -1,7 +1,7 @@
 ROOT_DIR := ../..
 include $(ROOT_DIR)/include.mk
 
-BIN := $(BIN_DIR)/data-logger
+BIN := $(BIN_DIR)/can-mdf-logger
 SRC := main.c
 
 # Note libraries must be in reverse order of dependencies, that is a dependency

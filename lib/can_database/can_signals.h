@@ -39,6 +39,9 @@ typedef struct
 	/// @brief The CAN ID of this message.
 	uint32_t id;
 
+	/// @brief The IDE bit of the CAN ID. Indicates whether the ID is a standard identifier or an extended identifier.
+	bool ide;
+
 	/// @brief The DLC of this message.
 	uint8_t dlc;
 } canMessage_t;

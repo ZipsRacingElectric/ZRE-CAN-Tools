@@ -4,20 +4,13 @@
 // Date Created: 2024.10.27
 //
 // Description: Command-line interface for interacting with a CAN bus.
-//
-// TODO(Barach):
-// - Utilize stdin/stdout in the same way the EEPROM CLI does.
-// - Long term, I want a shell script that can use this program to automatically clear all AMK errors (slow and tedious by
-//   hand)
-// - GNUPlot allows the user to pipe commands to it in realtime, meaning it can be used to monitor real-time data. Obviously
-//   this is incredibly useful. For now though, that part of the toolchain is covered by MoTeC, so its not worth implementing
-//   until next year.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
 #include "can_database/can_database.h"
 #include "can_device/can_device.h"
+#include "can_device/can_device_stdio.h"
 #include "error_codes.h"
 
 // C Standard Library
@@ -146,11 +139,15 @@ canFrame_t promptMessageValue (canMessage_t* message)
 	canFrame_t frame =
 	{
 		.id = message->id,
+		.ide = message->ide,
+		.rtr = false,
 		.dlc = message->dlc
 	};
 	uint64_t* payload = (uint64_t*) frame.data;
 
-	printf ("- Message %s (0x%X) -\n", message->name, message->id);
+	printf ("- Message: (");
+	fprintCanId (stdout, message->id, message->ide, false);
+	printf (") -\n");
 
 	for (size_t index = 0; index < message->signalCount; ++index)
 		*payload |= promptSignalValue (message->signals + index);
@@ -193,7 +190,9 @@ void printDatabase (FILE* stream, canDatabase_t* database)
 	{
 		canMessage_t* message = database->messages + messageIndex;
 
-		fprintf (stream, "%s - ID: %3X\n", message->name, message->id);
+		fprintf (stream, "%s - ID: ", message->name);
+		fprintCanId (stream, message->id, message->ide, false);
+		fprintf (stream, "\n");
 
 		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
 		{
@@ -229,7 +228,9 @@ void printMessageValue (FILE* stream, canDatabase_t* database, size_t index)
 
 	float* signalValues = database->signalValues + (size_t) (message->signals - database->signals);
 
-	fprintf (stream, "- Message %s (0x%X) -\n", message->name, message->id);
+	fprintf (stream, "- Message %s (", message->name);
+	fprintCanId (stream, message->id, message->ide, false);
+	fprintf (stream, ") -\n");
 	for (size_t index = 0; index < message->signalCount; ++index)
 		fprintf (stream, "%s: %f\n", message->signals [index].name, signalValues [index]);
 }
