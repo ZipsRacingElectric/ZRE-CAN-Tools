@@ -213,22 +213,18 @@ int slcanEnumerateDevice (char* deviceName, char* baudRate)
 	// TODO(DiBacco): if the final implementation of this function involves returning the first devices detected, 
 	// Then change the funcion's structure to return the device's name once the first device is detected.
 
-	// List containing the names of the communication devices
+	// TODO(DiBacco): a better implementation of this might be to call the can-init function to see if the device is a can device
 
-	// TODO(DiBacco): either declare variable outside function call or assign the deviceName parameter to a newly created function of this kind.
-	// static char deviceName [20];
-	
+	// List containing the names of the communication devices
 	size_t deviceCount = 0;
 	static char* deviceNames [5];
 	
 	// Check the OS running the program based on system-defined macro 
-	#if ! (__unix__)
+	# if ! (__unix__)
 		// QueryDosDeviceA: retrieves information about MS-DOS (Microsoft Disk Operating System) device names 
 		// DWORD (Double-Word): 32-bit unsigned data type
 		// LPSTR (Long Pointer to a String): typedef (alias) for a char*
 
-		// TODO(DiBacco): uncomment Windows enumeration solution
-		// Removing implementation to see if it alleviates Linux segmentation fault
 		LPSTR device;
 		char buffer [32768];
 		DWORD bufferSize = 32768;
@@ -248,7 +244,7 @@ int slcanEnumerateDevice (char* deviceName, char* baudRate)
 			device += strlen (device) + 1;
 		}
 
-	#else
+	# else
    		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
 		// dirent (directory entry): represents an entry inside a directory
 		/* struct dirent {
@@ -272,16 +268,8 @@ int slcanEnumerateDevice (char* deviceName, char* baudRate)
 				break;
 			}
 
-			// tty: serial port representation in Linux
-			// S: indicates standard serial port
-			// ACM: indicates a serial communication device over a usb connection
-
 			if (strstr (entry->d_name, "ttyACM"))
 			{
-				// TODO(DiBacco): why are all serial ports showing up?
-				// Find way to detect whether the port is occupied
-
-				// ioctl: system call that manipulates the underlying device parameters of special files 
 				deviceNames[deviceCount] = entry->d_name;
 				++deviceCount;
 			}
@@ -290,7 +278,7 @@ int slcanEnumerateDevice (char* deviceName, char* baudRate)
 
 		closedir (directory);
 
-	#endif
+	# endif
 
 	// Gets the name of the first communication device from the list of communication device names
 	if (!deviceCount)

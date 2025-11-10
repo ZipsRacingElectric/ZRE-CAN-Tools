@@ -58,7 +58,7 @@ int slcanFlushRx (void* device);
 int slcanSetTimeout (void* device, unsigned long timeoutMs);
 
 /** 
- * @brief Enumerates & assigns the first device w. the baud rate to the deviceName argument.
+ * @brief Enumerates connected devices and assigns the first one to the deviceName argument.
  * @param deviceName The argument to be assigned the device's name.
  * @param baudRate Specifies the baud rate for the device.
  */ 
