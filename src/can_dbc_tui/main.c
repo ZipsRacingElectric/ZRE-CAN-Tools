@@ -22,6 +22,7 @@
 
 // C Standard Library
 #include <errno.h>
+#include <inttypes.h>
 #include <locale.h>
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -97,7 +98,7 @@ int main (int argc, char** argv)
 			else
 				mvprintw (1, i, "─");
 		}
-		mvprintw (2, 0, "");
+		move (2, 0);
 
 		int ret = getch ();
 		if (ret != ERR)
@@ -210,7 +211,7 @@ void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow)
 			// Print signal name, value, and metadata
 			if (startRow <= currentRow && currentRow < endRow)
 			{
-				printw ("│ %32s │ %10s │ %8lX │ %10i │ %12i │ %12f │ %12f │ %9u │ %6u │\n",
+				printw ("│ %32s │ %10s │ %8"PRIX64" │ %10i │ %12i │ %12f │ %12f │ %9u │ %6u │\n",
 					signal->name,
 					buffer,
 					signal->bitmask,

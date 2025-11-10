@@ -161,6 +161,7 @@ canDevice_t* socketCanInit (const char* name, canBaudrate_t baudrate)
 	#else // __unix__
 
 	(void) name;
+	(void) baudrate;
 
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return NULL;
@@ -179,6 +180,10 @@ void socketCanDealloc (void* device)
 
 	// Free the device's memory.
 	free (sock);
+
+	#else // __unix__
+
+	(void) device;
 
 	#endif // __unix__
 }

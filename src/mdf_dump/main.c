@@ -16,6 +16,7 @@
 
 // C Standard Library
 #include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -64,11 +65,11 @@ void dumpBlockHeader (FILE* stream, mdfBlock_t* block)
 
 	// Block length
 	hexdump (&block->header.blockLength, sizeof (block->header.blockLength), sizeof (block->header.blockLength), stream);
-	fprintf (stream, "| Block length = %lu\n", block->header.blockLength);
+	fprintf (stream, "| Block length = %"PRIu64"\n", block->header.blockLength);
 
 	// Link count
 	hexdump (&block->header.linkCount, sizeof (block->header.linkCount), sizeof (block->header.linkCount), stream);
-	fprintf (stream, "| Link count = %lu\n\n", block->header.linkCount);
+	fprintf (stream, "| Link count = %"PRIu64"\n\n", block->header.linkCount);
 }
 
 void dumpBlockLinkList (FILE* stream, mdfBlock_t* block)
@@ -76,7 +77,7 @@ void dumpBlockLinkList (FILE* stream, mdfBlock_t* block)
 	for (size_t linkIndex = 0; linkIndex < block->header.linkCount; ++linkIndex)
 	{
 		hexdump (&block->linkList [linkIndex], sizeof (uint64_t), sizeof (uint64_t), stream);
-		fprintf (stream, "| 0x%08lX\n", block->linkList [linkIndex]);
+		fprintf (stream, "| 0x%08"PRIX64"\n", block->linkList [linkIndex]);
 	}
 }
 
@@ -135,8 +136,8 @@ void dataSectionByteHandler (mdfBlock_t* block, uint8_t data, void* dataSectionB
 			}
 			if (arg->recordIndex == 8)
 			{
-				fprintf (arg->timestampStream, "0x%016lX, %lu, ", arg->timestamp0, arg->timestamp0);
-				printf ("(Timestamp 0 = %16lu) | ", arg->timestamp0);
+				fprintf (arg->timestampStream, "0x%016"PRIX64", %"PRIu64", ", arg->timestamp0, arg->timestamp0);
+				printf ("(Timestamp 0 = %16"PRIu64") | ", arg->timestamp0);
 			}
 
 			// CAN ID
@@ -198,7 +199,7 @@ void dataSectionByteHandler (mdfBlock_t* block, uint8_t data, void* dataSectionB
 			}
 			if (arg->recordIndex == 17)
 			{
-				fprintf (arg->timestampStream, "0x%08lX, %lu, \n", arg->timestamp1, arg->timestamp1);
+				fprintf (arg->timestampStream, "0x%08"PRIX64", %"PRIu64", \n", arg->timestamp1, arg->timestamp1);
 			}
 
 			// DLC
@@ -338,7 +339,7 @@ int main (int argc, char** argv)
 			return code;
 		}
 
-		printf ("- Begin Header - 0x%08lX -\n\n", block.addr);
+		printf ("- Begin Header - 0x%08"PRIX64" -\n\n", block.addr);
 		dumpBlockHeader (stdout, &block);
 		printf ("- End Header -\n\n");
 
