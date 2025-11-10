@@ -22,6 +22,10 @@
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+// TODO(DiBacco): user group on vm does not have /dev access permissions
+// Solution: run commands that involve can devices w. sudo
+// Solution: add yourself to user group that has the permission 
+
 // DiBacco: function no longer used
 void promptFrame (canFrame_t* frame)
 {
@@ -372,7 +376,7 @@ int main (int argc, char** argv)
 			queryMode = true;
 	}
 
-	if (argc == 2)
+	if (argc >= 2)
 	{
 		char* deviceName = argv [argc - 1];
 		device = canInit (deviceName);
@@ -390,7 +394,6 @@ int main (int argc, char** argv)
 
 	if (device == NULL)
 	{
-		// TODO(DiBacco): find out why the program fails to create CAN device on Linux
 		int code = errno;
 		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
 		return code;

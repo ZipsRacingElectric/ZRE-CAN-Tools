@@ -50,6 +50,7 @@ bool slcanNameDomain (const char* name)
 
 canDevice_t* slcanInit (char* name)
 {
+	// TODO(DiBacco): remove logging 
 	// Split the name into the device name and bitrate: Format <device>@<baud>
 	char* savePtr;
 	strtok_r (name, "@", &savePtr);
@@ -72,8 +73,9 @@ canDevice_t* slcanInit (char* name)
 			.stopbits = CANSIO_1STOPBIT
 		}
 	};
-
+	
 	int handle = can_init (CAN_BOARD (CANLIB_SERIALCAN, CANDEV_SERIAL), CANMODE_DEFAULT, (const void*) &port);
+
 	if (handle < 0)
 	{
 		// Offset the error code to match this project's convention.
