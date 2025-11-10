@@ -361,20 +361,7 @@ int processCommand (canDevice_t* device, char* command) {
 
 int main (int argc, char** argv)
 {	
-	static char deviceName[128];
-	if (argc == 2)
-	{
-		strncpy(deviceName, argv[argc - 1], sizeof(deviceName) - 1);
-		deviceName[sizeof(deviceName) - 1] = '\0';
-	}
-	// Enumerate devices if one is not provided
-	else if (argc == 1)
-	{
-		if (slcanEnumerateDevice (deviceName, "1000000") == -1)
-		{
-			return -1;
-		}
-	}
+	canDevice_t* device = NULL;
 
 	// Check for query mode
 	// TODO(Barach): This is pretty messy.
@@ -385,9 +372,25 @@ int main (int argc, char** argv)
 			queryMode = true;
 	}
 
-	canDevice_t* device = canInit (deviceName);
+	if (argc == 2)
+	{
+		char* deviceName = argv [argc - 1];
+		device = canInit (deviceName);
+	}
+	// Enumerate device if one is not provided
+	else if (argc == 1)
+	{	
+		// TODO(DiBacco): might want to call the slcanEnumerateDevices() function in the findCanDevice() so that slcan.h is not included everywhere?
+		char* deviceNames [5];
+		size_t deviceCount = 0;
+
+		if (slcanEnumerateDevices (deviceNames, &deviceCount, "1000000") == 0)
+			device = findCanDevice (deviceNames, deviceCount);	
+	}
+
 	if (device == NULL)
 	{
+		// TODO(DiBacco): find out why the program fails to create CAN device on Linux
 		int code = errno;
 		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
 		return code;

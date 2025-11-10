@@ -57,11 +57,14 @@ int slcanFlushRx (void* device);
 /// @brief SLCAN implementation of the @c canSetTimeout function.
 int slcanSetTimeout (void* device, unsigned long timeoutMs);
 
-/** 
- * @brief Enumerates connected devices and assigns the first one to the deviceName argument.
- * @param deviceName The argument to be assigned the device's name.
- * @param baudRate Specifies the baud rate for the device.
+// TODO(DiBacco): set errno on failure
+/**
+ * @brief Enumerates devices connected to the user's machine.
+ * @param deviceName Is associated each enumerated device's name.
+ * @param deviceCount Specifies the number of elements in the list of device names.
+ * @param baudRate Specifies the baud rate for each device.
+ * @return 0 on success, -1 on failure. Note: errno is set on failure
  */ 
-int slcanEnumerateDevice (char* deviceName, char* baudRate);
+int slcanEnumerateDevices (char** deviceNames, size_t* deviceCount, char* baudRate);
 
 #endif // SERIAL_CAN_H

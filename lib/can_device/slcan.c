@@ -208,17 +208,10 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs)
 	return 0;
 }
 
-int slcanEnumerateDevice (char* deviceName, char* baudRate) 
-{
-	// TODO(DiBacco): if the final implementation of this function involves returning the first devices detected, 
-	// Then change the funcion's structure to return the device's name once the first device is detected.
+int slcanEnumerateDevices (char** deviceNames, size_t* deviceCount, char* baudRate) 
+{	
+	char deviceName[128];
 
-	// TODO(DiBacco): a better implementation of this might be to call the can-init function to see if the device is a can device
-
-	// List containing the names of the communication devices
-	size_t deviceCount = 0;
-	static char* deviceNames [5];
-	
 	// Check the OS running the program based on system-defined macro 
 	# if ! (__unix__)
 		// QueryDosDeviceA: retrieves information about MS-DOS (Microsoft Disk Operating System) device names 
@@ -237,8 +230,10 @@ int slcanEnumerateDevice (char* deviceName, char* baudRate)
 
 			if (strstr (device, "COM") && strlen (device) <= 5)
 			{
-				deviceNames [deviceCount] = device;
-				++deviceCount;
+				sprintf (deviceName, "%s@%s", device, baudRate);
+				deviceNames [*deviceCount] = malloc(strlen(deviceName) + 1);
+				strcpy (deviceNames [*deviceCount], deviceName);
+				++(*deviceCount);
 			}
 
 			device += strlen (device) + 1;
@@ -268,10 +263,13 @@ int slcanEnumerateDevice (char* deviceName, char* baudRate)
 				break;
 			}
 
-			if (strstr (entry->d_name, "ttyACM"))
+			char* device = entry->d_name;
+			if (strstr (device, "ttyACM"))
 			{
-				deviceNames[deviceCount] = entry->d_name;
-				++deviceCount;
+				sprintf (deviceName, "%s@%s", device, baudRate);
+				deviceNames [*deviceCount] = malloc(strlen(deviceName) + 1);
+				deviceNames [*deviceCount] = device;
+				++(*deviceCount);
 			}
 
 		}
@@ -280,13 +278,10 @@ int slcanEnumerateDevice (char* deviceName, char* baudRate)
 
 	# endif
 
-	// Gets the name of the first communication device from the list of communication device names
-	if (!deviceCount)
-	{
-		printf ("No CAN devices detected \n");
+	if (!(*deviceCount))
+		// TODO(DiBacco): there seems to be no errno code associated with "no can device specified"
+		// Can you create your own errno code & message?
 		return -1;
-	}
 
-	sprintf (deviceName, "%s@%s", deviceNames[0], baudRate);
 	return 0;
 }

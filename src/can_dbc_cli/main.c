@@ -66,16 +66,20 @@ void printMessageValue (FILE* stream, canDatabase_t* database, size_t index);
 
 int main (int argc, char** argv)
 {
-	static char deviceName[128];
+	char* deviceName;
 	char* dbcPath; 
+
+	canDevice_t* device = NULL;
 
 	// Enumerate devices if one is not provided
 	if (argc == 2)
 	{
-		if (slcanEnumerateDevice (deviceName, "1000000") == -1)
-		{
-			return -1;
-		}
+		// TODO(DiBacco): might want to call the slcanEnumerateDevices() function in the findCanDevice() so that slcan.h is not included everywhere?
+		char* deviceNames [5];
+		size_t deviceCount = 0;
+
+		if (slcanEnumerateDevices (deviceNames, &deviceCount, "1000000") == 0)
+			device = findCanDevice (deviceNames, deviceCount);	
 
 		dbcPath = argv [1];
 	}
@@ -87,14 +91,10 @@ int main (int argc, char** argv)
 	}
 	else 
 	{
-		strncpy(deviceName, argv[1], sizeof(deviceName) - 1);
-		deviceName[sizeof(deviceName) - 1] = '\0';
-
-		dbcPath = argv [2];
+		deviceName = argv [1];
+		dbcPath    = argv [2];
 	}
 
-
-	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 	{
 		int code = errno;

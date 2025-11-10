@@ -13,8 +13,6 @@
 #include "bms/bms.h"
 #include "can_device/can_device.h"
 #include "cjson/cjson_util.h"
-
-// TODO(DiBacco): will communication device enumeration be done in this file?
 #include "can_device/slcan.h" 
 
 // Curses
@@ -148,17 +146,24 @@ int main (int argc, char** argv)
 
 	char* dbcPath;	
 	char* configPath;
-	static char deviceName[128];
+	char* deviceName;
+
+	// Initialize the CAN device
+	canDevice_t* device = NULL;
+
 	// Enumerate devices if one is not provided
 	if (argc == 3)
 	{
-		if (slcanEnumerateDevice (deviceName, "1000000") == -1)
-		{
-			return -1;
-		}
-
 		dbcPath		= argv [1];
 		configPath	= argv [2];
+
+		char* deviceNames [5];
+		size_t deviceCount = 0;
+
+		// TODO(DiBacco): might want to call the slcanEnumerateDevices() function in the findCanDevice() so that slcan.h is not included everywhere?
+		if (slcanEnumerateDevices (deviceNames, &deviceCount, "1000000") == 0)
+			device = findCanDevice (deviceNames, deviceCount);
+
 	}
 	// Validate standard arguments
 	else if (argc != 4)
@@ -166,16 +171,15 @@ int main (int argc, char** argv)
 		fprintf (stderr, "Format: bms-tui <device name> <DBC file path> <config file path>\n");
 		return -1;
 	}
-	else {
-		strncpy(deviceName, argv[1], sizeof(deviceName) - 1);
-		deviceName[sizeof(deviceName) - 1] = '\0';
-
+	else
+	{
+		deviceName  = argv [1];
 		dbcPath		= argv [2];
 		configPath	= argv [3];
+
+		device = canInit (deviceName);
 	}
 
-	// Initialize the CAN device
-	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 	{
 		int code = errno;

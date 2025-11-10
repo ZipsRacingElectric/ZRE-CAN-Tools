@@ -37,6 +37,8 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
+	// TODO(DiBacco): implement can device enumeration
+
 	char* deviceName = argv [1];
 	char* dbcPath = argv [2];
 

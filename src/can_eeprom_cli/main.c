@@ -104,6 +104,8 @@ int main (int argc, char** argv)
 		return EINVAL;
 	}
 
+	// TODO(DiBacco): implement can device enumeration 
+
 	char* deviceName = argv [argc - 2];
 	char* configJsonPath = argv [argc - 1];
 

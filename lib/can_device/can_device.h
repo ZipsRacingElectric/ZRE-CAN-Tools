@@ -115,4 +115,12 @@ typedef struct
  */
 canDevice_t* canInit (char* name);
 
+/**
+ * @brief Initialize a CAN device by iterating through a list of device names. 
+ * @param names A list of device names.
+ * @param count The number of elements in the list of device names.  
+ * @return The first initialized CAN device if successful, @c NULL otherwise. Note @c errno is set on failure.
+ */
+canDevice_t* findCanDevice (char** names, size_t count);
+
 #endif // CAN_DEVICE_H
