@@ -32,17 +32,23 @@ LIBS :=					\
 	$(LIB_BMS)			\
 	$(LIB_MDF)
 
+# Operating System Detection --------------------------------------------------
+
+ifeq ($(OS),Windows_NT)
+	OS_TYPE := windows
+else
+	OS_TYPE := $(shell uname | tr '[:upper:]' '[:lower:]')
+endif
+
+ARCH_TYPE := $(shell uname -m)
+
+# Release Version -------------------------------------------------------------
+
+VERSION := zre_cantools_$(OS_TYPE)_$(ARCH_TYPE)_$(shell date +%Y.%m.%d)
+
 # Compilation -----------------------------------------------------------------
 
 # TODO(Barach): "-lm" should be in libflags, not CFLAGS
-CFLAGS := -fno-strict-aliasing -Wall -Wextra -Wpedantic -g -I $(LIB_DIR) -lm
-
-# Operating System Detection --------------------------------------------------
-
-# - This is only used for tagging releases, everything in here should work in
-#   both linux and MSYS2.
-ifeq ($(OS),Windows_NT)
-	DETECTED_OS := windows
-else
-	DETECTED_OS := $(shell uname | tr '[:upper:]' '[:lower:]')
-endif
+CFLAGS := -fno-strict-aliasing -Wall -Wextra -Wpedantic -g -I $(LIB_DIR) -lm 	\
+	-D ZRE_CANTOOLS_OS=$(OS_TYPE) -D ZRE_CANTOOLS_ARCH=$(ARCH_TYPE)				\
+	-D ZRE_CANTOOLS_VERSION=\"$(VERSION)\"

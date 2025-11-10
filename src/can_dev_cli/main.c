@@ -434,6 +434,12 @@ int main (int argc, char** argv)
 			fprintHelp (stdout);
 			return 0;
 		}
+
+		if (strcmp (argv [index], "-v") == 0)
+		{
+			printf ("%s\n", ZRE_CANTOOLS_VERSION);
+			return 0;
+		}
 	}
 
 	// Validate the usage

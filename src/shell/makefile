@@ -1,7 +1,7 @@
 ROOT_DIR := ../..
 include $(ROOT_DIR)/include.mk
 
-ifeq ($(DETECTED_OS), windows)
+ifeq ($(OS_TYPE), windows)
 	BAT := $(wildcard *.bat)
 	BIN := $(patsubst %, $(BIN_DIR)/%, $(BAT))
 else

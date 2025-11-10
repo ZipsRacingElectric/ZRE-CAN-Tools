@@ -4,7 +4,7 @@ include include.mk
 # Releasing -------------------------------------------------------------------
 # For some reason these can't be at the end of the file.
 
-ifeq ($(DETECTED_OS), windows)
+ifeq ($(OS_TYPE), windows)
 	INSTALLER := install.bat
 	UNINSTALLER := uninstall.bat
 else
@@ -13,7 +13,7 @@ else
 endif
 
 # Command for copying the MSYS2 UCRT binaries into a release
-ifeq ($(DETECTED_OS), windows)
+ifeq ($(OS_TYPE), windows)
 	ifeq ($(MSYS_BIN), "")
 		MSYS_UCRT_COPY_CMD := echo "Error: MSYS_BIN environment variable is not declared!"" && exit -1
 	else
@@ -80,8 +80,7 @@ clean:
 
 # Releasing -------------------------------------------------------------------
 
-# TODO(Barach): This should include the architecture, as we are now deploying on ARM.
-RELEASE_DIR := $(ROOT_DIR)/release/zre_cantools_$(DETECTED_OS)_$(shell date +%Y.%m.%d)
+RELEASE_DIR := $(ROOT_DIR)/release/$(VERSION)
 RELEASE_README := doc/readme_release.txt
 
 .PHONY: release
