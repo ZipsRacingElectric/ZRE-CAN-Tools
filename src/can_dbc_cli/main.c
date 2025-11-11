@@ -65,28 +65,28 @@ void printMessageValue (FILE* stream, canDatabase_t* database, size_t index);
 
 int main (int argc, char** argv)
 {
-	char* deviceName;
-	char* dbcPath; 
+	canDevice_t* device;
 
-	canDevice_t* device = NULL;
-
-	// Enumerate devices if one is not provided
-	if (argc == 2)
-	{
-		device = enumerateDevice ("1000000");	
-		dbcPath = argv [1];
-	}
 	// Validate standard arguments
-	else if (argc != 3)
+	if (argc != 3)
 	{
 		fprintf (stderr, "Format: can-dbc-cli <device name> <DBC file path>\n");
+		fprintf (stderr, "Format: can-dbc-cli <baud rate> <DBC file path>\n");
 		return -1;
+	}
+	// Enumerate device if the command only specifies a baudRate
+	else if (strspn (argv [1], "0123456789") == strlen (argv [1]))
+	{
+		char* baudRate = argv [1];
+		device = enumerateDevice (baudRate);	
 	}
 	else 
 	{
-		deviceName = argv [1];
-		dbcPath    = argv [2];
+		char* deviceName = argv [1];
+		device = canInit (deviceName);
 	}
+
+	char* dbcPath = argv [2];
 
 	if (device == NULL)
 	{

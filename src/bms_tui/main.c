@@ -143,36 +143,31 @@ int main (int argc, char** argv)
 	// Debugging initialization
 	debugInit ();
 
-	char* dbcPath;	
-	char* configPath;
-	char* deviceName;
-
 	// Initialize the CAN device
-	canDevice_t* device = NULL;
+	canDevice_t* device;
 
-	// Enumerate devices if one is not provided
-	if (argc == 3)
-	{
-		dbcPath		= argv [1];
-		configPath	= argv [2];
-
-		device = enumerateDevice ("1000000");
-
-	}
 	// Validate standard arguments
-	else if (argc != 4)
+	if (argc != 4)
 	{
 		fprintf (stderr, "Format: bms-tui <device name> <DBC file path> <config file path>\n");
+		fprintf (stderr, "Format: bms-tui <baud rate> <DBC file path> <config file path>\n");
 		return -1;
+	}
+	// Enumerate device if the command only specifies a baudRate
+	else if (strspn (argv [1], "0123456789") == strlen (argv [1]))
+	{
+		char* baudRate = argv [1];
+		device = enumerateDevice (baudRate);
+
 	}
 	else
 	{
-		deviceName  = argv [1];
-		dbcPath		= argv [2];
-		configPath	= argv [3];
-
+		char* deviceName  = argv [1];
 		device = canInit (deviceName);
 	}
+
+	char* dbcPath	 = argv [2];
+	char* configPath = argv [3];
 
 	if (device == NULL)
 	{

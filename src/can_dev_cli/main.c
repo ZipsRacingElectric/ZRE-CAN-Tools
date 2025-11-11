@@ -364,7 +364,7 @@ int processCommand (canDevice_t* device, char* command) {
 
 int main (int argc, char** argv)
 {	
-	canDevice_t* device = NULL;
+	canDevice_t* device;
 
 	// Check for query mode
 	// TODO(Barach): This is pretty messy.
@@ -375,16 +375,25 @@ int main (int argc, char** argv)
 			queryMode = true;
 	}
 
-	if (argc == 2 || (queryMode && argc == 3))
+	if (argc < 2 || argc > 3)
+	{
+		// TODO(DiBacco): find out how the error is formatted on can-dev-cli branch
+		fprintf (stderr, "Format: can-dev-cli -method (optional) <device name>\n");
+		fprintf (stderr, "Format: can-dev-cli -method (optional) <baud rate>\n");
+		return -1;
+	}
+	// Enumerate device if the command only specifies a baudRate
+	else if (strspn (argv [argc - 1], "0123456789") == strlen (argv [argc - 1]))
+	{	
+		char* baudRate = argv [argc - 1];
+		device = enumerateDevice (baudRate);	
+	} 
+	else
 	{
 		char* deviceName = argv [argc - 1];
 		device = canInit (deviceName);
 	}
-	// Enumerate device if one is not provided
-	else if (argc == 1 || (queryMode && argc == 2))
-	{	
-		device = enumerateDevice ("1000000");	
-	}
+	
 
 	if (device == NULL)
 	{
