@@ -62,7 +62,7 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs);
  * @param deviceName Is associated each enumerated device's name.
  * @param deviceCount Specifies the number of elements in the list of device names.
  * @param baudRate Specifies the baud rate for each device.
- * @return 0 on success, -1 on failure. Note: errno is set on failure
+ * @return 0 on success, -1 on failure. 
  */ 
 int slcanenumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRate);
 
