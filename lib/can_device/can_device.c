@@ -46,9 +46,13 @@ canDevice_t* enumerateDevice (char* baudRate)
 
 			return device;
 		}
+	} 
+	else 
+	{	
+		// Indicates that the program failed to locate a CAN device
+		errno = ERRNO_CAN_DEVICE_MISSING_DEVICE;
 	}
 
-	// Errno is set in the canInit() function
 	// Indicates that a CAN device could not be created
 	return NULL;
 }

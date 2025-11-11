@@ -57,7 +57,6 @@ int slcanFlushRx (void* device);
 /// @brief SLCAN implementation of the @c canSetTimeout function.
 int slcanSetTimeout (void* device, unsigned long timeoutMs);
 
-// TODO(DiBacco): set errno on failure
 /**
  * @brief Enumerates devices connected to the user's machine.
  * @param deviceName Is associated each enumerated device's name.

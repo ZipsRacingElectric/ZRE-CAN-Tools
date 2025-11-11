@@ -280,8 +280,6 @@ int slcanenumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRat
 	# endif
 
 	if (!(*deviceCount))
-		// TODO(DiBacco): there seems to be no errno code associated with "no can device specified"
-		// Can you create your own errno code & message?
 		return -1;
 
 	return 0;

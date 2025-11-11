@@ -21,9 +21,11 @@
 
 #define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1025
 #define ERRNO_CAN_DEVICE_BAD_TIMEOUT			1026
+#define ERRNO_CAN_DEVICE_MISSING_DEVICE			1027
 
 #define ERRMSG_CAN_DEVICE_UNKNOWN_NAME			"The device name does not belong to any known CAN device"
 #define ERRMSG_CAN_DEVICE_BAD_TIMEOUT			"The specified timeout is not possible"
+#define ERRMSG_CAN_DEVICE_MISSING_DEVICE		"No CAN device was detected"
 
 // can_database Module --------------------------------------------------------------------------------------------------------
 
@@ -159,6 +161,8 @@ static inline const char* errorMessage (int errorCode)
 		return ERRMSG_CAN_DEVICE_UNKNOWN_NAME;
 	case ERRNO_CAN_DEVICE_BAD_TIMEOUT:
 		return ERRMSG_CAN_DEVICE_BAD_TIMEOUT;
+	case ERRNO_CAN_DEVICE_MISSING_DEVICE:
+		return ERRMSG_CAN_DEVICE_MISSING_DEVICE;
 
 	// can_database module
 	case ERRNO_CAN_DBC_MESSAGE_COUNT:
