@@ -269,7 +269,7 @@ int slcanEnumerateDevices (char** deviceNames, size_t* deviceCount, char* baudRa
 			{
 				sprintf (deviceName, "/dev/%s@%s", device, baudRate);
 				deviceNames [*deviceCount] = malloc(strlen(deviceName) + 1);
-				deviceNames [*deviceCount] = device;
+				strcpy (deviceNames [*deviceCount], deviceName);
 				++(*deviceCount);
 			}
 
