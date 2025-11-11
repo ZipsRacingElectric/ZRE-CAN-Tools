@@ -1,9 +1,7 @@
 bin
 release
-.vscode/.cache
-.objects/
+.vscode
 *.a
 *.so*
 lib/serial_can/Sources/build_no.h
-*compile_commands.json
-*.cache/
+.objects/

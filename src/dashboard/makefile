@@ -7,10 +7,8 @@ SRC := main.c
 CFLAGS += $(shell pkg-config --cflags gtk4)
 LIBFLAGS += $(shell pkg-config --libs gtk4)
 
-all: $(BIN) clangd-file
-
-CLANGD_FILE := ./.vscode/compile_commands.json
-include $(ROOT_DIR)/clangd.mk
+# TODO(Barach): Fix Clangd for this project
+all: $(BIN)
 
 # Note libraries must be in reverse order of dependencies, that is a dependency
 # must be placed after its dependents.

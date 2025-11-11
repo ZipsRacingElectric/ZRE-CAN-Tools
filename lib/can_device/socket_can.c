@@ -5,7 +5,7 @@
 #include "can_device.h"
 #include "error_codes.h"
 
-#if defined (__unix__)
+#ifdef ZRE_CANTOOLS_OS_linux
 
 // SocketCAN Libraries
 #include <linux/can.h>
@@ -20,7 +20,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#endif // __unix__
+#endif // ZRE_CANTOOLS_OS_linux
 
 // C Standard Libraries
 #include <errno.h>
@@ -40,7 +40,7 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-#if defined (__unix__)
+#ifdef ZRE_CANTOOLS_OS_linux
 
 static int getErrorCode (struct can_frame* frame)
 {
@@ -79,7 +79,7 @@ static int getErrorCode (struct can_frame* frame)
 	return ERRNO_CAN_DEVICE_UNSPEC_ERROR;
 }
 
-#endif // __unix__
+#endif // ZRE_CANTOOLS_OS_linux
 
 bool socketCanNameDomain (const char* name)
 {
@@ -94,7 +94,7 @@ bool socketCanNameDomain (const char* name)
 
 canDevice_t* socketCanInit (const char* name, canBaudrate_t baudrate)
 {
-	#if defined (__unix__)
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	// Create the socket using the CAN protocol family and the raw CAN protol
 	int descriptor = socket (PF_CAN, SOCK_RAW, CAN_RAW);
@@ -158,7 +158,7 @@ canDevice_t* socketCanInit (const char* name, canBaudrate_t baudrate)
 	// Success
 	return (canDevice_t*) device;
 
-	#else // __unix__
+	#else // ZRE_CANTOOLS_OS_linux
 
 	(void) name;
 	(void) baudrate;
@@ -166,12 +166,12 @@ canDevice_t* socketCanInit (const char* name, canBaudrate_t baudrate)
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return NULL;
 
-	#endif // __unix__
+	#endif // ZRE_CANTOOLS_OS_linux
 }
 
 void socketCanDealloc (void* device)
 {
-	#if defined (__unix__)
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	socketCan_t* sock = device;
 
@@ -181,16 +181,16 @@ void socketCanDealloc (void* device)
 	// Free the device's memory.
 	free (sock);
 
-	#else // __unix__
+	#else // ZRE_CANTOOLS_OS_linux
 
 	(void) device;
 
-	#endif // __unix__
+	#endif // ZRE_CANTOOLS_OS_linux
 }
 
 int socketCanTransmit (void* device, canFrame_t* frame)
 {
-	#if defined (__unix__)
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	socketCan_t* sock = device;
 
@@ -210,7 +210,7 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 	// Success
 	return 0;
 
-	#else // __unix__
+	#else // ZRE_CANTOOLS_OS_linux
 
 	(void) device;
 	(void) frame;
@@ -218,12 +218,12 @@ int socketCanTransmit (void* device, canFrame_t* frame)
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return errno;
 
-	#endif // __unix__
+	#endif // ZRE_CANTOOLS_OS_linux
 }
 
 int socketCanReceive (void* device, canFrame_t* frame)
 {
-	#if defined (__unix__)
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	socketCan_t* sock = device;
 
@@ -257,7 +257,7 @@ int socketCanReceive (void* device, canFrame_t* frame)
 	// Success
 	return 0;
 
-	#else // __unix__
+	#else // ZRE_CANTOOLS_OS_linux
 
 	(void) device;
 	(void) frame;
@@ -265,12 +265,12 @@ int socketCanReceive (void* device, canFrame_t* frame)
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return errno;
 
-	#endif // __unix__
+	#endif // ZRE_CANTOOLS_OS_linux
 }
 
 int socketCanFlushRx (void* device)
 {
-	#if defined (__unix__)
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	socketCan_t* sock = device;
 
@@ -295,19 +295,19 @@ int socketCanFlushRx (void* device)
 
 	return 0;
 
-	#else // __unix__
+	#else // ZRE_CANTOOLS_OS_linux
 
 	(void) device;
 
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return errno;
 
-	#endif // __unix__
+	#endif // ZRE_CANTOOLS_OS_linux
 }
 
 int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 {
-	#if defined (__unix__)
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	socketCan_t* sock = device;
 
@@ -322,7 +322,7 @@ int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 
 	return 0;
 
-	#else // __unix__
+	#else // ZRE_CANTOOLS_OS_linux
 
 	(void) device;
 	(void) timeoutMs;
@@ -330,7 +330,7 @@ int socketCanSetTimeout (void* device, unsigned long timeoutMs)
 	errno = ERRNO_OS_NOT_SUPPORTED;
 	return errno;
 
-	#endif // __unix__
+	#endif // ZRE_CANTOOLS_OS_linux
 }
 
 canBaudrate_t socketCanGetBaudrate (void* device)

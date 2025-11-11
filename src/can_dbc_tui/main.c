@@ -14,11 +14,7 @@
 #include "error_codes.h"
 
 // Curses
-#ifdef __unix__
-#include <curses.h>
-#else // __unix__
-#include <ncurses/curses.h>
-#endif // __unix__
+#include "curses_port.h"
 
 // C Standard Library
 #include <errno.h>
@@ -59,12 +55,8 @@ int main (int argc, char** argv)
 		return code;
 	}
 
-	// Set OS-specific locale for wide character support
-	#ifdef __unix__
-	setlocale (LC_ALL, "");
-	#else
-	setlocale (LC_ALL, ".utf8");
-	#endif // __unix__
+	// Set the locale for wide character support
+	cursesSetWideLocale ();
 
 	initscr ();
 
@@ -77,7 +69,7 @@ int main (int argc, char** argv)
 
 	while (true)
 	{
-		#ifdef __unix__
+		#ifdef ZRE_CANTOOLS_OS_linux
 		clear ();
 		#endif
 

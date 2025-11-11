@@ -15,7 +15,7 @@
 
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
-#ifndef __unix__
+#ifndef ZRE_CANTOOLS_OS_linux
 
 /// @brief timeradd implementation, as MSYS does not define it.
 #define timeradd(a, b, result)								\
@@ -43,6 +43,6 @@
 		}													\
 	} while (0)
 
-#endif // __unix__
+#endif // ZRE_CANTOOLS_OS_linux
 
 #endif // TIME_PORT_H

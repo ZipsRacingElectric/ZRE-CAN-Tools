@@ -6,6 +6,7 @@
 		"-pretty",
 		"--background-index",
 		"--compile-commands-dir=./.vscode/",
-		"-header-insertion=never"
+		"-header-insertion=never",
+		"--query-driver=/usr/bin/gcc"
 	]
 }

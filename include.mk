@@ -50,5 +50,17 @@ VERSION := zre_cantools_$(OS_TYPE)_$(ARCH_TYPE)_$(shell date +%Y.%m.%d)
 
 # TODO(Barach): "-lm" should be in libflags, not CFLAGS
 CFLAGS := -fno-strict-aliasing -Wall -Wextra -Wpedantic -g -I $(LIB_DIR) -lm 	\
-	-D ZRE_CANTOOLS_OS=$(OS_TYPE) -D ZRE_CANTOOLS_ARCH=$(ARCH_TYPE)				\
-	-D ZRE_CANTOOLS_VERSION=\"$(VERSION)\"
+	-D ZRE_CANTOOLS_OS_$(OS_TYPE) -D ZRE_CANTOOLS_ARCH=\"$(ARCH_TYPE)\"			\
+	-D ZRE_CANTOOLS_VERSION=\"$(VERSION)\" -Wno-newline-eof
+
+ifeq ($(OS_TYPE),linux)
+	ABS_ROOT_DIR := $(shell realpath $(ROOT_DIR))
+else
+	ABS_ROOT_DIR := $(shell cygpath -w $(shell realpath $(ROOT_DIR)))
+endif
+
+ifeq ($(OS_TYPE),linux)
+	GCC_BIN := $(shell which gcc)
+else
+	GCC_BIN := $(shell cygpath -w $(shell which gcc))
+endif
