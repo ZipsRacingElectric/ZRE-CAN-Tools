@@ -31,18 +31,27 @@ void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow);
 
 int main (int argc, char** argv)
 {
+	canDevice_t* device; 
+
 	if (argc != 3)
 	{
 		fprintf (stderr, "Format: can-dbc-tui <device name> <DBC file path>\n");
+		fprintf (stderr, "Format: can-dbc-tui <baud rate> <DBC file path>\n");
 		return -1;
 	}
+	// Enumerate device if the command only specifies a baudRate
+	else if (strspn (argv [1], "0123456789") == strlen (argv [1]))
+	{
+		char* baudRate = argv [1];
+		device = enumerateDevice (baudRate);
+	}
+	else {
+		char* deviceName = argv [1];
+		device = canInit (deviceName);
+	}
 
-	// TODO(DiBacco): implement can device enumeration
-
-	char* deviceName = argv [1];
 	char* dbcPath = argv [2];
 
-	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 	{
 		int code = errno;
