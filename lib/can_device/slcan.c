@@ -50,7 +50,6 @@ bool slcanNameDomain (const char* name)
 
 canDevice_t* slcanInit (char* name)
 {
-	// TODO(DiBacco): remove logging 
 	// Split the name into the device name and bitrate: Format <device>@<baud>
 	char* savePtr;
 	strtok_r (name, "@", &savePtr);
@@ -268,7 +267,7 @@ int slcanEnumerateDevices (char** deviceNames, size_t* deviceCount, char* baudRa
 			char* device = entry->d_name;
 			if (strstr (device, "ttyACM"))
 			{
-				sprintf (deviceName, "%s@%s", device, baudRate);
+				sprintf (deviceName, "/dev/%s@%s", device, baudRate);
 				deviceNames [*deviceCount] = malloc(strlen(deviceName) + 1);
 				deviceNames [*deviceCount] = device;
 				++(*deviceCount);

@@ -376,13 +376,13 @@ int main (int argc, char** argv)
 			queryMode = true;
 	}
 
-	if (argc >= 2)
+	if (argc == 2 || (queryMode && argc == 3))
 	{
 		char* deviceName = argv [argc - 1];
 		device = canInit (deviceName);
 	}
 	// Enumerate device if one is not provided
-	else if (argc == 1)
+	else if (argc == 1 || (queryMode && argc == 2))
 	{	
 		// TODO(DiBacco): might want to call the slcanEnumerateDevices() function in the findCanDevice() so that slcan.h is not included everywhere?
 		char* deviceNames [5];
