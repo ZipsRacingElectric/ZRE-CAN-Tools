@@ -19,7 +19,6 @@
 #include "can_database/can_database.h"
 #include "can_device/can_device.h"
 #include "error_codes.h"
-#include "can_device/slcan.h"
 
 // C Standard Library
 #include <errno.h>
@@ -74,13 +73,7 @@ int main (int argc, char** argv)
 	// Enumerate devices if one is not provided
 	if (argc == 2)
 	{
-		// TODO(DiBacco): might want to call the slcanEnumerateDevices() function in the findCanDevice() so that slcan.h is not included everywhere?
-		char* deviceNames [5];
-		size_t deviceCount = 0;
-
-		if (slcanEnumerateDevices (deviceNames, &deviceCount, "1000000") == 0)
-			device = findCanDevice (deviceNames, deviceCount);	
-
+		device = enumerateDevice ("1000000");	
 		dbcPath = argv [1];
 	}
 	// Validate standard arguments

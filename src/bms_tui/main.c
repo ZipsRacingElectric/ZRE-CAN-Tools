@@ -13,7 +13,6 @@
 #include "bms/bms.h"
 #include "can_device/can_device.h"
 #include "cjson/cjson_util.h"
-#include "can_device/slcan.h" 
 
 // Curses
 #ifdef __unix__
@@ -157,12 +156,7 @@ int main (int argc, char** argv)
 		dbcPath		= argv [1];
 		configPath	= argv [2];
 
-		char* deviceNames [5];
-		size_t deviceCount = 0;
-
-		// TODO(DiBacco): might want to call the slcanEnumerateDevices() function in the findCanDevice() so that slcan.h is not included everywhere?
-		if (slcanEnumerateDevices (deviceNames, &deviceCount, "1000000") == 0)
-			device = findCanDevice (deviceNames, deviceCount);
+		device = enumerateDevice ("1000000");
 
 	}
 	// Validate standard arguments

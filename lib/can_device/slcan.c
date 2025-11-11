@@ -209,7 +209,7 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs)
 	return 0;
 }
 
-int slcanEnumerateDevices (char** deviceNames, size_t* deviceCount, char* baudRate) 
+int slcanenumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRate) 
 {	
 	char deviceName[128];
 

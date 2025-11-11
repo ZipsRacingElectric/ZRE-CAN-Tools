@@ -65,6 +65,6 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs);
  * @param baudRate Specifies the baud rate for each device.
  * @return 0 on success, -1 on failure. Note: errno is set on failure
  */ 
-int slcanEnumerateDevices (char** deviceNames, size_t* deviceCount, char* baudRate);
+int slcanenumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRate);
 
 #endif // SERIAL_CAN_H

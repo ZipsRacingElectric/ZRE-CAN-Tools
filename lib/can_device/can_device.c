@@ -25,21 +25,27 @@ canDevice_t* canInit (char* name)
 	return NULL;
 }
 
-canDevice_t* findCanDevice (char** names, size_t count)
+canDevice_t* enumerateDevice (char* baudRate)
 {
-	char name [128];
-	canDevice_t* device;
-	
-	for (int i = 0; i < count; ++i) 
+	char* deviceNames [5];
+	size_t deviceCount = 0;
+
+	if (slcanenumerateDevice (deviceNames, &deviceCount, "1000000") == 0)
 	{
-		device = canInit (names[i]);
-
-		if (device == NULL)
+		char name [128];
+		canDevice_t* device;
+		
+		for (int i = 0; i < deviceCount; ++i) 
 		{
-			continue;
-		}
+			device = canInit (deviceNames[i]);
 
-		return device;
+			if (device == NULL)
+			{
+				continue;
+			}
+
+			return device;
+		}
 	}
 
 	// Errno is set in the canInit() function

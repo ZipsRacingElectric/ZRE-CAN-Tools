@@ -116,12 +116,11 @@ typedef struct
  */
 canDevice_t* canInit (char* name);
 
-/**
- * @brief Initialize a CAN device by iterating through a list of device names. 
- * @param names A list of device names.
- * @param count The number of elements in the list of device names.  
+/** 
+ * @brief Initializes a CAN device through serial device enumeration.  
+ * @param baudRate The device's baud rate.
  * @return The first initialized CAN device if successful, @c NULL otherwise. Note @c errno is set on failure.
  */
-canDevice_t* findCanDevice (char** names, size_t count);
+canDevice_t* enumerateDevice (char* baudRate);
 
 #endif // CAN_DEVICE_H
