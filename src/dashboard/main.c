@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include "debug.h"
+#include "error_codes.h"
 #include "can_device/can_device.h"
 #include "can_database/can_database.h"
 
@@ -9,9 +10,9 @@ static gboolean update_counter(GtkWidget *label) {
    
 	ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT"); //Check for faliure
 	float value;
-	canDatabaseGetFloat(&database, index, &value); //Check return code
-    char text[16];  // Enough space for numbers 1-30
-    snprintf(text, sizeof(text), "%f", value);
+	char text[16] = "--";  // Enough space for numbers 1-30
+	if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID)
+		snprintf(text, sizeof(text), "%f", value);
     gtk_label_set_text(GTK_LABEL(label), text);
     return TRUE; // Continue calling this function
 }
@@ -107,7 +108,16 @@ int main (int argc, char** argv)
 	debugInit ();
 
 	canDevice_t* device = canInit(argv [2]); //TODO Check if Null
-	canDatabaseInit(&database, device, argv [3]); //argv [3] = DBC File Path Check return code of the function
+
+	if (device == NULL){
+		fprintf(stderr , "Invalid Device Name, %s \n" , errorMessage(errno));
+		return errno;
+	}
+
+	if (canDatabaseInit(&database, device, argv [3]) != 0){ //argv [3] = DBC File Path Check return code of the function
+		fprintf(stderr , "Invalid DBC File Path, %s \n" , errorMessage(errno));
+		return errno;
+	}	
 
 	// Create application ID from application name
 	char* applicationName = argv [1];
