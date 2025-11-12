@@ -8,7 +8,7 @@ canDatabase_t database;
 
 static gboolean update_counter(GtkWidget *label) {
    
-	ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT"); //Check for faliure
+	ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
 	float value;
 	char text[16] = "--";  // Enough space for numbers 1-30
 	if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID)
@@ -19,6 +19,8 @@ static gboolean update_counter(GtkWidget *label) {
 
 static void print_hello (GtkWidget* widget, gpointer data)
 {
+	(void) widget;
+	(void) data;
 	g_print ("Hello, World!\n");
 	for (int i = 1; i <= 10; i++)
 	{
@@ -47,7 +49,9 @@ static void winscreen (GtkWidget* widget, GtkWindow* window)
 }
 
 static void quit (GtkWidget* widget, gpointer data)
-{
+{	
+	(void) widget;
+	(void) data;
 	g_print ("Quit!\n");
 }
 
@@ -107,15 +111,15 @@ int main (int argc, char** argv)
 
 	debugInit ();
 
-	canDevice_t* device = canInit(argv [2]); //TODO Check if Null
-
+	canDevice_t* device = canInit(argv [2]); 
 	if (device == NULL){
-		fprintf(stderr , "Invalid Device Name, %s \n" , errorMessage(errno));
+		fprintf (stderr , "Invalid Device Name, %s \n" , errorMessage(errno));
 		return errno;
 	}
 
-	if (canDatabaseInit(&database, device, argv [3]) != 0){ //argv [3] = DBC File Path Check return code of the function
-		fprintf(stderr , "Invalid DBC File Path, %s \n" , errorMessage(errno));
+	if (canDatabaseInit(&database, device, argv [3]) != 0){ 
+		//argv [3] = DBC File Path
+		fprintf (stderr , "Invalid DBC File Path, %s \n" , errorMessage(errno));
 		return errno;
 	}	
 
