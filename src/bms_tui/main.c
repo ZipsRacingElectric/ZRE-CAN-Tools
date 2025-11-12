@@ -150,16 +150,20 @@ int main (int argc, char** argv)
 	if (argc != 4)
 	{
 		fprintf (stderr, "Format: bms-tui <device name> <DBC file path> <config file path>\n");
-		fprintf (stderr, "Format: bms-tui <baud rate> <DBC file path> <config file path>\n");
+		// TODO(DiBacco): implement baud rate detection when the command doesn't specify a device
+		// fprintf (stderr, "Format: bms-tui <baud rate> <DBC file path> <config file path>\n");
 		return -1;
 	}
 	// Enumerate device if the command only specifies a baudRate
+	// TODO(DiBacco): implement baud rate detection when the command doesn't specify a device
+	/*
 	else if (strspn (argv [1], "0123456789") == strlen (argv [1]))
 	{
 		char* baudRate = argv [1];
 		device = enumerateDevice (baudRate);
 
 	}
+	*/
 	else
 	{
 		char* deviceName  = argv [1];

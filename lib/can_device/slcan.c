@@ -209,6 +209,14 @@ int slcanSetTimeout (void* device, unsigned long timeoutMs)
 	return 0;
 }
 
+/*
+TODO(DiBacco): change device enumeration option syntax
+	- slcan: /dev/tty*@1000000
+	- /dev/tty*@1000000
+	- *@1000000 
+	- ?
+*/
+
 int slcanenumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRate) 
 {	
 	char deviceName[128];

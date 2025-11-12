@@ -71,15 +71,19 @@ int main (int argc, char** argv)
 	if (argc != 3)
 	{
 		fprintf (stderr, "Format: can-dbc-cli <device name> <DBC file path>\n");
-		fprintf (stderr, "Format: can-dbc-cli <baud rate> <DBC file path>\n");
+		// TODO(DiBacco): change message to specify the correct syntax for commands without device specification
+		// fprintf (stderr, "Format: can-dbc-cli <baud rate> <DBC file path>\n");
 		return -1;
 	}
 	// Enumerate device if the command only specifies a baudRate
+	// TODO(DiBacco): implement baud rate detection when the command doesn't specify a device
+	/*
 	else if (strspn (argv [1], "0123456789") == strlen (argv [1]))
 	{
 		char* baudRate = argv [1];
 		device = enumerateDevice (baudRate);	
 	}
+	*/
 	else 
 	{
 		char* deviceName = argv [1];

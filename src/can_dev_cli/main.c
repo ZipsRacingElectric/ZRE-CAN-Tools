@@ -379,15 +379,19 @@ int main (int argc, char** argv)
 	{
 		// TODO(DiBacco): find out how the error is formatted on can-dev-cli branch
 		fprintf (stderr, "Format: can-dev-cli -method (optional) <device name>\n");
-		fprintf (stderr, "Format: can-dev-cli -method (optional) <baud rate>\n");
+		// TODO(DiBacco): change message to specify the correct syntax for commands without device specification
+		// fprintf (stderr, "Format: can-dev-cli -method (optional) <baud rate>\n");
 		return -1;
 	}
 	// Enumerate device if the command only specifies a baudRate
+	// TODO(DiBacco): implement baud rate detection when the command doesn't specify a device
+	/*
 	else if (strspn (argv [argc - 1], "0123456789") == strlen (argv [argc - 1]))
 	{	
 		char* baudRate = argv [argc - 1];
 		device = enumerateDevice (baudRate);	
 	} 
+	*/
 	else
 	{
 		char* deviceName = argv [argc - 1];
