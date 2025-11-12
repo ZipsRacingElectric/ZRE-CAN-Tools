@@ -44,14 +44,18 @@ ARCH_TYPE := $(shell uname -m)
 
 # Release Version -------------------------------------------------------------
 
-VERSION := zre_cantools_$(OS_TYPE)_$(ARCH_TYPE)_$(shell date +%Y.%m.%d)
+VERSION_NUMBER := $(shell date +%Y.%m.%d)
+VERSION_FULL := zre_cantools_$(OS_TYPE)_$(ARCH_TYPE)_$(VERSION_NUMBER)
 
 # Compilation -----------------------------------------------------------------
 
 # TODO(Barach): "-lm" should be in libflags, not CFLAGS
-CFLAGS := -fno-strict-aliasing -Wall -Wextra -Wpedantic -g -I $(LIB_DIR) -lm 	\
-	-D ZRE_CANTOOLS_OS_$(OS_TYPE) -D ZRE_CANTOOLS_ARCH=\"$(ARCH_TYPE)\"			\
-	-D ZRE_CANTOOLS_VERSION=\"$(VERSION)\" -Wno-newline-eof
+CFLAGS := -fno-strict-aliasing -Wall -Wextra -Wpedantic -g -I $(LIB_DIR) -lm -Wno-newline-eof	\
+	-D ZRE_CANTOOLS_OS_$(OS_TYPE)																\
+	-D ZRE_CANTOOLS_OS=\"$(OS_TYPE)\"															\
+	-D ZRE_CANTOOLS_ARCH=\"$(ARCH_TYPE)\"														\
+	-D ZRE_CANTOOLS_VERSION_NUMBER=\"$(VERSION_NUMBER)\"										\
+	-D ZRE_CANTOOLS_VERSION_FULL=\"$(VERSION_FULL)\"
 
 ifeq ($(OS_TYPE),linux)
 	ABS_ROOT_DIR := $(shell realpath $(ROOT_DIR))

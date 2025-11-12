@@ -86,7 +86,7 @@ clean:
 
 # Releasing -------------------------------------------------------------------
 
-RELEASE_DIR := $(ROOT_DIR)/release/$(VERSION)
+RELEASE_DIR := $(ROOT_DIR)/release/$(VERSION_FULL)
 RELEASE_README := doc/readme_release.txt
 
 .PHONY: release
@@ -121,6 +121,9 @@ release: bin
 # escaped quotes and backslashes, so really it must be given '\\\\\\\"'.
 # It gets worse with the fact we are using printf twice, so said escaping must
 # be repeated.
+
+# TODO(Barach): Does this need libflags? They should be discarded anyways.
+
 $(CLANGD_FILE):
 	mkdir -p ./.vscode/
 	rm -f $(CLANGD_FILE)

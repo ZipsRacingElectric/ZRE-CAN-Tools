@@ -437,7 +437,7 @@ int main (int argc, char** argv)
 
 		if (strcmp (argv [index], "-v") == 0)
 		{
-			printf ("%s\n", ZRE_CANTOOLS_VERSION);
+			printf ("%s\n", ZRE_CANTOOLS_VERSION_FULL);
 			return 0;
 		}
 	}
