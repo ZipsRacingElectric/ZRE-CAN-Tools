@@ -14,12 +14,14 @@
 // Includes
 #include "can_device/can_device.h"
 #include "can_signals.h"
+#include "error_codes.h"
 #include "time_port.h"
 
 // POSIX Libraries
 #include <pthread.h>
 
 // C Standard Library
+#include <errno.h>
 #include <float.h>
 
 // Constants ------------------------------------------------------------------------------------------------------------------
@@ -106,6 +108,14 @@ int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* d
 ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name);
 
 /**
+ * @brief Finds the index of a message based off its name.
+ * @param database The database to search from.
+ * @param name The name of the message to find.
+ * @return The index of the message if successful, @c -1 otherwise. Note errno is set on error.
+ */
+ssize_t canDatabaseFindMessage (canDatabase_t* database, const char* name);
+
+/**
  * @brief Gets the value of a signal in a CAN database, as a @c uint32_t .
  * @param database The database to get from.
  * @param index The global index of the signal to get. Note that a local index can be transformed using the
@@ -134,6 +144,40 @@ canDatabaseSignalState_t canDatabaseGetInt32 (canDatabase_t* database, ssize_t i
  * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
  */
 canDatabaseSignalState_t canDatabaseGetFloat (canDatabase_t* database, ssize_t index, float* value);
+
+/**
+ * @brief Gets a reference to a CAN signal, from its global index.
+ * @param database The database to get from.
+ * @param index The global index of the signal.
+ * @return A refernce to the CAN signal if successful, @c NULL otherwise.
+ */
+static inline canSignal_t* canDatabaseGetSignal (canDatabase_t* database, ssize_t index)
+{
+	if (index < 0)
+	{
+		errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
+		return NULL;
+	}
+
+	return &database->signals[index];
+}
+
+/**
+ * @brief Gets a reference to a CAN message, from its global index.
+ * @param database The database to get from.
+ * @param index The global index of the signal.
+ * @return A refernce to the CAN message if successful, @c NULL otherwise.
+ */
+static inline canMessage_t* canDatabaseGetMessage (canDatabase_t* database, ssize_t index)
+{
+	if (index < 0)
+	{
+		errno = ERRNO_CAN_DATABASE_MESSAGE_MISSING;
+		return NULL;
+	}
+
+	return &database->messages[index];
+}
 
 /**
  * @brief Gets the value of a signal in a CAN database, as a @c bool .

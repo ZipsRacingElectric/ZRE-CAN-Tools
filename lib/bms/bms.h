@@ -47,6 +47,7 @@ typedef struct
 	uint16_t ltcsPerSegment;
 	uint16_t cellsPerLtc;
 	uint16_t senseLinesPerLtc;
+	uint16_t statusSignalsCount;
 
 	float minCellVoltage;
 	float maxCellVoltage;
@@ -61,8 +62,14 @@ typedef struct
 	ssize_t* ltcIsoSpiFaultIndices;
 	ssize_t* ltcSelfTestFaultIndices;
 	ssize_t* ltcTemperatureIndices;
+	ssize_t* statusSignalIndices;
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
+
+	// TODO(DiBacco): cannot compile .h file w. make
+	// 	- tried using make clean & make -b
+	//  - fixed: worked when I removed unessesary attributes
+	// 		- not a solution but allowed it to work 
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -90,5 +97,35 @@ bool bmsGetCellVoltageStats (bms_t* bms, float* min, float* max, float* avg);
 bool bmsGetCellDeltaStats (bms_t* bms, float* max, float* avg);
 
 bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
+
+void bmsDealloc (bms_t* bms);
+
+static inline size_t bmsGetStatusSignalCount (bms_t* bms)
+{
+	return bms->statusSignalsCount;
+}
+
+static inline char* bmsGetStatusName (bms_t* bms, size_t index)
+{
+	canDatabase_t* database = bms->database;
+
+	ssize_t bmsStatusSignalGlobalIndex = bms->statusSignalIndices[index];
+	canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, bmsStatusSignalGlobalIndex);
+
+	return bmsStatusSignal->name;
+}
+
+// TODO(DiBacco): implement after you unstash the changes that contain the signal unit implementation
+// static inline char* bmsGetStatusUnit (bms_t* bms, size_t index, float* value);
+
+static inline canDatabaseSignalState_t bmsGetStatusValue (bms_t* bms, size_t index, float* value) 
+{
+	canDatabase_t* database = bms->database;
+
+	ssize_t bmsStatusSignalGlobalIndex = bms->statusSignalIndices[index];
+
+	// Get the value of the signal
+	return canDatabaseGetFloat (database, bmsStatusSignalGlobalIndex, value);
+}
 
 #endif // BMS_H
