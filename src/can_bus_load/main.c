@@ -3,13 +3,13 @@
 // Author: Cole Barach
 // Date Created: 2025.11.04
 //
-// Description: TODO(Barach)
-
-// TODO(Barach): Engineering min and max bit stuffing?
+// Description: Application for estimating the load of a CAN bus. See can_device/can_bus_load.h for more details on what CAN
+//   bus load is and how it is calculated.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
+#include "can_device/can_bus_load.h"
 #include "can_device/can_device.h"
 #include "time_port.h"
 
@@ -17,67 +17,70 @@
 
 int main (int argc, char** argv)
 {
+	// Validate arguments
 	if (argc != 2)
 	{
 		fprintf (stderr, "Invalid arguments, usage: can-bus-load <Device Name>\n");
 		return -1;
 	}
 
+	// Create the CAN device.
 	canDevice_t* device = canInit (argv [argc - 1]);
 	if (device == NULL)
 		return errorPrintf ("Failed to create CAN device");
 
+	// Calculate the bit time from the bus baudrate.
 	canBaudrate_t baudrate = canGetBaudrate (device);
-	float bitTime = 1.0f / baudrate;
+	if (baudrate == CAN_BAUDRATE_UNKNOWN)
+	{
+		fprintf (stderr, "CAN device baudrate is required.\n");
+		return -1;
+	}
+	float bitTime = canCalculateBitTime (baudrate);
+
+	// Set a receive timeout so we can measure busses with no load.
+	canSetTimeout (device, 100);
 
 	while (true)
 	{
-		// Track the response timeout
+		// Load measurements
+		size_t frameCount = 0;
+		size_t minBitCount = 0;
+		size_t maxBitCount = 0;
+
+		// Track the measurement period
 		struct timeval startTime;
 		struct timeval endTime;
 		struct timeval currentTime;
 		gettimeofday (&startTime, NULL);
-		const struct timeval MIN_PERIOD = { .tv_sec = 1 };
-		timeradd (&startTime, &MIN_PERIOD, &endTime);
+		timeradd (&startTime, &(struct timeval) { .tv_sec = 1 }, &endTime);
 
-		size_t minBitCount = 0;
-		size_t maxBitCount = 0;
-
-		//for (size_t index = 0; index < 610; ++index)
+		// Measurement loop
 		do
 		{
+			// Receive a frame and record its measurements
 			canFrame_t frame;
 			if (canReceive (device, &frame) == 0)
 			{
-				size_t bitCount;
-				if (frame.ide)
-				{
-					// TODO(Barach): validate and doc
-					bitCount = 67 + frame.dlc * 8;
-				}
-				else
-				{
-					// TODO(Barach): validate and doc
-					bitCount = 47 + frame.dlc * 8;
-				}
-
-				// TODO(Barach): Accurate?
-				minBitCount += bitCount;
-				maxBitCount += bitCount + (bitCount - 12) / 5;
+				++frameCount;
+				minBitCount += canGetMinBitCount (&frame);
+				maxBitCount += canGetMaxBitCount (&frame);
 			}
 
+			// Check measurement timeout
 			gettimeofday (&currentTime, NULL);
 		} while (timercmp (&currentTime, &endTime, <));
 
-		struct timeval actualPeriodTv;
-		timersub (&currentTime, &startTime, &actualPeriodTv);
+		// Calculate the actual measurement period
+		struct timeval period;
+		timersub (&currentTime, &startTime, &period);
 
-		float actualPeriod = actualPeriodTv.tv_sec + actualPeriodTv.tv_usec * 1e-6f;
+		// Calculate the min and max loads
+		float maxLoad = canCalculateBusLoad (maxBitCount, bitTime, period);
+		float minLoad = canCalculateBusLoad (minBitCount, bitTime, period);
 
-		float maxLoad = bitTime * maxBitCount / actualPeriod;
-		float minLoad = bitTime * minBitCount / actualPeriod;
-		printf ("Max bit count = %zu, min bit count = %zu\n", maxBitCount, minBitCount);
-		printf ("Max Load = %f %%\n", maxLoad * 100.0f);
-		printf ("Min Load = %f %%\n", minLoad * 100.0f);
+		// Print stats
+		printf ("Bus Load: [%6.2f%%, %6.2f%%],   Frames Received: %5zu,   Bits Received: [%7zu, %7zu]\n",
+			minLoad * 100.0f, maxLoad * 100.0f, frameCount, minBitCount, maxBitCount);
 	}
 }
