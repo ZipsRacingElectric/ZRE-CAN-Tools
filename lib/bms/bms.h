@@ -116,14 +116,13 @@ static inline char* bmsGetStatusName (bms_t* bms, size_t index)
 }
 
 // TODO(DiBacco): implement after you unstash the changes that contain the signal unit implementation
-static inline char* bmsGetStatusUnit (bms_t* bms, size_t index, float* value);
+// static inline char* bmsGetStatusUnit (bms_t* bms, size_t index, float* value);
 
 static inline canDatabaseSignalState_t bmsGetStatusValue (bms_t* bms, size_t index, float* value) 
 {
 	canDatabase_t* database = bms->database;
 
 	ssize_t bmsStatusSignalGlobalIndex = bms->statusSignalIndices[index];
-	canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, bmsStatusSignalGlobalIndex);
 
 	// Get the value of the signal
 	return canDatabaseGetFloat (database, bmsStatusSignalGlobalIndex, value);

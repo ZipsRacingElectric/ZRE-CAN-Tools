@@ -245,9 +245,8 @@ int main (int argc, char** argv)
 		if (offset > overflow_y) offset = overflow_y; // associates the last row of the content with the last row of the terminal
 
 		// Get the top and bottom row of the terminal window that can display bms content
-		ssize_t scrlTop = offset + CONTROL_PANEL_HEIGHT; // the top row of the content in the scrolling implementation (after the bms stat panel)
-		ssize_t scrlBottom = offset + scr_y -2; // the bottom row of the content in the scrolling implementation (the bottom of the terminal window) 
-		if (scrlTop < 0) scrlTop = 0; // ensures the scrolling implementation does not extend past the top of the content
+		size_t scrlTop = offset + CONTROL_PANEL_HEIGHT; // the top row of the content in the scrolling implementation (after the bms stat panel)
+		size_t scrlBottom = offset + scr_y -2; // the bottom row of the content in the scrolling implementation (the bottom of the terminal window) 
 		if (scrlTop > TOTAL_ROWS -1) scrlTop = TOTAL_ROWS; // ensures the scrolling implementation does not extend past the bottom of the content
 		
 		// Print the control panel
@@ -869,7 +868,7 @@ void printSegment (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size
 			columnCell += 5;
 		}
 
-		if (ltcIndex != bms->ltcsPerSegment - 1)
+		if (ltcIndex + 1 != bms->ltcsPerSegment)
 		{
 			// If this is not the last LTC, print the divider for the next one.
 			if (validRows[4]) mvprintw (mapRowToPosition[4], columnCell,	"─┬┬┬"); 
@@ -899,7 +898,7 @@ void printSegment (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size
 			// Print the sense line's box (or tab).
 			size_t increment;
 
-			if (senseLineIndex != bms->senseLinesPerLtc - 1)
+			if (senseLineIndex + 1 != bms->senseLinesPerLtc)
 			{
 				if (validRows[0]) mvprintw (mapRowToPosition[0], columnSense, "─────"); 
 				if (validRows[1]) mvprintw (mapRowToPosition[1], columnSense, "───╮╭"); 
@@ -927,7 +926,7 @@ void printSegment (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size
 			columnSense += increment;
 		}
 
-		if (ltcIndex != bms->ltcsPerSegment - 1)
+		if (ltcIndex + 1 != bms->ltcsPerSegment)
 		{
 			// If this is not the last LTC, print the divider for the next one.
 			if (validRows[0]) mvprintw (mapRowToPosition[0], columnSense,	"┬");
