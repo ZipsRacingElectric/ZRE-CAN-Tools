@@ -7,6 +7,7 @@
 #include "time_port.h"
 
 // C Standard Library
+#include <inttypes.h>
 #include <math.h>
 #include <signal.h>
 
@@ -71,6 +72,9 @@ int main (int argc, char** argv)
 	mdfCanBusLog_t log;
 	if (mdfCanBusLogInit (&log, &config) != 0)
 		return errorPrintf ("Failed to initialize CAN bus MDF log");
+
+	printf ("Starting data log: File name '%s', session number %"PRIu32", split %"PRIu32".\n",
+		config.filePath, config.sessionNumber, config.splitNumber);
 
 	if (signal (SIGTERM, sigtermHandler) == SIG_ERR)
 		return errorPrintf ("Failed to bind SIGTERM handler");
@@ -169,13 +173,15 @@ int main (int argc, char** argv)
 			if (canTransmit (device, &statusFrame) != 0)
 				errorPrintf ("Warning, failed to transmit status message");
 
-			// TODO(Barach): Log TX.
+			// Log the status frame.
+			if (mdfCanBusLogWriteDataFrame (&log, &statusFrame, 1, true, &timeCurrent) != 0)
+				errorPrintf ("Warning, failed to log CAN data frame");
 
-			// Reset the measurements
-			frameCount = 0;
+			// Reset the measurements (include the status frame, as we just transmitted that)
+			frameCount = 1;
 			errorCount = 0;
-			minBitCount = 0;
-			maxBitCount = 0;
+			minBitCount = canGetMinBitCount (&statusFrame);
+			maxBitCount = canGetMaxBitCount (&statusFrame);
 
 			// Set the new deadline
 			timeStart = timeCurrent;
