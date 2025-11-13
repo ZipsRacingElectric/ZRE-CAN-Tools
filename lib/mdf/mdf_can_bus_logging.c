@@ -969,7 +969,7 @@ static uint64_t writeTimestampCc (FILE* mdf)
 		});
 }
 
-static uint64_t writeFileHistory (FILE* mdf, time_t timeStart, const char* programId, const char* softwareVersion)
+static uint64_t writeFileHistory (FILE* mdf, time_t timeStart, const char* softwareName, const char* softwareVersion)
 {
 	return mdfFhBlockWrite (mdf,
 		&(mdfFhDataSection_t)
@@ -986,12 +986,12 @@ static uint64_t writeFileHistory (FILE* mdf, time_t timeStart, const char* progr
 				"	<tool_id>%s</tool_id>\n"
 				"	<tool_vendor></tool_vendor>\n"
 				"	<tool_version>%s</tool_version>\n"
-				"</FHcomment>", programId, softwareVersion)
+				"</FHcomment>", softwareName, softwareVersion)
 		});
 }
 
 static uint64_t writeComment (FILE* mdf, const char* softwareVersion, const char* hardwareVersion, const char* serialNumber,
-	const char* programId, size_t storageSize, size_t storageRemaining, uint32_t sessionNumber, uint32_t splitNumber)
+	const char* softwareName, size_t storageSize, size_t storageRemaining, uint32_t sessionNumber, uint32_t splitNumber)
 {
 	// TODO(Barach): Redo this.
 	return mdfMdBlockWrite (mdf,
@@ -1012,7 +1012,7 @@ static uint64_t writeComment (FILE* mdf, const char* softwareVersion, const char
 		"            <e name=\"comment\" ro=\"true\"></e>\n"
 		"        </tree>\n"
 		"    </common_properties>\n"
-		"</HDcomment>", softwareVersion, hardwareVersion, serialNumber, programId, storageSize, storageRemaining,
+		"</HDcomment>", softwareVersion, hardwareVersion, serialNumber, softwareName, storageSize, storageRemaining,
 			sessionNumber, splitNumber);
 }
 
@@ -1076,12 +1076,12 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 	if (dataFrameCgAddr == 0)
 		return errno;
 
-	uint64_t fileHistoryAddr = writeFileHistory (log->mdf, config->timeStart, config->programId, config->softwareVersion);
+	uint64_t fileHistoryAddr = writeFileHistory (log->mdf, config->timeStart, config->softwareName, config->softwareVersion);
 	if (fileHistoryAddr == 0)
 		return errno;
 
 	uint64_t commentAddr = writeComment (log->mdf, config->softwareVersion, config->hardwareVersion, config->serialNumber,
-		config->programId, config->storageSize, config->storageRemaining, config->sessionNumber, config->splitNumber);
+		config->softwareName, config->storageSize, config->storageRemaining, config->sessionNumber, config->splitNumber);
 	if (commentAddr == 0)
 		return errno;
 

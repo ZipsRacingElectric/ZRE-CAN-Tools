@@ -40,8 +40,12 @@ int main (int argc, char** argv)
 	{
 		// TODO(Barach): How much can I change this?
 		.filePath			= argv [argc - 1],
-		.programId			= "ZRECAN", // TODO(Barach): Should have long-hand and short-hand versions of this.
-		.softwareVersion	= __DATE__, // TODO(Barach): Want this to match the CAN-Tools release tag.
+		// TODO(Barach): Should have long-hand and short-hand versions of this.
+		.programId			= "ZRECAN",
+		// TODO(Barach): Want this to match the release name.
+		.softwareName		= "zre_cantools",
+		// TODO(Barach): Want this to match the release date.
+		.softwareVersion	= __DATE__,
 		.hardwareVersion	= canGetDeviceType (device),
 		.serialNumber		= "0",
 		.channel1Baudrate	= canGetBaudrate (device),
