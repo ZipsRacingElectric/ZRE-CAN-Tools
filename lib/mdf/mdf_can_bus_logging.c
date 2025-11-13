@@ -1118,7 +1118,7 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 
 int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, struct timeval* timestamp)
 {
-	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (DATA_FRAME_BIT_LENGTH + DATA_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {};
+	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (DATA_FRAME_BIT_LENGTH + DATA_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {0};
 
 	// Record ID
 	record [0] = DATA_FRAME_RECORD_ID;
@@ -1161,7 +1161,7 @@ int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t 
 
 int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, struct timeval* timestamp)
 {
-	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (REMOTE_FRAME_BIT_LENGTH + REMOTE_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {};
+	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (REMOTE_FRAME_BIT_LENGTH + REMOTE_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {0};
 
 	// Record ID
 	record [0] = REMOTE_FRAME_RECORD_ID;
@@ -1204,7 +1204,7 @@ int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_
 
 int mdfCanBusLogWriteErrorFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, int errorCode, struct timeval* timestamp)
 {
-	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (ERROR_FRAME_BIT_LENGTH + ERROR_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {};
+	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (ERROR_FRAME_BIT_LENGTH + ERROR_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {0};
 
 	// Record ID
 	record [0] = ERROR_FRAME_RECORD_ID;
