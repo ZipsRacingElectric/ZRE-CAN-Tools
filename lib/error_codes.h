@@ -29,10 +29,12 @@
 #define ERRNO_CAN_DEVICE_UNKNOWN_NAME			1030
 #define ERRNO_CAN_DEVICE_BAD_TIMEOUT			1031
 #define ERRNO_CAN_DEVICE_TIMEOUT				1032
+#define ERRNO_CAN_DEVICE_MISSING_DEVICE			1033
 
 #define ERRMSG_CAN_DEVICE_UNKNOWN_NAME			"The device name does not belong to any known CAN device"
 #define ERRMSG_CAN_DEVICE_BAD_TIMEOUT			"The specified timeout is not possible"
 #define ERRMSG_CAN_DEVICE_TIMEOUT				"The operation has timed out"
+#define ERRMSG_CAN_DEVICE_MISSING_DEVICE		"No CAN device was detected"
 
 // CAN bus errors
 #define ERRNO_CAN_DEVICE_BIT_ERROR				1036
@@ -171,6 +173,7 @@ static inline const char* errorMessage (int errorCode)
 	ERRNO_CASE (CAN_DEVICE_UNKNOWN_NAME);
 	ERRNO_CASE (CAN_DEVICE_BAD_TIMEOUT);
 	ERRNO_CASE (CAN_DEVICE_TIMEOUT);
+	ERRNO_CASE (CAN_DEVICE_MISSING_DEVICE);
 
 	ERRNO_CASE (CAN_DEVICE_BIT_ERROR);
 	ERRNO_CASE (CAN_DEVICE_BIT_STUFF_ERROR);

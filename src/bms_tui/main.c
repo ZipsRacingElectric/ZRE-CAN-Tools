@@ -22,6 +22,7 @@
 #endif // __unix__
 
 // C Standard Library
+#include <stdlib.h>
 #include <errno.h>
 #include <locale.h>
 #include <math.h>
@@ -227,7 +228,7 @@ int main (int argc, char** argv)
 	// Specifies the first row from the content that will be displayed in the terminal 
 	int offset = 0;
 	while (true)
-	{	
+	{
 		// The row to begin displaying content at in the terminal (after the BMS Stat Panel)
 		size_t scrRow = CONTROL_PANEL_HEIGHT; 
 		
@@ -730,7 +731,7 @@ void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 	if (validRows[1]) mvprintw (mapRowToPosition[1], column + 64, "─");
 
 	if (validRows[2]) mvprintw (mapRowToPosition[2], column + 64, "┊");
-	
+
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 0,  "├");
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 40, "├");
 
@@ -738,36 +739,34 @@ void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 64, "┬");
 
 	// Display each signal name and its corresponding value in a single row
-	for (size_t signalIndex = 0; signalIndex < bmsGetStatusSignalCount (bms); signalIndex++) { 
+	for (size_t signalIndex = 0; signalIndex < bmsGetStatusSignalCount (bms); signalIndex++)
+	{
 		// Stores the value of the signal
 		float value;
 
 		// Set the row of the current signal
-		row = signalIndex + 4;  
-		if (validRows[row]) {
-
+		row = signalIndex + 4;
+		if (validRows[row])
+		{
 			// Get & display signal value or insert placeholder value
 			switch (bmsGetStatusValue (bms, signalIndex, &value))
 			{
-				case CAN_DATABASE_MISSING: 
-				{
-					// Shouldn't reach here
+				case CAN_DATABASE_MISSING:
 					break;
-				}
-				case CAN_DATABASE_TIMEOUT: 
-				{
-					attron (COLOR_PAIR (COLOR_INVALID)); 
+
+				case CAN_DATABASE_TIMEOUT:
+					attron (COLOR_PAIR (COLOR_INVALID));
 					mvprintw (mapRowToPosition[row], column + 2, "%s", bmsGetStatusName (bms, signalIndex));
 					mvprintw (mapRowToPosition[row], column + 42, "---");
+					mvprintw (mapRowToPosition[row], column + 50, "%s", bmsGetStatusUnit (bms, signalIndex));
 					attroff (COLOR_PAIR (COLOR_INVALID));
 					break;
-				}
-				case CAN_DATABASE_VALID: 
-				{
+
+				case CAN_DATABASE_VALID:
 					mvprintw (mapRowToPosition[row], column + 2,"%s", bmsGetStatusName (bms, signalIndex));
 					mvprintw (mapRowToPosition[row], column + 42, "%.01f", value);
+					mvprintw (mapRowToPosition[row], column + 50, "%s", bmsGetStatusUnit (bms, signalIndex));
 					break;
-				}
 			}
 		}
 	}

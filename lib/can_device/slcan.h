@@ -23,6 +23,7 @@
 
 // C Standard Library
 #include <stdbool.h>
+#include <stddef.h>
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
@@ -66,5 +67,15 @@ const char* slcanGetDeviceName (void* device);
 
 /// @brief SLCAN implementation of the @c canGetDeviceType function.
 const char* slcanGetDeviceType (void);
+
+// REVIEW(Barach): Removed temporarily until implementation is finalized.
+// /**
+//  * @brief Enumerates devices connected to the user's machine.
+//  * @param deviceName Is associated each enumerated device's name.
+//  * @param deviceCount Specifies the number of elements in the list of device names.
+//  * @param baudRate Specifies the baud rate for each device.
+//  * @return 0 on success, -1 on failure.
+//  */
+// int slcanEnumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRate);
 
 #endif // SERIAL_CAN_H

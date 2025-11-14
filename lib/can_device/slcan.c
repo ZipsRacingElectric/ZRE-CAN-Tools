@@ -15,6 +15,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __unix__
+#include <dirent.h>
+#else
+#include <windows.h>
+#endif
+
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
 typedef struct
@@ -251,3 +257,93 @@ const char* slcanGetDeviceType (void)
 {
 	return "SLCAN";
 }
+
+/*
+	TODO(DiBacco): change device enumeration option syntax
+	- slcan: /dev/tty*@1000000
+	- /dev/tty*@1000000
+	- *@1000000
+	- ?
+	NOTE(Barach): For now, I'd say /dev/tty*@1000000 and COM*@1000000 are the preferred options. We can consider switching
+	  things up if need be, but for now this is distinct enough.
+*/
+
+// REVIEW(Barach): Temporarily removed this just in case it causes any compilation issues on ARM. Probably okay, but didn't
+//   really feel like testing on the RPi.
+
+// int slcanEnumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRate)
+// {
+// 	char deviceName [128];
+
+// 	// Check the OS running the program based on system-defined macro
+// 	# ifdef __unix__
+
+// 		// QueryDosDeviceA: retrieves information about MS-DOS (Microsoft Disk Operating System) device names
+// 		// DWORD (Double-Word): 32-bit unsigned data type
+// 		// LPSTR (Long Pointer to a String): typedef (alias) for a char*
+
+// 		LPSTR device;
+// 		char buffer [32768];
+// 		DWORD bufferSize = 32768;
+
+// 		QueryDosDeviceA (NULL, buffer, bufferSize);
+
+// 		device = buffer;
+// 		while (*device)
+// 		{
+// 			if (strstr (device, "COM") && strlen (device) <= 5)
+// 			{
+// 				sprintf (deviceName, "%s@%s", device, baudRate);
+// 				deviceNames [*deviceCount] = malloc (strlen(deviceName) + 1);
+// 				strcpy (deviceNames [*deviceCount], deviceName);
+// 				++(*deviceCount);
+// 			}
+
+// 			device += strlen (device) + 1;
+// 		}
+
+// 	#else // __unix__
+
+//    		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
+// 		// dirent (directory entry): represents an entry inside a directory
+// 		/* struct dirent {
+//     	   		ino_t d_ino;            // inode number
+//     			char d_name[256];       // filename
+//     			unsigned char d_type;   // file type
+// 			};
+// 		*/
+// 		// DIR: data type representing a directory stream
+// 		// included in the dirent header file
+
+// 		const char* dev = "/dev";
+// 		struct dirent* entry;
+
+// 		DIR* directory = opendir (dev);
+
+// 		while (entry = readdir (directory))
+// 		{
+// 			if (entry == NULL)
+// 			{
+// 				break;
+// 			}
+
+// 			char* device = entry->d_name;
+// 			if (strstr (device, "ttyACM"))
+// 			{
+// 				sprintf (deviceName, "/dev/%s@%s", device, baudRate);
+// 				deviceNames [*deviceCount] = malloc (strlen(deviceName) + 1);
+// 				strcpy (deviceNames [*deviceCount], deviceName);
+// 				++(*deviceCount);
+// 			}
+
+// 		}
+
+// 		closedir (directory);
+
+// 	#endif // __unix__
+
+// 	if (!(*deviceCount))
+// 		return -1;
+
+// 	return 0;
+// }

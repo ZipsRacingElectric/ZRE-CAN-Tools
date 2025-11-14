@@ -8,6 +8,8 @@
 //
 // Description: CAN interface for a battery management system.
 
+// TODO(Barach): Major documentation missing...
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -65,11 +67,6 @@ typedef struct
 	ssize_t* statusSignalIndices;
 	ssize_t packVoltageIndex;
 	ssize_t packCurrentIndex;
-
-	// TODO(DiBacco): cannot compile .h file w. make
-	// 	- tried using make clean & make -b
-	//  - fixed: worked when I removed unessesary attributes
-	// 		- not a solution but allowed it to work 
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -107,25 +104,29 @@ static inline size_t bmsGetStatusSignalCount (bms_t* bms)
 
 static inline char* bmsGetStatusName (bms_t* bms, size_t index)
 {
-	canDatabase_t* database = bms->database;
+	ssize_t globalIndex = bms->statusSignalIndices [index];
+	canSignal_t* signal = canDatabaseGetSignal (bms->database, globalIndex);
+	if (signal == NULL)
+		return NULL;
 
-	ssize_t bmsStatusSignalGlobalIndex = bms->statusSignalIndices[index];
-	canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, bmsStatusSignalGlobalIndex);
-
-	return bmsStatusSignal->name;
+	return signal->name;
 }
 
-// TODO(DiBacco): implement after you unstash the changes that contain the signal unit implementation
-// static inline char* bmsGetStatusUnit (bms_t* bms, size_t index, float* value);
-
-static inline canDatabaseSignalState_t bmsGetStatusValue (bms_t* bms, size_t index, float* value) 
+static inline char* bmsGetStatusUnit (bms_t* bms, size_t index)
 {
-	canDatabase_t* database = bms->database;
+	ssize_t globalIndex = bms->statusSignalIndices [index];
+	canSignal_t* signal = canDatabaseGetSignal (bms->database, globalIndex);
+	if (signal == NULL)
+		return NULL;
 
-	ssize_t bmsStatusSignalGlobalIndex = bms->statusSignalIndices[index];
+	return signal->unit;
+}
 
+static inline canDatabaseSignalState_t bmsGetStatusValue (bms_t* bms, size_t index, float* value)
+{
 	// Get the value of the signal
-	return canDatabaseGetFloat (database, bmsStatusSignalGlobalIndex, value);
+	ssize_t globalIndex = bms->statusSignalIndices[index];
+	return canDatabaseGetFloat (bms->database, globalIndex, value);
 }
 
 #endif // BMS_H

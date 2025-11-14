@@ -23,6 +23,7 @@
 // C Standard Library
 #include <errno.h>
 #include <float.h>
+#include <errno.h>
 
 // Constants ------------------------------------------------------------------------------------------------------------------
 

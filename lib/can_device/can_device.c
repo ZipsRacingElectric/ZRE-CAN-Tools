@@ -99,3 +99,36 @@ char* canGetBusErrorName (int code)
 
 	return "UNSPECIFIED ERROR";
 }
+
+// REVIEW(Barach): Temporarily removed until finalized.
+// canDevice_t* enumerateDevice (char* baudRate)
+// {
+// 	char* deviceNames [5];
+// 	size_t deviceCount = 0;
+
+// 	if (slcanenumerateDevice (deviceNames, &deviceCount, "1000000") == 0)
+// 	{
+// 		char name [128];
+// 		canDevice_t* device;
+
+// 		for (int i = 0; i < deviceCount; ++i)
+// 		{
+// 			device = canInit (deviceNames[i]);
+
+// 			if (device == NULL)
+// 			{
+// 				continue;
+// 			}
+
+// 			return device;
+// 		}
+// 	}
+// 	else
+// 	{
+// 		// Indicates that the program failed to locate a CAN device
+// 		errno = ERRNO_CAN_DEVICE_MISSING_DEVICE;
+// 	}
+
+// 	// Indicates that a CAN device could not be created
+// 	return NULL;
+// }

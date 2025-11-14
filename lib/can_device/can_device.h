@@ -104,7 +104,6 @@ typedef struct
 	canDealloc_t* dealloc;
 } canDeviceVmt_t;
 
-// TODO(Barach): This needs to store baudrate
 /**
  * @brief Polymorphic object representing a CAN device. This structure defines an abstract object, that is, it is not
  * instantiable. Rather than being instanced, this structure defines an interface for implementations of a CAN device.
