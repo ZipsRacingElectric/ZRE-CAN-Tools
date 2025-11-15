@@ -49,28 +49,17 @@ VERSION_FULL := zre_cantools_$(OS_TYPE)_$(ARCH_TYPE)_$(VERSION_NUMBER)
 
 # Compilation -----------------------------------------------------------------
 
-CFLAGS := -fno-strict-aliasing -Wall -Wextra -Wpedantic -g -I $(LIB_DIR) -Wno-newline-eof		\
-	-D ZRE_CANTOOLS_OS_$(OS_TYPE)																\
-	-D ZRE_CANTOOLS_OS=\"$(OS_TYPE)\"															\
-	-D ZRE_CANTOOLS_ARCH=\"$(ARCH_TYPE)\"														\
-	-D ZRE_CANTOOLS_VERSION_NUMBER=\"$(VERSION_NUMBER)\"										\
+# Compilation flags to use for compiling all applications and libraries
+CFLAGS := -std=gnu11 -fno-strict-aliasing -Wall -Wextra -Wpedantic -g		\
+	-I $(LIB_DIR)															\
+	-D ZRE_CANTOOLS_OS_$(OS_TYPE)											\
+	-D ZRE_CANTOOLS_OS=\"$(OS_TYPE)\"										\
+	-D ZRE_CANTOOLS_ARCH=\"$(ARCH_TYPE)\"									\
+	-D ZRE_CANTOOLS_VERSION_NUMBER=\"$(VERSION_NUMBER)\"					\
 	-D ZRE_CANTOOLS_VERSION_FULL=\"$(VERSION_FULL)\"
 
+# Linker flags to use for linking all applications and libraries
 LIBFLAGS := -lm
-
-# File Paths ------------------------------------------------------------------
-
-ifeq ($(OS_TYPE),linux)
-	ABS_ROOT_DIR := $(shell realpath $(ROOT_DIR))
-else
-	ABS_ROOT_DIR := $(shell cygpath -w $(shell realpath $(ROOT_DIR)))
-endif
-
-ifeq ($(OS_TYPE),linux)
-	GCC_BIN := $(shell which gcc)
-else
-	GCC_BIN := $(shell cygpath -w $(shell which gcc))
-endif
 
 # Library-Specific Flags ------------------------------------------------------
 
@@ -85,6 +74,16 @@ LIB_CURSES_LIBFLAGS := -lncursesw
 LIB_GTK_CFLAGS := $(shell pkg-config --cflags gtk4)
 LIB_GTK_LIBFLAGS := $(shell pkg-config --libs gtk4)
 
-# Flags for using all libraries
-# - Note this is only intended to be used for Clangd.
-ALL_LIB_CFLAGS := $(CFLAGS) $(LIB_SERIAL_CAN_CFLAGS) $(LIB_GTK_CFLAGS)
+# File Paths ------------------------------------------------------------------
+
+ifeq ($(OS_TYPE),linux)
+	ABS_ROOT_DIR := $(shell realpath $(ROOT_DIR))
+else
+	ABS_ROOT_DIR := $(shell cygpath -w $(shell realpath $(ROOT_DIR)))
+endif
+
+ifeq ($(OS_TYPE),linux)
+	GCC_BIN := $(shell which gcc)
+else
+	GCC_BIN := $(shell cygpath -w $(shell which gcc))
+endif

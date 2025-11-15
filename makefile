@@ -114,6 +114,13 @@ release: bin
 
 # VSCode Directory ------------------------------------------------------------
 
+# Clangd-specific compilation flags. As there is only one clangd file for the
+#   project, this should include any flag used in any application.
+# Note: Not all warnings in gcc and clangd are one-to-one, so any extra to
+#   enable / disable should be done here.
+CLANGD_CFLAGS := $(CFLAGS) $(LIB_SERIAL_CAN_CFLAGS) $(LIB_GTK_CFLAGS)		\
+	-Wno-newline-eof
+
 # This awful script generates the Clangd compile_commands.json file. The
 # horrible sed statement in the middle is for correctly escaping quotations, as
 # the CFLAGS variable includes them. Specifically, Clangd expects escaped
@@ -129,7 +136,7 @@ $(CLANGD_FILE):
 	printf "\t{\n"																				>> $(CLANGD_FILE)
 	printf "\t\t\"directory\": \"%q\",\n" "$(ABS_ROOT_DIR)"										>> $(CLANGD_FILE)
 	printf "\t\t\"command\": \"gcc "															>> $(CLANGD_FILE)
-	printf "%s,\n" "$(shell printf "%s" "$(ALL_LIB_CFLAGS)" | sed 's/"/\\\\\\\\\\\\\\\"/g')\""	>> $(CLANGD_FILE)
+	printf "%s,\n" "$(shell printf "%s" "$(CLANGD_CFLAGS)" | sed 's/"/\\\\\\\\\\\\\\\"/g')\""	>> $(CLANGD_FILE)
 	printf "\t\t\"file\": \"*.c\"\n"															>> $(CLANGD_FILE)
 	printf "\t}\n"																				>> $(CLANGD_FILE)
 	printf "]\n"																				>> $(CLANGD_FILE)
