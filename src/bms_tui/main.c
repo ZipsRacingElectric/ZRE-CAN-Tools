@@ -727,7 +727,7 @@ void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 	if (validRows[3]) mvprintw (mapRowToPosition[3], column + 64, "┬");
 
 	// Display each signal name and its corresponding value in a single row
-	for (size_t signalIndex = 0; signalIndex < bmsGetStatusSignalCount (bms); signalIndex++)
+	for (size_t signalIndex = 0; signalIndex < bmsGetStatusCount (bms); signalIndex++)
 	{
 		// Stores the value of the signal
 		float value;
