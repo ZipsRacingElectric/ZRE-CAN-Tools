@@ -30,6 +30,9 @@ typedef struct
 	/// @brief The ID of the program generating this file. Note, strings longer than 7 characters will be truncated.
 	const char* programId;
 
+	/// @brief Tag for the name of the software generating this file.
+	const char* softwareName;
+
 	/// @brief Tag for the version of the software generating this file.
 	const char* softwareVersion;
 
