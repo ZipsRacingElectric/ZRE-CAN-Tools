@@ -78,7 +78,7 @@ ssize_t canDatabaseFindMessage (canDatabase_t* database, const char* name)
 			return (ssize_t) index;
 
 	errno = ERRNO_CAN_DATABASE_MESSAGE_MISSING;
-	return -1; 
+	return -1;
 }
 
 canDatabaseSignalState_t canDatabaseGetUint32 (canDatabase_t* database, ssize_t index, uint32_t* value)

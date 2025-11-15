@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+// TODO(Barach): Verbose debugging should print to stderr. Specifically 'no such signal error'.
+
 // TODO(Barach): Replace with list lib?
 
 /**
@@ -44,56 +46,46 @@ static int checkSignalRedundancy (ssize_t index, size_t** indices, size_t* signa
 	return 0;
 }
 
-// TODO(Barach): Can replace with a snprintf
 /**
  * @brief Prints an index into an existing string.
  * @param index The index to print
  * @param name The string to print into.
- * @return The number of characters written.
+ * @return The number of characters written, or, 0 on error.
  */
 static size_t printIndex (uint16_t index, char* name)
 {
-	snprintf (name, 4, "%-3i", index);
+	int code = snprintf (name, 4, "%u", index);
+	if (code < 0 || code >= 4)
+		return 0;
 
-	if (index < 10)
-		return 1;
-	else if (index < 100)
-		return 2;
-	else
-		return 3;
+	return code;
 }
 
-// TODO(Barach): Clean this up majorly
-static size_t printSenseLineIndex (bms_t* bms, uint16_t segmentIndex, uint16_t ltcIndex, uint16_t senseLineIndex, char* name)
+size_t bmsSnprintSenseLineIndex (bms_t* bms, size_t index, char* str, size_t n)
 {
-	// The index to write within the text, note this uses the number of cells per LTC, not the number of sense lines per LTC.
-	uint16_t renderIndex = bms->cellsPerLtc * (segmentIndex * bms->ltcsPerSegment + ltcIndex) + senseLineIndex;
+	uint16_t textIndex = (index + 1) * bms->cellsPerLtc / bms->senseLinesPerLtc;
 
-	snprintf (name, 4, "%-3i", renderIndex);
-
-	uint16_t offset;
-	if (renderIndex < 10)
-		offset = 1;
-	else if (renderIndex < 100)
-		offset = 2;
+	// Print the text index and its suffix
+	int code;
+	if (index % bms->senseLinesPerLtc == 0)
+	{
+		// The first sense line in an LTC should have the HI suffix, as it belongs to the higher potential LTC.
+		code = snprintf (str, n, "%u_HI", textIndex);
+	}
+	else if (index % bms->senseLinesPerLtc == bms->cellsPerLtc)
+	{
+		// The last sense line in an LTC should have the LO suffix, as it belongs to the lower potential LTC.
+		code = snprintf (str, n, "%u_LO", textIndex);
+	}
 	else
-		offset = 3;
-
-	// HI suffix
-	if (senseLineIndex == 0)
 	{
-		snprintf (name + offset, 4, "_HI");
-		return offset + 3;
+		// No suffix
+		code = snprintf (str, n, "%u", textIndex);
 	}
+	if (code < 0 || (size_t) code >= n)
+		return 0;
 
-	// LO suffix
-	if (senseLineIndex == bms->senseLinesPerLtc - 1)
-	{
-		snprintf (name + offset, 4, "_LO");
-		return offset + 3;
-	}
-
-	return offset;
+	return code;
 }
 
 int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
@@ -179,7 +171,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 
 				// Format the sense line temperature signal name
 				char tempName [] = "SENSE_LINE_###_##_TEMPERATURE";
-				uint16_t offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, tempName + 11);
+				uint16_t offset = bmsSnprintSenseLineIndex (bms, index, tempName + 11, 7);
 				snprintf (tempName + 11 + offset, 13, "_TEMPERATURE");
 
 				// Get the sense line temperature global index & append it to the indicies + the signal redundancy list
@@ -189,7 +181,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 
 				// Format the sense line open signal name
 				char openName [] = "SENSE_LINE_###_##_OPEN";
-				offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, openName + 11);
+				offset = bmsSnprintSenseLineIndex (bms, index, openName + 11, 7);
 				snprintf (openName + 11 + offset, 6, "_OPEN");
 
 				// Get the sense line open global index & append it to the indicies + the signal redundancy list
