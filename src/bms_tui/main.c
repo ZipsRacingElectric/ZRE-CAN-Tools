@@ -656,10 +656,7 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
 }
 
 void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size_t column, bms_t* bms) 
-{	
-	// Get the database associated with the bms instance
-	canDatabase_t* database = bms->database;
-
+{
 	// Validate the rows of the BMS Status Signals Panel 
 	bool validRows [BMS_STAT_HEIGHT + 1];
 

@@ -9,18 +9,21 @@
 #include <stdlib.h>
 #include <math.h>
 
-/** 
+// TODO(Barach): Replace with list lib?
+
+/**
  * @brief Checks if signal has already been retreived to minimize signal redundancy. Dyanmically adds the signal's index to a list of signal indices if not.
- * @param index The global index of the signal 
+ * @param index The global index of the signal
  * @param indices A list used to store the indices of previously retreived signals
  * @param signalCount The number of signal incices in the signal indices list
  * @param result The result of the function (true indicates that the signal has not been previously retreived / false indicates that the signal has been previously retreived)
  */
 static int checkSignalRedundancy (ssize_t index, size_t** indices, size_t* signalCount, bool* result) {
 	// return false if signal has previously been retreived
-	for (size_t i = 0; i < *signalCount; i++) 
+	for (size_t i = 0; i < *signalCount; i++)
 	{
-		if ((*indices)[i] == index) 
+		// TODO(Barach): Warn
+		if ((*indices)[i] == index)
 		{
 			*result = false;
 			return 0;
@@ -41,6 +44,7 @@ static int checkSignalRedundancy (ssize_t index, size_t** indices, size_t* signa
 	return 0;
 }
 
+// TODO(Barach): Can replace with a snprintf
 /**
  * @brief Prints an index into an existing string.
  * @param index The index to print
@@ -59,6 +63,7 @@ static size_t printIndex (uint16_t index, char* name)
 		return 3;
 }
 
+// TODO(Barach): Clean this up majorly
 static size_t printSenseLineIndex (bms_t* bms, uint16_t segmentIndex, uint16_t ltcIndex, uint16_t senseLineIndex, char* name)
 {
 	// The index to write within the text, note this uses the number of cells per LTC, not the number of sense lines per LTC.
@@ -137,7 +142,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	for (uint16_t index = 0; index < bms->cellCount; ++index)
 	{
 		// Format the cell voltage signal name
-		char voltName [] = "CELL_VOLTAGE_###";		
+		char voltName [] = "CELL_VOLTAGE_###";
 		size_t offset = printIndex (index, voltName + 13);
 		voltName [offset + 13] = '\0';
 
@@ -145,20 +150,18 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		ssize_t cellVoltageIndex = canDatabaseFindSignal (database, voltName);
 		bms->cellVoltageIndices [index] = cellVoltageIndex;
 		checkSignalRedundancy (cellVoltageIndex, &signalIndices, &signalCount, &result);
-		if (bms->cellVoltageIndices [index] < 0) 
+		if (bms->cellVoltageIndices [index] < 0)
 			return errno;
 
-		// TODO(DiBacco): ask Cole if cell balancing and cell discharge are the same thing
 		// Format the cell balancing signal name
 		char disName [] = "CELL_BALANCING_###";
 		offset = printIndex (index, disName + 15);
 		disName [offset + 15] = '\0';
 
-		// TODO(DiBacco): is cell balancing and cell discharge the same thing? If so rename index accordingly
 		// Get the cell balancing global index & append it to the indicies + the signal redundancy list
 		ssize_t cellsDischargingIndex = canDatabaseFindSignal (database, disName);
 		bms->cellsDischargingIndices [index] = cellsDischargingIndex;
-		checkSignalRedundancy (cellsDischargingIndex, &signalIndices, &signalCount, &result); 
+		checkSignalRedundancy (cellsDischargingIndex, &signalIndices, &signalCount, &result);
 		if (bms->cellsDischargingIndices [index] < 0)
 			return errno;
 	}
@@ -184,12 +187,11 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 				bms->senseLineTemperatureIndices [index] = senseLineTemperatureIndex;
 				checkSignalRedundancy (senseLineTemperatureIndex, &signalIndices, &signalCount, &result);
 
-				// TODO(DiBacco): consider asking Cole what this is just for the sake of knowing
 				// Format the sense line open signal name
 				char openName [] = "SENSE_LINE_###_##_OPEN";
 				offset = printSenseLineIndex (bms, segmentIndex, ltcIndex, senseLineIndex, openName + 11);
 				snprintf (openName + 11 + offset, 6, "_OPEN");
-				
+
 				// Get the sense line open global index & append it to the indicies + the signal redundancy list
 				ssize_t senseLinesOpenIndex = canDatabaseFindSignal (database, openName);
 				bms->senseLinesOpenIndices [index] = senseLinesOpenIndex;
@@ -253,7 +255,7 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	size_t packCurrentIndex = canDatabaseFindSignal (database, "PACK_CURRENT");
 	bms->packCurrentIndex = packCurrentIndex;
 	checkSignalRedundancy (packCurrentIndex, &signalIndices, &signalCount, &result);
-	
+
 	if (bms->packCurrentIndex < 0)
 		return errno;
 
@@ -266,21 +268,19 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	bms->statusSignalIndices = malloc (sizeof (ssize_t) * bmsStatusMessage->signalCount);
 
 	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage->signalCount; signalIndex++) {
-		// Get bms status signal & its corresponding global index 
+		// Get bms status signal & its corresponding global index
 		ssize_t bmsStatusSignalGlobalIndex = canDatabaseGetGlobalIndex (database, bmsStatusMessageIndex, signalIndex);
-		canSignal_t* bmsStatusSignal = canDatabaseGetSignal (database, bmsStatusSignalGlobalIndex);
 
 		// Check that the signal has not been retreived previously
-		char* signalName = bmsStatusSignal->name;
 		if (checkSignalRedundancy (bmsStatusSignalGlobalIndex, &signalIndices, &signalCount, &result))
 			// Check if memory allocation failed
-			return -1; 
+			return -1;
 
-		if (result) 
+		if (result)
 		{
 			// Append signal to the bms status signals and index to the bms status signals indices
 			bms->statusSignalIndices[bms->statusSignalsCount++] = bmsStatusSignalGlobalIndex;
-		}		
+		}
 	}
 
 	// Deallocate the memory allocated to the list storing the previously retreived signals
