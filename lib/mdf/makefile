@@ -11,4 +11,4 @@ $(BIN): $(OBJ)
 
 $(OBJ_BIN_DIR)/%.o: %.c %.h
 	mkdir -p $(OBJ_BIN_DIR)
-	gcc $(CFLAGS) -I $(BIN_DIR)/include -c $< -o $@
+	gcc $(CFLAGS) -c $< -o $@ $(LIBFLAGS)

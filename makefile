@@ -122,20 +122,17 @@ release: bin
 # It gets worse with the fact we are using printf twice, so said escaping must
 # be repeated.
 
-# TODO(Barach): Does this need libflags? They should be discarded anyways.
-
 $(CLANGD_FILE):
 	mkdir -p ./.vscode/
 	rm -f $(CLANGD_FILE)
-	printf "[\n"																								>> $(CLANGD_FILE)
-	printf "\t{\n"																								>> $(CLANGD_FILE)
-	printf "\t\t\"directory\": \"%q\",\n" "$(ABS_ROOT_DIR)"														>> $(CLANGD_FILE)
-	printf "\t\t\"command\": \"gcc "																			>> $(CLANGD_FILE)
-	printf "%s " "$(shell printf "%s" "$(CFLAGS)" | sed 's/"/\\\\\\\\\\\\\\\"/g')"								>> $(CLANGD_FILE)
-	printf "%s\",\n" "$(shell printf "%s" "$(LIBFLAGS)" | sed 's/"/\\\\\\\\\\\\\\\"/g')"						>> $(CLANGD_FILE)
-	printf "\t\t\"file\": \"*.c\"\n"																			>> $(CLANGD_FILE)
-	printf "\t}\n"																								>> $(CLANGD_FILE)
-	printf "]\n"																								>> $(CLANGD_FILE)
+	printf "[\n"																				>> $(CLANGD_FILE)
+	printf "\t{\n"																				>> $(CLANGD_FILE)
+	printf "\t\t\"directory\": \"%q\",\n" "$(ABS_ROOT_DIR)"										>> $(CLANGD_FILE)
+	printf "\t\t\"command\": \"gcc "															>> $(CLANGD_FILE)
+	printf "%s,\n" "$(shell printf "%s" "$(ALL_LIB_CFLAGS)" | sed 's/"/\\\\\\\\\\\\\\\"/g')\""	>> $(CLANGD_FILE)
+	printf "\t\t\"file\": \"*.c\"\n"															>> $(CLANGD_FILE)
+	printf "\t}\n"																				>> $(CLANGD_FILE)
+	printf "]\n"																				>> $(CLANGD_FILE)
 
 # This generates the settings.json vscode file. Like above, this is pretty bad.
 # Only thing that needs to be generated is the gcc binary, as that is different
