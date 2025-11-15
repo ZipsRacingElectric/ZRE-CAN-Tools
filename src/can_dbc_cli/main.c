@@ -15,6 +15,7 @@
 
 // C Standard Library
 #include <errno.h>
+#include <inttypes.h>
 
 // Function Prototypes --------------------------------------------------------------------------------------------------------
 
@@ -205,7 +206,7 @@ void printDatabase (FILE* stream, canDatabase_t* database)
 			if (canDatabaseGetFloat (database, globalIndex, &value) == CAN_DATABASE_VALID)
 				snprintf (buffer, sizeof (buffer), "%.3f", value);
 
-			fprintf (stream, "%32s | %10s | %8lX | %10i | %12i | %12f | %12f | %9u | %6u\n",
+			fprintf (stream, "%32s | %10s | %8"PRIX64" | %10u | %12u | %12f | %12f | %9u | %6u\n",
 				signal->name,
 				buffer,
 				signal->bitmask,

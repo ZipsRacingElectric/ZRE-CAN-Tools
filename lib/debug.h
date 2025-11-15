@@ -8,8 +8,9 @@
 	if (errorStream != NULL)					\
 		fprintf (errorStream, __VA_ARGS__)
 
+// TODO(Barach): Keep this?
 extern FILE* errorStream;
 
-void debugInit ();
+void debugInit (void);
 
 #endif // DEBUG_H

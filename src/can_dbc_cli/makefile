@@ -14,4 +14,4 @@ LIB :=						\
 
 $(BIN): $(SRC) $(LIB)
 	mkdir -p $(BIN_DIR)
-	gcc $^ $(CFLAGS) -o $@
+	gcc $^ $(CFLAGS) -o $@ $(LIBFLAGS)

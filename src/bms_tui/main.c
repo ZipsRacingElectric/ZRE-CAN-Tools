@@ -15,16 +15,11 @@
 #include "cjson/cjson_util.h"
 
 // Curses
-#ifdef __unix__
-#include <curses.h>
-#else // __unix__
-#include <ncurses/curses.h>
-#endif // __unix__
+#include "curses_port.h"
 
 // C Standard Library
 #include <stdlib.h>
 #include <errno.h>
-#include <locale.h>
 #include <math.h>
 
 // Constants ------------------------------------------------------------------------------------------------------------------
@@ -193,12 +188,8 @@ int main (int argc, char** argv)
 	// The total # of rows in the window
 	const size_t TOTAL_ROWS = CONTROL_PANEL_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STAT_HEIGHT + 10; // extra 10 rows after the content
 
-	// Set OS-specific locale for wide character support
-	#ifdef __unix__
-	setlocale (LC_ALL, "");
-	#else
-	setlocale (LC_ALL, ".utf8");
-	#endif // __unix__
+	// Set the locale for wide character support
+	cursesSetWideLocale ();
 
 	// Initialize Curses
 	initscr ();
@@ -235,7 +226,7 @@ int main (int argc, char** argv)
 		// Refine terminal dimensions
 		getmaxyx (stdscr, scr_y, scr_x);
 
-		#ifdef __unix__
+		#ifdef ZRE_CANTOOLS_OS_linux
 		clear ();
 		#endif
 		

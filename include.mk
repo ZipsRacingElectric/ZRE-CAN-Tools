@@ -32,17 +32,59 @@ LIBS :=					\
 	$(LIB_BMS)			\
 	$(LIB_MDF)
 
-# Compilation -----------------------------------------------------------------
-
-# TODO(Barach): "-lm" should be in libflags, not CFLAGS
-CFLAGS := -fno-strict-aliasing -Wall -Wextra -Wpedantic -g -I $(LIB_DIR) -lm
-
 # Operating System Detection --------------------------------------------------
 
-# - This is only used for tagging releases, everything in here should work in
-#   both linux and MSYS2.
 ifeq ($(OS),Windows_NT)
-	DETECTED_OS := windows
+	OS_TYPE := windows
 else
-	DETECTED_OS := $(shell uname | tr '[:upper:]' '[:lower:]')
+	OS_TYPE := $(shell uname | tr '[:upper:]' '[:lower:]')
 endif
+
+ARCH_TYPE := $(shell uname -m)
+
+# Release Version -------------------------------------------------------------
+
+VERSION_NUMBER := $(shell date +%Y.%m.%d)
+VERSION_FULL := zre_cantools_$(OS_TYPE)_$(ARCH_TYPE)_$(VERSION_NUMBER)
+
+# Compilation -----------------------------------------------------------------
+
+CFLAGS := -fno-strict-aliasing -Wall -Wextra -Wpedantic -g -I $(LIB_DIR) -Wno-newline-eof		\
+	-D ZRE_CANTOOLS_OS_$(OS_TYPE)																\
+	-D ZRE_CANTOOLS_OS=\"$(OS_TYPE)\"															\
+	-D ZRE_CANTOOLS_ARCH=\"$(ARCH_TYPE)\"														\
+	-D ZRE_CANTOOLS_VERSION_NUMBER=\"$(VERSION_NUMBER)\"										\
+	-D ZRE_CANTOOLS_VERSION_FULL=\"$(VERSION_FULL)\"
+
+LIBFLAGS := -lm
+
+# File Paths ------------------------------------------------------------------
+
+ifeq ($(OS_TYPE),linux)
+	ABS_ROOT_DIR := $(shell realpath $(ROOT_DIR))
+else
+	ABS_ROOT_DIR := $(shell cygpath -w $(shell realpath $(ROOT_DIR)))
+endif
+
+ifeq ($(OS_TYPE),linux)
+	GCC_BIN := $(shell which gcc)
+else
+	GCC_BIN := $(shell cygpath -w $(shell which gcc))
+endif
+
+# Library-Specific Flags ------------------------------------------------------
+
+# Flags for using libserial_can
+# - Note: for using libcan_device, this is not needed.
+LIB_SERIAL_CAN_CFLAGS := -I $(BIN_DIR)/include
+
+# Flags for using the Curses library
+LIB_CURSES_LIBFLAGS := -lncursesw
+
+# Flags for using the GTK library
+LIB_GTK_CFLAGS := $(shell pkg-config --cflags gtk4)
+LIB_GTK_LIBFLAGS := $(shell pkg-config --libs gtk4)
+
+# Flags for using all libraries
+# - Note this is only intended to be used for Clangd.
+ALL_LIB_CFLAGS := $(CFLAGS) $(LIB_SERIAL_CAN_CFLAGS) $(LIB_GTK_CFLAGS)

@@ -5,16 +5,14 @@
 #include <signal.h>
 #include <stdlib.h>
 
-#if __unix__
-#include <execinfo.h>
-#endif // __unix__
-
 FILE* errorStream = NULL;
 
-// TODO(Barach): Figure this out for windows.
-#if __unix__
+#if ZRE_CANTOOLS_OS_linux
 
-static void printBacktrace ()
+// POSIX
+#include <execinfo.h>
+
+static void printBacktrace (void)
 {
 	fprintf (stderr, "\n- BEGIN BACKTRACE --------------------------------------------------------------\n\n");
 
@@ -56,12 +54,16 @@ static void segvHandler (int sig)
 	exit (sig);
 }
 
-#endif // __unix__
+#endif // ZRE_CANTOOLS_OS_linux
 
-void debugInit ()
+void debugInit (void)
 {
-	#if __unix__
+	// TODO(Barach): Implement this for windows.
+
+	#ifdef ZRE_CANTOOLS_OS_linux
+
 	signal (SIGSEGV, segvHandler);
 	signal (SIGABRT, abrtHandler);
-	#endif // __unix__
+
+	#endif // ZRE_CANTOOLS_OS_linux
 }

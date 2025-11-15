@@ -12,6 +12,9 @@ LIB :=						\
 	$(LIB_SERIAL_CAN)		\
 	$(LIB_COMMON)
 
+# Linking against curses, so include its flags
+LIBFLAGS += $(LIB_CURSES_LIBFLAGS)
+
 $(BIN): $(SRC) $(LIB)
 	mkdir -p $(BIN_DIR)
-	gcc $^ $(CFLAGS) -o $@ -lncursesw
+	gcc $^ $(CFLAGS) -o $@ $(LIBFLAGS)
