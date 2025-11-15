@@ -967,7 +967,7 @@ void printVoltage (int row, int column, bms_t* bms, size_t cellIndex)
 void printCellIndex (int row, int column, size_t cellIndex)
 {
 	// Print the index of the cell
-	mvprintw (row, column, "%lli", cellIndex);
+	mvprintw (row, column, "%li", (long int) cellIndex);
 }
 
 void printTemperature (int row, int column, bms_t* bms, size_t senseLineIndex)
@@ -996,8 +996,8 @@ void printTemperature (int row, int column, bms_t* bms, size_t senseLineIndex)
 		attron (COLOR_PAIR (color));
 
 		// Display the whole number and decimal of the temperature on seperate lines at allow it to fit in a cell
-		mvprintw(row, column, "%d.", (int) temperature);      
-		mvprintw(row + 1, column, "%01dC", (int) roundf( fabsf ((int) temperature - (float) temperature) * 10.0f));   
+		mvprintw(row, column, "%d.", (int) temperature);
+		mvprintw(row + 1, column, "%01dC", (int) roundf( fabsf ((int) temperature - (float) temperature) * 10.0f));
 		attroff (COLOR_PAIR (color));
 
 		break;
@@ -1034,34 +1034,34 @@ void printLtcStatus (int row, int column, bms_t* bms, size_t ltcIndex)
 	{
 	case BMS_LTC_STATE_MISSING:
 		// If no other information is available, print only the index.
-		mvprintw (row, column, " LTC %lli ", ltcIndex);
+		mvprintw (row, column, " LTC %li ", (long int) ltcIndex);
 		break;
 
 	case BMS_LTC_STATE_TIMEOUT:
 		// If either signal is timed out, print so.
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " LTC %lli: CAN Timeout ", ltcIndex);
+		mvprintw (row, column, " LTC %li: CAN Timeout ", (long int) ltcIndex);
 		attroff (COLOR_PAIR (COLOR_INVALID));
 		break;
 
 	case BMS_LTC_STATE_ISOSPI_FAULT:
 		// If the LTC is faulted, print so.
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " LTC %lli: IsoSPI Fault ", ltcIndex);
+		mvprintw (row, column, " LTC %li: IsoSPI Fault ", (long int) ltcIndex);
 		attroff (COLOR_PAIR (COLOR_INVALID));
 		break;
 
 	case BMS_LTC_STATE_SELF_TEST_FAULT:
 		// If the LTC is faulted, print so.
 		attron (COLOR_PAIR (COLOR_INVALID));
-		mvprintw (row, column, " LTC %lli: Self-Test Fault ", ltcIndex);
+		mvprintw (row, column, " LTC %li: Self-Test Fault ", (long int) ltcIndex);
 		attroff (COLOR_PAIR (COLOR_INVALID));
 		break;
 
 	case BMS_LTC_STATE_OKAY:
 		// If the LTC is okay, print so.
 		attron (COLOR_PAIR (COLOR_VALID));
-		mvprintw (row, column, " LTC %lli: Comms Okay ", ltcIndex);
+		mvprintw (row, column, " LTC %li: Comms Okay ", (long int) ltcIndex);
 		attroff (COLOR_PAIR (COLOR_VALID));
 		break;
 	}

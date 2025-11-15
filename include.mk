@@ -50,7 +50,7 @@ VERSION_FULL := zre_cantools_$(OS_TYPE)_$(ARCH_TYPE)_$(VERSION_NUMBER)
 # Compilation -----------------------------------------------------------------
 
 # Compilation flags to use for compiling all applications and libraries
-CFLAGS := -std=gnu11 -fno-strict-aliasing -Wall -Wextra -Wpedantic -g		\
+CFLAGS := -std=gnu11 -fno-strict-aliasing -Wall -Wextra -g					\
 	-I $(LIB_DIR)															\
 	-D ZRE_CANTOOLS_OS_$(OS_TYPE)											\
 	-D ZRE_CANTOOLS_OS=\"$(OS_TYPE)\"										\

@@ -80,7 +80,7 @@ int main (int argc, char** argv)
 		float minLoad = canCalculateBusLoad (minBitCount, bitTime, period);
 
 		// Print stats
-		printf ("Bus Load: [%6.2f%%, %6.2f%%],   Frames Received: %5zu,   Bits Received: [%7zu, %7zu]\n",
-			minLoad * 100.0f, maxLoad * 100.0f, frameCount, minBitCount, maxBitCount);
+		printf ("Bus Load: [%6.2f%%, %6.2f%%],   Frames Received: %5lu,   Bits Received: [%7lu, %7lu]\n",
+			minLoad * 100.0f, maxLoad * 100.0f, (unsigned long) frameCount, (unsigned long) minBitCount, (unsigned long) maxBitCount);
 	}
 }

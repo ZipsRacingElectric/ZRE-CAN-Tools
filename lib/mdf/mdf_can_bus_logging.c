@@ -155,6 +155,7 @@ static mdfBlock_t* writeHeader (FILE* mdf, const char* programId, time_t timeSta
 		&(mdfHdLinkList_t)
 		{
 			// Link list is populated later, as we don't know the addresses of any of these yet.
+			0
 		}
 	) != 0)
 	{
@@ -1003,8 +1004,8 @@ static uint64_t writeComment (FILE* mdf, const char* softwareVersion, const char
 		"            <e name=\"hardware version\" ro=\"true\">%s</e>\n"
 		"            <e name=\"serial number\" ro=\"true\">%s</e>\n"
 		"            <e name=\"device type\" ro=\"true\">%s</e>\n"
-		"            <e name=\"storage total\" ro=\"true\">%llu</e>\n"
-		"            <e name=\"storage free\" ro=\"true\">%llu</e>\n"
+		"            <e name=\"storage total\" ro=\"true\">%lu</e>\n"
+		"            <e name=\"storage free\" ro=\"true\">%lu</e>\n"
 		"        </tree>\n"
 		"        <tree name=\"File Information\">\n"
 		"            <e name=\"session\" ro=\"true\">%u</e>\n"
@@ -1012,8 +1013,8 @@ static uint64_t writeComment (FILE* mdf, const char* softwareVersion, const char
 		"            <e name=\"comment\" ro=\"true\"></e>\n"
 		"        </tree>\n"
 		"    </common_properties>\n"
-		"</HDcomment>", softwareVersion, hardwareVersion, serialNumber, softwareName, storageSize, storageRemaining,
-			sessionNumber, splitNumber);
+		"</HDcomment>", softwareVersion, hardwareVersion, serialNumber, softwareName,
+			(unsigned long) storageSize, (unsigned long) storageRemaining, sessionNumber, splitNumber);
 }
 
 static mdfBlock_t* writeDg (FILE* mdf, uint64_t firstCgAddr)

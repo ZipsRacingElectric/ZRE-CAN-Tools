@@ -150,9 +150,9 @@ int main (int argc, char** argv)
 			float minLoad = canCalculateBusLoad (minBitCount, bitTime, period);
 
 			// Print the status message
-			printf ("Bus Load: [%6.2f%%, %6.2f%%],   CAN Frames Received: %5zu,   Error Frames Received: %5zu,   "
-				"Bits Received: [%7zu, %7zu]\n", minLoad * 100.0f, maxLoad * 100.0f, frameCount, errorCount,
-				minBitCount, maxBitCount);
+			printf ("Bus Load: [%6.2f%%, %6.2f%%],   CAN Frames Received: %5lu,   Error Frames Received: %5lu,   "
+				"Bits Received: [%7lu, %7lu]\n", minLoad * 100.0f, maxLoad * 100.0f, (unsigned long) frameCount,
+				(unsigned long) errorCount, (unsigned long) minBitCount, (unsigned long) maxBitCount);
 
 			// TODO(Barach): Keep hard-coded, or use database lib?
 			canFrame_t statusFrame =
