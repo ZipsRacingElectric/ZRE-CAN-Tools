@@ -5,6 +5,9 @@
 //
 // Description: Terminal user interface for monitoring a battery management system.
 
+// REVIEW(Barach): Status panel height is hard-coded. This means can't have status messages with more than 20 entries.
+//   Status / statistic panel should be sized to the larger of the two.
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -331,9 +334,9 @@ void printControlPanel (int row, int column)
 
 	// Print the title of the control panel
 	mvprintw (row + 0, column + 1, "Control Panel");
-	
+
 	// Next column
-	column += 20;	
+	column += 20;
 
 	// Print the top and bottom
 	mvprintw (row + 0, column, "────────────────────");
@@ -692,14 +695,14 @@ void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row
 	{
 		mvprintw (mapRowToPosition[1], column + 0,  "┌");
 	}
-	
+
 	// Print headers 
 	if (validRows[2]) 
 	{
 		mvprintw (mapRowToPosition[2], column + 2,  "Signal");
 		mvprintw (mapRowToPosition[2], column + 42, "Value");
 	}
-	
+
 	// Print every (valid) side of the BMS Status Signals Panel
 	for (int i = 1; i < BMS_STAT_HEIGHT; i++) {
 		if (validRows[i]) mvprintw (mapRowToPosition[i], column + 0,  "│");

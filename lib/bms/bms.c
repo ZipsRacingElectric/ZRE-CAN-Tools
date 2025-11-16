@@ -2,60 +2,29 @@
 #include "bms.h"
 
 // Includes
+#include "array.h"
 #include "cjson/cjson_util.h"
+#include "list.h"
 
 // C Standard Library
 #include <errno.h>
 #include <stdlib.h>
 #include <math.h>
 
-// TODO(Barach): Verbose debugging should print to stderr. Specifically 'no such signal error'.
-
-// TODO(Barach): Replace with list lib?
-
-/**
- * @brief Checks if signal has already been retreived to minimize signal redundancy. Dyanmically adds the signal's index to a list of signal indices if not.
- * @param index The global index of the signal
- * @param indices A list used to store the indices of previously retreived signals
- * @param signalCount The number of signal incices in the signal indices list
- * @param result The result of the function (true indicates that the signal has not been previously retreived / false indicates that the signal has been previously retreived)
- */
-static int checkSignalRedundancy (ssize_t index, size_t** indices, size_t* signalCount, bool* result) {
-	// return false if signal has previously been retreived
-	for (size_t i = 0; i < *signalCount; i++)
-	{
-		// TODO(Barach): Warn
-		if ((*indices)[i] == index)
-		{
-			*result = false;
-			return 0;
-		}
-	}
-
-	// add signal name to the list
-	*indices = realloc (*indices, (*signalCount + 1) * sizeof (size_t));
-	if (! (*indices)) {
-		// Set errno to indicate that the program failed to allocate the requested memory
-		errno = ENOMEM;
-		return -1;
-	}
-
-	(*indices)[*signalCount] = index;
-	++(*signalCount);
-	*result = true;
-	return 0;
-}
+listDefine (ssize_t);
+arrayDefine (ssize_t);
 
 /**
  * @brief Prints an index into an existing string.
  * @param index The index to print
  * @param name The string to print into.
+ * @param n The maximum number of characters to write (including terminator).
  * @return The number of characters written, or, 0 on error.
  */
-static size_t printIndex (uint16_t index, char* name)
+static size_t printIndex (size_t index, char* name, size_t n)
 {
-	int code = snprintf (name, 4, "%u", index);
-	if (code < 0 || code >= 4)
+	int code = snprintf (name, n, "%lu", (long unsigned) index);
+	if (code < 0 || (size_t) code >= n)
 		return 0;
 
 	return code;
@@ -63,24 +32,24 @@ static size_t printIndex (uint16_t index, char* name)
 
 size_t bmsSnprintSenseLineIndex (bms_t* bms, size_t index, char* str, size_t n)
 {
-	uint16_t textIndex = (index + 1) * bms->cellsPerLtc / bms->senseLinesPerLtc;
+	size_t textIndex = (index + 1) * bms->cellsPerLtc / bms->senseLinesPerLtc;
 
 	// Print the text index and its suffix
 	int code;
 	if (index % bms->senseLinesPerLtc == 0)
 	{
 		// The first sense line in an LTC should have the HI suffix, as it belongs to the higher potential LTC.
-		code = snprintf (str, n, "%u_HI", textIndex);
+		code = snprintf (str, n, "%lu_HI", (long unsigned) textIndex);
 	}
 	else if (index % bms->senseLinesPerLtc == bms->cellsPerLtc)
 	{
 		// The last sense line in an LTC should have the LO suffix, as it belongs to the lower potential LTC.
-		code = snprintf (str, n, "%u_LO", textIndex);
+		code = snprintf (str, n, "%lu_LO", (long unsigned) textIndex);
 	}
 	else
 	{
 		// No suffix
-		code = snprintf (str, n, "%u", textIndex);
+		code = snprintf (str, n, "%lu", (long unsigned) textIndex);
 	}
 	if (code < 0 || (size_t) code >= n)
 		return 0;
@@ -90,10 +59,6 @@ size_t bmsSnprintSenseLineIndex (bms_t* bms, size_t index, char* str, size_t n)
 
 int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 {
-	bool result;
-	size_t signalCount = 0;
-	size_t* signalIndices = NULL;
-
 	bms->database = database;
 
 	// Get JSON config values
@@ -123,160 +88,163 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		return errno;
 
 	bms->senseLinesPerLtc = bms->cellsPerLtc + 1;
-	bms->cellCount = bms->segmentCount * bms->ltcsPerSegment * bms->cellsPerLtc;
-	bms->senseLineCount = bms->segmentCount * bms->ltcsPerSegment * bms->senseLinesPerLtc;
+	bms->ltcCount = bms->segmentCount * bms->ltcsPerSegment;
+	bms->cellCount = bms->ltcCount * bms->cellsPerLtc;
+	bms->senseLineCount = bms->ltcCount * bms->senseLinesPerLtc;
 
-	// Get database references
+	// Create a list to track the signals that have been used. This is so we can omit said signals from the array of status
+	// signals.
+	list_t (ssize_t) usedSignals;
+	if (listInit (ssize_t) (&usedSignals, 512) != 0)
+		return errno;
+
 	bms->cellVoltageIndices = malloc (sizeof (ssize_t) * bms->cellCount);
 	bms->cellsDischargingIndices = malloc (sizeof (ssize_t) * bms->cellCount);
 
-	// Iterate over each cell index in the bms
+	// Traverse each cell in the BMS
 	for (uint16_t index = 0; index < bms->cellCount; ++index)
 	{
-		// Format the cell voltage signal name
-		char voltName [] = "CELL_VOLTAGE_###";
-		size_t offset = printIndex (index, voltName + 13);
-		voltName [offset + 13] = '\0';
+		// Get the cell voltage global index
+		// - All cell voltage signals are required, fail if one is missing.
 
-		// Get the cell voltage global index & append it to the indicies + the signal redundancy list
-		ssize_t cellVoltageIndex = canDatabaseFindSignal (database, voltName);
-		bms->cellVoltageIndices [index] = cellVoltageIndex;
-		checkSignalRedundancy (cellVoltageIndex, &signalIndices, &signalCount, &result);
+		char cellVoltageName [] = "CELL_VOLTAGE_###";
+		size_t offset = printIndex (index, cellVoltageName + strlen ("CELL_VOLTAGE_"), strlen ("###") + 1);
+		cellVoltageName [offset + strlen ("CELL_VOLTAGE_")] = '\0';
+
+		bms->cellVoltageIndices [index] = canDatabaseFindSignal (database, cellVoltageName);
 		if (bms->cellVoltageIndices [index] < 0)
 			return errno;
+		if (listAppend (ssize_t) (&usedSignals, bms->cellVoltageIndices [index]) != 0)
+			return errno;
 
-		// Format the cell balancing signal name
-		char disName [] = "CELL_BALANCING_###";
-		offset = printIndex (index, disName + 15);
-		disName [offset + 15] = '\0';
+		// Get the cell discharging global index
+		// - All cell discharging signals are required, fail if one is missing.
 
-		// Get the cell balancing global index & append it to the indicies + the signal redundancy list
-		ssize_t cellsDischargingIndex = canDatabaseFindSignal (database, disName);
-		bms->cellsDischargingIndices [index] = cellsDischargingIndex;
-		checkSignalRedundancy (cellsDischargingIndex, &signalIndices, &signalCount, &result);
+		char cellDischargingName [] = "CELL_BALANCING_###";
+		offset = printIndex (index, cellDischargingName + strlen ("CELL_BALANCING_"), strlen ("###") + 1);
+		cellDischargingName [offset + strlen ("CELL_BALANCING_")] = '\0';
+
+		bms->cellsDischargingIndices [index] = canDatabaseFindSignal (database, cellDischargingName);
 		if (bms->cellsDischargingIndices [index] < 0)
+			return errno;
+		if (listAppend (ssize_t) (&usedSignals, bms->cellsDischargingIndices [index]) != 0)
 			return errno;
 	}
 
 	bms->senseLineTemperatureIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
 	bms->senseLinesOpenIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
 
-	for (uint16_t segmentIndex = 0; segmentIndex < bms->segmentCount; ++segmentIndex)
+	// Traverse each sense line in the BMS
+	for (uint16_t index = 0; index < bms->senseLineCount; ++index)
 	{
-		for (uint16_t ltcIndex = 0; ltcIndex < bms->ltcsPerSegment; ++ltcIndex)
-		{
-			for (uint16_t senseLineIndex = 0; senseLineIndex < bms->senseLinesPerLtc; ++senseLineIndex)
-			{
-				uint16_t index = SENSE_LINE_INDEX_LOCAL_TO_GLOBAL (bms, segmentIndex, ltcIndex, senseLineIndex);
+		// Get the sense line temperature global index
+		// - Not all sense line temperature signals are required, -1 is used to indicate a signal is not present.
 
-				// Format the sense line temperature signal name
-				char tempName [] = "SENSE_LINE_###_##_TEMPERATURE";
-				uint16_t offset = bmsSnprintSenseLineIndex (bms, index, tempName + 11, 7);
-				snprintf (tempName + 11 + offset, 13, "_TEMPERATURE");
+		char senseLineTemperatureName [] = "SENSE_LINE_###_##_TEMPERATURE";
+		size_t offset = bmsSnprintSenseLineIndex (bms, index, senseLineTemperatureName + strlen ("SENSE_LINE_"), strlen ("###_##") + 1);
+		snprintf (senseLineTemperatureName + strlen ("SENSE_LINE_") + offset, strlen ("_TEMPERATURE") + 1, "_TEMPERATURE");
 
-				// Get the sense line temperature global index & append it to the indicies + the signal redundancy list
-				ssize_t senseLineTemperatureIndex = canDatabaseFindSignal (database, tempName);
-				bms->senseLineTemperatureIndices [index] = senseLineTemperatureIndex;
-				checkSignalRedundancy (senseLineTemperatureIndex, &signalIndices, &signalCount, &result);
+		bms->senseLineTemperatureIndices [index] = canDatabaseFindSignal (database, senseLineTemperatureName);
+		if (listAppend (ssize_t) (&usedSignals, bms->senseLineTemperatureIndices [index]) != 0)
+			return errno;
 
-				// Format the sense line open signal name
-				char openName [] = "SENSE_LINE_###_##_OPEN";
-				offset = bmsSnprintSenseLineIndex (bms, index, openName + 11, 7);
-				snprintf (openName + 11 + offset, 6, "_OPEN");
+		// Get the sense line open global index
+		// - All sense line status signals are required, fail if one is missing.
 
-				// Get the sense line open global index & append it to the indicies + the signal redundancy list
-				ssize_t senseLinesOpenIndex = canDatabaseFindSignal (database, openName);
-				bms->senseLinesOpenIndices [index] = senseLinesOpenIndex;
-				checkSignalRedundancy (senseLinesOpenIndex, &signalIndices, &signalCount, &result);
-				if (bms->senseLinesOpenIndices [index] < 0)
-					return errno;
-			}
-		}
+		char senseLineOpenName [] = "SENSE_LINE_###_##_OPEN";
+		offset = bmsSnprintSenseLineIndex (bms, index, senseLineOpenName + strlen ("SENSE_LINE_"), strlen ("###_##") + 1);
+		snprintf (senseLineOpenName + strlen ("SENSE_LINE_") + offset, strlen ("_OPEN") + 1, "_OPEN");
+
+		bms->senseLinesOpenIndices [index] = canDatabaseFindSignal (database, senseLineOpenName);
+		if (bms->senseLinesOpenIndices [index] < 0)
+			return errno;
+		if (listAppend (ssize_t) (&usedSignals, bms->senseLinesOpenIndices [index]) != 0)
+			return errno;
 	}
 
 	bms->ltcIsoSpiFaultIndices = malloc (sizeof (ssize_t) * bms->ltcsPerSegment * bms->segmentCount);
 	bms->ltcSelfTestFaultIndices = malloc (sizeof (ssize_t) * bms->ltcsPerSegment * bms->segmentCount);
 	bms->ltcTemperatureIndices = malloc (sizeof (ssize_t) * bms->ltcsPerSegment * bms->segmentCount);
 
-	for (uint16_t segmentIndex = 0; segmentIndex < bms->segmentCount; ++segmentIndex)
+	// Traverse each LTC in the BMS
+	for (uint16_t index = 0; index < bms->ltcCount; ++index)
 	{
-		for (uint16_t ltcIndex = 0; ltcIndex < bms->ltcsPerSegment; ++ltcIndex)
-		{
-			uint16_t index = ltcIndex + bms->ltcsPerSegment * segmentIndex;
+		// Get the LTC's IsoSPI fault global index
+		// - Not all IsoSPI fault signals are required, -1 is used to indicate a signal is not present.
 
-			// Format the LTC ISOSPI fault signal name
-			char isoSpiName [] = "BMS_LTC_###_ISOSPI_FAULT";
-			uint16_t offset = printIndex (index, isoSpiName + 8);
-			snprintf (isoSpiName + 8 + offset, 14, "_ISOSPI_FAULT");
+		char ltcIsoSpiFaultName [] = "BMS_LTC_###_ISOSPI_FAULT";
+		size_t offset = printIndex (index, ltcIsoSpiFaultName + strlen ("BMS_LTC_"), strlen ("###") + 1);
+		snprintf (ltcIsoSpiFaultName + strlen ("BMS_LTC_") + offset, strlen ("_ISOSPI_FAULT") + 1, "_ISOSPI_FAULT");
 
-			// Get the LTC ISOSPI fault global index & append it to the indicies + the signal redundancy list
-			ssize_t ltcIsoSpiFaultIndices = canDatabaseFindSignal (database, isoSpiName);
-			bms->ltcIsoSpiFaultIndices [index] = ltcIsoSpiFaultIndices;
-			checkSignalRedundancy (ltcIsoSpiFaultIndices, &signalIndices, &signalCount, &result);
+		bms->ltcIsoSpiFaultIndices [index] = canDatabaseFindSignal (database, ltcIsoSpiFaultName);
+		if (listAppend (ssize_t) (&usedSignals, bms->ltcIsoSpiFaultIndices [index]) != 0)
+			return errno;
 
-			// Format the LTC ISOSPI test fault signal name
-			char selfTestName [] = "BMS_LTC_###_SELF_TEST_FAULT";
-			offset = printIndex (index, selfTestName + 8);
-			snprintf (selfTestName + 8 + offset, 17, "_SELF_TEST_FAULT");
+		// Get the LTC's self test fault global index
+		// - Not all self test fault signals are required, -1 is used to indicate a signal is not present.
 
-			// Get the LTC ISOSPI test fault global index & append it to the indicies + the signal redundancy list
-			ssize_t ltcSelfTestFaultIndex = canDatabaseFindSignal (database, selfTestName);
-			bms->ltcSelfTestFaultIndices [index] = ltcSelfTestFaultIndex;
-			checkSignalRedundancy (ltcSelfTestFaultIndex, &signalIndices, &signalCount, &result);
+		char ltcSelfTestFaultName [] = "BMS_LTC_###_SELF_TEST_FAULT";
+		offset = printIndex (index, ltcSelfTestFaultName + strlen ("BMS_LTC_"), strlen ("###") + 1);
+		snprintf (ltcSelfTestFaultName + strlen ("BMS_LTC_") + offset, strlen ("_SELF_TEST_FAULT") + 1, "_SELF_TEST_FAULT");
 
-			// Format the LTC temperature signal name
-			char temperatureName [] = "BMS_LTC_###_TEMPERATURE";
-			offset = printIndex (index, temperatureName + 8);
-			snprintf (temperatureName + 8 + offset, 13, "_TEMPERATURE");
+		bms->ltcSelfTestFaultIndices [index] = canDatabaseFindSignal (database, ltcSelfTestFaultName);
+		if (listAppend (ssize_t) (&usedSignals, bms->ltcSelfTestFaultIndices [index]) != 0)
+			return errno;
 
-			// Get the LTC temperature global index & append it to the indicies + the signal redundancy list
-			ssize_t ltcTemperatureIndex = canDatabaseFindSignal (database, temperatureName);
-			bms->ltcTemperatureIndices [index] = ltcTemperatureIndex;
-			checkSignalRedundancy (ltcTemperatureIndex, &signalIndices, &signalCount, &result);
-		}
+		// Get the LTC temperature global index
+		// - Not all temperature signals are required, -1 is used to indicate a signal is not present.
+
+		char ltcTemperatureName [] = "BMS_LTC_###_TEMPERATURE";
+		offset = printIndex (index, ltcTemperatureName + strlen ("BMS_LTC_"), strlen ("###") + 1);
+		snprintf (ltcTemperatureName + strlen ("BMS_LTC_") + offset, strlen ("_TEMPERATURE") + 1, "_TEMPERATURE");
+
+		bms->ltcTemperatureIndices [index] = canDatabaseFindSignal (database, ltcTemperatureName);
+		if (listAppend (ssize_t) (&usedSignals, bms->ltcTemperatureIndices [index]) != 0)
+			return errno;
 	}
 
-	// Get the pack voltage global index & append it to the indicies + the signal redundancy list
-	ssize_t packVoltageIndex = canDatabaseFindSignal (database, "PACK_VOLTAGE");
-	bms->packVoltageIndex = packVoltageIndex;
-	checkSignalRedundancy (packVoltageIndex, &signalIndices, &signalCount, &result);
+	// Get the pack voltage global index
+
+	bms->packVoltageIndex = canDatabaseFindSignal (database, "PACK_VOLTAGE");
 	if (bms->packVoltageIndex < 0)
 		return errno;
 
-	// Get the pack current global index & append it to the indicies + the signal redundancy list
-	size_t packCurrentIndex = canDatabaseFindSignal (database, "PACK_CURRENT");
-	bms->packCurrentIndex = packCurrentIndex;
-	checkSignalRedundancy (packCurrentIndex, &signalIndices, &signalCount, &result);
+	if (listAppend (ssize_t) (&usedSignals, bms->packVoltageIndex) != 0)
+		return errno;
 
+	// Get the pack current global index & append it to the indicies
+	bms->packCurrentIndex = canDatabaseFindSignal (database, "PACK_CURRENT");
 	if (bms->packCurrentIndex < 0)
 		return errno;
 
-	// Get bms status index and message
-	ssize_t bmsStatusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
-	canMessage_t* bmsStatusMessage = canDatabaseGetMessage (database, bmsStatusMessageIndex);
+	if (listAppend (ssize_t) (&usedSignals, bms->packCurrentIndex) != 0)
+		return errno;
 
-	// Used to store the bms status signals and bms status indices
+	// Get the status message and its signals
+	// - Note, all signals in usedSignals are omitted, as they'd be redundant.
+
+	ssize_t statusMessageIndex = canDatabaseFindMessage (database, "BMS_STATUS");
+	if (statusMessageIndex < 0)
+		return errno;
+
+	canMessage_t* statusMessage = canDatabaseGetMessage (database, statusMessageIndex);
 	bms->statusSignalsCount = 0;
-	bms->statusSignalIndices = malloc (sizeof (ssize_t) * bmsStatusMessage->signalCount);
+	bms->statusSignalIndices = malloc (sizeof (ssize_t) * statusMessage->signalCount);
 
-	for (size_t signalIndex = 0; signalIndex < bmsStatusMessage->signalCount; signalIndex++) {
-		// Get bms status signal & its corresponding global index
-		ssize_t bmsStatusSignalGlobalIndex = canDatabaseGetGlobalIndex (database, bmsStatusMessageIndex, signalIndex);
+	for (size_t signalIndex = 0; signalIndex < statusMessage->signalCount; ++signalIndex)
+	{
+		// Get the global index of the signal. Skip if we have already used the signal.
+		ssize_t globalIndex = canDatabaseGetGlobalIndex (database, statusMessageIndex, signalIndex);
+		if (arrayContains (ssize_t) (listArray (ssize_t) (&usedSignals), globalIndex, listSize (ssize_t) (&usedSignals)))
+			continue;
 
-		// Check that the signal has not been retreived previously
-		if (checkSignalRedundancy (bmsStatusSignalGlobalIndex, &signalIndices, &signalCount, &result))
-			// Check if memory allocation failed
-			return -1;
-
-		if (result)
-		{
-			// Append signal to the bms status signals and index to the bms status signals indices
-			bms->statusSignalIndices[bms->statusSignalsCount++] = bmsStatusSignalGlobalIndex;
-		}
+		// If the signal is unique, add it to the status signals.
+		bms->statusSignalIndices [bms->statusSignalsCount] = globalIndex;
+		++bms->statusSignalsCount;
 	}
 
-	// Deallocate the memory allocated to the list storing the previously retreived signals
-	free (signalIndices);
+	// Deallocate the usedSignals list, as we are done with it.
+	listDealloc (ssize_t) (&usedSignals);
 
 	return 0;
 }
@@ -313,24 +281,52 @@ canDatabaseSignalState_t bmsGetSenseLineOpen (bms_t* bms, size_t index, bool* op
 
 bmsLtcState_t bmsGetLtcState (bms_t* bms, size_t index)
 {
+	// IsoSPI fault is higher importance than self-test fault, test that first.
+	bool isoSpiFaultMissing = false;
 	bool isoSpiFault;
+	switch (canDatabaseGetBool (bms->database, bms->ltcIsoSpiFaultIndices [index], &isoSpiFault))
+	{
+	// If there is no signal, we can't assume anything.
+	case CAN_DATABASE_MISSING:
+		isoSpiFault = false;
+		isoSpiFaultMissing = true;
+		break;
+
+	// If either signal is timed out, the LTC is considered timed out.
+	case CAN_DATABASE_TIMEOUT:
+		return BMS_LTC_STATE_TIMEOUT;
+
+	// If an IsoSPI fault is present, return that state.
+	case CAN_DATABASE_VALID:
+		if (isoSpiFault)
+			return BMS_LTC_STATE_ISOSPI_FAULT;
+	}
+
+	bool selfTestFaultMissing = false;
 	bool selfTestFault;
+	switch (canDatabaseGetBool (bms->database, bms->ltcSelfTestFaultIndices [index], &selfTestFault))
+	{
+	// If there is no signal, we can't assume anything.
+	case CAN_DATABASE_MISSING:
+		selfTestFault = false;
+		selfTestFaultMissing = true;
+		break;
 
-	// TODO(Barach): How to manage this?
-
-	// If either fault signal has timed out, return timeout
-	if (canDatabaseGetBool (bms->database, bms->ltcIsoSpiFaultIndices [index], &isoSpiFault) != CAN_DATABASE_VALID)
+	// If either signal is timed out, the LTC is considered timed out
+	case CAN_DATABASE_TIMEOUT:
 		return BMS_LTC_STATE_TIMEOUT;
-	if (canDatabaseGetBool (bms->database, bms->ltcSelfTestFaultIndices [index], &selfTestFault) != CAN_DATABASE_VALID)
-		return BMS_LTC_STATE_TIMEOUT;
 
-	// IsoSPI fault is higher importance than self-test fault.
-	if (isoSpiFault)
-		return BMS_LTC_STATE_ISOSPI_FAULT;
-	if (selfTestFault)
-		return BMS_LTC_STATE_SELF_TEST_FAULT;
+	// If a self test fault is present, return that state.
+	case CAN_DATABASE_VALID:
+		if (selfTestFault)
+			return BMS_LTC_STATE_SELF_TEST_FAULT;
+	}
 
-	// No faults
+	// If we have no information about either signal, the state is considered missing.
+	if (selfTestFaultMissing && isoSpiFaultMissing)
+		return BMS_LTC_STATE_MISSING;
+
+	// Otherwise, no faults
 	return BMS_LTC_STATE_OKAY;
 }
 

@@ -56,6 +56,8 @@ typedef struct
 	uint16_t cellCount;
 	/// @brief The total number of sense lines in the BMS.
 	uint16_t senseLineCount;
+	/// @brief The total number of LTCs in the BMS.
+	size_t ltcCount;
 
 	/// @brief The number of LTCs per segment.
 	uint16_t ltcsPerSegment;
