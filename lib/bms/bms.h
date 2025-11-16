@@ -34,13 +34,22 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
-// TODO(Barach): This needs work.
+/// @brief State of a BMS's LTC.
 typedef enum
 {
+	/// @brief Indicates no information about the LTC is available.
 	BMS_LTC_STATE_MISSING = CAN_DATABASE_MISSING,
+
+	/// @brief Indicates one or more signals belonging to the LTC have timed out.
 	BMS_LTC_STATE_TIMEOUT = CAN_DATABASE_TIMEOUT,
+
+	/// @brief Indicates the LTC has an IsoSPI fault.
 	BMS_LTC_STATE_ISOSPI_FAULT,
+
+	/// @brief Indicates the LTC has a self test fault.
 	BMS_LTC_STATE_SELF_TEST_FAULT,
+
+	/// @brief Indicates no issues.
 	BMS_LTC_STATE_OKAY
 } bmsLtcState_t;
 
