@@ -173,10 +173,11 @@
 	{																														\
 		/* Reallocate the internal array. */																				\
 		list->array = realloc (list->array, sizeof (datatype) * capacity);													\
-		if (list == NULL)																									\
+		if (list->array == NULL)																							\
 			return errno;																									\
 																															\
 		/* Success */																										\
+		list->capacity = capacity;																							\
 		return 0;																											\
 	}																														\
 																															\
