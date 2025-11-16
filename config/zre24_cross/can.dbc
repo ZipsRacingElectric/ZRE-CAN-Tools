@@ -82,15 +82,15 @@ BO_ 1104 Status_Shutdown: 1 BMS
  SG_ Precharge_Status : 4|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
 
 BO_ 256 BMS_STATUS: 8 BMS
- SG_ PACK_VOLTAGE : 24|16@1+ (1,0) [0|65535] "Voltage" Vector__XXX
- SG_ TEMPERATURE_BMS_MAX : 0|8@1+ (1,0) [0|255] "Celcius" Vector__XXX
- SG_ STATE_OF_CHARGE : 16|8@1+ (1,0) [0|255] "Percentage" Vector__XXX
- SG_ PACK_POWER : 8|8@1+ (1,0) [0|255] "KiloWatts" Vector__XXX
- SG_ BMS_VOLTAGE_FAULT : 41|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
- SG_ BMS_TEMPERATURE_FAULT : 40|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
- SG_ BMS_SENSE_LINE_FAULT : 44|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
- SG_ BMS_SELF_TEST_FAULT : 42|1@1+ (1,0) [0|1] "Boolean" Vector__XXX
- SG_ PACK_CURRENT : 48|16@1- (0.01,0) [0|655.35] "Amperes" Vector__XXX
+ SG_ PACK_VOLTAGE : 24|16@1+ (1,0) [0|65535] "V" Vector__XXX
+ SG_ TEMPERATURE_BMS_MAX : 0|8@1+ (1,0) [0|255] "C" Vector__XXX
+ SG_ STATE_OF_CHARGE : 16|8@1+ (1,0) [0|255] "%" Vector__XXX
+ SG_ PACK_POWER : 8|8@1+ (1,0) [0|255] "kW" Vector__XXX
+ SG_ BMS_VOLTAGE_FAULT : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_TEMPERATURE_FAULT : 40|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_SENSE_LINE_FAULT : 44|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_SELF_TEST_FAULT : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ PACK_CURRENT : 48|16@1- (0.01,0) [0|655.35] "A" Vector__XXX
 
 BO_ 1331 Calibrate_APPS_Range: 8 Dashboard
  SG_ APPS_2_Real_Min : 32|10@1+ (1,0) [0|1023] "ADC" Vector__XXX
