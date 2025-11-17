@@ -17,7 +17,7 @@
 #include "can_device/can_device.h"
 #include "can_eeprom/can_eeprom.h"
 #include "cjson/cjson_util.h"
-#include "error_codes.h"
+#include "debug.h"
 
 // C Standard Library
 #include <errno.h>
@@ -55,11 +55,7 @@ int parseOptionProgram (char* arg)
 	}
 
 	if (programDataJson == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to read data JSON: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to read data JSON");
 
 	mode = MODE_PROGRAM;
 
@@ -82,11 +78,7 @@ int parseOptionRecover (char* arg)
 
 		recoverStream = fopen (path, "w");
 		if (recoverStream == NULL)
-		{
-			int code = errno;
-			fprintf (stderr, "Failed to open JSON '%s': %s.\n", path, errorMessage (code));
-			return code;
-		}
+			return errorPrintf ("Failed to open JSON");
 	}
 
 	mode = MODE_RECOVER;
@@ -104,38 +96,28 @@ int main (int argc, char** argv)
 		return EINVAL;
 	}
 
+	// Initialize the CAN device
 	char* deviceName = argv [argc - 2];
-	char* configJsonPath = argv [argc - 1];
-
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to open CAN device '%s': %s.\n", deviceName, errorMessage (code));
-		return code;
-	}
-	if (canSetTimeout (device, 1) != 0)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to set CAN device timeout: %s\n", errorMessage (code));
-		return errno;
-	}
+		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
-	canEeprom_t eeprom;
+	// Set the CAN device's timeout
+	if (canSetTimeout (device, 1) != 0)
+		return errorPrintf ("Failed to set CAN device timeout");
+
+	// Load the EEPROM's configuration
+	char* configJsonPath = argv [argc - 1];
 	cJSON* configJson = jsonLoad (configJsonPath);
 	if (configJson == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to load config JSON file: %s.\n", errorMessage (code));
-		return code;
-	}
-	if (canEepromInit (&eeprom, configJson) != 0)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to initialize CAN EEPROM: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to load EEPROM config file '%s'", configJsonPath);
 
+	// Initialize the CAN EEPROM
+	canEeprom_t eeprom;
+	if (canEepromInit (&eeprom, configJson) != 0)
+		return errorPrintf ("Failed to initialize CAN EEPROM");
+
+	// Handle standard arguments
 	for (int index = 1; index < argc - 2; ++index)
 	{
 		if (argv [index][0] == '-')
@@ -162,81 +144,76 @@ int main (int argc, char** argv)
 		}
 	}
 
+	// Programming mode
 	if (mode == MODE_PROGRAM)
 	{
 		if (canEepromWriteJson (&eeprom, device, programDataJson) != 0)
-		{
-			int code = errno;
-			fprintf (stderr, "Failed to program '%s': %s.\n", eeprom.name, errorMessage (code));
-			return code;
-		}
+			errorPrintf ("Failed to program '%s'", eeprom.name);
+
+		return 0;
 	}
-	else if (mode == MODE_RECOVER)
+
+	// Recovery mode
+	if (mode == MODE_RECOVER)
 	{
 		if (canEepromReadJson (&eeprom, device, recoverStream) != 0)
-		{
-			fclose (recoverStream);
-
-			int code = errno;
-			fprintf (stderr, "Failed to recover '%s': %s.\n", eeprom.name, errorMessage (code));
-			return code;
-		}
+			errorPrintf ("Failed to recover '%s'", eeprom.name);
 
 		fclose (recoverStream);
+		return 0;
 	}
-	else if (mode == MODE_INTERACTIVE)
+
+	// Interactive mode
+	while (true)
 	{
-		while (true)
+		printf ("Enter an option:\n");
+		printf (" w - Write to the EEPROM.\n");
+		printf (" r - Read from the EEPROM.\n");
+		printf (" m - Print a map of the EEPROM's memory.\n");
+		printf (" e - Print an empty map of the EEPROM.\n");
+		printf (" q - Quit the program.\n");
+
+		char selection;
+		canEepromVariable_t* variable;
+
+		fscanf (stdin, "%c%*1[\n]", &selection);
+		switch (selection)
 		{
-			printf ("Enter an option:\n");
-			printf (" w - Write to the EEPROM.\n");
-			printf (" r - Read from the EEPROM.\n");
-			printf (" m - Print a map of the EEPROM's memory.\n");
-			printf (" e - Print an empty map of the EEPROM.\n");
-			printf (" q - Quit the program.\n");
+		case 'w':
+			variable = canEepromPromptVariable (&eeprom, stdin, stdout);
+			canEepromPromptValue (variable, eeprom.buffer, stdin, stdout);
+			if (canEepromWriteVariable (&eeprom, device, variable, eeprom.buffer) != 0)
+				errorPrintf ("Failed to write to EEPROM");
+			break;
 
-			char selection;
-			canEepromVariable_t* variable;
-
-			fscanf (stdin, "%c%*1[\n]", &selection);
-			switch (selection)
+		case 'r':
+			variable = canEepromPromptVariable (&eeprom, stdin, stdout);
+			if (canEepromReadVariable (&eeprom, device, variable, eeprom.buffer) != 0)
+				errorPrintf ("Failed to read variable from EEPROM");
+			else
 			{
-			case 'w':
-				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
-				canEepromPromptValue (variable, eeprom.buffer, stdin, stdout);
-				if (canEepromWriteVariable (&eeprom, device, variable, eeprom.buffer) != 0)
-					printf ("Failed to write to EEPROM: %s.\n", errorMessage (errno));
-				break;
-
-			case 'r':
-				variable = canEepromPromptVariable (&eeprom, stdin, stdout);
-				if (canEepromReadVariable (&eeprom, device, variable, eeprom.buffer) != 0)
-				 	printf ("Failed to read variable from EEPROM: %s.\n", errorMessage (errno));
-				else
-				{
-					printf ("Read: ");
-					canEepromPrintVariableValue (variable, eeprom.buffer, "      ", stdout);
-				}
-				break;
-
-			case 'm':
-				if (canEepromPrintMap (&eeprom, device, stdout) != 0)
-					printf ("Failed to print EEPROM map: %s.\n", errorMessage (errno));
-				break;
-
-			case 'e':
-				canEepromPrintEmptyMap (&eeprom, stdout);
-				break;
-
-			default:
-				printf ("Enter a valid option.\n");
-				break;
-
-			case 'q':
-				return 0;
+				printf ("Read: ");
+				canEepromPrintVariableValue (variable, eeprom.buffer, "      ", stdout);
 			}
-		};
-	}
+			break;
+
+		case 'm':
+			if (canEepromPrintMap (&eeprom, device, stdout) != 0)
+				errorPrintf ("Failed to print EEPROM map");
+			break;
+
+		case 'e':
+			canEepromPrintEmptyMap (&eeprom, stdout);
+			break;
+
+		default:
+			printf ("Enter a valid option.\n");
+			break;
+
+		case 'q':
+			return 0;
+		}
+	};
 
 	return 0;
 }

@@ -94,7 +94,7 @@ int jsonGetObject (cJSON* json, const char* key, cJSON** value)
 	cJSON* item = cJSON_GetObjectItem (json, key);
 	if (item == NULL)
 	{
-		ERROR_PRINTF ("JSON key '%s' does not exist.\n", key);
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
 		errno = ERRNO_CJSON_MISSING_KEY;
 		return errno;
 	}
@@ -108,7 +108,7 @@ int jsonGetString (cJSON* json, const char* key, char** value)
 	cJSON* item = cJSON_GetObjectItem (json, key);
 	if (item == NULL)
 	{
-		ERROR_PRINTF ("JSON key '%s' does not exist.\n", key);
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
 		errno = ERRNO_CJSON_MISSING_KEY;
 		return errno;
 	}
@@ -122,7 +122,7 @@ int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value)
 	cJSON* item = cJSON_GetObjectItem (json, key);
 	if (item == NULL)
 	{
-		ERROR_PRINTF ("JSON key '%s' does not exist.\n", key);
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
 		errno = ERRNO_CJSON_MISSING_KEY;
 		return errno;
 	}
@@ -136,7 +136,7 @@ int jsonGetFloat (cJSON* json, const char* key, float* value)
 	cJSON* item = cJSON_GetObjectItem (json, key);
 	if (item == NULL)
 	{
-		ERROR_PRINTF ("JSON key '%s' does not exist.\n", key);
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
 		errno = ERRNO_CJSON_MISSING_KEY;
 		return errno;
 	}

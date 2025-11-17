@@ -1,13 +1,12 @@
 #include <gtk/gtk.h>
 #include "debug.h"
-#include "error_codes.h"
 #include "can_device/can_device.h"
 #include "can_database/can_database.h"
 
-canDatabase_t database; 
+canDatabase_t database;
 
 static gboolean update_counter(GtkWidget *label) {
-   
+
 	ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
 	float value;
 	char text[16] = "--";  // Enough space for numbers 1-30
@@ -49,7 +48,7 @@ static void winscreen (GtkWidget* widget, GtkWindow* window)
 }
 
 static void quit (GtkWidget* widget, gpointer data)
-{	
+{
 	(void) widget;
 	(void) data;
 	g_print ("Quit!\n");
@@ -99,7 +98,6 @@ static void activate (GtkApplication* app, gpointer title)
 
 int main (int argc, char** argv)
 {
-	
 	GtkApplication* app;
 	int status;
 
@@ -111,17 +109,16 @@ int main (int argc, char** argv)
 
 	debugInit ();
 
-	canDevice_t* device = canInit(argv [2]); 
-	if (device == NULL){
-		fprintf (stderr , "Invalid Device Name, %s \n" , errorMessage(errno));
-		return errno;
-	}
+	// Initialize the CAN device
+	char* deviceName = argv [2];
+	canDevice_t* device = canInit (deviceName);
+	if (device == NULL)
+		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
-	if (canDatabaseInit(&database, device, argv [3]) != 0){ 
-		//argv [3] = DBC File Path
-		fprintf (stderr , "Invalid DBC File Path, %s \n" , errorMessage(errno));
-		return errno;
-	}	
+	// Initialize the CAN database
+	char* dbcPath = argv [3];
+	if (canDatabaseInit (&database, device, dbcPath) != 0)
+		return errorPrintf ("Failed to initialize CAN database");
 
 	// Create application ID from application name
 	char* applicationName = argv [1];

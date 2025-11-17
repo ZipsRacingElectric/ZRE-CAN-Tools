@@ -9,15 +9,13 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
+#include "array.h"
+#include "debug.h"
+#include "list.h"
 #include "mdf/mdf_reader.h"
 #include "mdf/mdf_block_types.h"
-#include "debug.h"
-#include "error_codes.h"
-#include "list.h"
-#include "array.h"
 
 // C Standard Library
-#include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -56,11 +54,7 @@ void printTextBlockCharacter (mdfBlock_t* block, uint8_t data, void* arg)
 int printTextBlock (mdfBlock_t* block, FILE* mdf, FILE* stream)
 {
 	if (mdfReadBlockDataSection (mdf, block))
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to read MDF block data section: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to read MDF block data section");
 
 	fprintf (stream, " - %s", (char*) block->dataSection);
 
@@ -95,18 +89,10 @@ int printBlockTree (uint64_t addr, treeArg_t* arg, FILE* mdf, FILE* stream)
 		fseek (mdf, addr, SEEK_SET);
 
 		if (mdfReadBlockHeader (mdf, &block) != 0)
-		{
-			int code = errno;
-			fprintf (stderr, "Failed to read MDF block header: %s.\n", errorMessage (code));
-			return code;
-		}
+			return errorPrintf ("Failed to read MDF block header");
 
 		if (mdfReadBlockLinkList (mdf, &block) != 0)
-		{
-			int code = errno;
-			fprintf (stderr, "Failed to read MDF block link list: %s.\n", errorMessage (code));
-			return code;
-		}
+			return errorPrintf ("Failed to read MDF block link list");
 
 		fprintf (stream, "%s - 0x%08"PRIX64, block.header.blockIdString, block.addr);
 
@@ -171,21 +157,13 @@ int main (int argc, char** argv)
 		{
 			mdf = fopen (argv [index], "r");
 			if (mdf == NULL)
-			{
-				int code = errno;
-				fprintf (stderr, "Failed to open MDF file: %s.\n", errorMessage (code));
-				return code;
-			}
+				return errorPrintf ("Failed to open MDF file");
 		}
 	}
 
 	mdfFileIdBlock_t fileIdBlock;
 	if (mdfReadFileIdBlock (mdf, &fileIdBlock) != 0)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to read MDF file ID block: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to read MDF file ID block");
 
 	treeArg_t arg =
 	{

@@ -148,45 +148,29 @@ int main (int argc, char** argv)
 		fprintf (stderr, "Format: bms-tui <device name> <DBC file path> <config file path>\n");
 		return -1;
 	}
-	char* deviceName	= argv [1];
-	char* dbcPath		= argv [2];
-	char* configPath	= argv [3];
 
 	// Initialize the CAN device
+	char* deviceName = argv [1];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
 	// Initialize the CAN database
+	char* dbcPath = argv [2];
 	canDatabase_t database;
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to initialize CAN database: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to initialize CAN database");
 
 	// Load the BMS config file
+	char* configPath = argv [3];
 	cJSON* config = jsonLoad (configPath);
 	if (config == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to load config JSON file: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to load BMS configuration '%s'", configPath);
 
 	// Initialize the BMS object
 	bms_t bms;
 	if (bmsInit (&bms, config, &database) != 0)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to initialize the BMS interface: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to initialize the BMS interface");
 
 	// The total # of rows in the window
 	const size_t TOTAL_ROWS = CONTROL_PANEL_HEIGHT + (bms.segmentCount * BMS_SEGMENT_HEIGHT) + BMS_STAT_HEIGHT + 10; // extra 10 rows after the content

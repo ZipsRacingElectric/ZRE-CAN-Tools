@@ -2,7 +2,6 @@
 #include "can_device/can_bus_load.h"
 #include "can_device/can_device.h"
 #include "debug.h"
-#include "error_codes.h"
 #include "mdf/mdf_can_bus_logging.h"
 #include "time_port.h"
 
@@ -33,6 +32,7 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
+	// Initialize the CAN device
 	char* deviceName = argv [argc - 2];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)

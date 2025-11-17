@@ -4,12 +4,14 @@
 //
 // Description: Command-line interface for controlling a CAN adapter.
 
+// TODO(Barach): Verbose?
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
 #include "can_device/can_device.h"
 #include "can_device/can_device_stdio.h"
-#include "error_codes.h"
+#include "debug.h"
 #include "time_port.h"
 
 // C Standard Library
@@ -422,24 +424,40 @@ int processCommand (canDevice_t* device, char* command)
 
 int main (int argc, char** argv)
 {
+	debugInit ();
+
 	// Check for query mode / help
 	bool queryMode = false;
 	for (int index = 1; index < argc; ++index)
 	{
+		// Query mode
 		if (strcmp (argv [index], "-q") == 0)
+		{
 			queryMode = true;
+			continue;
+		}
 
+		// Help
 		if (strcmp (argv [index], "-h") == 0 || strcmp (argv [index], "--help") == 0 || strcmp (argv [index], "help") == 0)
 		{
 			fprintHelp (stdout);
 			return 0;
 		}
 
+		// Version
 		if (strcmp (argv [index], "-v") == 0)
 		{
 			printf ("%s\n", ZRE_CANTOOLS_VERSION_FULL);
 			return 0;
 		}
+
+		// TODO(Barach)
+		// Verbose
+		// if (strcmp (argv [index], "--verbose") == 0)
+		// {
+		// 	// debugSetStream (stderr);
+		// 	// continue;
+		// }
 	}
 
 	// Validate the usage
@@ -449,11 +467,11 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
-	// Create the CAN device
+	// Initialize the CAN device
 	char* deviceName = argv [argc - 1];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
-		return errorPrintf ("Failed to create CAN device");
+		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
 	// If this is query mode, return successful
 	if (queryMode)

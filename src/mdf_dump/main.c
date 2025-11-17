@@ -284,10 +284,7 @@ int main (int argc, char** argv)
 			{
 				timestampStream = fopen (argv [index] + 3, "w");
 				if (timestampStream == NULL)
-				{
-					fprintf (stderr, "Failed to open timestamp stream '%s': %s", argv [index] + 3, strerror (errno));
-					return errno;
-				}
+					return errorPrintf ("Failed to open timestamp stream '%s'", argv [index] + 3);
 				continue;
 			}
 
@@ -304,11 +301,7 @@ int main (int argc, char** argv)
 		{
 			mdf = fopen (argv [index], "r");
 			if (mdf == NULL)
-			{
-				int code = errno;
-				fprintf (stderr, "Failed to open MDF file: %s.\n", errorMessage (code));
-				return code;
-			}
+				return errorPrintf ("Failed to open MDF file");
 		}
 	}
 
@@ -316,11 +309,7 @@ int main (int argc, char** argv)
 
 	mdfFileIdBlock_t fileIdBlock;
 	if (mdfReadFileIdBlock (mdf, &fileIdBlock) != 0)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to read MDF file ID block: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to read MDF file ID block");
 
 	printf ("- Begin File ID Block -\n\n");
 	hexdump (&fileIdBlock, sizeof (fileIdBlock), 8, stdout);
@@ -333,22 +322,14 @@ int main (int argc, char** argv)
 
 		mdfBlock_t block;
 		if (mdfReadBlockHeader (mdf, &block) != 0)
-		{
-			int code = errno;
-			fprintf (stderr, "Failed to read MDF block header: %s.\n", errorMessage (code));
-			return code;
-		}
+			return errorPrintf ("Failed to read MDF block header");
 
 		printf ("- Begin Header - 0x%08"PRIX64" -\n\n", block.addr);
 		dumpBlockHeader (stdout, &block);
 		printf ("- End Header -\n\n");
 
 		if (mdfReadBlockLinkList (mdf, &block) != 0)
-		{
-			int code = errno;
-			fprintf (stderr, "Failed to read MDF block link list: %s.\n", errorMessage (code));
-			return code;
-		}
+			return errorPrintf ("Failed to read MDF block link list");
 
 		size_t linkLinkLength = 8 * block.header.linkCount;
 		if (linkLinkLength != 0)
@@ -367,11 +348,7 @@ int main (int argc, char** argv)
 		};
 
 		if (mdfReadBlockDataSection (mdf, &block) != 0)
-		{
-			int code = errno;
-			fprintf (stderr, "Failed to read MDF block data section: %s.\n", errorMessage (code));
-			return code;
-		}
+			return errorPrintf ("Failed to read MDF block data section");
 
 		size_t dataSectionSize = mdfBlockDataSectionSize (&block);
 		for (size_t index = 0; index < dataSectionSize; ++index)

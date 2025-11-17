@@ -11,7 +11,11 @@
 // Includes
 #include "can_device/can_bus_load.h"
 #include "can_device/can_device.h"
+#include "debug.h"
 #include "time_port.h"
+
+// C Standard Library
+#include <stdio.h>
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
@@ -24,10 +28,11 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
-	// Create the CAN device.
-	canDevice_t* device = canInit (argv [argc - 1]);
+	// Initialize the CAN device
+	char* deviceName = argv [1];
+	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
-		return errorPrintf ("Failed to create CAN device");
+		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
 	// Calculate the bit time from the bus baudrate.
 	canBaudrate_t baudrate = canGetBaudrate (device);

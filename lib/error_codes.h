@@ -1,7 +1,12 @@
 #ifndef ERROR_CODES_H
 #define ERROR_CODES_H
 
-// Error Values ---------------------------------------------------------------------------------------------------------------
+// Error Codes ----------------------------------------------------------------------------------------------------------------
+
+// Author: Cole Barach
+// Date Created: TODO(Barach)???
+
+// Description: TODO(Barach)
 
 // Note these must be mutally exclusive with errno values, and therefore start with an absurd offset (1024). While there is no
 // guarantee errno doesn't use these values, it is incredibly unlikely.
@@ -9,9 +14,6 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // C Standard Library
-#include <errno.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include <string.h>
 
 // General Errors -------------------------------------------------------------------------------------------------------------
@@ -156,117 +158,94 @@
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-#define ERRNO_CASE(name) \
+#define ERROR_CODE_TO_MESSAGE_CASE(name) \
 	case ERRNO_ ## name: \
 		return ERRMSG_ ## name
 
-static inline const char* errorMessage (int errorCode)
+// TODO(Barach): Docs could be better
+/**
+ * @brief Converts an error code into a message describing the error. This function is comparable to @c strerror , however the
+ * key difference is this function support the custom error codes defined in this file.
+ * @note This function is always preferrable to using @c strerror .
+ * @param code The error code, as returned by a function or retrieved from @c errno .
+ * @return A user-friendly string describing the error.
+ */
+static inline const char* errorCodeToMessage (int code)
 {
-	switch (errorCode)
+	switch (code)
 	{
 	// General Errors
-	ERRNO_CASE (UNKNOWN);
-	ERRNO_CASE (OS_NOT_SUPPORTED);
-	ERRNO_CASE (END_OF_FILE);
+	ERROR_CODE_TO_MESSAGE_CASE (UNKNOWN);
+	ERROR_CODE_TO_MESSAGE_CASE (OS_NOT_SUPPORTED);
+	ERROR_CODE_TO_MESSAGE_CASE (END_OF_FILE);
 
 	// can_device module
-	ERRNO_CASE (CAN_DEVICE_UNKNOWN_NAME);
-	ERRNO_CASE (CAN_DEVICE_BAD_TIMEOUT);
-	ERRNO_CASE (CAN_DEVICE_TIMEOUT);
-	ERRNO_CASE (CAN_DEVICE_MISSING_DEVICE);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_UNKNOWN_NAME);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_BAD_TIMEOUT);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_TIMEOUT);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_MISSING_DEVICE);
 
-	ERRNO_CASE (CAN_DEVICE_BIT_ERROR);
-	ERRNO_CASE (CAN_DEVICE_BIT_STUFF_ERROR);
-	ERRNO_CASE (CAN_DEVICE_FORM_ERROR);
-	ERRNO_CASE (CAN_DEVICE_ACK_ERROR);
-	ERRNO_CASE (CAN_DEVICE_CRC_ERROR);
-	ERRNO_CASE (CAN_DEVICE_BUS_OFF);
-	ERRNO_CASE (CAN_DEVICE_UNSPEC_ERROR);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_BIT_ERROR);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_BIT_STUFF_ERROR);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_FORM_ERROR);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_ACK_ERROR);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_CRC_ERROR);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_BUS_OFF);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_UNSPEC_ERROR);
 
 	// can_database module
-	ERRNO_CASE (CAN_DBC_MESSAGE_COUNT);
-	ERRNO_CASE (CAN_DBC_SIGNAL_COUNT);
-	ERRNO_CASE (CAN_DBC_MESSAGE_MISSING);
-	ERRNO_CASE (CAN_DATABASE_SIGNAL_MISSING);
-	ERRNO_CASE (CAN_DATABASE_MESSAGE_MISSING);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DBC_MESSAGE_COUNT);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DBC_SIGNAL_COUNT);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DBC_MESSAGE_MISSING);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DATABASE_SIGNAL_MISSING);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_DATABASE_MESSAGE_MISSING);
 
 	// cjson module
-	ERRNO_CASE (CJSON_EOF);
-	ERRNO_CASE (CJSON_PARSE_FAIL);
-	ERRNO_CASE (CJSON_MISSING_KEY);
-	ERRNO_CASE (CJSON_MAX_SIZE);
+	ERROR_CODE_TO_MESSAGE_CASE (CJSON_EOF);
+	ERROR_CODE_TO_MESSAGE_CASE (CJSON_PARSE_FAIL);
+	ERROR_CODE_TO_MESSAGE_CASE (CJSON_MISSING_KEY);
+	ERROR_CODE_TO_MESSAGE_CASE (CJSON_MAX_SIZE);
 
 	// can_eeprom module
-	ERRNO_CASE (CAN_EEPROM_INVALID_TYPE);
-	ERRNO_CASE (CAN_EEPROM_INVALID_MODE);
-	ERRNO_CASE (CAN_EEPROM_READ_TIMEOUT);
-	ERRNO_CASE (CAN_EEPROM_WRITE_TIMEOUT);
-	ERRNO_CASE (CAN_EEPROM_MALFORMED_RESPONSE);
-	ERRNO_CASE (CAN_EEPROM_BAD_RESPONSE_ID);
-	ERRNO_CASE (CAN_EEPROM_BAD_KEY);
-	ERRNO_CASE (CAN_EEPROM_BAD_VALUE);
-	ERRNO_CASE (CAN_EEPROM_BAD_DIMENSION);
-	ERRNO_CASE (CAN_EEPROM_READ_ONLY);
-	ERRNO_CASE (CAN_EEPROM_WRITE_ONLY);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_INVALID_TYPE);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_INVALID_MODE);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_READ_TIMEOUT);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_WRITE_TIMEOUT);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_MALFORMED_RESPONSE);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_BAD_RESPONSE_ID);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_BAD_KEY);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_BAD_VALUE);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_BAD_DIMENSION);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_READ_ONLY);
+	ERROR_CODE_TO_MESSAGE_CASE (CAN_EEPROM_WRITE_ONLY);
 
 	// serial_can module
-	ERRNO_CASE (SLCAN_EWRN);
-	ERRNO_CASE (SLCAN_OFFLINE);
-	ERRNO_CASE (SLCAN_ONLINE);
-	ERRNO_CASE (SLCAN_MSG_LST);
-	ERRNO_CASE (SLCAN_RESERVED1);
-	ERRNO_CASE (SLCAN_TX_BUSY);
-	ERRNO_CASE (SLCAN_RESERVED2);
-	ERRNO_CASE (SLCAN_RX_EMPTY);
-	ERRNO_CASE (SLCAN_QUE_OVR);
-	ERRNO_CASE (SLCAN_RESERVED3);
-	ERRNO_CASE (SLCAN_RESOURCE);
-	ERRNO_CASE (SLCAN_BAUDRATE);
-	ERRNO_CASE (SLCAN_HANDLE);
-	ERRNO_CASE (SLCAN_ILLPARA);
-	ERRNO_CASE (SLCAN_NULLPTR);
-	ERRNO_CASE (SLCAN_NOTINIT);
-	ERRNO_CASE (SLCAN_YETINIT);
-	ERRNO_CASE (SLCAN_LIBRARY);
-	ERRNO_CASE (SLCAN_NOTSUPP);
-	ERRNO_CASE (SLCAN_FATAL);
-	ERRNO_CASE (SLCAN_VENDOR);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_EWRN);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_OFFLINE);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_ONLINE);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_MSG_LST);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_RESERVED1);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_TX_BUSY);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_RESERVED2);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_RX_EMPTY);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_QUE_OVR);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_RESERVED3);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_RESOURCE);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_BAUDRATE);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_HANDLE);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_ILLPARA);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_NULLPTR);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_NOTINIT);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_YETINIT);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_LIBRARY);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_NOTSUPP);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_FATAL);
+	ERROR_CODE_TO_MESSAGE_CASE (SLCAN_VENDOR);
 
+	// For all other errors, default to the C standard library
 	default:
-	 	return strerror (errorCode);
+	 	return strerror (code);
 	}
-}
-
-/**
- * @brief Prints an error message to @c stderr . The resulting message takes the following format:
- * "<User Message>: <Error Message>"
- *
- * For example:
- * "Failed to open file 'test.txt': No such file or directory."
- *
- * @param message The user message to preface the error message with. Note this can be a format string, in which case the
- * following arguments should be the values to be inserted in place of the format specifiers.
- * @param ... The variadic arguments to insert into the format string. Same convention as the @c printf family of functions.
- * @return The error code associated with the error, that is, the value of @c errno upon entry to the function. Note this
- * resets @c errno , so this return code must be used to determine what the error was.
- */
-static inline int errorPrintf (const char* message, ...)
-{
-	// Store the error that caused the issue and reset errno for later usage.
-	int code = errno;
-	errno = 0;
-
-	// Print the user message, along with variadic arguments.
-	va_list args;
-    va_start(args, message);
-    vfprintf(stderr, message, args);
-    va_end(args);
-
-	// Print the error message.
-	fprintf (stderr, ": %s.\n", errorMessage (code));
-
-	// Return the errno value.
-	return code;
 }
 
 #endif // ERROR_CODES_H

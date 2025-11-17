@@ -11,7 +11,7 @@
 #include "can_database/can_database.h"
 #include "can_device/can_device.h"
 #include "can_device/can_device_stdio.h"
-#include "error_codes.h"
+#include "debug.h"
 
 // C Standard Library
 #include <errno.h>
@@ -65,25 +65,17 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
+	// Initialize the CAN device
 	char* deviceName = argv [1];
-	char* dbcPath = argv [2];
-
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to create CAN device: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
-	// Initialize the database.
+	// Initialize the CAN database
+	char* dbcPath = argv [2];
 	canDatabase_t database;
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
-	{
-		int code = errno;
-		fprintf (stderr, "Failed to initialize CAN database: %s.\n", errorMessage (code));
-		return code;
-	}
+		return errorPrintf ("Failed to initialize CAN database");
 
 	while (true)
 	{
@@ -104,7 +96,7 @@ int main (int argc, char** argv)
 			if (canTransmit (database.device, &frame) == 0)
 				printf ("Success.\n");
 			else
-			 	printf ("Error: %s.\n", errorMessage (errno));
+			 	errorPrintf ("Failed to transmit CAN frame");
 			break;
 		case 'r':
 			messageIndex = promptMessageName (&database);

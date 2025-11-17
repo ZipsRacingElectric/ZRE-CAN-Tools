@@ -1,16 +1,29 @@
 // Header
 #include "debug.h"
 
+// Includes
+#include "error_codes.h"
+
 // C Standard Library
+#include <errno.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdlib.h>
 
-FILE* errorStream = NULL;
-
-#if ZRE_CANTOOLS_OS_linux
+#ifdef ZRE_CANTOOLS_OS_linux
 
 // POSIX
 #include <execinfo.h>
+
+#endif // ZRE_CANTOOLS_OS_linux
+
+// Globals --------------------------------------------------------------------------------------------------------------------
+
+FILE* debugStream = NULL;
+
+// Functions ------------------------------------------------------------------------------------------------------------------
+
+#ifdef ZRE_CANTOOLS_OS_linux
 
 static void printBacktrace (void)
 {
@@ -66,4 +79,41 @@ void debugInit (void)
 	signal (SIGABRT, abrtHandler);
 
 	#endif // ZRE_CANTOOLS_OS_linux
+}
+
+void debugSetStream (FILE* stream)
+{
+	debugStream = stream;
+}
+
+void debugPrintf (const char* message, ...)
+{
+	// If debug output is disabled, ignore this.
+	if (debugStream == NULL)
+		return;
+
+	// Print the user message, along with variadic arguments.
+	va_list args;
+    va_start(args, message);
+    vfprintf(debugStream, message, args);
+    va_end(args);
+}
+
+int errorPrintf (const char* message, ...)
+{
+	// Store the error that caused the issue and reset errno for later usage.
+	int code = errno;
+	errno = 0;
+
+	// Print the user message, along with variadic arguments.
+	va_list args;
+    va_start(args, message);
+    vfprintf(stderr, message, args);
+    va_end(args);
+
+	// Print the error message.
+	fprintf (stderr, ": %s.\n", errorCodeToMessage (code));
+
+	// Return the errno value.
+	return code;
 }

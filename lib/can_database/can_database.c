@@ -66,7 +66,7 @@ ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name)
 		if (strcmp (name, database->signals [index].name) == 0)
 			return (ssize_t) index;
 
-	ERROR_PRINTF ("Could not find signal '%s' in CAN database.\n", name);
+	debugPrintf ("Could not find signal '%s' in CAN database.\n", name);
 	errno = ERRNO_CAN_DATABASE_SIGNAL_MISSING;
 	return -1;
 }

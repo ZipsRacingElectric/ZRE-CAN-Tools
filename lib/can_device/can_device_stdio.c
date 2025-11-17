@@ -1,6 +1,8 @@
 // Header
 #include "can_device_stdio.h"
 
+// C Standard Library
+#include <errno.h>
 #include <stdlib.h>
 
 int strToCanId (uint32_t* id, bool* ide, bool* rtr, const char* str)
