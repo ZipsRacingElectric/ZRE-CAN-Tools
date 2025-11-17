@@ -1,7 +1,6 @@
 # ZRE-CAN-Tools - Zips Racing
 
 TODO(Barach):
-	- errorPrintf usages.
 	- Version query on all software
 	- Verbose debugging
 	- Help page cleanup
@@ -90,18 +89,6 @@ Examples:
         can-dev-cli -m=100 -t=0x123 -r=0x124 COM5@1000000
 
 ```
-
-### CAN-Dump
-
-`can-dump <Device Name>` - Dumps all received CAN messages to the standard output.
-
-`can-dump <Device Name> <CAN IDs>` - Dumps all received CAN messages matching a list of IDs to the standard output.
-
-### CAN-Send
-
-`can-send <Device Name> <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]` - Transmits a single CAN message.
-
-`can-send <Device Name> <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]@<Count>,<Frequency>` - Transmits a specified number of CAN messages at a specified frequency, in Hertz.
 
 ### CAN-EEPROM-CLI
 
