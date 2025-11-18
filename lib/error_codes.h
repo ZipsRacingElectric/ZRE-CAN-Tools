@@ -4,9 +4,10 @@
 // Error Codes ----------------------------------------------------------------------------------------------------------------
 
 // Author: Cole Barach
-// Date Created: TODO(Barach)???
+// Date Created: 2025.02.04
 
-// Description: TODO(Barach)
+// Description: Common error codes used by all libraries in this project. These error codes are written into errno upon an
+//   error.
 
 // Note these must be mutally exclusive with errno values, and therefore start with an absurd offset (1024). While there is no
 // guarantee errno doesn't use these values, it is incredibly unlikely.
@@ -162,7 +163,6 @@
 	case ERRNO_ ## name: \
 		return ERRMSG_ ## name
 
-// TODO(Barach): Docs could be better
 /**
  * @brief Converts an error code into a message describing the error. This function is comparable to @c strerror , however the
  * key difference is this function support the custom error codes defined in this file.
