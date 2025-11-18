@@ -22,7 +22,7 @@
 
 void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: can-bus-load <Device Name>\n");
+	fprintf (stream, "Usage: can-bus-load <Options> <Device Name>\n");
 }
 
 void fprintHelp (FILE* stream)
