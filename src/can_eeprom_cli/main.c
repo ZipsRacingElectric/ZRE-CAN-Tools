@@ -196,6 +196,7 @@ int main (int argc, char** argv)
 			code = errorPrintf ("Failed to program '%s'", eeprom.name);
 
 		fclose (programStream);
+		canDealloc (device);
 		return code;
 	}
 
@@ -208,6 +209,7 @@ int main (int argc, char** argv)
 			code = errorPrintf ("Failed to recover '%s'", eeprom.name);
 
 		fclose (recoverStream);
+		canDealloc (device);
 		return code;
 	}
 
@@ -259,6 +261,7 @@ int main (int argc, char** argv)
 			break;
 
 		case 'q':
+			canDealloc (device);
 			return 0;
 		}
 	};

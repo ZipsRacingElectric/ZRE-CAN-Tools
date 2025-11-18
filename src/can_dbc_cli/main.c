@@ -153,6 +153,7 @@ int main (int argc, char** argv)
 			printDatabase (stdout, &database);
 			break;
 		case 'q':
+			canDealloc (device);
 			return 0;
 		}
 	};

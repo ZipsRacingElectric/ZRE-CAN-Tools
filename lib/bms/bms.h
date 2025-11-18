@@ -9,7 +9,6 @@
 // Description: CAN interface for a battery management system.
 
 // TODO(Barach):
-// - Major documentation missing.
 // - Should have a regular config in addition to JSON.
 
 // Includes -------------------------------------------------------------------------------------------------------------------

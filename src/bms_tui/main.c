@@ -250,15 +250,15 @@ int main (int argc, char** argv)
 	while (true)
 	{
 		// The row to begin displaying content at in the terminal (after the BMS Stat Panel)
-		size_t scrRow = CONTROL_PANEL_HEIGHT; 
-		
+		size_t scrRow = CONTROL_PANEL_HEIGHT;
+
 		// Refine terminal dimensions
 		getmaxyx (stdscr, scr_y, scr_x);
 
 		#ifdef ZRE_CANTOOLS_OS_linux
 		clear ();
 		#endif
-		
+
 		// Ensures the scrolling implementation does not extend past the bms content
 		int overflow_y = TOTAL_ROWS - scr_y; // # of rows that will extend beyond the bottom of the terminal window
 		if (overflow_y < 0) overflow_y = 0; // if the rows of content do not reach the bottom of the terminal window
@@ -269,17 +269,17 @@ int main (int argc, char** argv)
 		size_t scrlTop = offset + CONTROL_PANEL_HEIGHT; // the top row of the content in the scrolling implementation (after the bms stat panel)
 		size_t scrlBottom = offset + scr_y -2; // the bottom row of the content in the scrolling implementation (the bottom of the terminal window) 
 		if (scrlTop > TOTAL_ROWS -1) scrlTop = TOTAL_ROWS; // ensures the scrolling implementation does not extend past the bottom of the content
-		
+
 		// Print the control panel
 		printControlPanel (0, 0);
 
 		size_t bmsStatusStartingRow = CONTROL_PANEL_HEIGHT; // the bms status signals panel is displayed after each segment
 		size_t bmsStatStartingColumn = 64; // the bms stat panel is displaying on the right side of the tui (the middle is 64)
 
-		// Print the bms status signals panel & the top-most statistics panel	
+		// Print the bms status signals panel & the top-most statistics panel
 		printStatPanel (scrlTop, scrlBottom, scrRow, bmsStatusStartingRow, bmsStatStartingColumn, &bms);
 		printStatusSignals (scrlTop, scrlBottom, &scrRow, bmsStatusStartingRow, 0, &bms);
-		
+
 		// Print each battery segment
 		for (size_t segmentIndex = 0; segmentIndex < bms.segmentCount; ++segmentIndex)
 		{	// Get the actual row from the segment content
@@ -292,15 +292,14 @@ int main (int argc, char** argv)
 
 		// Get keyboard input
 		int ret = getch ();
-		if (ret == KEY_UP) 
+		if (ret == KEY_UP)
 		{
 			// Move offset down
 			offset = (offset - 1 >= 0) ? offset - 1 : 0;
 			clear ();
-			
 		}
-		else if (ret == KEY_DOWN) 
-		{ 
+		else if (ret == KEY_DOWN)
+		{
 			// Move offset up
 			offset = (offset + 1 <= overflow_y) ? offset + 1 : overflow_y;
 			clear ();
@@ -316,13 +315,14 @@ int main (int argc, char** argv)
 		{
 			// Q should quit the application
 			break;
-		} 
+		}
 
 		napms (48);
 	}
 
 	endwin ();
 
+	canDealloc (device);
 	return 0;
 }
 
@@ -336,13 +336,13 @@ void printControlPanel (int row, int column)
 	char* instruction1 = "Space - Refresh the Terminal";
 	char* instruction2 = "↑/↓ - Scroll";
 	char* instruction3 = "Q - Quit";
-	
+
 	// Calculate gap between instructions
-	int gap = (CTRL_PANEL_WIDTH - 
-		strlen(instruction1) - 
-		strlen(instruction2) - 
+	int gap = (CTRL_PANEL_WIDTH -
+		strlen(instruction1) -
+		strlen(instruction2) -
 		strlen(instruction3)) / 4;
-	
+
 	// Display instructions
 	mvprintw(row + 1, column + gap, "%s", instruction1);
 	mvprintw(row + 1, column + gap * 2 + strlen(instruction1), "%s", instruction2);

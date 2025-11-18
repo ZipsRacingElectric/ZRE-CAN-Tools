@@ -163,6 +163,7 @@ int main (int argc, char** argv)
 
 	endwin ();
 
+	canDealloc (device);
 	return 0;
 }
 

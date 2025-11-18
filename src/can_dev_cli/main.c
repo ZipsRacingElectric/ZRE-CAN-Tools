@@ -472,7 +472,10 @@ int main (int argc, char** argv)
 
 	// If this is query mode, return successful
 	if (queryMode)
+	{
+		canDealloc (device);
 		return 0;
+	}
 
 	// Non-interactive mode, run from standard arguments
 	if (!interactiveMode)

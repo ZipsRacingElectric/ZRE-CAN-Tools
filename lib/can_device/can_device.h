@@ -123,7 +123,6 @@ typedef struct
  */
 canDevice_t* canInit (char* deviceName);
 
-// TODO(Barach): This needs added in a lot of places.
 /**
  * @brief Closes and deallocates and CAN device. The @c device pointer is no longer usable after a call to this function.
  * @param device The device to deallocate.
