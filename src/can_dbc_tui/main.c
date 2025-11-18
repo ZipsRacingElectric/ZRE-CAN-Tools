@@ -163,6 +163,7 @@ int main (int argc, char** argv)
 
 	endwin ();
 
+	canDatabaseDealloc (&database);
 	canDealloc (device);
 	return 0;
 }

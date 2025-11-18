@@ -77,6 +77,9 @@ typedef struct
 
 	/// @brief Array of deadlines for the values each CAN message's signals.
 	struct timeval messageDeadlines [CAN_DATABASE_MESSAGE_COUNT_MAX];
+
+	/// @brief Flag indicating if the RX thread should continue running or not.
+	bool running;
 } canDatabase_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -89,6 +92,13 @@ typedef struct
  * @return 0 if successful, the error code otherwise.
  */
 int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* dbcPath);
+
+/**
+ * @brief Deallocates a CAN database. Note this function does not return until the database's RX thread has terminated.
+ * @param database The database to deallocate.
+ * @note This does not deallocate the CAN device this database is bound to.
+ */
+void canDatabaseDealloc (canDatabase_t* database);
 
 /**
  * @brief Converts a local signal index (index within a message) to a global signal index (index within the database).

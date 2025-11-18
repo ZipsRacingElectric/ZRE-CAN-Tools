@@ -322,6 +322,8 @@ int main (int argc, char** argv)
 
 	endwin ();
 
+	bmsDealloc (&bms);
+	canDatabaseDealloc (&database);
 	canDealloc (device);
 	return 0;
 }

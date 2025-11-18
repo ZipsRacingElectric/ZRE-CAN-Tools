@@ -46,6 +46,7 @@ int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* d
 	canSetTimeout (device, 100);
 
 	// Start the RX thread.
+	database->running = true;
 	int code = pthread_create (&database->rxThread, NULL, canDatabaseRxThreadEntrypoint, database);
 	if (code != 0)
 	{
@@ -58,6 +59,31 @@ int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* d
 		database->messagesValid [index] = false;
 
 	return 0;
+}
+
+void canDatabaseDealloc (canDatabase_t* database)
+{
+	debugPrintf ("Deallocating CAN database...\n");
+
+	// Flag the RX thread to stop.
+	database->running = false;
+
+	// Wait for the RX thread to stop.
+	pthread_join (database->rxThread, NULL);
+	debugPrintf ("CAN database RX thread terminated gracefully.\n");
+
+	// Deallocate all dynamically allocated memory.
+	for (size_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
+	{
+		canMessage_t* message = &database->messages [messageIndex];
+		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
+		{
+			canSignal_t* signal = &message->signals [signalIndex];
+			free (signal->name);
+			free (signal->unit);
+		}
+		free (message->name);
+	}
 }
 
 ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name)
@@ -139,7 +165,7 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 {
 	canDatabase_t* database = (canDatabase_t*) arg;
 
-	while (true)
+	while (database->running)
 	{
 		// Try to read a CAN frame (will timeout so we can check message timeouts).
 		canFrame_t frame;
@@ -188,6 +214,8 @@ void* canDatabaseRxThreadEntrypoint (void* arg)
 		timeradd (&timeCurrent, &CAN_MESSAGE_TIMEOUT, &database->messageDeadlines [messageIndex]);
 		database->messagesValid [messageIndex] = true;
 	}
+
+	return NULL;
 }
 
 void canDatabaseCheckTimeouts (canDatabase_t* database)
