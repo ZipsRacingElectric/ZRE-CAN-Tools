@@ -1,8 +1,20 @@
+// CAN MDF Logger -------------------------------------------------------------------------------------------------------------
+//
+// Author: Cole Barach
+// Date Created: 2025.10.11
+//
+// Description: See help page.
+
+// Includes -------------------------------------------------------------------------------------------------------------------
+
 // Includes
 #include "can_device/can_bus_load.h"
 #include "can_device/can_device.h"
+#include "can_device/can_device_stdio.h"
 #include "debug.h"
 #include "mdf/mdf_can_bus_logging.h"
+#include "mdf/mdf_stdio.h"
+#include "options.h"
 #include "time_port.h"
 
 // C Standard Library
@@ -10,9 +22,11 @@
 #include <math.h>
 #include <signal.h>
 
-// TODO(Barach): Major testing...
+// Globals --------------------------------------------------------------------------------------------------------------------
 
 bool logging = true;
+
+// Functions ------------------------------------------------------------------------------------------------------------------
 
 void sigtermHandler (int sig)
 {
@@ -22,13 +36,58 @@ void sigtermHandler (int sig)
 	logging = false;
 }
 
+void fprintUsage (FILE* stream)
+{
+	fprintf (stream, "Usage: can-mdf-logger <Options> <Device Name> <MDF file>.\n");
+}
+
+void fprintHelp (FILE* stream)
+{
+	fprintf (stream, ""
+		"can-mdf-logger - Application for logging the traffic of a CAN bus to an MDF\n"
+		"                 file. This application also can transmit a status message\n"
+		"                 containing the logging session and CAN bus's load / error\n"
+		"                 count.\n\n");
+
+	fprintf (stream, "Output format: [<Min>, <Max>]\n\n");
+
+	fprintf (stream, "Parameters:\n\n");
+	fprintCanDeviceNameHelp (stream, "    ");
+	fprintMdfFileHelp (stream, "    ");
+
+	fprintf (stream, "Options:\n\n");
+	fprintOptionHelp (stream, "    ");
+}
+
+// Entrypoint -----------------------------------------------------------------------------------------------------------------
+
 int main (int argc, char** argv)
 {
+	// Debug initialization
 	debugInit ();
 
+	// Check standard arguments
+	for (int index = 1; index < argc; ++index)
+	{
+		switch (handleOption (argv [index], NULL, fprintHelp))
+		{
+		case OPTION_CHAR:
+		case OPTION_STRING:
+			fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
+			return -1;
+
+		case OPTION_QUIT:
+			return 0;
+
+		default:
+			break;
+		}
+	}
+
+	// Validate usage
 	if (argc < 3)
 	{
-		fprintf (stderr, "Invalid arguments, usage: can-mdf-logger <options> <Device Name> <MDF file>.\n");
+		fprintUsage (stderr);
 		return -1;
 	}
 

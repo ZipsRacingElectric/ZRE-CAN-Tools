@@ -8,7 +8,7 @@
 //
 // Description: A group of functions relating to CAN DBC files.
 //
-// To do:
+// TODO(Barach):
 // - This is a pretty poor implementation, error handling is a big issue. A better approach would be to read lines in all at
 //   once then parse them.
 // - This should accept a string input, rather than a file.

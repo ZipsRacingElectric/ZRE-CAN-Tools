@@ -3,7 +3,7 @@
 // Authors: Cole Barach, Owen DiBacco
 // Date Created: 2025.05.24
 //
-// Description: Terminal user interface for monitoring a battery management system.
+// Description: See help page.
 
 // REVIEW(Barach): Status panel height is hard-coded. This means can't have status messages with more than 20 entries.
 //   Status / statistic panel should be sized to the larger of the two.
@@ -11,18 +11,20 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "debug.h"
-#include "error_codes.h"
 #include "bms/bms.h"
+#include "bms/bms_stdio.h"
+#include "can_database/can_database_stdio.h"
 #include "can_device/can_device.h"
+#include "can_device/can_device_stdio.h"
 #include "cjson/cjson_util.h"
+#include "debug.h"
+#include "options.h"
 
 // Curses
 #include "curses_port.h"
 
 // C Standard Library
 #include <stdlib.h>
-#include <errno.h>
 #include <math.h>
 
 // Constants ------------------------------------------------------------------------------------------------------------------
@@ -38,18 +40,18 @@
 #define BMS_STAT_HEIGHT 20
 
 // The height of each BMS Segment
-#define BMS_SEGMENT_HEIGHT 9 
+#define BMS_SEGMENT_HEIGHT 9
 
 // Functions ------------------------------------------------------------------------------------------------------------------
- 
-/** 
+
+/**
  * @param row The row to print at.
  * @param column The column to print at.
  * @param bms The BMS to print the stats of.
  */
 void printControlPanel (int row, int column);
 
-/** 
+/**
  * @brief Prints a panel of statistics about a BMS.
  * @param scrlTop The coordinate of the top of the scrolling window.
  * @param scrlBottom The coordinate of the bottom of the scrolling window.
@@ -67,11 +69,11 @@ void printStatPanel (int scrlTop, int scrlBottom, size_t scrRow, size_t row, siz
  * @param scrRow The row on the screen to print at.
  * @param row The row of the panel.
  * @param column The column to print at.
- * @param bms The BMS to print the stats of. 
+ * @param bms The BMS to print the stats of.
 */
 void printStatusSignals (int scrlTop, int scrlBottom, size_t* scrRow, size_t row, size_t column, bms_t* bms);
 
-/** 
+/**
  * @brief Prints all information known about a segment.
  * @param scrlTop The coordinate of the top of the scrolling window.
  * @param scrlBottom The coordinate of the bottom of the scrolling window.
@@ -135,34 +137,74 @@ void printLtcStatus (int row, int column, bms_t* bms, size_t ltcIndex);
  */
 bool checkRow (int startRow, int endRow, int row);
 
+// Functions ------------------------------------------------------------------------------------------------------------------
+
+void fprintUsage (FILE* stream)
+{
+	fprintf (stream, "Usage: bms-tui <Options> <Device Name> <DBC File> <BMS Config File>\n");
+}
+
+void fprintHelp (FILE* stream)
+{
+	fprintf (stream, ""
+		"bms-tui - Terminal user interface for monitoring a battery management system in\n"
+		"          real-time.\n\n");
+
+	fprintUsage (stream);
+	fprintf (stream, "\nParameters:\n\n");
+	fprintCanDeviceNameHelp (stream, "    ");
+	fprintCanDbcFileHelp (stream, "    ");
+	fprintBmsConfigFileHelp (stream, "    ");
+	fprintf (stream, "Options:\n\n");
+	fprintOptionHelp (stream, "    ");
+}
+
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
 {
-	// Debugging initialization
+	// Debug initialization
 	debugInit ();
 
-	// Validate standard arguments
-	if (argc != 4)
+	// Check standard arguments
+	for (int index = 1; index < argc; ++index)
 	{
-		fprintf (stderr, "Format: bms-tui <device name> <DBC file path> <config file path>\n");
+		switch (handleOption (argv [index], NULL, fprintHelp))
+		{
+		case OPTION_CHAR:
+		case OPTION_STRING:
+			fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
+			return -1;
+
+		case OPTION_QUIT:
+			return 0;
+
+		default:
+			break;
+		}
+	}
+
+	// Validate usage
+	if (argc < 4)
+	{
+		fprintUsage (stderr);
 		return -1;
 	}
 
 	// Initialize the CAN device
-	char* deviceName = argv [1];
+	char* deviceName = argv [argc - 3];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
 	// Initialize the CAN database
-	char* dbcPath = argv [2];
+	char* dbcPath = argv [argc - 2];
 	canDatabase_t database;
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
 		return errorPrintf ("Failed to initialize CAN database");
 
 	// Load the BMS config file
-	char* configPath = argv [3];
+	char* configPath = argv [argc - 1];
 	cJSON* config = jsonLoad (configPath);
 	if (config == NULL)
 		return errorPrintf ("Failed to load BMS configuration '%s'", configPath);

@@ -175,14 +175,14 @@ int fprintCanDeviceNameHelp (FILE* stream, const char* indent)
 	return fprintf (stream, ""
 		"%s<Device Name>         - The adapter-specific identity of the CAN device.\n"
 		"%s    can*@<Baud>       - SocketCAN device, must be already initialized and\n"
-		"%s                        setup. Ex. 'can0@1000000'. Note, baudrate is optional\n"
+		"%s                        setup. Ex. 'can0@1000000'. Note, baudrate is\n"
+		"%s                        optional for most applications.\n"
+		"%s    vcan*@<Baud>      - Virtual SocketCAN device, must be already\n"
+		"%s                        initialized and set up. Note, baudrate is optional\n"
 		"%s                        for most applications.\n"
-		"%s    vcan*@<Baud>      - Virtual SocketCAN device, must be already initialized\n"
-		"%s                        and setup. Note, baudrate is optional for most\n"
-		"%s                        applications.\n"
-		"%s    <Port>@<Baud>     - SLCAN device, must be a CANable device. CAN baudrate is\n"
-		"%s                        initialized to <Baud> bit/s. Ex 'COM3@1000000' for\n"
-		"%s                        Windows and '/dev/ttyACM0@1000000' for Linux.\n"
+		"%s    <Port>@<Baud>     - SLCAN device, must be a CANable device. CAN baudrate\n"
+		"%s                        is initialized to <Baud> bit/s. Ex 'COM3@1000000'\n"
+		"%s                        for Windows and '/dev/ttyACM0@1000000' for Linux.\n"
 		"\n",
 		indent, indent, indent, indent, indent, indent, indent, indent, indent, indent);
 }
@@ -203,13 +203,14 @@ int fprintCanIdHelp (FILE* stream, const char* indent)
 int fprintCanFrameHelp (FILE* stream, const char* indent)
 {
 	return fprintf (stream, ""
-		"%s<CAN Frame>           - A CAN frame. May be a data frame or RTR frame, based on\n"
-		"%s                        the ID. Takes the following format:\n"
+		"%s<CAN Frame>           - A CAN frame. May be a data frame or RTR frame, based\n"
+		"%s                        on the ID. Takes the following format:\n"
 		"%s    <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]\n"
 		"\n"
 		"%s<Byte i>              - The i'th byte of a frame's data payload, indexed in\n"
-		"%s                        little-endian (aka Intel format). May be either decimal\n"
-		"%s                        or hexadecimal (hex should be prefixed with '0x').\n"
+		"%s                        little-endian (aka Intel format). May be either\n"
+		"%s                        decimal or hexadecimal (hex should be prefixed with\n"
+		"%s                        '0x')."
 		"\n",
-		indent, indent, indent, indent, indent, indent);
+		indent, indent, indent, indent, indent, indent, indent);
 }

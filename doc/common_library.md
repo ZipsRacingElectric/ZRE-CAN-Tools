@@ -20,6 +20,46 @@ if (device == NULL)
 
 Error-specific behavior can also triggered by testing the value of `errno`. In addition to the set of errors defined in the C standard library's `errno.h`, all custom errors are defined in `error_codes.h`.
 
+## Standard Options
+
+The `options.h` header provides some functions for handling common options that all applications should support. This also implements a standard form for specifying options that should be consistent across all applications. This form is as follows:
+
+`application-name <Options> <Required Arguments>`
+
+Where options may take the following form
+
+`-a`, `-b`, `-c`, etc. for single character options.
+
+`--abc`, `--def`, etc. for string options.
+
+Both character options and string options can be followed by `=<Params>` for any paramaters associated with the option. Note this means that character options need not be a single character, rather the identifier of the option is only a single character.
+
+For instance, `-m=100` is a character option identifed by `m` with a parameter of `100`.
+
+At the beginning of each program, before validating the number of standard arguments, the `handleOption` function should be used to check for and handle all the program's options. A simple example of how to do this is provided below:
+
+```
+// Check standard arguments
+for (int index = 1; index < argc; ++index)
+{
+	switch (handleOption (argv [index], NULL, fprintHelp))
+	{
+	case OPTION_CHAR:
+	case OPTION_STRING:
+		fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
+		return -1;
+
+	case OPTION_QUIT:
+		return 0;
+
+	default:
+		break;
+	}
+}
+```
+
+If the application's custom options can be handled at this time, they should be. If they cannot be handled until after the argument count is handled, then this iteration can be performed again after said validation.
+
 ## Custom Compilation Macros
 ZRE-CAN-Tools uses several custom macros during compilation. This is a comprehensive list of what they are and how to use them.
 

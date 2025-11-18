@@ -3,33 +3,79 @@
 // Author: Cole Barach
 // Date Created: 2025.11.04
 //
-// Description: Application for estimating the load of a CAN bus. See can_device/can_bus_load.h for more details on what CAN
-//   bus load is and how it is calculated.
+// Description: See help page. See can_device/can_bus_load.h for more details on what CAN bus load is and how it is calculated.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
 #include "can_device/can_bus_load.h"
 #include "can_device/can_device.h"
+#include "can_device/can_device_stdio.h"
 #include "debug.h"
+#include "options.h"
 #include "time_port.h"
 
 // C Standard Library
 #include <stdio.h>
 
+// Functions ------------------------------------------------------------------------------------------------------------------
+
+void fprintUsage (FILE* stream)
+{
+	fprintf (stream, "Usage: can-bus-load <Device Name>\n");
+}
+
+void fprintHelp (FILE* stream)
+{
+	fprintf (stream, ""
+		"can-bus-load - Application for estimating the load of a CAN bus. CAN bus load is\n"
+		"               defined as the percentage of time the CAN bus is in use. This\n"
+		"               calculator estimates both the minimum and maximum bounds of this\n"
+		"               load.\n\n");
+
+	fprintf (stream, "Output format: [<Min>, <Max>]\n\n");
+
+	fprintf (stream, "Parameters:\n\n");
+	fprintCanDeviceNameHelp (stream, "    ");
+
+	fprintf (stream, "Options:\n\n");
+	fprintOptionHelp (stream, "    ");
+}
+
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
 {
-	// Validate arguments
-	if (argc != 2)
+	// Debug initialization
+	debugInit ();
+
+	// Check standard arguments
+	for (int index = 1; index < argc; ++index)
 	{
-		fprintf (stderr, "Invalid arguments, usage: can-bus-load <Device Name>\n");
+		switch (handleOption (argv [index], NULL, fprintHelp))
+		{
+		case OPTION_CHAR:
+		case OPTION_STRING:
+			fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
+			return -1;
+
+		case OPTION_QUIT:
+			return 0;
+
+		default:
+			break;
+		}
+	}
+
+	// Validate usage
+	if (argc < 2)
+	{
+		fprintUsage (stderr);
 		return -1;
 	}
 
 	// Initialize the CAN device
-	char* deviceName = argv [1];
+	char* deviceName = argv [argc - 1];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);

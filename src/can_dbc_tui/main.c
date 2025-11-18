@@ -3,46 +3,92 @@
 // Author: Cole Barach
 // Date Created: 2024.10.27
 //
-// Description: Terminal user interface for monitoring a CAN bus's traffic in real-time.
+// Description: See help page.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
 #include "can_database/can_database.h"
+#include "can_database/can_database_stdio.h"
 #include "can_device/can_device.h"
 #include "can_device/can_device_stdio.h"
 #include "debug.h"
+#include "options.h"
 
 // Curses
 #include "curses_port.h"
 
 // C Standard Library
-#include <errno.h>
 #include <inttypes.h>
 #include <locale.h>
 
-// Functions ------------------------------------------------------------------------------------------------------------------
+// Function Prototypes --------------------------------------------------------------------------------------------------------
 
 void printDatabase (canDatabase_t* database, size_t startRow, size_t endRow);
+
+// Functions ------------------------------------------------------------------------------------------------------------------
+
+void fprintUsage (FILE* stream)
+{
+	fprintf (stream, "Usage: can-dbc-tui <Options> <Device Name> <DBC file path>\n");
+}
+
+void fprintHelp (FILE* stream)
+{
+	fprintf (stream, ""
+		"can-dbc-tui - Terminal user interface used to monitor the activity of a CAN bus\n"
+		"              in real-time.\n\n");
+
+	fprintUsage (stream);
+
+	fprintf (stream, "\nParameters:\n\n");
+	fprintCanDeviceNameHelp (stream, "    ");
+	fprintCanDbcFileHelp (stream, "    ");
+
+	fprintf (stream, "Options:\n\n");
+	fprintOptionHelp (stream, "    ");
+}
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
 {
-	if (argc != 3)
+	// Debug initialization
+	debugInit ();
+
+	// Check standard arguments
+	for (int index = 1; index < argc; ++index)
 	{
-		fprintf (stderr, "Format: can-dbc-tui <device name> <DBC file path>\n");
+		switch (handleOption (argv [index], NULL, fprintHelp))
+		{
+		case OPTION_CHAR:
+		case OPTION_STRING:
+			fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
+			return -1;
+
+		case OPTION_QUIT:
+			return 0;
+
+		default:
+			break;
+		}
+	}
+
+	// Validate the usage
+	if (argc < 3)
+	{
+		fprintUsage (stderr);
 		return -1;
 	}
 
 	// Initialize the CAN device
-	char* deviceName = argv [1];
+	char* deviceName = argv [argc - 2];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
 	// Initialize the CAN database
-	char* dbcPath = argv [2];
+	char* dbcPath = argv [argc - 1];
 	canDatabase_t database;
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
 		return errorPrintf ("Failed to initialize CAN database");

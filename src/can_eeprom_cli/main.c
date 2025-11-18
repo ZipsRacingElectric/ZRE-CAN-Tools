@@ -3,11 +3,9 @@
 // Author: Cole Barach
 // Date Created: 2025.01.11
 //
-// Description: Command-line interface for interacting with a device's EEPROM through a CAN bus. See this project's readme for
-//   usage details.
+// Description: See help page.
 //
 // TODO(Barach):
-// - '-h' & '-v' options.
 // - Write-only data implementation is bugged, as it cannot be properly validated (can't read). The overall handshake needs
 //   rev'd to include a response to all commands, not only read commands.
 
@@ -15,12 +13,14 @@
 
 // Includes
 #include "can_device/can_device.h"
+#include "can_device/can_device_stdio.h"
 #include "can_eeprom/can_eeprom.h"
+#include "can_eeprom/can_eeprom_stdio.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
+#include "options.h"
 
 // C Standard Library
-#include <errno.h>
 #include <stdbool.h>
 
 // Global Data ----------------------------------------------------------------------------------------------------------------
@@ -32,39 +32,37 @@ enum
 	MODE_RECOVER		= 'r'
 } mode = MODE_INTERACTIVE;
 
-cJSON* programDataJson = NULL;
+FILE* programStream;
 FILE* recoverStream;
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
-int parseOptionProgram (char* arg)
+int parseOptionProgram (const char* arg)
 {
-	char* path = arg + 2;
+	const char* path = arg + 1;
 
 	// If no path is specified, use stdin
 	if (path [0] == '\0')
 	{
-		programDataJson = jsonRead (stdin);
+		programStream = stdin;
 	}
 	else
 	{
 		if (path [0] == '=')
 			++path;
 
-		programDataJson = jsonLoad (path);
+		programStream = fopen (path, "r");
+		if (programStream == NULL)
+			return errorPrintf ("Failed to open EEPROM data file '%s'", path);
 	}
 
-	if (programDataJson == NULL)
-		return errorPrintf ("Failed to read data JSON");
-
 	mode = MODE_PROGRAM;
-
 	return 0;
 }
 
-int parseOptionRecover (char* arg)
+int parseOptionRecover (const char* arg)
 {
-	char* path = arg + 2;
+	const char* path = arg + 1;
 
 	// If no path is specified, use stdout
 	if (path [0] == '\0')
@@ -78,22 +76,90 @@ int parseOptionRecover (char* arg)
 
 		recoverStream = fopen (path, "w");
 		if (recoverStream == NULL)
-			return errorPrintf ("Failed to open JSON");
+			return errorPrintf ("Failed to open EEPROM data file '%s'", path);
 	}
 
 	mode = MODE_RECOVER;
-
 	return 0;
+}
+
+void fprintUsage (FILE* stream)
+{
+	fprintf (stream, "Usage: 'can-eeprom-cli <Options> <Device Name> <EEPROM Config File>'.\n");
+}
+
+void fprintHelp (FILE* stream)
+{
+	fprintf (stream, ""
+		"can-eeprom-cli - Command-line interface used to program a device's EEPROM via\n"
+		"                 CAN bus.\n\n");
+
+	fprintUsage (stream);
+
+	fprintf (stream, "\nOptions:\n\n");
+	fprintf (stream, ""
+		"    -p=<EEPROM Data File> - Programming mode. Reads a data JSON from the\n"
+		"                            specified path and programs the key-value pairs to\n"
+		"                            the device. If no path is specified, the file is\n"
+		"                            read from stdin.\n"
+		"    -r=<EEPROM Data File> - Recovery mode. Writes the EEPROM's memory to a data\n"
+		"                            JSON file. If no path is specified, the file is\n"
+		"                            written to stdout.\n");
+	fprintOptionHelp (stream, "    ");
+
+	fprintf (stream, "\nParameters:\n\n");
+	fprintCanDeviceNameHelp (stream, "    ");
+	fprintCanEepromConfigHelp (stream, "    ");
+	fprintCanEepromDataHelp (stream, "    ");
 }
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
 {
+	// Debug initialization
+	debugInit ();
+
+	// Check standard arguments
+	for (int index = 1; index < argc; ++index)
+	{
+		const char* option;
+		switch (handleOption (argv [index], &option, fprintHelp))
+		{
+		case OPTION_CHAR:
+			switch (option [0])
+			{
+			case MODE_PROGRAM:
+				if (parseOptionProgram (option) != 0)
+					return -1;
+				break;
+			case MODE_RECOVER:
+				if (parseOptionRecover (option) != 0)
+					return -1;
+				break;
+			default:
+				fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
+				return -1;
+			}
+			break;
+
+		case OPTION_STRING:
+			fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
+			return -1;
+
+		case OPTION_QUIT:
+			return 0;
+
+		default:
+			break;
+		}
+	}
+
+	// Validate usage
 	if (argc < 3)
 	{
-		fprintf (stderr, "Missing arguments, usage: 'can-eeprom-cli <options> <device name> <config JSON path>'.\n");
-		return EINVAL;
+		fprintUsage (stderr);
+		return -1;
 	}
 
 	// Initialize the CAN device
@@ -117,50 +183,32 @@ int main (int argc, char** argv)
 	if (canEepromInit (&eeprom, configJson) != 0)
 		return errorPrintf ("Failed to initialize CAN EEPROM");
 
-	// Handle standard arguments
-	for (int index = 1; index < argc - 2; ++index)
-	{
-		if (argv [index][0] == '-')
-		{
-			switch (argv [index][1])
-			{
-			case MODE_PROGRAM:
-				if (parseOptionProgram (argv [index]) != 0)
-					return -1;
-				break;
-			case MODE_RECOVER:
-				if (parseOptionRecover (argv [index]) != 0)
-					return -1;
-				break;
-			default:
-				fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
-				return -1;
-			}
-		}
-		else
-		{
-			fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
-			return -1;
-		}
-	}
-
 	// Programming mode
 	if (mode == MODE_PROGRAM)
 	{
-		if (canEepromWriteJson (&eeprom, device, programDataJson) != 0)
-			errorPrintf ("Failed to program '%s'", eeprom.name);
+		int code = 0;
 
-		return 0;
+		cJSON* dataJson = jsonRead (programStream);
+		if (dataJson == NULL)
+			return errorPrintf ("Failed to read EEPROM data file");
+
+		if (canEepromWriteJson (&eeprom, device, dataJson) != 0)
+			code = errorPrintf ("Failed to program '%s'", eeprom.name);
+
+		fclose (programStream);
+		return code;
 	}
 
 	// Recovery mode
 	if (mode == MODE_RECOVER)
 	{
+		int code = 0;
+
 		if (canEepromReadJson (&eeprom, device, recoverStream) != 0)
-			errorPrintf ("Failed to recover '%s'", eeprom.name);
+			code = errorPrintf ("Failed to recover '%s'", eeprom.name);
 
 		fclose (recoverStream);
-		return 0;
+		return code;
 	}
 
 	// Interactive mode

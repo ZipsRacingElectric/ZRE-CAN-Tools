@@ -2,9 +2,7 @@
 //
 // Author: Cole Barach, Owen DiBacco
 //
-// Description: Command-line interface for controlling a CAN adapter.
-
-// TODO(Barach): Verbose?
+// Description: See help page.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -12,6 +10,7 @@
 #include "can_device/can_device.h"
 #include "can_device/can_device_stdio.h"
 #include "debug.h"
+#include "options.h"
 #include "time_port.h"
 
 // C Standard Library
@@ -91,35 +90,14 @@ void fprintUsage (FILE* stream)
 	fprintf (stream, "Usage: can-dev-cli <Options> <Device Name>\n");
 }
 
-/// @brief Prints examples for how to use the program.
-void fprintExamples (FILE* stream)
-{
-	fprintf (stream,
-		"Examples:\n"
-		"\n"
-		"    Dump all received CAN messages:\n"
-		"        can-dev-cli -d COM5@1000000\n"
-		"\n"
-		"    Periodically transmit a CAN message (50 times at 10 Hz):\n"
-		"        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 COM5@1000000\n"
-		"\n"
-		"    Dump all received CAN messages from a list:\n"
-		"        can-dev-cli -d=0x005,0x006,0x007,0x008 COM5@1000000\n"
-		"\n"
-		"    Transmit a remote transmission request frame:\n"
-		"        can-dev-cli -t=0x123r COM5@1000000\n"
-		"\n"
-		"    Receive a frame with an extended CAN ID:\n"
-		"        can-dev-cli -r=0xABCDEFx COM5@1000000\n"
-		"\n"
-		"    Transmits a frame and listens for a specific response, with timeout:\n"
-		"        can-dev-cli -m=100 -t=0x123 -r=0x124 COM5@1000000\n"
-		"\n");
-}
-
 /// @brief Prints detailed help about the program.
 void fprintHelp (FILE* stream)
 {
+	fprintf (stream, ""
+		"can-dev-cli - Command-line application for controlling a CAN adapter. This\n"
+		"              program exposes 'raw' access to a CAN bus, that is, the user can\n"
+		"              directly transmit and receive CAN frames.\n\n");
+
 	fprintUsage (stream);
 
 	fprintf (stream,
@@ -153,7 +131,11 @@ void fprintHelp (FILE* stream)
 		"    -f  Flushes the device's receive buffer.\n"
 		"\n"
 		"    -i  Prints information about the CAN device.\n"
+		"\n"
+		"    -q  Query mode. Tests whether the device exists and can be initialized.\n"
+		"        Return code of 0 indicates success, any other value indicates failure.\n"
 		"\n");
+	fprintOptionHelp (stream, "    ");
 
 	fprintf (stream, "Parameters:\n\n");
 
@@ -161,7 +143,27 @@ void fprintHelp (FILE* stream)
 	fprintCanFrameHelp (stream, "    ");
 	fprintCanIdHelp (stream, "    ");
 
-	fprintExamples (stream);
+	fprintf (stream,
+		"Examples:\n"
+		"\n"
+		"    Dump all received CAN messages:\n"
+		"        can-dev-cli -d COM5@1000000\n"
+		"\n"
+		"    Periodically transmit a CAN message (50 times at 10 Hz):\n"
+		"        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 COM5@1000000\n"
+		"\n"
+		"    Dump all received CAN messages from a list:\n"
+		"        can-dev-cli -d=0x005,0x006,0x007,0x008 COM5@1000000\n"
+		"\n"
+		"    Transmit a remote transmission request frame:\n"
+		"        can-dev-cli -t=0x123r COM5@1000000\n"
+		"\n"
+		"    Receive a frame with an extended CAN ID:\n"
+		"        can-dev-cli -r=0xABCDEFx COM5@1000000\n"
+		"\n"
+		"    Transmits a frame and listens for a specific response, with timeout:\n"
+		"        can-dev-cli -m=100 -t=0x123 -r=0x124 COM5@1000000\n"
+		"\n");
 }
 
 // Command Handling -----------------------------------------------------------------------------------------------------------
@@ -424,40 +426,35 @@ int processCommand (canDevice_t* device, char* command)
 
 int main (int argc, char** argv)
 {
+	// Debug initialization
 	debugInit ();
 
-	// Check for query mode / help
+	// Check standard arguments
+	bool interactiveMode = true;
 	bool queryMode = false;
 	for (int index = 1; index < argc; ++index)
 	{
-		// Query mode
-		if (strcmp (argv [index], "-q") == 0)
+		const char* option;
+		switch (handleOption (argv [index], &option, fprintHelp))
 		{
-			queryMode = true;
-			continue;
-		}
+		case OPTION_CHAR:
+			// Check for query mode
+			if (option [0] == 'q')
+			{
+				queryMode = true;
+				break;
+			}
 
-		// Help
-		if (strcmp (argv [index], "-h") == 0 || strcmp (argv [index], "--help") == 0 || strcmp (argv [index], "help") == 0)
-		{
-			fprintHelp (stdout);
+			// If an unknown argument is present, assume this is non-interactive mode (run from standard arguments).
+			interactiveMode = false;
+			break;
+
+		case OPTION_QUIT:
 			return 0;
-		}
 
-		// Version
-		if (strcmp (argv [index], "-v") == 0)
-		{
-			printf ("%s\n", ZRE_CANTOOLS_VERSION_FULL);
-			return 0;
+		default:
+			break;
 		}
-
-		// TODO(Barach)
-		// Verbose
-		// if (strcmp (argv [index], "--verbose") == 0)
-		// {
-		// 	// debugSetStream (stderr);
-		// 	// continue;
-		// }
 	}
 
 	// Validate the usage
@@ -477,9 +474,9 @@ int main (int argc, char** argv)
 	if (queryMode)
 		return 0;
 
-	if (argc >= 3)
+	// Non-interactive mode, run from standard arguments
+	if (!interactiveMode)
 	{
-		// Run from standard arguments
 
 		for (int index = 1; index < argc - 1; ++index)
 		{
@@ -494,6 +491,7 @@ int main (int argc, char** argv)
 		return 0;
 	}
 
+	// Interactive mode
 	while (true)
 	{
 		char command [512];

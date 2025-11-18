@@ -1,18 +1,11 @@
 # ZRE-CAN-Tools - Zips Racing
 
-TODO(Barach):
-	- Version query on all software
-	- Verbose debugging
-	- Help page cleanup
-	- Readme cleanup
-	- Remove can-send and can-dump?
-
 ZRE-CAN-Tools is the application layer of Zips Racing's electrical systems. This project is a combination of libraries and applications that aim to simplify the interaction with firmware written by Zips Racing.
 
 ## Usage
 ### ZR25 Shell Scripts
-
 A set of shell scripts are provided to simplify usage of the applications.
+
  - `glory-bms-view-vehicle` - Application for monitoring the BMS of ZR25, configured for the vehicle's CAN bus.
  - `glory-bms-view-charger` - Application for monitoring the BMS of ZR25, configured for the charger's CAN bus.
  - `glory-can-vehicle` - Application for monitoring the vehicle CAN bus of ZR25.
@@ -27,141 +20,23 @@ A set of shell scripts are provided to simplify usage of the applications.
  - `cross-bms` - Application for monitoring the BMS of ZRE24.
  - `cross-can` - Application for monitoring the CAN bus of ZRE24.
 
-### CAN-DBC-TUI
+### Applications
 
-`can-dbc-tui <Device Name> <DBC file path>`
-This program is used to monitor the activity of a CAN bus in real-time.
+For all applications, use `-h` to display the help page. For example: `can-dev-cli -h`.
 
-### CAN-DEV-CLI
+`can-dev-cli` - Command-line application for controlling a CAN adapter. This program exposes 'raw' access to a CAN bus, that is, the user can directly transmit and receive CAN frames.
 
-```
-Usage: can-dev-cli <Options> <Device Name>
+`can-dbc-tui` - Terminal user interface used to monitor the activity of a CAN bus in real-time.
 
-Options:
-    -t=<CAN Frame>
-        Transmits a single CAN frame.
+`can-dbc-cli` - Command-line interface used to interact with a CAN bus. Received messages are parsed and stored in a relational database which can be queried. Arbitrary messages can be transmitted by the user.
 
-    -t=<CAN Frame>@<Count>,<Freq>
-        Transmits <Count> CAN frames at the frequency of <Freq> Hertz.
+`can-eeprom-cli` - Command-line interface used to program a device's EEPROM via CAN bus.
 
-    -r  Receives the first available CAN message.
+`can-bus-load` - Application for estimating the load of a CAN bus. CAN bus load is defined as the percentage of time the CAN bus is in use. This calculator estimates both the minimum and maximum bounds of this load.
 
-    -r=@<Count>
-        Receives the first <Count> available CAN messages.
+`can-mdf-logger` - Application for logging the traffic of a CAN bus to an MDF file. This application also can transmit a status message containing the logging session and CAN bus's load / error count.
 
-    -r=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>
-        Receives the first available CAN message matching any of the given IDs.
-
-    -r=<CAN ID 0>,<CAN ID 1>,...<CAN ID n>@<Count>
-        Receives the first <Count> available CAN messages matching any of the
-        given IDs.
-
-    -d  Dumps all received CAN messages.
-
-    -d=<CAN ID 0>,<CAN ID 1>,...<CAN ID N>
-        Dumps all received CAN messages matching any of the given IDs.
-
-    -m=<Timeout Ms>
-        Sets the device's receive timeout to <Timeout Ms>, in milliseconds.
-
-    -f  Flushes the device's receive buffer.
-
-    -i  Prints information about the CAN device.
-
-Examples:
-
-    Dump all received CAN messages:
-        can-dev-cli -d COM5@1000000
-
-    Periodically transmit a CAN message (50 times at 10 Hz):
-        can-dev-cli -t=0x123[0xAB,0xCD]@50,10 COM5@1000000
-
-    Dump all received CAN messages from a list:
-        can-dev-cli -d=0x005,0x006,0x007,0x008 COM5@1000000
-
-    Transmit a remote transmission request frame:
-        can-dev-cli -t=0x123r COM5@1000000
-
-    Receive a frame with an extended CAN ID:
-        can-dev-cli -r=0xABCDEFx COM5@1000000
-
-    Transmits a frame and listens for a specific response, with timeout:
-        can-dev-cli -m=100 -t=0x123 -r=0x124 COM5@1000000
-
-```
-
-### CAN-EEPROM-CLI
-
-```
-Usage:
-
-can-eeprom-cli <options> <device name> <config JSON path>
-
-Options:
-
-    -p=<Data JSON path>   - Programming mode. Reads a data JSON from the
-                            specified path and programs the key-value pairs to
-                            the device. If no path is specified, the file is
-                            read from stdin.
-    -r=<Data JSON path>   - Recovery mode. Writes the EEPROM's memory to a data
-                            JSON file. If no path is specified, the file is
-                            written to stdout.
-    -v                    - Verbose. Enables more verbose output to stderr for
-                            debugging.
-    -h                    - Help. Prints this text.
-```
-
-This program is used to program a device's EEPROM via CAN bus.
-
-### CAN-DBC-CLI
-
-`can-dbc-cli <Device Name> <DBC file path>`
-This program is used to interact with a CAN node in real-time. Received messages are parsed and stored in a relational database which can be queried. Arbitrary messages can be transmitted by the user.
-
-### BMS-TUI
-
-`bms-tui <Device Name> <DBC file path> <Config JSON path>`
-This program is used to monitor a battery management system in real-time.
-
-### Command-line Parameters
-
-```
-<Device Name>         - The adapter-specific identity of the CAN device.
-    can*@<Baud>       - SocketCAN device, must be already initialized and
-                        setup. Ex. 'can0@1000000'. Note, baudrate is optional
-                        for most applications.
-    vcan*@<Baud>      - Virtual SocketCAN device, must be already initialized
-                        and setup. Note, baudrate is optional for most
-                        applications.
-    <Port>@<Baud>     - SLCAN device, must be a CANable device. CAN baudrate is
-                        initialized to <Baud> bit/s. Ex 'COM3@1000000' for
-                        Windows and '/dev/ttyACM0@1000000' for Linux.
-
-<CAN Frame>           - A CAN frame. May be a data frame or RTR frame, based on
-                        the ID. Takes the following format:
-    <CAN ID>[<Byte 0>,<Byte 1>,...<Byte N>]
-
-<Byte i>              - The i'th byte of a frame's data payload, indexed in
-                        little-endian (aka Intel format). May be either decimal
-                        or hexadecimal (hex should be prefixed with '0x').
-
-<CAN ID>              - The identifier of a frame.
-    <SID>             - Standard CAN ID, may be decimal or hexadecimal
-                        (hex should be prefixed with '0x').
-    <SID>r            - Standard CAN ID, for an RTR frame.
-    <EID>x            - Extended CAN ID.
-    <EID>xr           - Extended CAN identifier, for an RTR frame.
-
-
-<DBC file path>       - The path to the DBC file to use.
-
-<Config JSON path>    - The configuration JSON file to use. Configuration files
-                        indicate the identity and unit-specific parameters of
-                        a CAN node.
-
-<Data JSON path>      - The data JSON file to use. Data files contain the
-                        values of the unit-specific parameters of a CAN node.
-```
+`bms-tui` - Terminal user interface for monitoring a battery management system in real-time.
 
 ## Installation (For General Usage)
 
@@ -230,19 +105,9 @@ Use the `install` script to recreate the application shortcuts / setup environme
 │   │                            via CAN bus.
 │   ├── cjson                  - Library for working with JSON files. Upstream:
 │   │                            https://github.com/DaveGamble/cJSON.
-│   ├── serial_can             - Library for interacting with SLCAN devices.
-│   │                            Upstream: https://github.com/mac-can/SerialCAN
-│   └── error_codes.h          - Error code definitions common to all
-│                                libraries.
+│   └── serial_can             - Library for interacting with SLCAN devices.
+│                                Upstream: https://github.com/mac-can/SerialCAN
 ├── makefile                   - Project-level makefile for compiling all
 │                                applications.
 └── src                        - Application-specific source code.
-    ├── bat                    - Helper batch scripts for Windows usage.
-    ├── bms_tui                - Source code for the bms-tui application.
-    ├── can_dbc_cli            - Source code for the can-dbc-cli application.
-    ├── can_dbc_tui            - Source code for the can-dbc-tui application.
-    ├── can_dev_cli            - Source code for the can-dev-cli application.
-    ├── can_eeprom_cli         - Source code for the can-eeprom-cli
-    │                            application.
-    └── sh                     - Helper shell scripts for Linux usage.
 ```
