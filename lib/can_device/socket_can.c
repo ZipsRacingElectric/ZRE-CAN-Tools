@@ -139,6 +139,8 @@ canDevice_t* socketCanInit (const char* name, canBaudrate_t baudrate)
 
 	// Device must be dynamically allocated
 	socketCan_t* device = malloc (sizeof (socketCan_t));
+	if (device == NULL)
+		return NULL;
 
 	// Setup the device's VMT
 	device->vmt.transmit		= socketCanTransmit;

@@ -4,6 +4,7 @@
 // Includes
 #include "array.h"
 #include "cjson/cjson_util.h"
+#include "debug.h"
 #include "list.h"
 
 // C Standard Library
@@ -99,7 +100,12 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		return errno;
 
 	bms->cellVoltageIndices = malloc (sizeof (ssize_t) * bms->cellCount);
+	if (bms->cellVoltageIndices == NULL)
+		return errno;
+
 	bms->cellsDischargingIndices = malloc (sizeof (ssize_t) * bms->cellCount);
+	if (bms->cellsDischargingIndices == NULL)
+		return errno;
 
 	// Traverse each cell in the BMS
 	for (uint16_t index = 0; index < bms->cellCount; ++index)
@@ -132,7 +138,12 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	}
 
 	bms->senseLineTemperatureIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
+	if (bms->senseLineTemperatureIndices == NULL)
+		return errno;
+
 	bms->senseLinesOpenIndices = malloc (sizeof (ssize_t) * bms->senseLineCount);
+	if (bms->senseLinesOpenIndices == NULL)
+		return errno;
 
 	// Traverse each sense line in the BMS
 	for (uint16_t index = 0; index < bms->senseLineCount; ++index)
@@ -163,8 +174,16 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	}
 
 	bms->ltcIsoSpiFaultIndices = malloc (sizeof (ssize_t) * bms->ltcsPerSegment * bms->segmentCount);
+	if (bms->ltcIsoSpiFaultIndices == NULL)
+		return errno;
+
 	bms->ltcSelfTestFaultIndices = malloc (sizeof (ssize_t) * bms->ltcsPerSegment * bms->segmentCount);
+	if (bms->ltcSelfTestFaultIndices == NULL)
+		return errno;
+
 	bms->ltcTemperatureIndices = malloc (sizeof (ssize_t) * bms->ltcsPerSegment * bms->segmentCount);
+	if (bms->ltcTemperatureIndices == NULL)
+		return errno;
 
 	// Traverse each LTC in the BMS
 	for (uint16_t index = 0; index < bms->ltcCount; ++index)
@@ -230,13 +249,21 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	canMessage_t* statusMessage = canDatabaseGetMessage (database, statusMessageIndex);
 	bms->statusSignalsCount = 0;
 	bms->statusSignalIndices = malloc (sizeof (ssize_t) * statusMessage->signalCount);
+	if (bms->statusSignalIndices == NULL)
+		return errno;
 
 	for (size_t signalIndex = 0; signalIndex < statusMessage->signalCount; ++signalIndex)
 	{
 		// Get the global index of the signal. Skip if we have already used the signal.
 		ssize_t globalIndex = canDatabaseGetGlobalIndex (database, statusMessageIndex, signalIndex);
 		if (arrayContains (ssize_t) (listArray (ssize_t) (&usedSignals), globalIndex, listSize (ssize_t) (&usedSignals)))
+		{
+			canSignal_t* signal = canDatabaseGetSignal (database, globalIndex);
+			if (signal != NULL)
+				debugPrintf ("Ignoring redundant BMS status signal '%s'\n", signal->name);
+
 			continue;
+		}
 
 		// If the signal is unique, add it to the status signals.
 		bms->statusSignalIndices [bms->statusSignalsCount] = globalIndex;

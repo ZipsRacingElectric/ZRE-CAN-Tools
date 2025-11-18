@@ -2,6 +2,7 @@
 #include "slcan.h"
 
 // Includes
+#include "debug.h"
 #include "error_codes.h"
 
 // SerialCAN
@@ -91,6 +92,7 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 		slcanBaudrate.index = CANBTR_INDEX_10K;
 		break;
 	default:
+		debugPrintf ("Non-standard SLCAN baudrate: %u bit/s\n", baudrate);
 		errno = ERRNO_SLCAN_BAUDRATE;
 		return NULL;
 	}
@@ -124,6 +126,8 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 
 	// Device must be dynamically allocated
 	slcan_t* device = malloc (sizeof (slcan_t));
+	if (device == NULL)
+		return NULL;
 
 	// Setup the device's VMT
 	device->vmt.transmit		= slcanTransmit;

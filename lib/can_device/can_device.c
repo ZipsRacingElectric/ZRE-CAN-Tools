@@ -2,6 +2,7 @@
 #include "can_device.h"
 
 // Includes
+#include "debug.h"
 #include "error_codes.h"
 #include "socket_can.h"
 #include "slcan.h"
@@ -38,6 +39,7 @@ static int parseDeviceName (char* deviceName, unsigned int* baudrate)
 	else
 	{
 		// No baudrate specified.
+		debugPrintf ("Warning: CAN device did not specify baudrate.\n");
 		*baudrate = CAN_BAUDRATE_UNKNOWN;
 	}
 
