@@ -4,6 +4,9 @@ include include.mk
 # Releasing -------------------------------------------------------------------
 # For some reason these can't be at the end of the file.
 
+RELEASE_DIR := $(ROOT_DIR)/release/$(VERSION_FULL)
+RELEASE_README := doc/readme_release.txt
+
 ifeq ($(OS_TYPE), windows)
 	INSTALLER := install.bat
 	UNINSTALLER := uninstall.bat
@@ -13,7 +16,7 @@ else
 endif
 
 # Command for copying the MSYS2 UCRT binaries into a release
-ifeq ($(OS_TYPE), windows)
+ifeq ($(OS_TYPE),windows)
 	ifeq ($(MSYS_BIN), "")
 		MSYS_UCRT_COPY_CMD := echo "Error: MSYS_BIN environment variable is not declared!"" && exit -1
 	else
@@ -85,9 +88,6 @@ clean:
 	rm -rf $(BIN_DIR)
 
 # Releasing -------------------------------------------------------------------
-
-RELEASE_DIR := $(ROOT_DIR)/release/$(VERSION_FULL)
-RELEASE_README := doc/readme_release.txt
 
 .PHONY: release
 release: bin
