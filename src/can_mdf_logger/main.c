@@ -49,9 +49,9 @@ void fprintHelp (FILE* stream)
 		"                 containing the logging session and CAN bus's load / error\n"
 		"                 count.\n\n");
 
-	fprintf (stream, "Output format: [<Min>, <Max>]\n\n");
+	fprintUsage (stream);
 
-	fprintf (stream, "Parameters:\n\n");
+	fprintf (stream, "\nParameters:\n\n");
 	fprintCanDeviceNameHelp (stream, "    ");
 	fprintMdfFileHelp (stream, "    ");
 
@@ -111,12 +111,9 @@ int main (int argc, char** argv)
 	{
 		// TODO(Barach): How much can I change this?
 		.filePath			= argv [argc - 1],
-		// TODO(Barach): Should have long-hand and short-hand versions of this.
 		.programId			= "ZRECAN",
-		// TODO(Barach): Want this to match the release name.
-		.softwareName		= "zre_cantools",
-		// TODO(Barach): Want this to match the release date.
-		.softwareVersion	= __DATE__,
+		.softwareName		= "zre_cantools", // TODO(Barach): Want this to match the release name.
+		.softwareVersion	= ZRE_CANTOOLS_VERSION_FULL,
 		.hardwareVersion	= canGetDeviceType (device),
 		.serialNumber		= "0",
 		.channel1Baudrate	= canGetBaudrate (device),
@@ -222,8 +219,8 @@ int main (int argc, char** argv)
 				.dlc = 4,
 				.data =
 				{
-					roundf (minLoad * 100.0f / 0.6f),
-					roundf (maxLoad * 100.0f / 0.6f),
+					floorf (minLoad * 100.0f / 0.6f),
+					ceilf (maxLoad * 100.0f / 0.6f),
 					errorCount,
 					errorCount >> 8
 				}

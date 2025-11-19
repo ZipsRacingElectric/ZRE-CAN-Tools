@@ -33,7 +33,9 @@ void fprintHelp (FILE* stream)
 		"               calculator estimates both the minimum and maximum bounds of this\n"
 		"               load.\n\n");
 
-	fprintf (stream, "Output format: [<Min>, <Max>]\n\n");
+	fprintUsage (stream);
+
+	fprintf (stream, "\nOutput format: [<Min>, <Max>]\n\n");
 
 	fprintf (stream, "Parameters:\n\n");
 	fprintCanDeviceNameHelp (stream, "    ");
