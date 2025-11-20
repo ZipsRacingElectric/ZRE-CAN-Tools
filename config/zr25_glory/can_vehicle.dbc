@@ -1021,6 +1021,15 @@ BO_ 1875 BMS_EEPROM_RESPONSE: 6 Vector__XXX
  SG_ BMS_EEPROM_RESPONSE_DATA_ADDRESS : 0|16@1+ (1,0) [0|1] "" Vector__XXX
  SG_ BMS_EEPROM_RESPONSE_DATA : 16|32@1+ (1,0) [0|1] "" Vector__XXX
 
+BO_ 1029 DRIVER_INPUT_STATUS: 3 Vector__XXX
+ SG_ BUTTON_TOP_LEFT : 4|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BUTTON_MID_LEFT : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BUTTON_BOTTOM_LEFT : 1|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BUTTON_BOTTOM_RIGHT : 3|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BUTTON_MID_RIGHT : 2|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SWITCH_TOP_RIGHT_UP : 6|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SWITCH_TOP_RIGHT_DOWN : 5|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+
 CM_ SG_ 1280 RL_TEMPERATURE_EXTERNAL "TODO(Barach): No documented scale factor";
 CM_ SG_ 1280 RL_TEMPERATURE_SENSOR_MOTOR "TODO(Barach): No documented scale factor";
 CM_ SG_ 1956 THETA_TARGET "Returns the calculated angular position of your servo, [-180, 180 - SF]";
@@ -1031,3 +1040,4 @@ CM_ SG_ 1956 STALLED "Returns a boolean representing the stall condition, 0=>NOT
 BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","reserved","J1939PG";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+
