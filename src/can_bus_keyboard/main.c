@@ -150,7 +150,7 @@ int main (int argc, char** argv)
 		return errorPrintf ("Failed to initialize key signal");
 
 	keySignal_t keyStru;
-	if (keySignalInit (&keyStrd, &(keySignalConfig_t)
+	if (keySignalInit (&keyStru, &(keySignalConfig_t)
 		{
 			.database = &database,
 			.key = KEY_ESC,
