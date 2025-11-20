@@ -158,7 +158,7 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 	return (canDevice_t*) device;
 }
 
-canDevice_t** slcanEnumerate (canBaudrate_t* baudrate, size_t* deviceCount)
+canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 {	
 	// DiBacco: 
 	// The canDevice vmt requires the canDevice instances to persist as pointers because the vmt will not recognize the requested members -- that are 
@@ -213,8 +213,7 @@ canDevice_t** slcanEnumerate (canBaudrate_t* baudrate, size_t* deviceCount)
 		{
 			if (strstr (device, "COM") && strlen (device) <= 5)
 			{
-				// DiBacco: why does baud need to be used in this function as a pointer?
-				devices[(*deviceCount)] = slcanInit (device, *baudrate);
+				devices[(*deviceCount)] = slcanInit (device, baudrate);
 				++(*deviceCount);
 			}
 			device += strlen (device) + 1;

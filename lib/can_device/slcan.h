@@ -56,7 +56,7 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate);
  * @param deviceCount Buffer to write the number of detected devices into.
  * @return A dynamically allocated array of SLCAN devices of size @c deviceCount if successful, @c NULL otherwise.
  */
-canDevice_t** slcanEnumerate (canBaudrate_t* baudate, size_t* deviceCount);
+canDevice_t** slcanEnumerate (canBaudrate_t baudate, size_t* deviceCount);
 
 /**
  * @brief Selects the index of an SLCAN device from a list of SLCAN devices via a command prompt. 
