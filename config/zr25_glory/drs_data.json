@@ -4,7 +4,6 @@
     "THETA_STEP": "0.25",
     "THETA_B": "15",
     "THETA_BACKOFF": "-20",
-    "THETA_TARGET": "-20",
     "THETA_OPEN": "20",
     "THETA_CLOSED": "-20",
     "HIGH_THRESHOLD": "60",
