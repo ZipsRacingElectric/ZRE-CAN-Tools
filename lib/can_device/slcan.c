@@ -58,6 +58,14 @@ bool slcanNameDomain (const char* name)
 	return false;
 }
 
+bool slcanWildcard (const char* name) {
+	// determine whether the * is directly after COM or /dev/tty/
+	if ((strstr (name,  "/dev/tty/*")) || strstr (name,  "COM*")) {
+		return true;
+	}
+	return false;
+}	
+
 canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 {
 	// Map the baudrate to one of the available options.
@@ -148,6 +156,72 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 	device->vmt.setTimeout (device, 0);
 
 	return (canDevice_t*) device;
+}
+
+canDevice_t** slcanEnumerate (canBaudrate_t* baudrate, size_t* deviceCount)
+{	
+	// DiBacco: 
+	// The canDevice vmt requires the canDevice instances to persist as pointers because the vmt will not recognize the requested members -- that are 
+	// required for the handle (such as the deviceName & baudrate) -- if the instance is a copy of another instance or has been dereferenced.
+	// This implies that the list implementation cannot be used, given that it does not support pointers, & the function must return a double pointer 
+	// to act as an array of canDevice pointers. 
+
+	static canDevice_t* devices [512];
+
+	# ifdef ZRE_CANTOOLS_OS_linux
+		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
+		// dirent (directory entry): represents an entry inside a directory
+		/* struct dirent {
+		   		ino_t d_ino;            // inode number
+				char d_name[256];       // filename
+				unsigned char d_type;   // file type
+			};
+		*/
+		// DIR: data type representing a directory stream
+		// included in the dirent header file
+		const char* dev = "/dev";
+		struct dirent* entry;
+		DIR* directory = opendir (dev);
+		while (entry = readdir (directory))
+		{
+			if (entry == NULL)
+			{
+				break;
+			}
+			char* device = entry->d_name;
+			if (strstr (device, "ttyACM"))
+			{
+				devices[(*deviceCount)] = slcanInit (device, *baudrate);
+				++(*deviceCount);
+			}
+		}
+		closedir (directory);
+
+	# endif // ZRE_CANTOOLS_OS_linux
+
+	# ifdef ZRE_CANTOOLS_OS_windows
+		// QueryDosDeviceA: retrieves information about MS-DOS (Microsoft Disk Operating System) device names
+		// DWORD (Double-Word): 32-bit unsigned data type
+		// LPSTR (Long Pointer to a String): typedef (alias) for a char*
+		LPSTR device;
+		char buffer [32768];
+		DWORD bufferSize = 32768;
+		QueryDosDeviceA (NULL, buffer, bufferSize);
+		device = buffer;
+		while (*device)
+		{
+			if (strstr (device, "COM") && strlen (device) <= 5)
+			{
+				// DiBacco: why does baud need to be used in this function as a pointer?
+				devices[(*deviceCount)] = slcanInit (device, *baudrate);
+				++(*deviceCount);
+			}
+			device += strlen (device) + 1;
+		}
+
+	# endif // ZRE_CANTOOLS_OS_windows
+
+	return devices;
 }
 
 void slcanDealloc (void* device)
@@ -277,72 +351,9 @@ const char* slcanGetDeviceType (void)
 
 // int slcanEnumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRate)
 // {
-// 	char deviceName [128];
+// 	
 
 // 	// Check the OS running the program based on system-defined macro
-// 	# ifdef __unix__
-
-// 		// QueryDosDeviceA: retrieves information about MS-DOS (Microsoft Disk Operating System) device names
-// 		// DWORD (Double-Word): 32-bit unsigned data type
-// 		// LPSTR (Long Pointer to a String): typedef (alias) for a char*
-
-// 		LPSTR device;
-// 		char buffer [32768];
-// 		DWORD bufferSize = 32768;
-
-// 		QueryDosDeviceA (NULL, buffer, bufferSize);
-
-// 		device = buffer;
-// 		while (*device)
-// 		{
-// 			if (strstr (device, "COM") && strlen (device) <= 5)
-// 			{
-// 				sprintf (deviceName, "%s@%s", device, baudRate);
-// 				deviceNames [*deviceCount] = malloc (strlen(deviceName) + 1);
-// 				strcpy (deviceNames [*deviceCount], deviceName);
-// 				++(*deviceCount);
-// 			}
-
-// 			device += strlen (device) + 1;
-// 		}
-
-// 	#else // __unix__
-
-//    		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
-// 		// dirent (directory entry): represents an entry inside a directory
-// 		/* struct dirent {
-//     	   		ino_t d_ino;            // inode number
-//     			char d_name[256];       // filename
-//     			unsigned char d_type;   // file type
-// 			};
-// 		*/
-// 		// DIR: data type representing a directory stream
-// 		// included in the dirent header file
-
-// 		const char* dev = "/dev";
-// 		struct dirent* entry;
-
-// 		DIR* directory = opendir (dev);
-
-// 		while (entry = readdir (directory))
-// 		{
-// 			if (entry == NULL)
-// 			{
-// 				break;
-// 			}
-
-// 			char* device = entry->d_name;
-// 			if (strstr (device, "ttyACM"))
-// 			{
-// 				sprintf (deviceName, "/dev/%s@%s", device, baudRate);
-// 				deviceNames [*deviceCount] = malloc (strlen(deviceName) + 1);
-// 				strcpy (deviceNames [*deviceCount], deviceName);
-// 				++(*deviceCount);
-// 			}
-
-// 		}
-
-// 		closedir (directory);
 
 // 	#endif // __unix__
 

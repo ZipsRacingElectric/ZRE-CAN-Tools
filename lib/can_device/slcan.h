@@ -49,14 +49,14 @@ bool slcanWildcard (const char* name);
  */
 canDevice_t* slcanInit (char* name, canBaudrate_t baudrate);
 
-/**
+/** 
  * @brief Enumerates and initializes all possible SLCAN devices. This returns an array of initialized SLCAN devices. The unused
  * devices should be deallocated via @c slcanDealloc .
  * @param baudrate The baudrate of the device.
  * @param deviceCount Buffer to write the number of detected devices into.
  * @return A dynamically allocated array of SLCAN devices. Of size @c deviceCount .
  */
-canDevice_t* slcanEnumerate (canBaudrate_t* baudate, size_t* deviceCount);
+canDevice_t** slcanEnumerate (canBaudrate_t* baudate, size_t* deviceCount);
 
 /**
  * @brief De-allocates the memory owned by an SLCAN device.
