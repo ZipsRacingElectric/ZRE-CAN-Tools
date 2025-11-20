@@ -28,6 +28,13 @@ bool logging = true;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+void testSystemTick ()
+{
+	struct timespec res;
+	clock_getres (CLOCK_MONOTONIC, &res);
+	printf ("%lins\n", res.tv_nsec);
+}
+
 void sigtermHandler (int sig)
 {
 	(void) sig;
@@ -69,9 +76,21 @@ int main (int argc, char** argv)
 	// Check standard arguments
 	for (int index = 1; index < argc; ++index)
 	{
-		switch (handleOption (argv [index], NULL, fprintHelp))
+		const char* option;
+		switch (handleOption (argv [index], &option, fprintHelp))
 		{
 		case OPTION_CHAR:
+			switch (option [0])
+			{
+			case 'r':
+				testSystemTick ();
+				return 0;
+			default:
+				fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
+				return -1;
+			}
+			break;
+
 		case OPTION_STRING:
 			fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
 			return -1;
@@ -106,6 +125,10 @@ int main (int argc, char** argv)
 	}
 	float bitTime = canCalculateBitTime (baudrate);
 
+	// TODO(Barach): Internalize?
+	struct timespec logTime;
+	clock_gettime (CLOCK_MONOTONIC, &logTime);
+
 	// TODO(Barach): A lot of placeholders here.
 	mdfCanBusLogConfig_t config =
 	{
@@ -118,7 +141,8 @@ int main (int argc, char** argv)
 		.serialNumber		= "0",
 		.channel1Baudrate	= canGetBaudrate (device),
 		.channel2Baudrate	= 0,
-		.timeStart			= time (NULL),
+		.dateStart			= time (NULL),
+		.timeStart			= logTime,
 		.storageSize		= 0,
 		.storageRemaining	= 0,
 		.sessionNumber		= 0,
@@ -142,10 +166,9 @@ int main (int argc, char** argv)
 	canSetTimeout (device, 100);
 
 	// Status measurements
-	struct timeval timeStart;
-	gettimeofday (&timeStart, NULL);
-	struct timeval timeEnd;
-	timeradd (&timeStart, &(struct timeval) { .tv_sec = 1 }, &timeEnd);
+	struct timespec timeStart;
+	clock_gettime (CLOCK_MONOTONIC, &timeStart);
+	struct timespec timeEnd = timespecAdd (&timeStart, &(struct timespec) { .tv_sec = 1 });
 
 	// Bus load measurements
 	size_t frameCount = 0;
@@ -160,8 +183,8 @@ int main (int argc, char** argv)
 		int code = canReceive (device, &frame);
 
 		// Get a timestamp for the frame
-		struct timeval timeCurrent;
-		gettimeofday (&timeCurrent, NULL);
+		struct timespec timeCurrent;
+		clock_gettime (CLOCK_MONOTONIC, &timeCurrent);
 
 		// Check for success
 		if (code == 0)
@@ -195,11 +218,10 @@ int main (int argc, char** argv)
 		}
 
 		// Print status message
-		if (timercmp (&timeCurrent, &timeEnd, >))
+		if (timespecCompare (&timeCurrent, &timeEnd, >))
 		{
 			// Calculate the actual measurement period
-			struct timeval period;
-			timersub (&timeCurrent, &timeStart, &period);
+			struct timespec period = timespecSub (&timeCurrent, &timeStart);
 
 			// Calculate the min and max loads
 			float maxLoad = canCalculateBusLoad (maxBitCount, bitTime, period);
@@ -226,6 +248,7 @@ int main (int argc, char** argv)
 				}
 			};
 
+			// Transmit the status message.
 			if (canTransmit (device, &statusFrame) != 0)
 				errorPrintf ("Warning, failed to transmit status message");
 
@@ -241,7 +264,7 @@ int main (int argc, char** argv)
 
 			// Set the new deadline
 			timeStart = timeCurrent;
-			timeradd (&timeStart, &(struct timeval) { .tv_sec = 1 }, &timeEnd);
+			timeEnd = timespecAdd (&timeStart, &(struct timespec) { .tv_sec = 1 });
 		}
 	}
 

@@ -9,12 +9,18 @@
 #include <string.h>
 #include <stdlib.h>
 
+// TODO(Barach): Move
+long long int diff_timespec (const struct timespec* a, const struct timespec* b)
+{
+	return (a->tv_sec - b->tv_sec) * 1e9 + a->tv_nsec - b->tv_nsec;
+}
+
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
 #define BIT_LENGTH_TO_BYTE_LENGTH(bitLength) (((bitLength) + 7) / 8)
 #define BIT_LENGTH_TO_BIT_MASK(bitLength) ((1 << (bitLength)) - 1)
 
-#define TIMESTAMP_SCALE_FACTOR					1e6
+#define TIMESTAMP_SCALE_FACTOR					1e9
 
 // Conversions from can_device error code to MDF bus logging error type
 #define ERROR_TYPE_BIT_ERROR					1
@@ -127,7 +133,7 @@
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-static mdfBlock_t* writeHeader (FILE* mdf, const char* programId, time_t timeStart)
+static mdfBlock_t* writeHeader (FILE* mdf, const char* programId, time_t dateStart)
 {
 	// All MDF files start with the file ID block
 	mdfFileIdBlock_t fileIdBlock =
@@ -150,7 +156,7 @@ static mdfBlock_t* writeHeader (FILE* mdf, const char* programId, time_t timeSta
 	if (mdfHdBlockInit (block,
 		&(mdfHdDataSection_t)
 		{
-			.unixTimeNs = timeStart * 1e9 // File timestamp
+			.unixTimeNs = dateStart * 1e9 // File timestamp
 		},
 		&(mdfHdLinkList_t)
 		{
@@ -970,12 +976,12 @@ static uint64_t writeTimestampCc (FILE* mdf)
 		});
 }
 
-static uint64_t writeFileHistory (FILE* mdf, time_t timeStart, const char* softwareName, const char* softwareVersion)
+static uint64_t writeFileHistory (FILE* mdf, time_t dateStart, const char* softwareName, const char* softwareVersion)
 {
 	return mdfFhBlockWrite (mdf,
 		&(mdfFhDataSection_t)
 		{
-			.unixTimeNs = timeStart * 1e9
+			.unixTimeNs = dateStart * 1e9
 		},
 		&(mdfFhLinkList_t)
 		{
@@ -1052,7 +1058,7 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 	if (log->mdf == NULL)
 		return errno;
 
-	mdfBlock_t* hd = writeHeader (log->mdf, config->programId, config->timeStart);
+	mdfBlock_t* hd = writeHeader (log->mdf, config->programId, config->dateStart);
 	if (hd == NULL)
 		return errno;
 
@@ -1077,7 +1083,7 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 	if (dataFrameCgAddr == 0)
 		return errno;
 
-	uint64_t fileHistoryAddr = writeFileHistory (log->mdf, config->timeStart, config->softwareName, config->softwareVersion);
+	uint64_t fileHistoryAddr = writeFileHistory (log->mdf, config->dateStart, config->softwareName, config->softwareVersion);
 	if (fileHistoryAddr == 0)
 		return errno;
 
@@ -1117,7 +1123,7 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 	return 0;
 }
 
-int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, struct timeval* timestamp)
+int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, struct timespec* timestamp)
 {
 	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (DATA_FRAME_BIT_LENGTH + DATA_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {0};
 
@@ -1125,8 +1131,7 @@ int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t 
 	record [0] = DATA_FRAME_RECORD_ID;
 
 	// Timestamp
-	uint64_t timestampInt = (timestamp->tv_sec - log->config->timeStart) * TIMESTAMP_SCALE_FACTOR +
-		timestamp->tv_usec * TIMESTAMP_SCALE_FACTOR / 1e6;
+	long long timestampInt = diff_timespec (timestamp, &log->config->timeStart);
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (DATA_FRAME_TIMESTAMP_BIT_LENGTH); ++index)
 		record [index + DATA_FRAME_TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
 
@@ -1160,7 +1165,7 @@ int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t 
 	return 0;
 }
 
-int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, struct timeval* timestamp)
+int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, struct timespec* timestamp)
 {
 	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (REMOTE_FRAME_BIT_LENGTH + REMOTE_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {0};
 
@@ -1168,8 +1173,7 @@ int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_
 	record [0] = REMOTE_FRAME_RECORD_ID;
 
 	// Timestamp
-	uint64_t timestampInt = (timestamp->tv_sec - log->config->timeStart) * TIMESTAMP_SCALE_FACTOR +
-		timestamp->tv_usec * TIMESTAMP_SCALE_FACTOR / 1e6;
+	long long timestampInt = diff_timespec (timestamp, &log->config->timeStart);
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (REMOTE_FRAME_TIMESTAMP_BIT_LENGTH); ++index)
 		record [index + REMOTE_FRAME_TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
 
@@ -1203,7 +1207,7 @@ int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_
 	return 0;
 }
 
-int mdfCanBusLogWriteErrorFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, int errorCode, struct timeval* timestamp)
+int mdfCanBusLogWriteErrorFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, int errorCode, struct timespec* timestamp)
 {
 	uint8_t record [BIT_LENGTH_TO_BYTE_LENGTH (ERROR_FRAME_BIT_LENGTH + ERROR_FRAME_TIMESTAMP_BIT_LENGTH) + 1] = {0};
 
@@ -1211,8 +1215,7 @@ int mdfCanBusLogWriteErrorFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t
 	record [0] = ERROR_FRAME_RECORD_ID;
 
 	// Timestamp
-	uint64_t timestampInt = (timestamp->tv_sec - log->config->timeStart) * TIMESTAMP_SCALE_FACTOR +
-		timestamp->tv_usec * TIMESTAMP_SCALE_FACTOR / 1e6;
+	long long timestampInt = diff_timespec (timestamp, &log->config->timeStart);
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (ERROR_FRAME_TIMESTAMP_BIT_LENGTH); ++index)
 		record [index + ERROR_FRAME_TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
 

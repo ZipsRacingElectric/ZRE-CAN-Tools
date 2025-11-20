@@ -102,11 +102,11 @@ int main (int argc, char** argv)
 		size_t maxBitCount = 0;
 
 		// Track the measurement period
-		struct timeval startTime;
-		struct timeval endTime;
-		struct timeval currentTime;
-		gettimeofday (&startTime, NULL);
-		timeradd (&startTime, &(struct timeval) { .tv_sec = 1 }, &endTime);
+		struct timespec startTime;
+		struct timespec endTime;
+		struct timespec currentTime;
+		clock_gettime (CLOCK_MONOTONIC, &startTime);
+		endTime = timespecAdd (&startTime, &(struct timespec) { .tv_sec = 1 });
 
 		// Measurement loop
 		do
@@ -121,12 +121,11 @@ int main (int argc, char** argv)
 			}
 
 			// Check measurement timeout
-			gettimeofday (&currentTime, NULL);
-		} while (timercmp (&currentTime, &endTime, <));
+			clock_gettime (CLOCK_MONOTONIC, &currentTime);
+		} while (timespecCompare (&currentTime, &endTime, <));
 
 		// Calculate the actual measurement period
-		struct timeval period;
-		timersub (&currentTime, &startTime, &period);
+		struct timespec period = timespecSub (&currentTime, &startTime);
 
 		// Calculate the min and max loads
 		float maxLoad = canCalculateBusLoad (maxBitCount, bitTime, period);

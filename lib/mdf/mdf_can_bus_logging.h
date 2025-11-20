@@ -48,8 +48,8 @@ typedef struct
 	/// @brief The baudrate of the second CAN bus.
 	uint32_t channel2Baudrate;
 
-	/// @brief The time at which this file was created.
-	time_t timeStart;
+	time_t dateStart;
+	struct timespec timeStart;
 
 	/// @brief The total capacity of the storage device containing this file, in bytes.
 	size_t storageSize;
@@ -92,7 +92,7 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config);
  * @return 0 if successful, the error code otherwise.
  */
 int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction,
-	struct timeval* timestamp);
+	struct timespec* timestamp);
 
 /**
  * @brief Writes an CAN RTR frame to an MDF log.
@@ -104,7 +104,7 @@ int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t 
  * @return 0 if successful, the error code otherwise.
  */
 int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction,
-	struct timeval* timestamp);
+	struct timespec* timestamp);
 
 /**
  * @brief Writes a CAN error frame to an MDF log.
@@ -118,7 +118,7 @@ int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_
  * @return 0 if successful, the error code otherwise.
  */
 int mdfCanBusLogWriteErrorFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, int errorCode,
-	struct timeval* timestamp);
+	struct timespec* timestamp);
 
 /**
  * @brief Closes a an MDF log.
