@@ -166,6 +166,7 @@ canDevice_t** slcanEnumerate (canBaudrate_t* baudrate, size_t* deviceCount)
 	// This implies that the list implementation cannot be used, given that it does not support pointers, & the function must return a double pointer 
 	// to act as an array of canDevice pointers. 
 
+	// TODO(DiBacco): consider what would be an apprpriate size for this array
 	static canDevice_t* devices [512];
 
 	# ifdef ZRE_CANTOOLS_OS_linux
@@ -221,7 +222,36 @@ canDevice_t** slcanEnumerate (canBaudrate_t* baudrate, size_t* deviceCount)
 
 	# endif // ZRE_CANTOOLS_OS_windows
 
-	return devices;
+	if ((*deviceCount) > 0)
+	{
+		return devices; 
+	} 
+	return NULL;
+}
+
+size_t slcanSelectDevice (canDevice_t** devices, size_t deviceCount)
+{
+	char command [512];
+
+	while (true)
+	{
+		printf ("\n");
+		printf ("Which SLCAN Device would you like to use?\n");
+		for (size_t deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
+		{
+			printf (" %zu). %s\n", deviceIndex + 1, canGetDeviceName(devices [deviceIndex]));
+		}
+
+		fgets (command, sizeof (command), stdin);
+		command [strcspn (command, "\r\n")] = '\0';
+
+		size_t x = (size_t) strtol (command, NULL, 0);
+		if (0 < x && x <= deviceCount)
+		{
+			printf ("\n");
+			return x -1;
+		}	
+	}
 }
 
 void slcanDealloc (void* device)

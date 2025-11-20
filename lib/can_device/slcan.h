@@ -54,9 +54,17 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate);
  * devices should be deallocated via @c slcanDealloc .
  * @param baudrate The baudrate of the device.
  * @param deviceCount Buffer to write the number of detected devices into.
- * @return A dynamically allocated array of SLCAN devices. Of size @c deviceCount .
+ * @return A dynamically allocated array of SLCAN devices of size @c deviceCount if successful, @c NULL otherwise.
  */
 canDevice_t** slcanEnumerate (canBaudrate_t* baudate, size_t* deviceCount);
+
+/**
+ * @brief Selects the index of an SLCAN device from a list of SLCAN devices via a command prompt. 
+ * @param devices A list of SLCAN devices.
+ * @param deviceCount The number of SLCAN devices.
+ * @return The selected SLCAN device's index within the list.
+ */
+size_t slcanSelectDevice (canDevice_t** devices, size_t deviceCount); 
 
 /**
  * @brief De-allocates the memory owned by an SLCAN device.
