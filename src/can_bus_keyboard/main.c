@@ -101,11 +101,11 @@ int main (int argc, char** argv)
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
 		return errorPrintf ("Failed to initialize CAN database");
 
-	keySignal_t keyY;
-	if (keySignalInit (&keyY, &(keySignalConfig_t)
+	keySignal_t keyBml;
+	if (keySignalInit (&keyBml, &(keySignalConfig_t)
 		{
 			.database = &database,
-			.key = KEY_Y,
+			.key = KEY_C,
 			.name = "BUTTON_MID_LEFT",
 			.inverted = true,
 			.threshold = 0.5,
@@ -113,11 +113,11 @@ int main (int argc, char** argv)
 		}) != 0)
 		return errorPrintf ("Failed to initialize key signal");
 
-	keySignal_t keyN;
-	if (keySignalInit (&keyN, &(keySignalConfig_t)
+	keySignal_t keyBbl;
+	if (keySignalInit (&keyBbl, &(keySignalConfig_t)
 		{
 			.database = &database,
-			.key = KEY_N,
+			.key = KEY_X,
 			.name = "BUTTON_BOTTOM_LEFT",
 			.inverted = true,
 			.threshold = 0.5,
@@ -125,11 +125,23 @@ int main (int argc, char** argv)
 		}) != 0)
 		return errorPrintf ("Failed to initialize key signal");
 
-	keySignal_t keyLeft;
-	if (keySignalInit (&keyLeft, &(keySignalConfig_t)
+	keySignal_t keyBtl;
+	if (keySignalInit (&keyBtl, &(keySignalConfig_t)
 		{
 			.database = &database,
-			.key = KEY_LEFT,
+			.key = KEY_SPACE,
+			.name = "BUTTON_TOP_LEFT",
+			.inverted = true,
+			.threshold = 0.5,
+			.descriptor = descriptor
+		}) != 0)
+		return errorPrintf ("Failed to initialize key signal");
+
+	keySignal_t keyStrd;
+	if (keySignalInit (&keyStrd, &(keySignalConfig_t)
+		{
+			.database = &database,
+			.key = KEY_ENTER,
 			.name = "SWITCH_TOP_RIGHT_DOWN",
 			.inverted = true,
 			.threshold = 0.5,
@@ -137,11 +149,11 @@ int main (int argc, char** argv)
 		}) != 0)
 		return errorPrintf ("Failed to initialize key signal");
 
-	keySignal_t keyRight;
-	if (keySignalInit (&keyRight, &(keySignalConfig_t)
+	keySignal_t keyStru;
+	if (keySignalInit (&keyStrd, &(keySignalConfig_t)
 		{
 			.database = &database,
-			.key = KEY_RIGHT,
+			.key = KEY_ESC,
 			.name = "SWITCH_TOP_RIGHT_UP",
 			.inverted = true,
 			.threshold = 0.5,
@@ -149,14 +161,50 @@ int main (int argc, char** argv)
 		}) != 0)
 		return errorPrintf ("Failed to initialize key signal");
 
-	keySignal_t keyUp;
-	if (keySignalInit (&keyUp, &(keySignalConfig_t)
+	keySignal_t keyBmr;
+	if (keySignalInit (&keyBmr, &(keySignalConfig_t)
 		{
 			.database = &database,
 			.key = KEY_UP,
-			.name = "BUTTON_TOP_LEFT",
+			.name = "BUTTON_MID_RIGHT",
 			.inverted = true,
 			.threshold = 0.5,
+			.descriptor = descriptor
+		}) != 0)
+		return errorPrintf ("Failed to initialize key signal");
+
+	keySignal_t keyBbr;
+	if (keySignalInit (&keyBbr, &(keySignalConfig_t)
+		{
+			.database = &database,
+			.key = KEY_DOWN,
+			.name = "BUTTON_BOTTOM_RIGHT",
+			.inverted = true,
+			.threshold = 0.5,
+			.descriptor = descriptor
+		}) != 0)
+		return errorPrintf ("Failed to initialize key signal");
+
+	keySignal_t keyLPad;
+	if (keySignalInit (&keyLPad, &(keySignalConfig_t)
+		{
+			.database = &database,
+			.key = KEY_LEFT,
+			.name = "PADDLE_LEFT_PERCENT",
+			.inverted = true,
+			.threshold = 50,
+			.descriptor = descriptor
+		}) != 0)
+		return errorPrintf ("Failed to initialize key signal");
+
+	keySignal_t keyRPad;
+	if (keySignalInit (&keyRPad, &(keySignalConfig_t)
+		{
+			.database = &database,
+			.key = KEY_RIGHT,
+			.name = "PADDLE_RIGHT_PERCENT",
+			.inverted = true,
+			.threshold = 50,
 			.descriptor = descriptor
 		}) != 0)
 		return errorPrintf ("Failed to initialize key signal");
@@ -172,11 +220,15 @@ int main (int argc, char** argv)
 
 	while (1)
 	{
-		keySignalUpdate (&keyY);
-		keySignalUpdate (&keyN);
-		keySignalUpdate (&keyLeft);
-		keySignalUpdate (&keyRight);
-		keySignalUpdate (&keyUp);
+		keySignalUpdate (&keyBtl);
+		keySignalUpdate (&keyBml);
+		keySignalUpdate (&keyBbl);
+		keySignalUpdate (&keyStru);
+		keySignalUpdate (&keyStrd);
+		keySignalUpdate (&keyBmr);
+		keySignalUpdate (&keyBbr);
+		keySignalUpdate (&keyLPad);
+		keySignalUpdate (&keyRPad);
 
 		struct timespec period = { .tv_sec = 0, .tv_nsec = 10000000 };
 		nanosleep (&period, NULL);
