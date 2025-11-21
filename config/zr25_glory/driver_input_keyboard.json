@@ -3,7 +3,7 @@
 	[
 		{
 			"databaseKey": "BUTTON_TOP_LEFT",
-			"keyboardKey": "KEY_SPACE",
+			"keyboardKey": "KEY_ESC",
 			"inverted": "true"
 		},
 		{
@@ -17,33 +17,33 @@
 		},
 		{
 			"databaseKey": "SWITCH_TOP_RIGHT_UP",
-			"keyboardKey": "KEY_ESC",
+			"keyboardKey": "KEY_RIGHT",
 			"inverted": "true"
 		},
 		{
 			"databaseKey": "SWITCH_TOP_RIGHT_DOWN",
-			"keyboardKey": "KEY_ENTER",
+			"keyboardKey": "KEY_LEFT",
 			"inverted": "true"
 		},
 		{
 			"databaseKey": "BUTTON_MID_RIGHT",
-			"keyboardKey": "KEY_UP",
+			"keyboardKey": "KEY_SPACE",
 			"inverted": "true"
 		},
 		{
 			"databaseKey": "BUTTON_BOTTOM_RIGHT",
-			"keyboardKey": "KEY_DOWN",
+			"keyboardKey": "KEY_SPACE",
 			"inverted": "true"
 		},
 		{
 			"databaseKey": "PADDLE_LEFT_PERCENT",
-			"keyboardKey": "KEY_LEFT",
+			"keyboardKey": "KEY_UP",
 			"threshold": "98",
 			"inverted": "true"
 		},
 		{
 			"databaseKey": "PADDLE_RIGHT_PERCENT",
-			"keyboardKey": "KEY_RIGHT",
+			"keyboardKey": "KEY_DOWN",
 			"threshold": "98",
 			"inverted": "true"
 		}
