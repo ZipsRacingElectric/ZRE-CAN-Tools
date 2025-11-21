@@ -166,8 +166,8 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 	// This implies that the list implementation cannot be used, given that it does not support pointers, & the function must return a double pointer 
 	// to act as an array of canDevice pointers. 
 
-	// TODO(DiBacco): consider what would be an apprpriate size for this array
-	static canDevice_t* devices [512];
+	// Dynamically store each enumerated canDevice
+	canDevice_t** devices = NULL;
 
 	# ifdef ZRE_CANTOOLS_OS_linux
 		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
@@ -192,10 +192,14 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 			char* device = entry->d_name;
 			if (strstr (device, "ttyACM"))
 			{
-				devices[(*deviceCount)] = slcanInit (device, *baudrate);
+				canDevice_t* slcanDevice = slcanInit (device, baudrate);
+ 				devices = realloc (devices, sizeof (canDevice_t*) * (*deviceCount));
+				devices [*deviceCount] = slcanDevice;
 				++(*deviceCount);
 			}
 		}
+
+		// Memory internal to the opendir() function is deallocated using the closedir() function
 		closedir (directory);
 
 	# endif // ZRE_CANTOOLS_OS_linux
@@ -213,7 +217,9 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 		{
 			if (strstr (device, "COM") && strlen (device) <= 5)
 			{
-				devices[(*deviceCount)] = slcanInit (device, baudrate);
+				canDevice_t* slcanDevice = slcanInit (device, baudrate);
+ 				devices = realloc (devices, sizeof (canDevice_t*) * (*deviceCount));
+				devices [*deviceCount] = slcanDevice;
 				++(*deviceCount);
 			}
 			device += strlen (device) + 1;
@@ -222,9 +228,9 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 	# endif // ZRE_CANTOOLS_OS_windows
 
 	if ((*deviceCount) > 0)
-	{
 		return devices; 
-	} 
+
+	free (devices);
 	return NULL;
 }
 
