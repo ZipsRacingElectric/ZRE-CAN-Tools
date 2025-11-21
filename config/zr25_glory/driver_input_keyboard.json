@@ -13,7 +13,8 @@
 		},
 		{
 			"databaseKey": "BUTTON_BOTTOM_LEFT",
-			"keyboardKey": "KEY_X"
+			"keyboardKey": "KEY_X",
+			"inverted": "true"
 		},
 		{
 			"databaseKey": "SWITCH_TOP_RIGHT_UP",
