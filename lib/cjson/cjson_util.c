@@ -127,6 +127,61 @@ int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value)
 		return errno;
 	}
 
+	*value = strtoul (cJSON_GetStringValue (item), NULL, 0);
+	return 0;
+}
+
+int jsonGetUint32_t (cJSON* json, const char* key, uint32_t* value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
+	}
+
+	*value = strtoul (cJSON_GetStringValue (item), NULL, 0);
+	return 0;
+}
+
+int jsonGetBool (cJSON* json, const char* key, bool* value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
+	}
+
+	char* str = cJSON_GetStringValue (item);
+	if (strcmp (str, "true") == 0)
+	{
+		*value = true;
+		return 0;
+	}
+
+	if (strcmp (str, "false") == 0)
+	{
+		*value = false;
+		return 0;
+	}
+
+	debugPrintf ("Invalid value in boolean JSON '%s'\n", str);
+	return ERRNO_CJSON_PARSE_FAIL;
+}
+
+int jsonGetInt (cJSON* json, const char* key, int* value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
+	}
+
 	*value = strtol (cJSON_GetStringValue (item), NULL, 0);
 	return 0;
 }

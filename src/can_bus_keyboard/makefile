@@ -7,6 +7,7 @@ SRC := main.c
 # Note libraries must be in reverse order of dependencies, that is a dependency
 # must be placed after its dependents.
 LIB :=						\
+	$(LIB_CJSON)			\
 	$(LIB_CAN_DATABASE)		\
 	$(LIB_CAN_DEVICE)		\
 	$(LIB_SERIAL_CAN)		\

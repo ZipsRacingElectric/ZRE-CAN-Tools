@@ -1,0 +1,51 @@
+{
+	"signalKeys":
+	[
+		{
+			"databaseKey": "BUTTON_TOP_LEFT",
+			"keyboardKey": "KEY_SPACE",
+			"inverted": "true"
+		},
+		{
+			"databaseKey": "BUTTON_MID_LEFT",
+			"keyboardKey": "KEY_C",
+			"inverted": "true"
+		},
+		{
+			"databaseKey": "BUTTON_BOTTOM_LEFT",
+			"keyboardKey": "KEY_X"
+		},
+		{
+			"databaseKey": "SWITCH_TOP_RIGHT_UP",
+			"keyboardKey": "KEY_ESC",
+			"inverted": "true"
+		},
+		{
+			"databaseKey": "SWITCH_TOP_RIGHT_DOWN",
+			"keyboardKey": "KEY_ENTER",
+			"inverted": "true"
+		},
+		{
+			"databaseKey": "BUTTON_MID_RIGHT",
+			"keyboardKey": "KEY_UP",
+			"inverted": "true"
+		},
+		{
+			"databaseKey": "BUTTON_BOTTOM_RIGHT",
+			"keyboardKey": "KEY_DOWN",
+			"inverted": "true"
+		},
+		{
+			"databaseKey": "PADDLE_LEFT_PERCENT",
+			"keyboardKey": "KEY_LEFT",
+			"threshold": "98",
+			"inverted": "true"
+		},
+		{
+			"databaseKey": "PADDLE_RIGHT_PERCENT",
+			"keyboardKey": "KEY_RIGHT",
+			"threshold": "98",
+			"inverted": "true"
+		}
+	]
+}
