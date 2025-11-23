@@ -1,8 +1,12 @@
 ROOT_DIR := ../..
 include $(ROOT_DIR)/include.mk
 
-BIN := $(BIN_DIR)/can-bus-keyboard
-SRC := main.c
+BIN := $(BIN_DIR)/can-uinput
+SRC :=						\
+	main.c					\
+	uinput_helper.c			\
+	key_signal.c			\
+	abs_signal.c
 
 # Note libraries must be in reverse order of dependencies, that is a dependency
 # must be placed after its dependents.

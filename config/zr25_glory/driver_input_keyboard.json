@@ -1,43 +1,43 @@
 {
-	"signalKeys":
+	"keys":
 	[
 		{
-			"databaseKey":	"BUTTON_TOP_LEFT",
-			"keyboardKey":	"KEY_A",
-			"inverted":		"true"
+			"signalName":			"BUTTON_TOP_LEFT",
+			"code":					"KEY_A",
+			"inverted":				"true"
 		},
 		{
-			"databaseKey":	"BUTTON_MID_LEFT",
-			"keyboardKey":	"KEY_B",
-			"inverted":		"true"
+			"signalName":			"BUTTON_MID_LEFT",
+			"code":					"KEY_B",
+			"inverted":				"true"
 		},
 		{
-			"databaseKey":	"BUTTON_BOTTOM_LEFT",
-			"keyboardKey":	"KEY_C",
-			"inverted":		"true"
+			"signalName":			"BUTTON_BOTTOM_LEFT",
+			"code":					"KEY_C",
+			"inverted":				"true"
 		},
 		{
-			"databaseKey":	"SWITCH_TOP_RIGHT_UP",
-			"keyboardKey":	"KEY_D",
-			"inverted":		"true"
+			"signalName":			"SWITCH_TOP_RIGHT_UP",
+			"code":					"KEY_D",
+			"inverted":				"true"
 		},
 		{
-			"databaseKey":	"SWITCH_TOP_RIGHT_DOWN",
-			"keyboardKey":	"KEY_E",
-			"inverted":		"true"
+			"signalName":			"SWITCH_TOP_RIGHT_DOWN",
+			"code":					"KEY_E",
+			"inverted":				"true"
 		},
 		{
-			"databaseKey":	"BUTTON_MID_RIGHT",
-			"keyboardKey":	"KEY_F",
-			"inverted":		"true"
+			"signalName":			"BUTTON_MID_RIGHT",
+			"code":					"KEY_F",
+			"inverted":				"true"
 		},
 		{
-			"databaseKey":	"BUTTON_BOTTOM_RIGHT",
-			"keyboardKey":	"KEY_G",
-			"inverted":		"true"
+			"signalName":			"BUTTON_BOTTOM_RIGHT",
+			"code":					"KEY_G",
+			"inverted":				"true"
 		}
 	],
-	"abs":
+	"absoluteAxes":
 	[
 		{
 			"positiveSignalName":	"APPS_1_PERCENT",
