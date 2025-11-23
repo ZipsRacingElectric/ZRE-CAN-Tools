@@ -2,51 +2,60 @@
 	"signalKeys":
 	[
 		{
-			"databaseKey": "BUTTON_TOP_LEFT",
-			"keyboardKey": "KEY_ESC",
-			"inverted": "true"
+			"databaseKey":	"BUTTON_TOP_LEFT",
+			"keyboardKey":	"KEY_A",
+			"inverted":		"true"
 		},
 		{
-			"databaseKey": "BUTTON_MID_LEFT",
-			"keyboardKey": "KEY_C",
-			"inverted": "true"
+			"databaseKey":	"BUTTON_MID_LEFT",
+			"keyboardKey":	"KEY_B",
+			"inverted":		"true"
 		},
 		{
-			"databaseKey": "BUTTON_BOTTOM_LEFT",
-			"keyboardKey": "KEY_X",
-			"inverted": "true"
+			"databaseKey":	"BUTTON_BOTTOM_LEFT",
+			"keyboardKey":	"KEY_C",
+			"inverted":		"true"
 		},
 		{
-			"databaseKey": "SWITCH_TOP_RIGHT_UP",
-			"keyboardKey": "KEY_RIGHT",
-			"inverted": "true"
+			"databaseKey":	"SWITCH_TOP_RIGHT_UP",
+			"keyboardKey":	"KEY_D",
+			"inverted":		"true"
 		},
 		{
-			"databaseKey": "SWITCH_TOP_RIGHT_DOWN",
-			"keyboardKey": "KEY_LEFT",
-			"inverted": "true"
+			"databaseKey":	"SWITCH_TOP_RIGHT_DOWN",
+			"keyboardKey":	"KEY_E",
+			"inverted":		"true"
 		},
 		{
-			"databaseKey": "BUTTON_MID_RIGHT",
-			"keyboardKey": "KEY_SPACE",
-			"inverted": "true"
+			"databaseKey":	"BUTTON_MID_RIGHT",
+			"keyboardKey":	"KEY_F",
+			"inverted":		"true"
 		},
 		{
-			"databaseKey": "BUTTON_BOTTOM_RIGHT",
-			"keyboardKey": "KEY_SPACE",
-			"inverted": "true"
+			"databaseKey":	"BUTTON_BOTTOM_RIGHT",
+			"keyboardKey":	"KEY_G",
+			"inverted":		"true"
+		}
+	],
+	"abs":
+	[
+		{
+			"positiveSignalName":	"APPS_1_PERCENT",
+			"negativeSignalName":	"BSE_FRONT_PERCENT",
+			"code":					"ABS_X",
+			"positiveZero":			"0",
+			"positiveMax":			"100",
+			"negativeZero":			"0",
+			"negativeMax":			"100"
 		},
 		{
-			"databaseKey": "PADDLE_LEFT_PERCENT",
-			"keyboardKey": "KEY_UP",
-			"threshold": "98",
-			"inverted": "true"
-		},
-		{
-			"databaseKey": "PADDLE_RIGHT_PERCENT",
-			"keyboardKey": "KEY_DOWN",
-			"threshold": "98",
-			"inverted": "true"
+			"positiveSignalName":	"PADDLE_RIGHT_PERCENT",
+			"negativeSignalName":	"PADDLE_LEFT_PERCENT",
+			"code":					"ABS_Y",
+			"positiveZero":			"100",
+			"positiveMax":			"15",
+			"negativeZero":			"100",
+			"negativeMax":			"15"
 		}
 	]
 }
