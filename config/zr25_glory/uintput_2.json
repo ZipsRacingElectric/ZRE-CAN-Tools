@@ -2,48 +2,48 @@
 	"keys":
 	[
 		{
-			"databaseKey": "BUTTON_TOP_LEFT",
+			"databaseKey": "WHEEL_BUTTON_TOP_LEFT",
 			"keyboardKey": "KEY_ESC",
 			"inverted": "true"
 		},
 		{
-			"databaseKey": "BUTTON_MID_LEFT",
+			"databaseKey": "WHEEL_BUTTON_MID_LEFT",
 			"keyboardKey": "KEY_C",
 			"inverted": "true"
 		},
 		{
-			"databaseKey": "BUTTON_BOTTOM_LEFT",
+			"databaseKey": "WHEEL_BUTTON_BOTTOM_LEFT",
 			"keyboardKey": "KEY_X",
 			"inverted": "true"
 		},
 		{
-			"databaseKey": "SWITCH_TOP_RIGHT_UP",
+			"databaseKey": "WHEEL_SWITCH_TOP_RIGHT_UP",
 			"keyboardKey": "KEY_RIGHT",
 			"inverted": "true"
 		},
 		{
-			"databaseKey": "SWITCH_TOP_RIGHT_DOWN",
+			"databaseKey": "WHEEL_SWITCH_TOP_RIGHT_DOWN",
 			"keyboardKey": "KEY_LEFT",
 			"inverted": "true"
 		},
 		{
-			"databaseKey": "BUTTON_MID_RIGHT",
+			"databaseKey": "WHEEL_BUTTON_MID_RIGHT",
 			"keyboardKey": "KEY_SPACE",
 			"inverted": "true"
 		},
 		{
-			"databaseKey": "BUTTON_BOTTOM_RIGHT",
+			"databaseKey": "WHEEL_BUTTON_BOTTOM_RIGHT",
 			"keyboardKey": "KEY_SPACE",
 			"inverted": "true"
 		},
 		{
-			"databaseKey": "PADDLE_LEFT_PERCENT",
+			"databaseKey": "WHEEL_PADDLE_LEFT_PERCENT",
 			"keyboardKey": "KEY_UP",
 			"threshold": "98",
 			"inverted": "true"
 		},
 		{
-			"databaseKey": "PADDLE_RIGHT_PERCENT",
+			"databaseKey": "WHEEL_PADDLE_RIGHT_PERCENT",
 			"keyboardKey": "KEY_DOWN",
 			"threshold": "98",
 			"inverted": "true"

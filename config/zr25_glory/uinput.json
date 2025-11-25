@@ -2,37 +2,37 @@
 	"keys":
 	[
 		{
-			"signalName":			"BUTTON_TOP_LEFT",
+			"signalName":			"WHEEL_BUTTON_TOP_LEFT",
 			"code":					"KEY_A",
 			"inverted":				"true"
 		},
 		{
-			"signalName":			"BUTTON_MID_LEFT",
+			"signalName":			"WHEEL_BUTTON_MID_LEFT",
 			"code":					"KEY_B",
 			"inverted":				"true"
 		},
 		{
-			"signalName":			"BUTTON_BOTTOM_LEFT",
+			"signalName":			"WHEEL_BUTTON_BOTTOM_LEFT",
 			"code":					"KEY_C",
 			"inverted":				"true"
 		},
 		{
-			"signalName":			"SWITCH_TOP_RIGHT_UP",
+			"signalName":			"WHEEL_SWITCH_TOP_RIGHT_UP",
 			"code":					"KEY_D",
 			"inverted":				"true"
 		},
 		{
-			"signalName":			"SWITCH_TOP_RIGHT_DOWN",
+			"signalName":			"WHEEL_SWITCH_TOP_RIGHT_DOWN",
 			"code":					"KEY_E",
 			"inverted":				"true"
 		},
 		{
-			"signalName":			"BUTTON_MID_RIGHT",
+			"signalName":			"WHEEL_BUTTON_MID_RIGHT",
 			"code":					"KEY_F",
 			"inverted":				"true"
 		},
 		{
-			"signalName":			"BUTTON_BOTTOM_RIGHT",
+			"signalName":			"WHEEL_BUTTON_BOTTOM_RIGHT",
 			"code":					"KEY_G",
 			"inverted":				"true"
 		}
