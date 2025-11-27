@@ -17,12 +17,26 @@
 
 // Includes
 #include "can_signals.h"
+#include "list.h"
 
 // C Standard Library
 #include <stdlib.h>
 
+// Datatypes ------------------------------------------------------------------------------------------------------------------
+
+listDefine (canMessage_t);
+
+listDefine (canSignal_t);
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-int canDbcLoad (const char* dbcFile);
+int canDbcLoad (const char* dbcFile, list_t (canMessage_t)* messages, list_t (canSignal_t)* signals);
+
+void canDbcLink (canMessage_t* messages, size_t messageCount, canSignal_t* signals);
+
+int canDbcsLoad (char* const* dbcFiles, size_t dbcCount, canMessage_t** messages, size_t* messageCount, canSignal_t** signals,
+	size_t* signalCount);
+
+void canDbcsDealloc (canMessage_t* messages, size_t messageCount, canSignal_t* signals);
 
 #endif // CAN_DBC_H

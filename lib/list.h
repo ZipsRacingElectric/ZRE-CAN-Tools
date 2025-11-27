@@ -75,7 +75,7 @@
 /**
  * @brief Appends an uninitialized element to the end of a list, re-allocating the list if necessary.
  * @param list The list to append to.
- * @return 0 if successful, the error code otherwise.
+ * @return A pointer to the appended object, if successful, @c NULL otherwise.
  */
 #define listAppendUninit(datatype)																							\
 	listAppendUninit_ ## datatype
@@ -187,29 +187,32 @@
 		free (list->array);																									\
 	}																														\
 																															\
-	static inline int listAppendUninit (datatype) (list_t (datatype)* list)													\
+	static inline datatype* listAppendUninit (datatype) (list_t (datatype)* list)											\
 	{																														\
 		/* Check if there is space in the list. */																			\
 		if (list->size + 1 > list->capacity)																				\
 		{																													\
 			/* If we are out of space, double the size of the internal array. */											\
 			if (listRealloc (datatype) (list, list->capacity * 2) != 0)														\
-				return errno;																								\
+				return NULL;																								\
 		}																													\
 																															\
 		/* Add the element to the end of the list */																		\
 		++list->size;																										\
 																															\
-		/* Success */																										\
-		return 0;																											\
+		/* Success, return a reference to the appended object */															\
+		return &list->array [list->size - 1];																				\
 	}																														\
 																															\
 	static inline int listAppend (datatype) (list_t (datatype)* list, datatype element)										\
 	{																														\
-		if (listAppendUninit (datatype) (list) != 0)																		\
+		/* Uninitialized append */																							\
+		datatype* slot = listAppendUninit (datatype) (list);																\
+		if (slot != NULL)																									\
 			return errno;																									\
 																															\
-		list->array [list->size - 1] = element;																				\
+		/* Initialize the new element */																					\
+		*slot = element;																									\
 		return 0;																											\
 	}																														\
 																															\

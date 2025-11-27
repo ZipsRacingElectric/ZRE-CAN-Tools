@@ -58,15 +58,11 @@
 
 // can_database Module --------------------------------------------------------------------------------------------------------
 
-#define ERRNO_CAN_DBC_MESSAGE_COUNT				1048
-#define ERRNO_CAN_DBC_SIGNAL_COUNT				1049
-#define ERRNO_CAN_DBC_MESSAGE_MISSING			1050
-#define ERRNO_CAN_DBC_LINE_LENGTH				1051
-#define ERRNO_CAN_DATABASE_SIGNAL_MISSING		1052
-#define ERRNO_CAN_DATABASE_MESSAGE_MISSING		1053
+#define ERRNO_CAN_DBC_MESSAGE_MISSING			1048
+#define ERRNO_CAN_DBC_LINE_LENGTH				1049
+#define ERRNO_CAN_DATABASE_SIGNAL_MISSING		1050
+#define ERRNO_CAN_DATABASE_MESSAGE_MISSING		1051
 
-#define ERRMSG_CAN_DBC_MESSAGE_COUNT			"The DBC file exceeds the maximum number of CAN messages"
-#define ERRMSG_CAN_DBC_SIGNAL_COUNT				"The DBC file exceeds the maximum number of CAN signals"
 #define ERRMSG_CAN_DBC_MESSAGE_MISSING			"The DBC file contains a signal before the first message"
 #define ERRMSG_CAN_DBC_LINE_LENGTH				"The DBC file contains a line exceeding the maximum length"
 #define ERRMSG_CAN_DATABASE_SIGNAL_MISSING		"No such signal in database"
@@ -196,8 +192,6 @@ static inline const char* errorCodeToMessage (int code)
 	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_UNSPEC_ERROR);
 
 	// can_database module
-	ERROR_CODE_TO_MESSAGE_CASE (CAN_DBC_MESSAGE_COUNT);
-	ERROR_CODE_TO_MESSAGE_CASE (CAN_DBC_SIGNAL_COUNT);
 	ERROR_CODE_TO_MESSAGE_CASE (CAN_DBC_MESSAGE_MISSING);
 	ERROR_CODE_TO_MESSAGE_CASE (CAN_DBC_LINE_LENGTH);
 	ERROR_CODE_TO_MESSAGE_CASE (CAN_DATABASE_SIGNAL_MISSING);
