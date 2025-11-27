@@ -4,6 +4,7 @@
 // Includes
 #include "debug.h"
 #include "error_codes.h"
+#include "list.h"
 
 // C Standard Library
 #include <ctype.h>
@@ -31,6 +32,11 @@
 #define KEYWORD_BIT_TIMING		"BS_:"			// Network baudrate, ignored
 #define KEYWORD_COMMENT			"CM_"			// Comments, ignored for now
 #define KEYWORD_NS				"NS_"			// Purpose unknown, ignored for now
+
+// Datatypes ------------------------------------------------------------------------------------------------------------------
+
+listDefine (canMessage_t);
+listDefine (canSignal_t);
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
@@ -79,6 +85,7 @@ static char* stringSplit (char* str, char* delims, bool consecutiveDelims)
 	}
 }
 
+/// @brief Handles a missing field in a DBC file.
 static inline int handleMissing (const char* dbcFile, size_t lineNumber, const char* fieldName)
 {
 	errno = EINVAL;
@@ -86,6 +93,7 @@ static inline int handleMissing (const char* dbcFile, size_t lineNumber, const c
 	return errno;
 }
 
+/// @brief Handles an invalid field value in a DBC file.
 static inline int handleInvalid (const char* dbcFile, size_t lineNumber, const char* fieldName, const char* fieldValue)
 {
 	errno = EINVAL;
@@ -93,25 +101,32 @@ static inline int handleInvalid (const char* dbcFile, size_t lineNumber, const c
 	return errno;
 }
 
-// BO_ <id> <name>: <DLC> <Network Node>
-canMessage_t* parseMessage (list_t (canMessage_t)* messages, char* line, const char* dbcFile, size_t lineNumber)
+/**
+ * @brief Parses a message line. Message lines should take the following format:
+ *   BO_ <id> <name>: <DLC> <Network Node>
+ * @param line The line to parse. Should omit whitespace and the keyword.
+ * @param dbcFile The path of the DBC file.
+ * @param lineNumber The number of this line.
+ * @return The index of the message that was parsed, if successful, -1 otherwise.
+ */
+ssize_t parseMessage (list_t (canMessage_t)* messages, char* line, const char* dbcFile, size_t lineNumber)
 {
 	canMessage_t* message = listAppendUninit (canMessage_t) (messages);
 	if (message == NULL)
-		return NULL;
+		return -1;
 
 	char* id = line;
 	if (id == NULL)
 	{
 		handleMissing (dbcFile, lineNumber, "message ID");
-		return NULL;
+		return -1;
 	}
 
 	char* name = stringSplit (id, ": ", true);
 	if (name == NULL)
 	{
 		handleMissing (dbcFile, lineNumber, "message name");
-		return NULL;
+		return -1;
 	}
 
 	// Parse the ID
@@ -120,7 +135,7 @@ canMessage_t* parseMessage (list_t (canMessage_t)* messages, char* line, const c
 	if (endPtr == id)
 	{
 		handleInvalid (dbcFile, lineNumber, "message ID", id);
-		return NULL;
+		return -1;
 	}
 	message->id = (uint32_t) result & ID_ID_BIT_MASK;
 	message->ide = (result & ID_IDE_BIT_MASK) == ID_IDE_BIT_MASK;
@@ -129,19 +144,19 @@ canMessage_t* parseMessage (list_t (canMessage_t)* messages, char* line, const c
 	if (dlc == NULL)
 	{
 		handleMissing (dbcFile, lineNumber, "message DLC");
-		return NULL;
+		return -1;
 	}
 
 	// Copy the name
 	message->name = strdup (name);
 	if (message->name == NULL)
-		return NULL;
+		return -1;
 
 	char* networkNode = stringSplit (dlc, " ", false);
 	if (networkNode == NULL)
 	{
 		handleMissing (dbcFile, lineNumber, "message network node");
-		return NULL;
+		return -1;
 	}
 
 	// Parse the DLC
@@ -149,16 +164,25 @@ canMessage_t* parseMessage (list_t (canMessage_t)* messages, char* line, const c
 	if (endPtr == dlc || result > 8)
 	{
 		handleInvalid (dbcFile, lineNumber, "message DLC", dlc);
-		return NULL;
+		return -1;
 	}
 	message->dlc = result;
 
 	message->signalCount = 0;
 
-	return message;
+	return listSize (canMessage_t) (messages) - 1;
 }
 
-// Format: SG_ <Name> : <Bit position>|<Bit length>@<Endianness><Signedness> (<Scale factor>,<Offset>) [<Min>|<Max>] "<Unit>" <Network Node>
+/**
+ * @brief Parses a signal line. Signal lines should take the following format:
+     SG_ <Name> : <Bit position>|<Bit length>@<Endianness><Signedness> (<Scale factor>,<Offset>) [<Min>|<Max>] "<Unit>" <Network Node>
+ * @param signals The list of signals to append to.
+ * @param message The message this signal belongs to.
+ * @param line The line to parse. Should omit whitespace and the keyword.
+ * @param dbcFile The path of the DBC file.
+ * @param lineNumber The number of this line.
+ * @return 0 if successful, the error code otherwise.
+ */
 int parseSignal (list_t (canSignal_t)* signals, canMessage_t* message, char* line, const char* dbcFile, size_t lineNumber)
 {
 	canSignal_t* signal = listAppendUninit (canSignal_t) (signals);
@@ -217,6 +241,7 @@ int parseSignal (list_t (canSignal_t)* signals, canMessage_t* message, char* lin
 	if (offset == NULL)
 		return handleMissing (dbcFile, lineNumber, "signal offset");
 
+	// Parse the scale factor
 	float resultf = strtof (scaleFactor, &endPtr);
 	if (endPtr == scaleFactor)
 		return handleInvalid (dbcFile, lineNumber, "signal scale factor", scaleFactor);
@@ -226,6 +251,7 @@ int parseSignal (list_t (canSignal_t)* signals, canMessage_t* message, char* lin
 	if (min == NULL)
 		return handleMissing (dbcFile, lineNumber, "signal minimum");
 
+	// Parse the signal offset
 	resultf = strtof (offset, &endPtr);
 	if (endPtr == offset)
 		return handleInvalid (dbcFile, lineNumber, "signal offset", offset);
@@ -235,6 +261,7 @@ int parseSignal (list_t (canSignal_t)* signals, canMessage_t* message, char* lin
 	if (max == NULL)
 		return handleMissing (dbcFile, lineNumber, "signal maximum");
 
+	// Parse the signal minimum
 	resultf = strtof (min, &endPtr);
 	if (endPtr == min)
 		return handleInvalid (dbcFile, lineNumber, "signal minimum", min);
@@ -243,6 +270,7 @@ int parseSignal (list_t (canSignal_t)* signals, canMessage_t* message, char* lin
 	if (unit == NULL)
 		return handleMissing (dbcFile, lineNumber, "signal unit");
 
+	// Parse the signal maximum
 	resultf = strtof (max, &endPtr);
 	if (endPtr == max)
 		return handleInvalid (dbcFile, lineNumber, "signal maximum", min);
@@ -255,6 +283,7 @@ int parseSignal (list_t (canSignal_t)* signals, canMessage_t* message, char* lin
 	if (networkNode == NULL)
 		return handleMissing (dbcFile, lineNumber, "signal network node");
 
+	// Copy the signal's unit
 	signal->unit = strdup (unit);
 	if (signal->unit == NULL)
 		return errno;
@@ -271,13 +300,20 @@ int parseSignal (list_t (canSignal_t)* signals, canMessage_t* message, char* lin
 	// Populate bitmask
 	signal->bitmask = ((uint64_t) 1 << signal->bitLength) - 1;
 
-	signal->message = message;
+	// Increment the message's signal count
 	++message->signalCount;
 
 	return 0;
 }
 
-int canDbcLoad (const char* dbcFile, list_t (canMessage_t)* messages, list_t (canSignal_t)* signals)
+/**
+ * @brief Loads all the messages and signals of a DBC file into a pair of lists. Note that due to potential reallocation, this
+ * function does not initialize any references. In order for the contents of the lists to be externally usable, they must be
+ * linked via the @c linkDbc function.
+ * @param dbcFile The DBC file to load.
+ * @return 0 if successful, the error code otherwise.
+ */
+static int loadDbc (const char* dbcFile, list_t (canMessage_t)* messages, list_t (canSignal_t)* signals)
 {
 	FILE* file = fopen (dbcFile, "r");
 	if (file == NULL)
@@ -285,7 +321,7 @@ int canDbcLoad (const char* dbcFile, list_t (canMessage_t)* messages, list_t (ca
 
 	size_t lineNumber = 0;
 
-	canMessage_t* message = NULL;
+	ssize_t message = -1;
 	while (true)
 	{
 		char buffer [4096];
@@ -315,12 +351,12 @@ int canDbcLoad (const char* dbcFile, list_t (canMessage_t)* messages, list_t (ca
 		if (strcmp (keyword, KEYWORD_MESSAGE) == 0)
 		{
 			message = parseMessage (messages, line, dbcFile, lineNumber);
-			if (message == NULL)
+			if (message < 0)
 				return errno;
 		}
 		else if (strcmp (keyword, KEYWORD_SIGNAL) == 0)
 		{
-			if (message == NULL)
+			if (message < 0)
 			{
 				errno = ERRNO_CAN_DBC_MESSAGE_MISSING;
 				debugPrintf ("Signal detected before first message in DBC file '%s', line %lu.\n", dbcFile,
@@ -328,7 +364,7 @@ int canDbcLoad (const char* dbcFile, list_t (canMessage_t)* messages, list_t (ca
 				return errno;
 			}
 
-			if (parseSignal (signals, message, line, dbcFile, lineNumber) != 0)
+			if (parseSignal (signals, listGetReference (canMessage_t) (messages, message), line, dbcFile, lineNumber) != 0)
 				return errno;
 		}
 		else
@@ -340,18 +376,34 @@ int canDbcLoad (const char* dbcFile, list_t (canMessage_t)* messages, list_t (ca
 	return 0;
 }
 
-void canDbcLink (canMessage_t* messages, size_t messageCount, canSignal_t* signals)
+/**
+ * @brief Links all the internal references of a pair of messages and signals. Note that the arrays cannot be reallocated after
+ * this, therefore they can no longer be used as lists.
+ * @param messages The array of messages to link.
+ * @param messageCount The number of elements in @c messages .
+ * @param signals The array of signals to link.
+ */
+static void linkDbc (canMessage_t* messages, size_t messageCount, canSignal_t* signals)
 {
 	size_t signalIndex = 0;
 	for (canMessage_t* message = messages; message < messages + messageCount; ++message)
 	{
 		message->signals = signals + signalIndex;
 		signalIndex += message->signalCount;
+
+		for (canSignal_t* signal = message->signals; signal < message->signals + message->signalCount; ++signal)
+			signal->message = message;
 	}
 }
 
-int canDbcsLoad (char* const* dbcFiles, size_t dbcCount, canMessage_t** messages, size_t* messageCount, canSignal_t** signals,
-	size_t* signalCount)
+int canDbcLoad (char* dbcFile, canMessage_t** messages, size_t* messageCount,
+	canSignal_t** signals, size_t* signalCount)
+{
+	return canDbcsLoad (&dbcFile, 1, messages, messageCount, signals, signalCount);
+}
+
+int canDbcsLoad (char** dbcFiles, size_t dbcCount, canMessage_t** messages, size_t* messageCount,
+	canSignal_t** signals, size_t* signalCount)
 {
 	list_t (canMessage_t) messageList;
 	if (listInit (canMessage_t) (&messageList, 512) != 0)
@@ -362,7 +414,7 @@ int canDbcsLoad (char* const* dbcFiles, size_t dbcCount, canMessage_t** messages
 		return errno;
 
 	for (size_t index = 0; index < dbcCount; ++index)
-		if (canDbcLoad (dbcFiles [index], &messageList, &signalList) != 0)
+		if (loadDbc (dbcFiles [index], &messageList, &signalList) != 0)
 			return errno;
 
 	*messages = listArray (canMessage_t) (&messageList);
@@ -371,7 +423,7 @@ int canDbcsLoad (char* const* dbcFiles, size_t dbcCount, canMessage_t** messages
 	*signals = listArray (canSignal_t) (&signalList);
 	*signalCount = listSize (canSignal_t) (&signalList);
 
-	canDbcLink (*messages, *messageCount, *signals);
+	linkDbc (*messages, *messageCount, *signals);
 
 	return 0;
 }
