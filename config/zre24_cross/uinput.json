@@ -17,7 +17,7 @@
 		{
 			"signalName":			"Brake_1_Percent",
 			"code":					"KEY_B",
-			"threshold":			"30"
+			"threshold":			"5"
 		}
 	],
 	"absoluteAxes":
