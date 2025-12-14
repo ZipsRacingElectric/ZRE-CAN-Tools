@@ -23,10 +23,19 @@
 	"absoluteAxes":
 	[
 		{
+			"code":					"ABS_Y",
+			"positiveSignalName":	"APPS_1_Percent",
+			"positiveZero":			"0",
+			"positiveMax":			"100",
+			"negativeSignalName":	"Brake_1_Percent",
+			"negativeZero":			"0",
+			"negativeMax":			"50"
+		},
+		{
 			"positiveSignalName":	"Steering_Angle",
 			"code":					"ABS_X",
-			"positiveZero":			"-23",
-			"positiveMax":			"17"
+			"positiveZero":			"-16",
+			"positiveMax":			"12"
 		}
 	]
 }
