@@ -140,7 +140,7 @@ ssize_t parseMessage (list_t (canMessage_t)* messages, char* line, const char* d
 	message->id = (uint32_t) result & ID_ID_BIT_MASK;
 	message->ide = (result & ID_IDE_BIT_MASK) == ID_IDE_BIT_MASK;
 
-	char* dlc = stringSplit (name, " ", true);
+	char* dlc = stringSplit (name, ": ", true);
 	if (dlc == NULL)
 	{
 		handleMissing (dbcFile, lineNumber, "message DLC");
@@ -426,16 +426,18 @@ int canDbcsLoad (char** dbcFiles, size_t dbcCount, canMessage_t** messages, size
 			return errno;
 	}
 
-	// Link the DBC
-	linkDbc (*messages, *messageCount, *signals);
-
 	// Convert the lists into arrays
 
-	*messages = listArray (canMessage_t) (&messageList);
-	*messageCount = listSize (canMessage_t) (&messageList);
+	*messages = listDestroy (canMessage_t) (&messageList, messageCount);
+	if (messages == NULL)
+		return errno;
 
-	*signals = listArray (canSignal_t) (&signalList);
-	*signalCount = listSize (canSignal_t) (&signalList);
+	*signals = listDestroy (canSignal_t) (&signalList, signalCount);
+	if (signals == NULL)
+		return errno;
+
+	// Link the DBC
+	linkDbc (*messages, *messageCount, *signals);
 
 	return 0;
 }

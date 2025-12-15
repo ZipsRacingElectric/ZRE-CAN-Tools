@@ -17,7 +17,12 @@ int main (int argc, char** argv)
 	canSignal_t* signals;
 	size_t signalCount;
 
-	if (canDbcsLoad (argv + 1, argc - 1, &messages, &messageCount, &signals, &signalCount) != 0)
+	size_t dbcCount = argc - 1;
+	size_t* dbcMessageIndices = malloc (sizeof (size_t) * dbcCount);
+	if (dbcMessageIndices == NULL)
+		return errorPrintf ("Failed to allocate DBC message indices");
+
+	if (canDbcsLoad (argv + 1, dbcCount, &messages, &messageCount, &signals, &signalCount, dbcMessageIndices) != 0)
 		return errorPrintf ("Failed to load CAN DBC file");
 
 	for (size_t messageIndex = 0; messageIndex < messageCount; ++messageIndex)
