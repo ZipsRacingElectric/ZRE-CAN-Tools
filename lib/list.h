@@ -243,7 +243,7 @@
 	{																														\
 		/* Uninitialized append */																							\
 		datatype* slot = listAppendUninit (datatype) (list);																\
-		if (slot != NULL)																									\
+		if (slot == NULL)																									\
 			return errno;																									\
 																															\
 		/* Initialize the new element */																					\
