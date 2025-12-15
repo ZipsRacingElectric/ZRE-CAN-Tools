@@ -29,6 +29,21 @@
 //
 //   listAppend (float) (&exampleInstance, 1.5f);
 //   listTruncate (float) (&exampleInstance);
+//
+// To convert a list into an array, the list can be destroyed without freeing its dynamically allocated memory using the
+// listDestroy macro. Ex:
+//
+//   size_t arrSize;
+//   float* arr = listDestroy (&exampleInstance, &arrSize);
+//
+// To use a list with a non-trivial datatype, ex pointers, a typedef can be used to trivialize the datatype's name. Ex:
+//
+//   // Cannot do this:
+//   listDefine (float*);
+//
+//   // Rather we must do:
+//   typedef float* floatPtr;
+//   listDefine (floatPtr);
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -73,9 +88,18 @@
 	listDealloc_ ## datatype
 
 /**
+ * @brief Destroys a list object while preserving the internal array. Used to get an array containing the contents of the list.
+ * @param list The list to destroy. Cannot be used after this function.
+ * @param size Buffer to write the size of the returned array into.
+ * @return An array containing the contents of the list, if successful, @c NULL otherwise. Note @c errno is set on failure.
+ */
+#define listDestroy(datatype)																								\
+	listDestroy_ ## datatype
+
+/**
  * @brief Appends an uninitialized element to the end of a list, re-allocating the list if necessary.
  * @param list The list to append to.
- * @return A pointer to the appended object, if successful, @c NULL otherwise.
+ * @return A pointer to the appended object, if successful, @c NULL otherwise. Note @c errno is set on failure.
  */
 #define listAppendUninit(datatype)																							\
 	listAppendUninit_ ## datatype
@@ -185,6 +209,17 @@
 	{																														\
 		/* Deallocate the internal array. */																				\
 		free (list->array);																									\
+	}																														\
+																															\
+	static inline datatype* listDestroy (datatype) (list_t (datatype)* list, size_t* size)									\
+	{																														\
+		/* Shrink the list to the minimum size */																			\
+		if (listRealloc (datatype) (list, list->size) != 0)																			\
+			return NULL;																									\
+																															\
+		/* Return the array and its size */																					\
+		*size = list->size;																									\
+		return list->array;																									\
 	}																														\
 																															\
 	static inline datatype* listAppendUninit (datatype) (list_t (datatype)* list)											\
