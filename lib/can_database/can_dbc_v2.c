@@ -399,12 +399,16 @@ static void linkDbc (canMessage_t* messages, size_t messageCount, canSignal_t* s
 int canDbcLoad (char* dbcFile, canMessage_t** messages, size_t* messageCount,
 	canSignal_t** signals, size_t* signalCount)
 {
-	return canDbcsLoad (&dbcFile, 1, messages, messageCount, signals, signalCount);
+	// Call the array version of this function with all arrays of size 1.
+	size_t dbcMessageIndices [1];
+	return canDbcsLoad (&dbcFile, 1, messages, messageCount, signals, signalCount, dbcMessageIndices);
 }
 
 int canDbcsLoad (char** dbcFiles, size_t dbcCount, canMessage_t** messages, size_t* messageCount,
-	canSignal_t** signals, size_t* signalCount)
+	canSignal_t** signals, size_t* signalCount, size_t* dbcMessageIndices)
 {
+	// Create lists for the messages and signals
+
 	list_t (canMessage_t) messageList;
 	if (listInit (canMessage_t) (&messageList, 512) != 0)
 		return errno;
@@ -413,17 +417,25 @@ int canDbcsLoad (char** dbcFiles, size_t dbcCount, canMessage_t** messages, size
 	if (listInit (canSignal_t) (&signalList, 512) != 0)
 		return errno;
 
+	// Load each DBC individually
+
 	for (size_t index = 0; index < dbcCount; ++index)
+	{
+		dbcMessageIndices [index] = listSize (canMessage_t) (&messageList);
 		if (loadDbc (dbcFiles [index], &messageList, &signalList) != 0)
 			return errno;
+	}
+
+	// Link the DBC
+	linkDbc (*messages, *messageCount, *signals);
+
+	// Convert the lists into arrays
 
 	*messages = listArray (canMessage_t) (&messageList);
 	*messageCount = listSize (canMessage_t) (&messageList);
 
 	*signals = listArray (canSignal_t) (&signalList);
 	*signalCount = listSize (canSignal_t) (&signalList);
-
-	linkDbc (*messages, *messageCount, *signals);
 
 	return 0;
 }

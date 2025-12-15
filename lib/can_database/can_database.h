@@ -25,14 +25,6 @@
 #include <float.h>
 #include <errno.h>
 
-// Constants ------------------------------------------------------------------------------------------------------------------
-
-/// @brief The maximum number of messages in the database.
-#define CAN_DATABASE_MESSAGE_COUNT_MAX	128
-
-/// @brief The maximum number of signals in the database.
-#define CAN_DATABASE_SIGNAL_COUNT_MAX	1024
-
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
 /// @brief Enum indicating the possible states of a signal in a CAN database.
@@ -58,25 +50,25 @@ typedef struct
 	pthread_t rxThread;
 
 	/// @brief The array of CAN messages forming the database.
-	canMessage_t messages [CAN_DATABASE_MESSAGE_COUNT_MAX];
+	canMessage_t* messages;
 
 	/// @brief The number of used elements in @c messages .
 	size_t messageCount;
 
 	/// @brief The array of CAN signals forming the database.
-	canSignal_t signals [CAN_DATABASE_SIGNAL_COUNT_MAX];
+	canSignal_t* signals;
 
 	/// @brief The number of used elements in @c signals .
 	size_t signalCount;
 
 	/// @brief The array of values associated with each CAN signal.
-	float signalValues [CAN_DATABASE_SIGNAL_COUNT_MAX];
+	float* signalValues;
 
 	/// @brief The array indicating whether the value of each CAN message is valid.
-	bool messagesValid [CAN_DATABASE_MESSAGE_COUNT_MAX];
+	bool* messagesValid;
 
 	/// @brief Array of deadlines for the values each CAN message's signals.
-	struct timeval messageDeadlines [CAN_DATABASE_MESSAGE_COUNT_MAX];
+	struct timeval* messageDeadlines;
 
 	/// @brief Flag indicating if the RX thread should continue running or not.
 	bool running;
@@ -91,7 +83,7 @@ typedef struct
  * @param dbcPath The database file to import from.
  * @return 0 if successful, the error code otherwise.
  */
-int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* dbcPath);
+int canDatabaseInit (canDatabase_t* database, canDevice_t* device, char* dbcPath);
 
 /**
  * @brief Deallocates a CAN database. Note this function does not return until the database's RX thread has terminated.

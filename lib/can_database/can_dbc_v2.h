@@ -43,10 +43,12 @@ int canDbcLoad (char* dbcFile, canMessage_t** messages, size_t* messageCount,
  * @param messageCount Buffer to write the size of the message array into.
  * @param signals Buffer to write the address of the signal array into.
  * @param signalCount Buffer to write the size of the signal array into.
+ * @param dbcMessageIndices User-allocated array containing the index of the start of each DBC file. Must be of
+ * size @c dbcCount .
  * @return 0 if successful, the error code otherwise.
  */
 int canDbcsLoad (char** dbcFiles, size_t dbcCount, canMessage_t** messages, size_t* messageCount,
-	canSignal_t** signals, size_t* signalCount);
+	canSignal_t** signals, size_t* signalCount, size_t* dbcMessageIndices);
 
 /**
  * @brief Deallocates the arrays created by either @c canDbcLoad or @c canDbcsLoad .
