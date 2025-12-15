@@ -40,7 +40,8 @@ bin: $(CLANGD_FILE) $(VSCODE_SETTINGS) $(wildcard $(SRC_DIR)/*)
 # Wildcard defining the compilation rule for each subdirectory in the src
 # directory. Dependent on libs, meaning all libraries are compiled first.
 $(SRC_DIR)/%: lib
-	make -C $@
+	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
+	@make -C $@
 
 # Libraries -------------------------------------------------------------------
 
@@ -51,24 +52,31 @@ $(LIB_COMMON):
 
 # serial_can requires the -B option to actually compile binaries. Not sure why.
 $(LIB_SERIAL_CAN):
+	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
 	make -B -C $(LIB_DIR)/serial_can
 
 $(LIB_CAN_DEVICE): $(LIB_SERIAL_CAN)
+	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
 	make -C $(LIB_DIR)/can_device
 
 $(LIB_CAN_DATABASE):
+	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
 	make -C $(LIB_DIR)/can_database
 
 $(LIB_CJSON):
+	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
 	make -C $(LIB_DIR)/cjson
 
 $(LIB_CAN_EEPROM):
+	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
 	make -C $(LIB_DIR)/can_eeprom
 
 $(LIB_BMS):
+	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
 	make -C $(LIB_DIR)/bms
 
 $(LIB_MDF):
+	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
 	make -C $(LIB_DIR)/mdf
 
 # Marks all library targets as phony. This forces the recipe to be re-run every
