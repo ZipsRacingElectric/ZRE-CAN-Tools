@@ -3,91 +3,105 @@
 #include "can_device/can_device.h"
 #include "can_database/can_database.h"
 
-int fprintCanDatabaseFloat (FILE* stream, canDatabase_t* database, ssize_t index, const char* prefix,
-	const char* formatValue, const char* formatInvalid)
+int fprintCanDatabaseFloat (FILE* stream, canDatabase_t* database, ssize_t index, const char* formatValue,
+	const char* formatInvalid)
 {
 	// Get signal reference, also check existence
 	canSignal_t* signal = canDatabaseGetSignal (database, index);
 	if (signal == NULL)
 		return CAN_DATABASE_MISSING;
 
-	// Prefix first
-	int result = fprintf (stream, "%s", prefix);
-	if (result < 0)
-		return result;
-	int count = result;
-
-	// Get the value and print
 	float value;
-	if (canDatabaseGetFloat (database, index, &value) == CAN_DATABASE_VALID)
-	{
-		// Print the value as a float using the user-provided format string. The unit is ignored if not '%s' specifier is added.
-		result = fprintf (stream, formatValue, value, signal->unit);
-		if (result < 0)
-			return result;
-		count += result;
-	}
-	else
+	if (canDatabaseGetFloat (database, index, &value) != CAN_DATABASE_VALID)
 	{
 		// Print '--' as a string using the user-provided format string. The unit is ignored if not '%s' specifier is added.
-		result = fprintf (stream, formatInvalid, "--", signal->unit);
-		if (result < 0)
-			return result;
-		count += result;
+		return fprintf (stream, formatInvalid, "--", signal->unit);
 	}
 
-	return count;
+	// Print the value as a float using the user-provided format string. The unit is ignored if not '%s' specifier is added.
+	return fprintf (stream, formatValue, value, signal->unit);
 }
 
-int snprintCanDatabaseFloat (char* str, size_t n, canDatabase_t* database, ssize_t index, const char* prefix,
-	const char* formatValue, const char* formatInvalid)
+int snprintCanDatabaseFloat (char* str, size_t n, canDatabase_t* database, ssize_t index, const char* formatValue,
+	const char* formatInvalid)
 {
 	// Get signal reference, also check existence
 	canSignal_t* signal = canDatabaseGetSignal (database, index);
 	if (signal == NULL)
 		return CAN_DATABASE_MISSING;
 
-	// Prefix first
-	int result = snprintf (str, n, "%s", prefix);
-	if (result < 0 || (size_t) result >= n)
-		return -1;
-	int count = result;
-	str += count;
-	n -= count;
-
-	// Get the value and print
 	float value;
-	if (canDatabaseGetFloat (database, index, &value) == CAN_DATABASE_VALID)
-	{
-		// Print the value as a float using the user-provided format string. The unit is ignored if not '%s' specifier is added.
-		result = snprintf (str, n, formatValue, value, signal->unit);
-		if (result < 0 || (size_t) result >= n)
-			return -1;
-		count += result;
-	}
-	else
+	if (canDatabaseGetFloat (database, index, &value) != CAN_DATABASE_VALID)
 	{
 		// Print '--' as a string using the user-provided format string. The unit is ignored if not '%s' specifier is added.
-		result = snprintf (str, n, formatInvalid, "--", signal->unit);
-		if (result < 0 || (size_t) result >= n)
-			return -1;
-		count += result;
+		return snprintf (str, n, formatInvalid, "--", signal->unit);
 	}
 
-	return count;
+	// Print the value as a float using the user-provided format string. The unit is ignored if not '%s' specifier is added.
+	return snprintf (str, n, formatValue, value, signal->unit);
 }
 
 typedef struct
 {
 	GtkWidget* widget;
 	const char* signalName;
-	const char* prefix;
 	const char* formatValue;
 	const char* formatInvalid;
 	canDatabase_t* database;
 	ssize_t index;
-	size_t specifierIndex;
 } canLabel_t;
+
+#define CAN_LABEL_TO_LABEL(label) GTK_LABEL ((label)->widget)
+#define CAN_LABEL_TO_WIDGET(label) ((label)->widget)
+
+void canLabelUpdate (canLabel_t* label)
+{
+	char text [16] = "";
+	snprintCanDatabaseFloat (text, sizeof (text), label->database, label->index, label->formatValue,
+		label->formatInvalid);
+	gtk_label_set_text (CAN_LABEL_TO_LABEL (label), text);
+}
+
+void canLabelInit (canLabel_t* label, canDatabase_t* database)
+{
+	label->database = database;
+	label->widget = gtk_label_new ("");
+	label->index = canDatabaseFindSignal (database, label->signalName);
+	canLabelUpdate (label);
+}
+
+typedef struct
+{
+	GtkWidget* widget;
+	const char* signalName;
+	float min;
+	float max;
+	canDatabase_t* database;
+	ssize_t index;
+} canProgressBar_t;
+
+#define CAN_PROGRESS_BAR_TO_PROGRESS_BAR(label) GTK_PROGRESS_BAR ((label)->widget)
+#define CAN_PROGRESS_BAR_TO_WIDGET(label) ((label)->widget)
+
+void canProgressBarUpdate (canProgressBar_t* bar)
+{
+	float value;
+	if (canDatabaseGetFloat (bar->database, bar->index, &value) != CAN_DATABASE_VALID)
+		value = bar->min;
+
+	// Inverse linear interpolation
+	value = (value - bar->min) / (bar->max - bar->min);
+
+	gtk_progress_bar_set_fraction (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (bar), value);
+}
+
+void canProgessBarInit (canProgressBar_t* bar, canDatabase_t* database)
+{
+	bar->database = database;
+	bar->widget = gtk_progress_bar_new ();
+	bar->index = canDatabaseFindSignal (database, bar->signalName);
+	canProgressBarUpdate (bar);
+}
 
 typedef struct
 {
@@ -96,28 +110,17 @@ typedef struct
 	canDatabase_t* database;
 	canLabel_t* labels;
 	size_t labelCount;
+	canProgressBar_t* bars;
+	size_t barCount;
 } updateLoopArg_t;
-
-void canLabelUpdate (canLabel_t* label)
-{
-	char text [16] = "";
-	snprintCanDatabaseFloat (text, sizeof (text), label->database, label->index, label->prefix, label->formatValue,
-		label->formatInvalid);
-	gtk_label_set_text (GTK_LABEL (label->widget), text);
-}
-
-void canLabelInit (canLabel_t* label, canDatabase_t* database)
-{
-	label->database = database;
-	label->widget = gtk_label_new ("HELLO");
-	label->index = canDatabaseFindSignal (database, label->signalName);
-	canLabelUpdate (label);
-}
 
 static gboolean updateLoop (updateLoopArg_t* arg)
 {
 	for (size_t index = 0; index < arg->labelCount; ++index)
 		canLabelUpdate (&arg->labels [index]);
+
+	for (size_t index = 0; index < arg->barCount; ++index)
+		canProgressBarUpdate (&arg->bars [index]);
 
 	// Continue calling this function
 	return TRUE;
@@ -173,19 +176,18 @@ static void gtkActivate (GtkApplication* app, updateLoopArg_t* arg)
 	gtk_window_set_title (GTK_WINDOW (window), arg->applicationName);
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
 
-	// arg->indices = malloc (sizeof (ssize_t) * 5);
-	// arg->labels  = malloc (sizeof (GtkWidget*) * 5);
-
 	// Create the top-level grid
 	GtkWidget* grid = gtk_grid_new ();
 	gtk_window_set_child (GTK_WINDOW (window), grid);
 
-	GtkWidget* frame = gtk_frame_new ("B");
-	gtk_grid_attach (GTK_GRID (grid), frame, 0, 0, 1, 2);
+	canProgessBarInit(&arg->bars [0], arg->database);
+	gtk_orientable_set_orientation (GTK_ORIENTABLE (CAN_PROGRESS_BAR_TO_WIDGET (&arg->bars [0])), GTK_ORIENTATION_VERTICAL);
+	gtk_progress_bar_set_inverted (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (&arg->bars [0]), true);
+	gtk_grid_attach (GTK_GRID (grid), CAN_PROGRESS_BAR_TO_WIDGET (&arg->bars [0]), 0, 0, 1, 2);
 
 	GtkWidget* subGrid = gtk_grid_new ();
 	gtk_grid_attach (GTK_GRID (grid), subGrid, 1, 0, 1, 1);
-	frame = gtk_frame_new ("");
+	GtkWidget* frame = gtk_frame_new ("");
 	gtk_grid_attach (GTK_GRID (subGrid), frame, 0, 1, 1, 1);
 	gtk_widget_set_vexpand (frame, true);
 	gtk_widget_set_size_request (frame, 50, 0);
@@ -220,7 +222,7 @@ static void gtkActivate (GtkApplication* app, updateLoopArg_t* arg)
 	for (size_t index = 0; index < arg->labelCount; ++index)
 	{
 		canLabelInit (&arg->labels [index], arg->database);
-		gtk_grid_attach (GTK_GRID (subSubGrid), arg->labels [index].widget, 0, index, 1, 1);
+		gtk_grid_attach (GTK_GRID (subSubGrid), CAN_LABEL_TO_WIDGET (&arg->labels [index]), 0, index, 1, 1);
 	}
 
 	subGrid = gtk_grid_new ();
@@ -240,10 +242,15 @@ static void gtkActivate (GtkApplication* app, updateLoopArg_t* arg)
 	button = gtk_button_new ();
 	gtk_grid_attach (GTK_GRID (subGrid), button, 4, 0, 1, 1);
 	gtk_widget_set_hexpand (button, true);
+	button = gtk_button_new ();
+	gtk_grid_attach (GTK_GRID (subGrid), button, 5, 0, 1, 1);
+	gtk_widget_set_hexpand (button, true);
 	gtk_widget_set_size_request (button, 0, 90);
 
-	frame = gtk_frame_new ("A");
-	gtk_grid_attach (GTK_GRID (grid), frame, 4, 0, 1, 2);
+	canProgessBarInit(&arg->bars [1], arg->database);
+	gtk_orientable_set_orientation (GTK_ORIENTABLE (CAN_PROGRESS_BAR_TO_WIDGET (&arg->bars [1])), GTK_ORIENTATION_VERTICAL);
+	gtk_progress_bar_set_inverted (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (&arg->bars [1]), true);
+	gtk_grid_attach (GTK_GRID (grid), CAN_PROGRESS_BAR_TO_WIDGET (&arg->bars [1]), 4, 0, 1, 2);
 
 	// GtkWidget* da = gtk_drawing_area_new ();
 	// gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (da), 800);
@@ -330,33 +337,42 @@ int main (int argc, char** argv)
 	{
 		{
 			.signalName		= "APPS_1_PERCENT",
-			.prefix			= "APPS-1: ",
-			.formatValue	= "%.2f",
-			.formatInvalid	= "%s"
+			.formatValue	= "APPS-1: %.2f%s",
+			.formatInvalid	= "APPS-1: %s%s"
 		},
 		{
 			.signalName		= "APPS_2_PERCENT",
-			.prefix			= "APPS-2: ",
-			.formatValue	= "%.2f",
-			.formatInvalid	= "%s"
+			.formatValue	= "APPS-2: %.2f%s",
+			.formatInvalid	= "APPS-2: %s%s"
 		},
 		{
 			.signalName		= "BSE_FRONT_PERCENT",
-			.prefix			= "BSE-F: ",
-			.formatValue	= "%.2f",
-			.formatInvalid	= "%s"
+			.formatValue	= "BSE-F: %.2f%s",
+			.formatInvalid	= "BSE-F: %s%s"
 		},
 		{
 			.signalName		= "BSE_REAR_PERCENT",
-			.prefix			= "BSE-R: ",
-			.formatValue	= "%.2f",
-			.formatInvalid	= "%s"
+			.formatValue	= "BSE-R: %.2f%s",
+			.formatInvalid	= "BSE-R: %s%s"
 		},
 		{
 			.signalName		= "STEERING_ANGLE",
-			.prefix			= "SAS: ",
-			.formatValue	= "%.2f",
-			.formatInvalid	= "%s"
+			.formatValue	= "SAS: %.2f%s",
+			.formatInvalid	= "SAS: %s%s"
+		}
+	};
+
+	canProgressBar_t bars [] =
+	{
+		{
+			.signalName		= "STEERING_ANGLE",
+			.min			= -180,
+			.max			= 180
+		},
+		{
+			.signalName		= "STEERING_ANGLE",
+			.min			= -90,
+			.max			= 90
 		}
 	};
 
@@ -366,7 +382,9 @@ int main (int argc, char** argv)
 		.applicationId		= applicationId,
 		.database			= &database,
 		.labels				= labels,
-		.labelCount			= sizeof (labels) / sizeof (labels [0])
+		.labelCount			= sizeof (labels) / sizeof (labels [0]),
+		.bars				= bars,
+		.barCount			= sizeof (bars) / sizeof (bars [0])
 	};
 
 	// Create the GTK application bound to the activation signal
