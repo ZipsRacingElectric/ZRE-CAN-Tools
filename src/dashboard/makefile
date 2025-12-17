@@ -2,7 +2,10 @@ ROOT_DIR := ../..
 include $(ROOT_DIR)/include.mk
 
 BIN := $(BIN_DIR)/dashboard
-SRC := main.c
+SRC :=	main.c				\
+		can_widgets.c		\
+		gtk_util.c			\
+		page_autox.c
 
 # Compiling and linking against GTK, so include its flags
 CFLAGS += $(LIB_GTK_CFLAGS)
