@@ -23,15 +23,15 @@ typedef struct
 	GtkWidget* widget;
 	canProgressBar_t bse;
 	canProgressBar_t apps;
-	canLabel_t glvVoltage;
-	canLabel_t hvVoltage;
-	canLabel_t inverterMaxTemp;
-	canLabel_t motorMaxTemp;
-	canLabel_t drivingTorque;
-	canLabel_t regenTorque;
-	canLabel_t torqueIndex;
-	canLabel_t drsStatus;
-	canLabel_t speed;
+	canLabelFloat_t glvVoltage;
+	canLabelFloat_t hvVoltage;
+	canLabelFloat_t inverterMaxTemp;
+	canLabelFloat_t motorMaxTemp;
+	canLabelFloat_t drivingTorque;
+	canLabelFloat_t regenTorque;
+	canLabelFloat_t torqueIndex;
+	canLabelFloat_t speed;
+	canIndicator_t drsStatus;
 } pageAutox_t;
 
 #define PAGE_AUTOX_TO_WIDGET(page) ((page)->widget)
