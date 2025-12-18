@@ -77,7 +77,44 @@ void canProgressBarUpdate (canProgressBar_t* bar)
 	gtk_progress_bar_set_fraction (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (bar), value);
 }
 
-void canIndicatorInit (canIndicator_t* indicator, canDatabase_t* database, GtkDrawingAreaDrawFunc drawFunction, int width, int height)
+static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
+{
+	(void) area;
+	canIndicator_t* indicator = arg;
+
+	switch (indicator->state)
+	{
+	case CAN_INDICATOR_ACTIVE:
+		gdk_cairo_set_source_rgba (cr, &indicator->activeColor);
+		break;
+
+	case CAN_INDICATOR_INACTIVE:
+		gdk_cairo_set_source_rgba (cr, &indicator->inactiveColor);
+		break;
+
+	case CAN_INDICATOR_INVALID:
+		gdk_cairo_set_source_rgba (cr, &indicator->invalidColor);
+		break;
+	}
+
+	if (indicator->pointCount == 0)
+	{
+		cairo_arc (cr, width / 2.0, height / 2.0, MIN (width, height) / 2.0, 0, 2 * G_PI);
+	}
+	else
+	{
+		cairo_move_to (cr, width * indicator->points [0][0], height * indicator->points [0][1]);
+
+		for (size_t index = 1; index < indicator->pointCount; ++index)
+			cairo_line_to (cr, roundf (width * indicator->points [index][0]), roundf (height * indicator->points [index][1]));
+
+		cairo_close_path (cr);
+	}
+
+	cairo_fill (cr);
+}
+
+void canIndicatorInit (canIndicator_t* indicator, canDatabase_t* database, int width, int height)
 {
 	indicator->widget = gtk_drawing_area_new ();
 	indicator->database = database;
@@ -85,15 +122,31 @@ void canIndicatorInit (canIndicator_t* indicator, canDatabase_t* database, GtkDr
 
 	gtk_drawing_area_set_content_width (CAN_INDICATOR_TO_DRAWING_AREA (indicator), width);
 	gtk_drawing_area_set_content_height (CAN_INDICATOR_TO_DRAWING_AREA (indicator), height);
-	gtk_drawing_area_set_draw_func (CAN_INDICATOR_TO_DRAWING_AREA (indicator), drawFunction, indicator, NULL);
+	gtk_drawing_area_set_draw_func (CAN_INDICATOR_TO_DRAWING_AREA (indicator), draw, indicator, NULL);
+
+	// For some reason, drawing area appears to stretch to fit area by default. Disable this so it defaults to the minimum size.
+	gtk_widget_set_halign (CAN_INDICATOR_TO_WIDGET (indicator), GTK_ALIGN_CENTER);
+	gtk_widget_set_valign (CAN_INDICATOR_TO_WIDGET (indicator), GTK_ALIGN_CENTER);
 }
 
 void canIndicatorUpdate (canIndicator_t* indicator)
 {
-	float value;
-	indicator->valid = canDatabaseGetFloat (indicator->database, indicator->index, &value) == CAN_DATABASE_VALID;
-	if (indicator->valid)
-		indicator->active = (value >= indicator->threshold) != indicator->inverted;
+	canIndicatorState_t state;
 
-	gtk_widget_queue_draw (CAN_INDICATOR_TO_WIDGET (indicator));
+	float value;
+	if (canDatabaseGetFloat (indicator->database, indicator->index, &value) == CAN_DATABASE_VALID)
+	{
+		if ((value >= indicator->threshold) != indicator->inverted)
+			state = CAN_INDICATOR_ACTIVE;
+		else
+			state = CAN_INDICATOR_INACTIVE;
+	}
+	else
+		state = CAN_INDICATOR_INVALID;
+
+	if (state != indicator->state)
+	{
+		indicator->state = state;
+		gtk_widget_queue_draw (CAN_INDICATOR_TO_WIDGET (indicator));
+	}
 }

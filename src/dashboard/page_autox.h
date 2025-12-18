@@ -32,6 +32,7 @@ typedef struct
 	canLabelFloat_t torqueIndex;
 	canLabelFloat_t speed;
 	canIndicator_t drsStatus;
+	canIndicator_t vcuFault;
 } pageAutox_t;
 
 #define PAGE_AUTOX_TO_WIDGET(page) ((page)->widget)

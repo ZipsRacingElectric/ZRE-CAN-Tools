@@ -44,6 +44,13 @@ typedef struct
 #define CAN_PROGRESS_BAR_TO_PROGRESS_BAR(bar) GTK_PROGRESS_BAR ((bar)->widget)
 #define CAN_PROGRESS_BAR_TO_WIDGET(bar) ((bar)->widget)
 
+typedef enum
+{
+	CAN_INDICATOR_INVALID,
+	CAN_INDICATOR_ACTIVE,
+	CAN_INDICATOR_INACTIVE
+} canIndicatorState_t;
+
 typedef struct
 {
 	GtkWidget* widget;
@@ -52,9 +59,13 @@ typedef struct
 	const char* signalName;
 	float threshold;
 	bool inverted;
-
-	bool active;
-	bool valid;
+	canIndicatorState_t state;
+	float (*points) [2];
+	size_t pointCount;
+	// TODO(Barach): Hex parser
+	GdkRGBA activeColor;
+	GdkRGBA inactiveColor;
+	GdkRGBA invalidColor;
 } canIndicator_t;
 
 #define CAN_INDICATOR_TO_DRAWING_AREA(indicator) GTK_DRAWING_AREA ((indicator)->widget)
@@ -70,7 +81,7 @@ void canProgessBarInit (canProgressBar_t* bar, canDatabase_t* database);
 
 void canProgressBarUpdate (canProgressBar_t* bar);
 
-void canIndicatorInit (canIndicator_t* indicator, canDatabase_t* database, GtkDrawingAreaDrawFunc drawFunction, int width, int height);
+void canIndicatorInit (canIndicator_t* indicator, canDatabase_t* database, int width, int height);
 
 void canIndicatorUpdate (canIndicator_t* indicator);
 

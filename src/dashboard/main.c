@@ -43,24 +43,17 @@ static gboolean eventKeyPress (GtkWidget* window, guint keyValue, guint keyCode,
 	return FALSE;
 }
 
-// static void drawFunction (GtkDrawingArea *area, cairo_t* cr, int width, int height, gpointer data)
-// {
-// 	GdkRGBA color =
-// 	{
-// 		.red	= 0,
-// 		.green	= 0,
-// 		.blue	= 0,
-// 		.alpha	= 1
-// 	};
+static gboolean gtkDestroyHandler (GtkWidget* self, gpointer data)
+{
+	(void) self;
 
-// 	// cairo_arc (cr, width / 2.0, height / 2.0, MIN (width, height) / 2.0, 0, 2 * G_PI);
+	// Remove the event loop timer
+	guint* timeout = data;
+	g_source_remove (*timeout);
+	free (timeout);
 
-// 	// gtk_widget_get_color (GTK_WIDGET (area), &color);
-// 	gdk_cairo_set_source_rgba (cr, &color);
-
-// 	cairo_rectangle (cr, width / 4.0f, height / 4.0f, width / 2.0f, height / 2.0f);
-// 	cairo_fill (cr);
-// }
+	return TRUE;
+}
 
 static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 {
@@ -69,43 +62,23 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	gtk_window_set_title (GTK_WINDOW (window), arg->applicationName);
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
 
-	// GtkWidget* da = gtk_drawing_area_new ();
-	// gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (da), 800);
-	// gtk_drawing_area_set_content_height (GTK_DRAWING_AREA (da), 480);
-	// gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (da), drawFunction, NULL, NULL);
-	// gtk_grid_attach (GTK_GRID (grid), da, 0, 0, 1, 1);
-	// gtk_widget_set_hexpand (da, true);
-	// gtk_widget_set_vexpand (da, true);
-
 	pageAutox_t* page = malloc (sizeof (pageAutox_t));
 	pageAutoxInit (page, arg->database);
 	gtk_window_set_child (GTK_WINDOW (window), PAGE_AUTOX_TO_WIDGET (page));
-
-	// GtkWidget* grid = gtk_grid_new ();
-	// gtk_window_set_child (GTK_WINDOW (window), grid);
-
-	// GtkWidget* left = gtk_label_new ("- LEFT -");
-	// gtk_widget_set_size_request (left, 150, 0);
-	// // gtk_widget_set_halign (left, GTK_ALIGN_FILL);
-	// gtk_label_set_xalign (GTK_LABEL (left), 0.5);
-	// gtk_grid_attach (GTK_GRID (grid), left, 0, 0, 1, 1);
-
-	// GtkWidget* middle = gtk_label_new ("- MIDDLE -");
-	// gtk_widget_set_hexpand (middle, true);
-	// gtk_grid_attach (GTK_GRID (grid), middle, 1, 0, 1, 1);
-
-	// GtkWidget* right = gtk_label_new ("- RIGHT -");
-	// gtk_widget_set_size_request (right, 150, 0);
-	// gtk_grid_attach (GTK_GRID (grid), right, 2, 0, 1, 1);
 
 	GtkEventController* controller = gtk_event_controller_key_new ();
 
   	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);
 	gtk_widget_add_controller (window, controller);
 
-	g_timeout_add (30, G_SOURCE_FUNC (updateLoop), page);
-
 	gtk_window_present (GTK_WINDOW (window));
+
+	// Create the event loop timer
+	guint* timeout = malloc (sizeof (guint));
+	*timeout = g_timeout_add (1, G_SOURCE_FUNC (updateLoop), page);
+
+	// Bind the destroy signal to a handler
+	g_signal_connect (GTK_WINDOW (window), "destroy", G_CALLBACK (gtkDestroyHandler), timeout);
 }
 
 static char* getApplicationId (const char* applicationName)

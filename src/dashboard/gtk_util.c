@@ -14,3 +14,20 @@ void gtkLabelSetFont (GtkLabel* label, const char* pangoFontDescriptor)
 
 	gtk_label_set_attributes (label, list);
 }
+
+void gtkLabelSetColor (GtkLabel* label, const char* color)
+{
+	// Get the label's pango attributes, create a new list if none exist.
+	PangoAttrList* list = gtk_label_get_attributes (label);
+	if (list == NULL)
+		list = pango_attr_list_new ();
+
+	PangoColor pangoColor;
+	if (!pango_color_parse(&pangoColor, color))
+		pangoColor = (PangoColor) { 0, 0, 0 };
+
+	PangoAttribute* attr = pango_attr_foreground_new (pangoColor.red, pangoColor.green, pangoColor.blue);
+	pango_attr_list_insert (list, attr);
+
+	gtk_label_set_attributes (label, list);
+}

@@ -8,25 +8,7 @@
 #define CENTER_VALUE_FONT	"Technology Bold 200px"
 #define PANEL_TITLE_FONT	"Futura Std Bold Condensed 26px"
 #define PANEL_STAT_FONT		"ITC Avant Garde Gothic CE Book 26px"
-
-static void drsDraw (GtkDrawingArea* area, cairo_t* cairo, int width, int height, gpointer data)
-{
-	(void) area;
-	canIndicator_t* icon = data;
-
-	float value = (icon->active && icon->valid) * 0.75f + 0.25f;
-	GdkRGBA color =
-	{
-		.red	= value,
-		.green	= value,
-		.blue	= value,
-		.alpha	= 1
-	};
-
-	cairo_arc (cairo, width / 2.0, height / 2.0, MIN (width, height) / 2.0, 0, 2 * G_PI);
-	gdk_cairo_set_source_rgba (cairo, &color);
-	cairo_fill (cairo);
-}
+#define FAULT_NAME_FONT		"Futura Std Bold Condensed 32px @color=#000000"
 
 void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 {
@@ -123,20 +105,99 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 
 	page->drsStatus = (canIndicator_t)
 	{
-		.signalName = "APPS_1_PERCENT",
-		.threshold	= 25,
-		.inverted	= true
+		.signalName 	= "APPS_1_PERCENT",
+		.threshold		= 25,
+		.inverted		= true,
+		.points			= NULL,
+		.pointCount		= 0,
+		.activeColor	= {1, 1, 1, 1},
+		.inactiveColor	= {0.25f, 0.25f, 0.25f, 1},
+		.invalidColor	= {1, 0, 0, 1}
 	};
-	canIndicatorInit (&page->drsStatus, database, drsDraw, 26, 26);
+
+	canIndicatorInit (&page->drsStatus, database, 26, 26);
 	gtk_widget_set_halign (CAN_INDICATOR_TO_WIDGET (&page->drsStatus), GTK_ALIGN_END);
 	gtk_grid_attach (GTK_GRID (leftPanel), CAN_INDICATOR_TO_WIDGET (&page->drsStatus), 1, 4, 1, 1);
 
 	subGrid = gtk_grid_new ();
 	gtk_grid_attach (GTK_GRID (page->widget), subGrid, 2, 0, 1, 1);
 
-	frame = gtk_frame_new ("");
-	gtk_grid_attach (GTK_GRID (subGrid), frame, 0, 0, 1, 1);
-	gtk_widget_set_size_request (frame, 0, 100);
+	static float points [][2] =
+	{
+		{0.50, 0.00},
+		{0.09, 0.00},
+		{0.09, 0.02},
+		{0.18, 0.40},
+		{0.18, 0.67},
+		{0.01, 0.02},
+		{0.09, 0.02},
+		{0.09, 0.00},
+		{0.00, 0.00},
+		{0.00, 0.50},
+		{0.01, 0.45},
+		{0.15, 0.98},
+		{0.06, 0.98},
+		{0.01, 0.80},
+		{0.01, 0.45},
+		{0.00, 0.45},
+		{0.00, 1.00},
+		{0.50, 1.00},
+		{0.50, 0.98},
+		{0.18, 0.98},
+		{0.18, 0.02},
+		{0.50, 0.02},
+		{0.50, 0.06},
+		{0.50, 0.94},
+		{0.20, 0.94},
+		{0.20, 0.06},
+		{0.50, 0.06},
+
+		{0.50, 0.06},
+		{0.80, 0.06},
+		{0.80, 0.94},
+		{0.50, 0.94},
+		{0.50, 0.06},
+		{0.50, 0.02},
+		{0.82, 0.02},
+		{0.82, 0.98},
+		{0.50, 0.98},
+		{0.50, 1.00},
+		{1.00, 1.00},
+		{1.00, 0.45},
+		{0.99, 0.45},
+		{0.99, 0.80},
+		{0.94, 0.98},
+		{0.85, 0.98},
+		{0.99, 0.45},
+		{1.00, 0.50},
+		{1.00, 0.00},
+		{0.91, 0.00},
+		{0.91, 0.02},
+		{0.99, 0.02},
+		{0.82, 0.67},
+		{0.82, 0.40},
+		{0.91, 0.02},
+		{0.91, 0.00},
+		{0.50, 0.00},
+	};
+
+	page->vcuFault = (canIndicator_t)
+	{
+		.signalName	= "VEHICLE_STATE",
+		.threshold	= 0.5f,
+		.inverted	= true,
+		.points		= points,
+		.pointCount	= sizeof (points) / sizeof (points [0]),
+		.activeColor	= {1, 0, 0, 1},
+		.inactiveColor	= {0.25f, 0.25f, 0.25f, 1},
+		.invalidColor	= {1, 0, 0, 1}
+	};
+	canIndicatorInit (&page->vcuFault, database, 100, 42);
+	gtk_grid_attach (GTK_GRID (subGrid), CAN_INDICATOR_TO_WIDGET (&page->vcuFault), 0, 0, 1, 1);
+	label = gtk_label_new ("VCU");
+	gtkLabelSetFont (GTK_LABEL (label), FAULT_NAME_FONT);
+	gtkLabelSetColor (GTK_LABEL (label), "#000000");
+	gtk_grid_attach (GTK_GRID (subGrid), label, 0, 0, 1, 1);
 
 	GtkWidget* centerPanel = gtk_grid_new ();
 	gtk_grid_attach (GTK_GRID (subGrid), centerPanel, 0, 1, 1, 1);
@@ -292,4 +353,5 @@ void pageAutoxUpdate (pageAutox_t* page)
 	canLabelFloatUpdate (&page->torqueIndex);
 	canLabelFloatUpdate (&page->speed);
 	canIndicatorUpdate (&page->drsStatus);
+	canIndicatorUpdate (&page->vcuFault);
 }
