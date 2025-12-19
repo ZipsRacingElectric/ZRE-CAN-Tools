@@ -54,7 +54,52 @@ void canLabelFloatUpdate (canLabelFloat_t* label)
 	char text [16] = "";
 	snprintCanDatabaseFloat (text, sizeof (text), label->database, label->index, label->formatValue,
 		label->formatInvalid);
-	gtk_label_set_text (CAN_LABEL_TO_LABEL (label), text);
+	gtk_label_set_text (CAN_LABEL_FLOAT_TO_LABEL (label), text);
+}
+
+void canLabelBoolInit (canLabelBool_t* label, canDatabase_t* database)
+{
+	label->database = database;
+	label->widget = gtk_label_new (label->invalidValue);
+	label->index = canDatabaseFindSignal (database, label->signalName);
+	canLabelBoolUpdate (label);
+}
+
+void canLabelBoolUpdate (canLabelBool_t* label)
+{
+	canLabelBoolState_t state;
+
+	float value;
+	if (canDatabaseGetFloat (label->database, label->index, &value) == CAN_DATABASE_VALID)
+	{
+		if ((value >= label->threshold) != label->inverted)
+			state = CAN_LABEL_BOOL_ACTIVE;
+		else
+			state = CAN_LABEL_BOOL_INACTIVE;
+	}
+	else
+		state = CAN_LABEL_BOOL_INVALID;
+
+	if (state != label->state)
+	{
+		label->state = state;
+
+		switch (state)
+		{
+		case CAN_LABEL_BOOL_ACTIVE:
+			gtk_label_set_text (CAN_LABEL_BOOL_TO_LABEL (label), label->activeValue);
+			break;
+
+		case CAN_LABEL_BOOL_INACTIVE:
+			gtk_label_set_text (CAN_LABEL_BOOL_TO_LABEL (label), label->inactiveValue);
+			break;
+
+		case CAN_LABEL_BOOL_INVALID:
+			gtk_label_set_text (CAN_LABEL_BOOL_TO_LABEL (label), label->invalidValue);
+			break;
+		}
+
+	}
 }
 
 void canProgessBarInit (canProgressBar_t* bar, canDatabase_t* database)

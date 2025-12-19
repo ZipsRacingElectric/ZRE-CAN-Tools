@@ -23,6 +23,8 @@ typedef struct
 	GtkWidget* widget;
 	canProgressBar_t bse;
 	canProgressBar_t apps;
+	canLabelBool_t dataLoggerStatus;
+	canLabelFloat_t dataLoggerSession;
 	canLabelFloat_t glvVoltage;
 	canLabelFloat_t hvVoltage;
 	canLabelFloat_t inverterMaxTemp;
@@ -33,6 +35,9 @@ typedef struct
 	canLabelFloat_t speed;
 	canIndicator_t drsStatus;
 	canIndicator_t vcuFault;
+	canIndicator_t bmsFault;
+	canIndicator_t amkFault;
+	canIndicator_t gpsFault;
 } pageAutox_t;
 
 #define PAGE_AUTOX_TO_WIDGET(page) ((page)->widget)

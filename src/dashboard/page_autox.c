@@ -4,11 +4,13 @@
 // Includes
 #include "gtk_util.h"
 
-#define CENTER_TITLE_FONT	"ITC Avant Garde Gothic CE Book 22px"
-#define CENTER_VALUE_FONT	"Technology Bold 200px"
-#define PANEL_TITLE_FONT	"Futura Std Bold Condensed 26px"
-#define PANEL_STAT_FONT		"ITC Avant Garde Gothic CE Book 26px"
-#define FAULT_NAME_FONT		"Futura Std Bold Condensed 32px @color=#000000"
+#define DATA_LOGGER_TITLE_FONT	"Futura Std Bold Condensed 36px"
+#define DATA_LOGGER_STAT_FONT	"ITC Avant Garde Gothic CE Book 26px"
+#define CENTER_TITLE_FONT		"ITC Avant Garde Gothic CE Book 22px"
+#define CENTER_VALUE_FONT		"Technology Bold 200px"
+#define PANEL_TITLE_FONT		"Futura Std Bold Condensed 26px"
+#define PANEL_STAT_FONT			"ITC Avant Garde Gothic CE Book 26px"
+#define FAULT_NAME_FONT			"Futura Std Bold Condensed 32px @color=#000000"
 
 void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 {
@@ -25,28 +27,51 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	canProgessBarInit (&page->bse, database);
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (CAN_PROGRESS_BAR_TO_WIDGET (&page->bse)), GTK_ORIENTATION_VERTICAL);
 	gtk_progress_bar_set_inverted (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (&page->bse), true);
-	gtk_grid_attach (GTK_GRID (page->widget), CAN_PROGRESS_BAR_TO_WIDGET (&page->bse), 0, 0, 1, 2);
+	gtk_widget_set_vexpand (CAN_PROGRESS_BAR_TO_WIDGET (&page->bse), true);
+	gtk_widget_set_size_request (CAN_PROGRESS_BAR_TO_WIDGET (&page->bse), 20, 0);
+	gtk_grid_attach (GTK_GRID (page->widget), CAN_PROGRESS_BAR_TO_WIDGET (&page->bse), 0, 0, 1, 6);
 
-	GtkWidget* subGrid = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (page->widget), subGrid, 1, 0, 1, 1);
+	GtkWidget* dataLoggerPanel = gtk_grid_new ();
+	gtk_grid_attach (GTK_GRID (page->widget), dataLoggerPanel, 1, 1, 2, 2);
 
-	GtkWidget* frame = gtk_frame_new ("");
-	gtk_grid_attach (GTK_GRID (subGrid), frame, 0, 1, 1, 1);
-	gtk_widget_set_vexpand (frame, true);
-	gtk_widget_set_size_request (frame, 50, 0);
+	page->dataLoggerStatus = (canLabelBool_t)
+	{
+		.signalName		= "MIN_BUS_LOAD",
+		.activeValue	= "Logging: On",
+		.inactiveValue	= "Logging: On",
+		.invalidValue	= "Logging: Off",
+		.threshold		= 0,
+		.inverted		= true
+	};
+	canLabelBoolInit (&page->dataLoggerStatus, database);
+	gtkLabelSetFont (CAN_LABEL_BOOL_TO_LABEL (&page->dataLoggerStatus), DATA_LOGGER_TITLE_FONT);
+	gtk_label_set_xalign (CAN_LABEL_BOOL_TO_LABEL (&page->dataLoggerStatus), 0);
+	gtk_grid_attach (GTK_GRID (dataLoggerPanel), CAN_LABEL_BOOL_TO_WIDGET (&page->dataLoggerStatus), 0, 0, 1, 1);
 
-	frame = gtk_frame_new ("Data Logger");
-	gtk_grid_attach (GTK_GRID (subGrid), frame, 0, 0, 2, 1);
-	gtk_widget_set_size_request (frame, 200, 150);
+	page->dataLoggerSession = (canLabelFloat_t)
+	{
+		.signalName		= "SESSION_NUMBER",
+		.formatValue	= "Session\nNo. %.0f",
+		.formatInvalid	= "Session\nNo. %s",
+	};
+	canLabelFloatInit (&page->dataLoggerSession, database);
+	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->dataLoggerSession), DATA_LOGGER_STAT_FONT);
+	gtk_label_set_xalign (CAN_LABEL_BOOL_TO_LABEL (&page->dataLoggerSession), 0);
+	gtk_grid_attach (GTK_GRID (dataLoggerPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->dataLoggerSession), 0, 1, 1, 1);
+
+	GtkWidget* padding = gtk_grid_new ();
+	gtk_widget_set_size_request (padding, 80, 0);
+	gtk_grid_attach (GTK_GRID (page->widget), padding, 1, 3, 1, 1);
 
 	GtkWidget* leftPanel = gtk_grid_new ();
 	gtk_widget_set_margin_start (leftPanel, 10);
 	gtk_widget_set_margin_end (leftPanel, 10);
-	gtk_grid_attach (GTK_GRID (subGrid), leftPanel, 1, 1, 1, 1);
+	gtk_widget_set_valign (leftPanel, GTK_ALIGN_CENTER);
+	gtk_grid_attach (GTK_GRID (page->widget), leftPanel, 2, 3, 1, 1);
 
 	GtkWidget* label = gtk_label_new ("Torque Config");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
-	gtk_widget_set_size_request (label, 200, 0);
+	gtk_widget_set_size_request (label, 180, 0);
 	gtk_label_set_xalign (GTK_LABEL (label), 0.5);
 	gtk_grid_attach (GTK_GRID (leftPanel), label, 0, 0, 2, 1);
 
@@ -58,13 +83,13 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	page->drivingTorque = (canLabelFloat_t)
 	{
 		.signalName		= "DRIVING_TORQUE_LIMIT",
-		.formatValue	= "%.1f%s",
+		.formatValue	= "%.0f%s",
 		.formatInvalid	= "%s%s"
 	};
 	canLabelFloatInit (&page->drivingTorque, database);
-	gtkLabelSetFont (CAN_LABEL_TO_LABEL (&page->drivingTorque), PANEL_STAT_FONT);
-	gtk_widget_set_halign (CAN_LABEL_TO_WIDGET (&page->drivingTorque), GTK_ALIGN_END);
-	gtk_grid_attach (GTK_GRID (leftPanel), CAN_LABEL_TO_WIDGET (&page->drivingTorque), 1, 1, 1, 1);
+	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->drivingTorque), PANEL_STAT_FONT);
+	gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->drivingTorque), GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (leftPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->drivingTorque), 1, 1, 1, 1);
 
 	label = gtk_label_new ("Regen:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
@@ -74,13 +99,13 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	page->regenTorque = (canLabelFloat_t)
 	{
 		.signalName		= "REGEN_TORQUE_LIMIT",
-		.formatValue	= "%.1f%s",
+		.formatValue	= "%.0f%s",
 		.formatInvalid	= "%s%s"
 	};
 	canLabelFloatInit (&page->regenTorque, database);
-	gtkLabelSetFont (CAN_LABEL_TO_LABEL (&page->regenTorque), PANEL_STAT_FONT);
-	gtk_widget_set_halign (CAN_LABEL_TO_WIDGET (&page->regenTorque), GTK_ALIGN_END);
-	gtk_grid_attach (GTK_GRID (leftPanel), CAN_LABEL_TO_WIDGET (&page->regenTorque), 1, 2, 1, 1);
+	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->regenTorque), PANEL_STAT_FONT);
+	gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->regenTorque), GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (leftPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->regenTorque), 1, 2, 1, 1);
 
 	label = gtk_label_new ("Index:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
@@ -90,13 +115,13 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	page->torqueIndex = (canLabelFloat_t)
 	{
 		.signalName		= "TORQUE_ALGORITHM_INDEX",
-		.formatValue	= "%.1f",
+		.formatValue	= "%.0f",
 		.formatInvalid	= "%s"
 	};
 	canLabelFloatInit (&page->torqueIndex, database);
-	gtkLabelSetFont (CAN_LABEL_TO_LABEL (&page->torqueIndex), PANEL_STAT_FONT);
-	gtk_widget_set_halign (CAN_LABEL_TO_WIDGET (&page->torqueIndex), GTK_ALIGN_END);
-	gtk_grid_attach (GTK_GRID (leftPanel), CAN_LABEL_TO_WIDGET (&page->torqueIndex), 1, 3, 1, 1);
+	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->torqueIndex), PANEL_STAT_FONT);
+	gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->torqueIndex), GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (leftPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->torqueIndex), 1, 3, 1, 1);
 
 	label = gtk_label_new ("DRS:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
@@ -105,7 +130,7 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 
 	page->drsStatus = (canIndicator_t)
 	{
-		.signalName 	= "APPS_1_PERCENT",
+		.signalName 	= "TODO",
 		.threshold		= 25,
 		.inverted		= true,
 		.points			= NULL,
@@ -119,8 +144,10 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	gtk_widget_set_halign (CAN_INDICATOR_TO_WIDGET (&page->drsStatus), GTK_ALIGN_END);
 	gtk_grid_attach (GTK_GRID (leftPanel), CAN_INDICATOR_TO_WIDGET (&page->drsStatus), 1, 4, 1, 1);
 
-	subGrid = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (page->widget), subGrid, 2, 0, 1, 1);
+	GtkWidget* faultPanel = gtk_grid_new ();
+	gtk_widget_set_margin_top (faultPanel, 10);
+	gtk_widget_set_margin_bottom (faultPanel, 10);
+	gtk_grid_attach (GTK_GRID (page->widget), faultPanel, 3, 0, 2, 2);
 
 	static float points [][2] =
 	{
@@ -183,9 +210,9 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 
 	page->vcuFault = (canIndicator_t)
 	{
-		.signalName	= "VEHICLE_STATE",
+		.signalName	= "VCU_FAULT",
 		.threshold	= 0.5f,
-		.inverted	= true,
+		.inverted	= false,
 		.points		= points,
 		.pointCount	= sizeof (points) / sizeof (points [0]),
 		.activeColor	= {1, 0, 0, 1},
@@ -193,53 +220,107 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 		.invalidColor	= {1, 0, 0, 1}
 	};
 	canIndicatorInit (&page->vcuFault, database, 100, 42);
-	gtk_grid_attach (GTK_GRID (subGrid), CAN_INDICATOR_TO_WIDGET (&page->vcuFault), 0, 0, 1, 1);
+	gtk_widget_set_hexpand (CAN_INDICATOR_TO_WIDGET (&page->vcuFault), true);
+	gtk_grid_attach (GTK_GRID (faultPanel), CAN_INDICATOR_TO_WIDGET (&page->vcuFault), 0, 0, 1, 1);
+
 	label = gtk_label_new ("VCU");
 	gtkLabelSetFont (GTK_LABEL (label), FAULT_NAME_FONT);
 	gtkLabelSetColor (GTK_LABEL (label), "#000000");
-	gtk_grid_attach (GTK_GRID (subGrid), label, 0, 0, 1, 1);
+	gtk_grid_attach (GTK_GRID (faultPanel), label, 0, 0, 1, 1);
 
-	GtkWidget* centerPanel = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (subGrid), centerPanel, 0, 1, 1, 1);
+	page->bmsFault = (canIndicator_t)
+	{
+		.signalName	= "BMS_FAULT",
+		.threshold	= 0.5f,
+		.inverted	= false,
+		.points		= points,
+		.pointCount	= sizeof (points) / sizeof (points [0]),
+		.activeColor	= {1, 0, 0, 1},
+		.inactiveColor	= {0.25f, 0.25f, 0.25f, 1},
+		.invalidColor	= {1, 0, 0, 1}
+	};
+	canIndicatorInit (&page->bmsFault, database, 100, 42);
+	gtk_widget_set_hexpand (CAN_INDICATOR_TO_WIDGET (&page->bmsFault), true);
+	gtk_grid_attach (GTK_GRID (faultPanel), CAN_INDICATOR_TO_WIDGET (&page->bmsFault), 1, 0, 1, 1);
+
+	label = gtk_label_new ("BMS");
+	gtkLabelSetFont (GTK_LABEL (label), FAULT_NAME_FONT);
+	gtkLabelSetColor (GTK_LABEL (label), "#000000");
+	gtk_grid_attach (GTK_GRID (faultPanel), label, 1, 0, 1, 1);
+
+	page->amkFault = (canIndicator_t)
+	{
+		.signalName	= "AMK_FAULT",
+		.threshold	= 0.5f,
+		.inverted	= false,
+		.points		= points,
+		.pointCount	= sizeof (points) / sizeof (points [0]),
+		.activeColor	= {1, 0, 0, 1},
+		.inactiveColor	= {0.25f, 0.25f, 0.25f, 1},
+		.invalidColor	= {1, 0, 0, 1}
+	};
+	canIndicatorInit (&page->amkFault, database, 100, 42);
+	gtk_widget_set_hexpand (CAN_INDICATOR_TO_WIDGET (&page->amkFault), true);
+	gtk_grid_attach (GTK_GRID (faultPanel), CAN_INDICATOR_TO_WIDGET (&page->amkFault), 2, 0, 1, 1);
+
+	label = gtk_label_new ("AMK");
+	gtkLabelSetFont (GTK_LABEL (label), FAULT_NAME_FONT);
+	gtkLabelSetColor (GTK_LABEL (label), "#000000");
+	gtk_grid_attach (GTK_GRID (faultPanel), label, 2, 0, 1, 1);
+
+	page->gpsFault = (canIndicator_t)
+	{
+		.signalName	= "GPS_STATUS",
+		.threshold	= 2.5f,
+		.inverted	= true,
+		.points		= points,
+		.pointCount	= sizeof (points) / sizeof (points [0]),
+		.activeColor	= {1, 0, 0, 1},
+		.inactiveColor	= {0.25f, 0.25f, 0.25f, 1},
+		.invalidColor	= {1, 0, 0, 1}
+	};
+	canIndicatorInit (&page->gpsFault, database, 100, 42);
+	gtk_widget_set_hexpand (CAN_INDICATOR_TO_WIDGET (&page->gpsFault), true);
+	gtk_grid_attach (GTK_GRID (faultPanel), CAN_INDICATOR_TO_WIDGET (&page->gpsFault), 3, 0, 1, 1);
+
+	label = gtk_label_new ("GPS");
+	gtkLabelSetFont (GTK_LABEL (label), FAULT_NAME_FONT);
+	gtkLabelSetColor (GTK_LABEL (label), "#000000");
+	gtk_grid_attach (GTK_GRID (faultPanel), label, 3, 0, 1, 1);
 
 	label = gtk_label_new ("Vehicle Speed (Km/h):");
 	gtkLabelSetFont (GTK_LABEL (label), CENTER_TITLE_FONT);
 	gtk_label_set_xalign (GTK_LABEL (label), 0);
-	gtk_grid_attach (GTK_GRID (centerPanel), label, 0, 0, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->widget), label, 3, 2, 1, 1);
 
 	page->speed = (canLabelFloat_t)
 	{
 		.signalName		= "SPEED",
-		.formatValue	= "%.0f",
-		.formatInvalid	= "%s"
+		.formatValue	= "%02.0f",
+		.formatInvalid	= "XX"
 	};
 	canLabelFloatInit (&page->speed, database);
-	gtkLabelSetFont (CAN_LABEL_TO_LABEL (&page->speed), CENTER_VALUE_FONT);
-	gtk_widget_set_hexpand (CAN_LABEL_TO_WIDGET (&page->speed), true);
-	gtk_widget_set_vexpand (CAN_LABEL_TO_WIDGET (&page->speed), true);
-	gtk_grid_attach (GTK_GRID (centerPanel), CAN_LABEL_TO_WIDGET (&page->speed), 0, 1, 1, 1);
+	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->speed), CENTER_VALUE_FONT);
+	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_TO_WIDGET (&page->speed), true);
+	gtk_widget_set_vexpand (CAN_LABEL_FLOAT_TO_WIDGET (&page->speed), true);
+	gtk_grid_attach (GTK_GRID (page->widget), CAN_LABEL_FLOAT_TO_WIDGET (&page->speed), 3, 3, 1, 1);
 
 	GtkWidget* rightPanel = gtk_grid_new ();
 	gtk_widget_set_margin_start (rightPanel, 10);
 	gtk_widget_set_margin_end (rightPanel, 10);
-	gtk_grid_attach (GTK_GRID (page->widget), rightPanel, 3, 0, 1, 1);
-	// gtk_widget_set_size_request (rightPanel, 200, 0);
+	gtk_widget_set_valign (rightPanel, GTK_ALIGN_CENTER);
+	gtk_grid_attach (GTK_GRID (page->widget), rightPanel, 4, 3, 1, 1);
 
-	frame = gtk_frame_new ("");
-	gtk_widget_set_size_request (frame, 0, 150);
-	gtk_grid_attach (GTK_GRID (rightPanel), frame, 0, 0, 2, 1);
 	label = gtk_label_new ("Powertrain");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
-	// gtk_widget_set_halign (label, GTK_ALIGN_FILL);
-	gtk_widget_set_size_request (label, 200, 0);
+	gtk_widget_set_size_request (label, 180, 0);
 	gtk_label_set_xalign (GTK_LABEL (label), 0.5);
-	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 1, 2, 1);
-	// gtk_widget_set_hexpand (label, true);
+	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 0, 2, 1);
 
 	label = gtk_label_new ("GLV:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 2, 1, 1);
+	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 1, 1, 1);
 
 	page->glvVoltage = (canLabelFloat_t)
 	{
@@ -248,14 +329,14 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatInit (&page->glvVoltage, database);
-	gtkLabelSetFont (CAN_LABEL_TO_LABEL (&page->glvVoltage), PANEL_STAT_FONT);
-	gtk_widget_set_halign (CAN_LABEL_TO_WIDGET (&page->glvVoltage), GTK_ALIGN_END);
-	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_TO_WIDGET (&page->glvVoltage), 1, 2, 1, 1);
+	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->glvVoltage), PANEL_STAT_FONT);
+	gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->glvVoltage), GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->glvVoltage), 1, 1, 1, 1);
 
 	label = gtk_label_new ("HV:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 3, 1, 1);
+	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 2, 1, 1);
 
 	page->hvVoltage = (canLabelFloat_t)
 	{
@@ -264,69 +345,65 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatInit (&page->hvVoltage, database);
-	gtkLabelSetFont (CAN_LABEL_TO_LABEL (&page->hvVoltage), PANEL_STAT_FONT);
-	gtk_widget_set_halign (CAN_LABEL_TO_WIDGET (&page->hvVoltage), GTK_ALIGN_END);
-	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_TO_WIDGET (&page->hvVoltage), 1, 3, 1, 1);
+	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->hvVoltage), PANEL_STAT_FONT);
+	gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->hvVoltage), GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->hvVoltage), 1, 2, 1, 1);
 
 	label = gtk_label_new ("Inv:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 4, 1, 1);
+	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 3, 1, 1);
 
 	page->inverterMaxTemp = (canLabelFloat_t)
 	{
-		.signalName		= "TODO",
+		.signalName		= "AMK_INVERTER_TEMPERATURE_MAX",
 		.formatValue	= "%.1f %s",
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatInit (&page->inverterMaxTemp, database);
-	gtkLabelSetFont (CAN_LABEL_TO_LABEL (&page->inverterMaxTemp), PANEL_STAT_FONT);
-	gtk_widget_set_halign (CAN_LABEL_TO_WIDGET (&page->inverterMaxTemp), GTK_ALIGN_END);
-	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_TO_WIDGET (&page->inverterMaxTemp), 1, 4, 1, 1);
+	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->inverterMaxTemp), PANEL_STAT_FONT);
+	gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->inverterMaxTemp), GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->inverterMaxTemp), 1, 3, 1, 1);
 
 	label = gtk_label_new ("Mtr:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 5, 1, 1);
+	gtk_grid_attach (GTK_GRID (rightPanel), label, 0, 4, 1, 1);
 
 	page->motorMaxTemp = (canLabelFloat_t)
 	{
-		.signalName		= "TODO",
+		.signalName		= "AMK_MOTOR_TEMPERATURE_MAX",
 		.formatValue	= "%.1f %s",
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatInit (&page->motorMaxTemp, database);
-	gtkLabelSetFont (CAN_LABEL_TO_LABEL (&page->motorMaxTemp), PANEL_STAT_FONT);
-	gtk_widget_set_halign (CAN_LABEL_TO_WIDGET (&page->motorMaxTemp), GTK_ALIGN_END);
-	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_TO_WIDGET (&page->motorMaxTemp), 1, 5, 1, 1);
+	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->motorMaxTemp), PANEL_STAT_FONT);
+	gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->motorMaxTemp), GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->motorMaxTemp), 1, 4, 1, 1);
 
-	subGrid = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (page->widget), subGrid, 1, 1, 3, 1);
-
-	frame = gtk_frame_new ("");
-	gtk_grid_attach (GTK_GRID (subGrid), frame, 0, 0, 1, 1);
-	gtk_widget_set_size_request (frame, 50, 0);
+	GtkWidget* buttonPanel = gtk_grid_new ();
+	gtk_grid_attach (GTK_GRID (page->widget), buttonPanel, 2, 5, 3, 1);
 
 	GtkWidget* button = gtk_button_new ();
-	gtk_grid_attach (GTK_GRID (subGrid), button, 1, 0, 1, 1);
-	gtk_widget_set_hexpand (button, true);
-
-	button = gtk_button_new ();
-	gtk_grid_attach (GTK_GRID (subGrid), button, 2, 0, 1, 1);
-	gtk_widget_set_hexpand (button, true);
-
-	button = gtk_button_new ();
-	gtk_grid_attach (GTK_GRID (subGrid), button, 3, 0, 1, 1);
-	gtk_widget_set_hexpand (button, true);
-
-	button = gtk_button_new ();
-	gtk_grid_attach (GTK_GRID (subGrid), button, 4, 0, 1, 1);
-	gtk_widget_set_hexpand (button, true);
-
-	button = gtk_button_new ();
-	gtk_grid_attach (GTK_GRID (subGrid), button, 5, 0, 1, 1);
-	gtk_widget_set_hexpand (button, true);
 	gtk_widget_set_size_request (button, 0, 90);
+	gtk_widget_set_hexpand (button, true);
+	gtk_grid_attach (GTK_GRID (buttonPanel), button, 0, 0, 1, 1);
+
+	button = gtk_button_new ();
+	gtk_widget_set_hexpand (button, true);
+	gtk_grid_attach (GTK_GRID (buttonPanel), button, 1, 0, 1, 1);
+
+	button = gtk_button_new ();
+	gtk_widget_set_hexpand (button, true);
+	gtk_grid_attach (GTK_GRID (buttonPanel), button, 2, 0, 1, 1);
+
+	button = gtk_button_new ();
+	gtk_widget_set_hexpand (button, true);
+	gtk_grid_attach (GTK_GRID (buttonPanel), button, 3, 0, 1, 1);
+
+	button = gtk_button_new ();
+	gtk_widget_set_hexpand (button, true);
+	gtk_grid_attach (GTK_GRID (buttonPanel), button, 4, 0, 1, 1);
 
 	page->apps = (canProgressBar_t)
 	{
@@ -337,13 +414,17 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	canProgessBarInit (&page->apps, database);
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (CAN_PROGRESS_BAR_TO_WIDGET (&page->apps)), GTK_ORIENTATION_VERTICAL);
 	gtk_progress_bar_set_inverted (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (&page->apps), true);
-	gtk_grid_attach (GTK_GRID (page->widget), CAN_PROGRESS_BAR_TO_WIDGET (&page->apps), 4, 0, 1, 2);
+	gtk_widget_set_vexpand (CAN_PROGRESS_BAR_TO_WIDGET (&page->apps), true);
+	gtk_widget_set_size_request (CAN_PROGRESS_BAR_TO_WIDGET (&page->apps), 20, 0);
+	gtk_grid_attach (GTK_GRID (page->widget), CAN_PROGRESS_BAR_TO_WIDGET (&page->apps), 5, 0, 1, 6);
 }
 
 void pageAutoxUpdate (pageAutox_t* page)
 {
 	canProgressBarUpdate (&page->bse);
 	canProgressBarUpdate (&page->apps);
+	canLabelBoolUpdate (&page->dataLoggerStatus);
+	canLabelFloatUpdate (&page->dataLoggerSession);
 	canLabelFloatUpdate (&page->glvVoltage);
 	canLabelFloatUpdate (&page->hvVoltage);
 	canLabelFloatUpdate (&page->inverterMaxTemp);
@@ -354,4 +435,7 @@ void pageAutoxUpdate (pageAutox_t* page)
 	canLabelFloatUpdate (&page->speed);
 	canIndicatorUpdate (&page->drsStatus);
 	canIndicatorUpdate (&page->vcuFault);
+	canIndicatorUpdate (&page->bmsFault);
+	canIndicatorUpdate (&page->amkFault);
+	canIndicatorUpdate (&page->gpsFault);
 }

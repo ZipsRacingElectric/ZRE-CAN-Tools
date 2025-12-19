@@ -28,8 +28,32 @@ typedef struct
 	ssize_t index;
 } canLabelFloat_t;
 
-#define CAN_LABEL_TO_LABEL(label) GTK_LABEL ((label)->widget)
-#define CAN_LABEL_TO_WIDGET(label) ((label)->widget)
+#define CAN_LABEL_FLOAT_TO_LABEL(label) GTK_LABEL ((label)->widget)
+#define CAN_LABEL_FLOAT_TO_WIDGET(label) ((label)->widget)
+
+typedef enum
+{
+	CAN_LABEL_BOOL_INVALID,
+	CAN_LABEL_BOOL_ACTIVE,
+	CAN_LABEL_BOOL_INACTIVE
+} canLabelBoolState_t;
+
+typedef struct
+{
+	GtkWidget* widget;
+	const char* signalName;
+	const char* activeValue;
+	const char* inactiveValue;
+	const char* invalidValue;
+	float threshold;
+	bool inverted;
+	canLabelBoolState_t state;
+	canDatabase_t* database;
+	ssize_t index;
+} canLabelBool_t;
+
+#define CAN_LABEL_BOOL_TO_LABEL(label) GTK_LABEL ((label)->widget)
+#define CAN_LABEL_BOOL_TO_WIDGET(label) ((label)->widget)
 
 typedef struct
 {
@@ -76,6 +100,10 @@ typedef struct
 void canLabelFloatInit (canLabelFloat_t* label, canDatabase_t* database);
 
 void canLabelFloatUpdate (canLabelFloat_t* label);
+
+void canLabelBoolInit (canLabelBool_t* label, canDatabase_t* database);
+
+void canLabelBoolUpdate (canLabelBool_t* label);
 
 void canProgessBarInit (canProgressBar_t* bar, canDatabase_t* database);
 
