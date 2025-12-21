@@ -6,7 +6,7 @@
 
 typedef struct
 {
-	const char* applicationName;
+	const char* applicationTitle;
 	const char* applicationId;
 	canDatabase_t* database;
 } activateArg_t;
@@ -59,7 +59,7 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 {
 	// Create a new window and set its title
 	GtkWidget* window = gtk_application_window_new (app);
-	gtk_window_set_title (GTK_WINDOW (window), arg->applicationName);
+	gtk_window_set_title (GTK_WINDOW (window), arg->applicationTitle);
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
 
 	pageAutox_t* page = malloc (sizeof (pageAutox_t));
@@ -81,16 +81,30 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	g_signal_connect (GTK_WINDOW (window), "destroy", G_CALLBACK (gtkDestroyHandler), timeout);
 }
 
+static char* getApplicationTitle (const char* applicationName)
+{
+	size_t length = snprintf (NULL, 0, "dashboard - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) + 1;
+
+	char* title = malloc (length);
+	if (title == NULL)
+		return NULL;
+
+	if (snprintf (title, length, "dashboard - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) < 0)
+		return NULL;
+
+	return title;
+}
+
 static char* getApplicationId (const char* applicationName)
 {
 	const char* APPLICATION_DOMAIN = "org.zre";
-	size_t length = strlen (APPLICATION_DOMAIN) + 1 + strlen (applicationName) + 1;
+	size_t length = snprintf (NULL, 0, "%s.dashboard-%s", APPLICATION_DOMAIN, applicationName) + 1;
 
 	char* id = malloc (length);
 	if (id == NULL)
 		return NULL;
 
-	if (snprintf (id, length, "%s.%s", APPLICATION_DOMAIN, applicationName) < 0)
+	if (snprintf (id, length, "%s.dashboard-%s", APPLICATION_DOMAIN, applicationName) < 0)
 		return NULL;
 
 	return id;
@@ -111,6 +125,8 @@ int main (int argc, char** argv)
 
 	debugInit ();
 
+	debugSetStream (stderr);
+
 	// Initialize the CAN device
 	char* deviceName = argv [2];
 	canDevice_t* device = canInit (deviceName);
@@ -125,13 +141,20 @@ int main (int argc, char** argv)
 
 	// Create application ID from application name
 	char* applicationName = argv [1];
+	char* applicationTitle = getApplicationTitle (applicationName);
+	if (applicationTitle == NULL)
+		return errorPrintf ("Failed to create application title");
+
 	char* applicationId = getApplicationId (applicationName);
 	if (applicationId == NULL)
 		return errorPrintf ("Failed to create application name");
 
+	debugPrintf ("Application ID: '%s'\n", applicationId);
+	debugPrintf ("Application Title '%s'\n", applicationTitle);
+
 	activateArg_t arg =
 	{
-		.applicationName	= applicationName,
+		.applicationTitle	= applicationTitle,
 		.applicationId		= applicationId,
 		.database			= &database
 	};
@@ -143,6 +166,7 @@ int main (int argc, char** argv)
 	g_object_unref (app);
 
 	// Deallocate the application ID.
+	free (applicationTitle);
 	free (applicationId);
 
 	// Exit
