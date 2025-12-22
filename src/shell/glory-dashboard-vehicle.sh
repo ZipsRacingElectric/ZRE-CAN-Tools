@@ -10,4 +10,4 @@ if [ "$?" != 0 ]; then
 fi
 
 # Start the application
-$ZRE_CANTOOLS_DIR/bin/dashboard glory $DEVICE $ZRE_CANTOOLS_DIR/config/zr25_glory/can_vehicle.dbc
+$ZRE_CANTOOLS_DIR/bin/dashboard-gui glory $DEVICE $ZRE_CANTOOLS_DIR/config/zr25_glory/can_vehicle.dbc

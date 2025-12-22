@@ -1,7 +1,7 @@
 ROOT_DIR := ../..
 include $(ROOT_DIR)/include.mk
 
-BIN := $(BIN_DIR)/dashboard
+BIN := $(BIN_DIR)/dashboard-gui
 SRC :=	main.c				\
 		can_widgets.c		\
 		gtk_util.c			\

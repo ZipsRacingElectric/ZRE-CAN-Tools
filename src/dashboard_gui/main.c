@@ -6,14 +6,16 @@
 // GTK
 #include <gtk/gtk.h>
 
-static void fprintHelp (FILE* stream)
-{
-	fprintf (stream, "TODO(Barach)\n");
-}
-
 static void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Invalid usage: dashboard <Application Name> <Device Name> <DBC File Path>\n");
+	fprintf (stream, "Usage: dashboard-gui <Options> <Application Name> <Device Name> <DBC File Path>\n");
+}
+
+static void fprintHelp (FILE* stream)
+{
+	fprintf (stream, "dashboard-gui\n\n");
+	fprintUsage (stream);
+	fprintf (stream, "\n");
 }
 
 typedef struct
