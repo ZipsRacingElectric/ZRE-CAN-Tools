@@ -1,8 +1,20 @@
+// Includes
 #include "debug.h"
 #include "page_autox.h"
+#include "options.h"
 
 // GTK
 #include <gtk/gtk.h>
+
+static void fprintHelp (FILE* stream)
+{
+	fprintf (stream, "TODO(Barach)\n");
+}
+
+static void fprintUsage (FILE* stream)
+{
+	fprintf (stream, "Invalid usage: dashboard <Application Name> <Device Name> <DBC File Path>\n");
+}
 
 typedef struct
 {
@@ -114,33 +126,48 @@ int main (int argc, char** argv)
 {
 	// TODO(Barach): Instancing multiple apps is weird? Consider passing args into app name?
 
-	GtkApplication* app;
-	int status;
+	// Debug initialization
+	debugInit ();
 
-	if (argc != 4)
+	// Check standard arguments
+	for (int index = 1; index < argc; ++index)
 	{
-		fprintf (stderr, "Invalid usage: dashboard <Application Name> <Device Name> <DBC File Path>\n");
+		switch (handleOption (argv [index], NULL, fprintHelp))
+		{
+		case OPTION_CHAR:
+		case OPTION_STRING:
+			fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
+			return -1;
+
+		case OPTION_QUIT:
+			return 0;
+
+		default:
+			break;
+		}
+	}
+
+	// Validate usage
+	if (argc < 4)
+	{
+		fprintUsage (stderr);
 		return -1;
 	}
 
-	debugInit ();
-
-	debugSetStream (stderr);
-
 	// Initialize the CAN device
-	char* deviceName = argv [2];
+	char* deviceName = argv [argc - 2];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
 	// Initialize the CAN database
 	canDatabase_t database;
-	char* dbcPath = argv [3];
+	char* dbcPath = argv [argc - 1];
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
 		return errorPrintf ("Failed to initialize CAN database");
 
 	// Create application ID from application name
-	char* applicationName = argv [1];
+	char* applicationName = argv [argc - 3];
 	char* applicationTitle = getApplicationTitle (applicationName);
 	if (applicationTitle == NULL)
 		return errorPrintf ("Failed to create application title");
@@ -160,9 +187,9 @@ int main (int argc, char** argv)
 	};
 
 	// Create the GTK application bound to the activation signal
-	app = gtk_application_new (applicationId, G_APPLICATION_DEFAULT_FLAGS);
+	GtkApplication* app = gtk_application_new (applicationId, G_APPLICATION_DEFAULT_FLAGS);
 	g_signal_connect (app, "activate", G_CALLBACK (gtkActivate), &arg);
-	status = g_application_run (G_APPLICATION (app), argc - 3, argv);
+	int status = g_application_run (G_APPLICATION (app), 1, argv);
 	g_object_unref (app);
 
 	// Deallocate the application ID.
