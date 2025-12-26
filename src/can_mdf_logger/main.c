@@ -21,6 +21,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <signal.h>
+#include <stdlib.h>
 
 // Globals --------------------------------------------------------------------------------------------------------------------
 
@@ -28,11 +29,15 @@ bool logging = true;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-void testSystemTick ()
+void testSystemTick (char option, char* value)
 {
+	(void) option;
+	(void) value;
+
 	struct timespec res;
 	clock_getres (CLOCK_MONOTONIC, &res);
-	printf ("%lins\n", res.tv_nsec);
+	printf ("%li ns\n", res.tv_nsec);
+	exit (0);
 }
 
 void sigtermHandler (int sig)
@@ -45,7 +50,10 @@ void sigtermHandler (int sig)
 
 void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: can-mdf-logger <Options> <Device Name> <MDF file>.\n");
+	fprintf (stream, ""
+		"Usage:\n"
+		"    can-mdf-logger <Options> <MDF file> <Channel 1 Device Name>.\n"
+		"    can-mdf-logger <Options> <MDF file> <Channel 1 Device Name> <Channel 2 Device Name>.\n");
 }
 
 void fprintHelp (FILE* stream)
@@ -62,7 +70,10 @@ void fprintHelp (FILE* stream)
 	fprintCanDeviceNameHelp (stream, "    ");
 	fprintMdfFileHelp (stream, "    ");
 
-	fprintf (stream, "Options:\n\n");
+	fprintf (stream, ""
+		"Options:\n\n"
+		"    -r                    - Test the logging timer resolution. This is both OS\n"
+		"                            and hardware dependent\n");
 	fprintOptionHelp (stream, "    ");
 }
 
@@ -73,57 +84,57 @@ int main (int argc, char** argv)
 	// Debug initialization
 	debugInit ();
 
-	// Check standard arguments
-	for (int index = 1; index < argc; ++index)
+	// Handle program options
+	if (handleOptions (&argc, &argv, &(handleOptionsParams_t)
 	{
-		const char* option;
-		switch (handleOption (argv [index], &option, fprintHelp))
-		{
-		case OPTION_CHAR:
-			switch (option [0])
-			{
-			case 'r':
-				testSystemTick ();
-				return 0;
-			default:
-				fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
-				return -1;
-			}
-			break;
-
-		case OPTION_STRING:
-			fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
-			return -1;
-
-		case OPTION_QUIT:
-			return 0;
-
-		default:
-			break;
-		}
-	}
+		.fprintHelp		= fprintHelp,
+		.chars			= (char []) { 'r' },
+		.charHandlers	= (optionCharCallback_t* []) { testSystemTick },
+		.charCount		= 1,
+		.stringHandlers	= NULL,
+		.strings		= NULL,
+		.stringCount	= 0
+	}) != 0)
+		return errorPrintf ("Failed to handle options");
 
 	// Validate usage
-	if (argc < 3)
+	if (argc < 2 || argc > 3)
 	{
 		fprintUsage (stderr);
 		return -1;
 	}
 
-	// Initialize the CAN device
-	char* deviceName = argv [argc - 2];
-	canDevice_t* device = canInit (deviceName);
-	if (device == NULL)
-		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
+	// First arg is MDF file path
+	char* mdfFilePath = argv [0];
 
-	// Calculate the bit time from the bus baudrate.
-	canBaudrate_t baudrate = canGetBaudrate (device);
-	if (baudrate == CAN_BAUDRATE_UNKNOWN)
+	// Initialize the channel 1 CAN device
+	char* channel1DeviceName = argv [1];
+	canDevice_t* channel1 = canInit (channel1DeviceName);
+	if (channel1 == NULL)
+		return errorPrintf ("Failed to initialize channel 1 CAN device '%s'", channel1DeviceName);
+
+	// Require baudrate
+	if (canGetBaudrate (channel1) == CAN_BAUDRATE_UNKNOWN)
 	{
-		fprintf (stderr, "CAN device baudrate is required.\n");
+		fprintf (stderr, "Channel 1 CAN device missing baudrate.\n");
 		return -1;
 	}
-	float bitTime = canCalculateBitTime (baudrate);
+
+	// If provided, initialize the channel 2 CAN device
+	canDevice_t* channel2 = NULL;
+	if (argc == 3)
+	{
+		char* channel2DeviceName = argv [2];
+		channel2 = canInit (channel2DeviceName);
+		if (channel2 == NULL)
+			return errorPrintf ("Failed to initialize channel 2 CAN device '%s'", channel2DeviceName);
+
+		if (canGetBaudrate (channel2) == CAN_BAUDRATE_UNKNOWN)
+		{
+			fprintf (stderr, "Channel 2 CAN device missing baudrate.\n");
+			return -1;
+		}
+	}
 
 	// TODO(Barach): Internalize?
 	struct timespec logTime;
@@ -133,14 +144,14 @@ int main (int argc, char** argv)
 	mdfCanBusLogConfig_t config =
 	{
 		// TODO(Barach): How much can I change this?
-		.filePath			= argv [argc - 1],
+		.filePath			= mdfFilePath,
 		.programId			= "ZRECAN",
 		.softwareName		= "zre_cantools", // TODO(Barach): Want this to match the release name.
 		.softwareVersion	= ZRE_CANTOOLS_VERSION_FULL,
-		.hardwareVersion	= canGetDeviceType (device),
+		.hardwareVersion	= canGetDeviceType (channel1),
 		.serialNumber		= "0",
-		.channel1Baudrate	= canGetBaudrate (device),
-		.channel2Baudrate	= 0,
+		.channel1Baudrate	= canGetBaudrate (channel1),
+		.channel2Baudrate	= channel2 == NULL ? 0 : canGetBaudrate (channel2),
 		.dateStart			= time (NULL),
 		.timeStart			= logTime,
 		.storageSize		= 0,
@@ -163,7 +174,7 @@ int main (int argc, char** argv)
 		return errorPrintf ("Failed to bind SIGINT handler");
 
 	// Set a receive timeout so we can check for the termination signal.
-	canSetTimeout (device, 100);
+	canSetTimeout (channel1, 100);
 
 	// Status measurements
 	struct timespec timeStart;
@@ -176,11 +187,14 @@ int main (int argc, char** argv)
 	size_t minBitCount = 0;
 	size_t maxBitCount = 0;
 
+	// Calculate the bit time from the bus baudrate.
+	float bitTime = canCalculateBitTime (canGetBaudrate (channel1));
+
 	while (logging)
 	{
 		// Receive a CAN frame
 		canFrame_t frame;
-		int code = canReceive (device, &frame);
+		int code = canReceive (channel1, &frame);
 
 		// Get a timestamp for the frame
 		struct timespec timeCurrent;
@@ -249,7 +263,7 @@ int main (int argc, char** argv)
 			};
 
 			// Transmit the status message.
-			if (canTransmit (device, &statusFrame) != 0)
+			if (canTransmit (channel1, &statusFrame) != 0)
 				errorPrintf ("Warning, failed to transmit status message");
 
 			// Log the status frame.
@@ -271,7 +285,9 @@ int main (int argc, char** argv)
 	// Terminate the log gracefully
 	printf ("Closing MDF file...\n");
 	mdfCanBusLogClose (&log);
-	canDealloc (device);
+	if (channel2 != NULL)
+		canDealloc (channel2);
+	canDealloc (channel1);
 
 	return 0;
 }
