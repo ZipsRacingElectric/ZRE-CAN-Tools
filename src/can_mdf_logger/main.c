@@ -345,10 +345,12 @@ int main (int argc, char** argv)
 		.busChannel	= 2
 	};
 	pthread_t channel2Thread;
-	pthread_create (&channel2Thread, NULL, loggingThread, &channel2Arg);
+	if (channel2 != NULL)
+		pthread_create (&channel2Thread, NULL, loggingThread, &channel2Arg);
 
 	// Wait for both threads to terminate.
-	pthread_join (channel2Thread, NULL);
+	if (channel2 != NULL)
+		pthread_join (channel2Thread, NULL);
 	pthread_join (channel1Thread, NULL);
 
 	// Destroy the mutex.
