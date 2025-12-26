@@ -259,7 +259,7 @@ int main (int argc, char** argv)
 	if (channel1 == NULL)
 		return errorPrintf ("Failed to initialize channel 1 CAN device '%s'", channel1DeviceName);
 
-	// Require baudrate
+	// Require baudrate for bus load
 	if (canGetBaudrate (channel1) == CAN_BAUDRATE_UNKNOWN)
 	{
 		fprintf (stderr, "Channel 1 CAN device missing baudrate.\n");
@@ -275,6 +275,7 @@ int main (int argc, char** argv)
 		if (channel2 == NULL)
 			return errorPrintf ("Failed to initialize channel 2 CAN device '%s'", channel2DeviceName);
 
+		// Require baudrate for bus load
 		if (canGetBaudrate (channel2) == CAN_BAUDRATE_UNKNOWN)
 		{
 			fprintf (stderr, "Channel 2 CAN device missing baudrate.\n");
