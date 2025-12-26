@@ -17,6 +17,9 @@
 #include "options.h"
 #include "time_port.h"
 
+// POSIX
+#include <pthread.h>
+
 // C Standard Library
 #include <inttypes.h>
 #include <math.h>
@@ -75,6 +78,131 @@ void fprintHelp (FILE* stream)
 		"    -r                    - Test the logging timer resolution. This is both OS\n"
 		"                            and hardware dependent\n");
 	fprintOptionHelp (stream, "    ");
+}
+
+// Threads --------------------------------------------------------------------------------------------------------------------
+
+typedef struct
+{
+	canDevice_t* device;
+	mdfCanBusLog_t* log;
+	uint8_t busChannel;
+} loggingThreadArg_t;
+
+void* loggingThread (void* argPtr)
+{
+	loggingThreadArg_t* arg = argPtr;
+
+	// Set a receive timeout so we can check for the termination signal.
+	canSetTimeout (arg->device, 100);
+
+	// Status measurements
+	struct timespec timeStart;
+	clock_gettime (CLOCK_MONOTONIC, &timeStart);
+	struct timespec timeEnd = timespecAdd (&timeStart, &(struct timespec) { .tv_sec = 1 });
+
+	// Bus load measurements
+	size_t frameCount = 0;
+	size_t errorCount = 0;
+	size_t minBitCount = 0;
+	size_t maxBitCount = 0;
+
+	// Calculate the bit time from the bus baudrate.
+	float bitTime = canCalculateBitTime (canGetBaudrate (arg->device));
+
+	while (logging)
+	{
+		// Receive a CAN frame
+		canFrame_t frame;
+		int code = canReceive (arg->device, &frame);
+
+		// Get a timestamp for the frame
+		struct timespec timeCurrent;
+		clock_gettime (CLOCK_MONOTONIC, &timeCurrent);
+
+		// Check for success
+		if (code == 0)
+		{
+			if (!frame.rtr)
+			{
+				// Log data frame
+				if (mdfCanBusLogWriteDataFrame (arg->log, &frame, arg->busChannel, false, &timeCurrent) != 0)
+					errorPrintf ("Warning, failed to log CAN data frame");
+			}
+			else
+			{
+				// Log RTR frame
+				if (mdfCanBusLogWriteRemoteFrame (arg->log, &frame, arg->busChannel, false, &timeCurrent) != 0)
+					errorPrintf ("Warning, failed to log CAN remote frame");
+			}
+
+			// Measure the frame's size
+			++frameCount;
+			minBitCount += canGetMinBitCount (&frame);
+			maxBitCount += canGetMaxBitCount (&frame);
+		}
+		else if (canCheckBusError (code))
+		{
+			// If an error frame was generated, log it
+			if (mdfCanBusLogWriteErrorFrame (arg->log, &frame, arg->busChannel, false, code, &timeCurrent) != 0)
+				errorPrintf ("Warning, failed to log CAN error frame");
+
+			// Measure the error count
+			++errorCount;
+		}
+
+		// Print status message
+		if (timespecCompare (&timeCurrent, &timeEnd, >))
+		{
+			// Calculate the actual measurement period
+			struct timespec period = timespecSub (&timeCurrent, &timeStart);
+
+			// Calculate the min and max loads
+			float maxLoad = canCalculateBusLoad (maxBitCount, bitTime, period);
+			float minLoad = canCalculateBusLoad (minBitCount, bitTime, period);
+
+			// Print the status message
+			printf ("Channel %u,   Bus Load: [%6.2f%%, %6.2f%%],   CAN Frames Received: %5lu,   Error Frames Received: %5lu,   "
+				"Bits Received: [%7lu, %7lu]\n", arg->busChannel, minLoad * 100.0f, maxLoad * 100.0f,
+				(unsigned long) frameCount, (unsigned long) errorCount, (unsigned long) minBitCount,
+				(unsigned long) maxBitCount);
+
+			canFrame_t statusFrame =
+			{
+				.id = 0x180,
+				.ide = false,
+				.rtr = false,
+				.dlc = 4,
+				.data =
+				{
+					floorf (minLoad * 100.0f / 0.6f),
+					ceilf (maxLoad * 100.0f / 0.6f),
+					errorCount,
+					errorCount >> 8
+				}
+			};
+
+			// Transmit the status message.
+			if (canTransmit (arg->device, &statusFrame) != 0)
+				errorPrintf ("Warning, failed to transmit status message");
+
+			// Log the status frame.
+			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame, arg->busChannel, true, &timeCurrent) != 0)
+				errorPrintf ("Warning, failed to log CAN data frame");
+
+			// Reset the measurements (include the status frame, as we just transmitted that)
+			frameCount = 1;
+			errorCount = 0;
+			minBitCount = canGetMinBitCount (&statusFrame);
+			maxBitCount = canGetMaxBitCount (&statusFrame);
+
+			// Set the new deadline
+			timeStart = timeCurrent;
+			timeEnd = timespecAdd (&timeStart, &(struct timespec) { .tv_sec = 1 });
+		}
+	}
+
+	return NULL;
 }
 
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
@@ -173,114 +301,15 @@ int main (int argc, char** argv)
 	if (signal (SIGINT, sigtermHandler) == SIG_ERR)
 		return errorPrintf ("Failed to bind SIGINT handler");
 
-	// Set a receive timeout so we can check for the termination signal.
-	canSetTimeout (channel1, 100);
-
-	// Status measurements
-	struct timespec timeStart;
-	clock_gettime (CLOCK_MONOTONIC, &timeStart);
-	struct timespec timeEnd = timespecAdd (&timeStart, &(struct timespec) { .tv_sec = 1 });
-
-	// Bus load measurements
-	size_t frameCount = 0;
-	size_t errorCount = 0;
-	size_t minBitCount = 0;
-	size_t maxBitCount = 0;
-
-	// Calculate the bit time from the bus baudrate.
-	float bitTime = canCalculateBitTime (canGetBaudrate (channel1));
-
-	while (logging)
+	loggingThreadArg_t channel1Arg =
 	{
-		// Receive a CAN frame
-		canFrame_t frame;
-		int code = canReceive (channel1, &frame);
-
-		// Get a timestamp for the frame
-		struct timespec timeCurrent;
-		clock_gettime (CLOCK_MONOTONIC, &timeCurrent);
-
-		// Check for success
-		if (code == 0)
-		{
-			if (!frame.rtr)
-			{
-				// Log data frame
-				if (mdfCanBusLogWriteDataFrame (&log, &frame, 1, false, &timeCurrent) != 0)
-					errorPrintf ("Warning, failed to log CAN data frame");
-			}
-			else
-			{
-				// Log RTR frame
-				if (mdfCanBusLogWriteRemoteFrame (&log, &frame, 1, false, &timeCurrent) != 0)
-					errorPrintf ("Warning, failed to log CAN remote frame");
-			}
-
-			// Measure the frame's size
-			++frameCount;
-			minBitCount += canGetMinBitCount (&frame);
-			maxBitCount += canGetMaxBitCount (&frame);
-		}
-		else if (canCheckBusError (code))
-		{
-			// If an error frame was generated, log it
-			if (mdfCanBusLogWriteErrorFrame (&log, &frame, 1, false, code, &timeCurrent) != 0)
-				errorPrintf ("Warning, failed to log CAN error frame");
-
-			// Measure the error count
-			++errorCount;
-		}
-
-		// Print status message
-		if (timespecCompare (&timeCurrent, &timeEnd, >))
-		{
-			// Calculate the actual measurement period
-			struct timespec period = timespecSub (&timeCurrent, &timeStart);
-
-			// Calculate the min and max loads
-			float maxLoad = canCalculateBusLoad (maxBitCount, bitTime, period);
-			float minLoad = canCalculateBusLoad (minBitCount, bitTime, period);
-
-			// Print the status message
-			printf ("Bus Load: [%6.2f%%, %6.2f%%],   CAN Frames Received: %5lu,   Error Frames Received: %5lu,   "
-				"Bits Received: [%7lu, %7lu]\n", minLoad * 100.0f, maxLoad * 100.0f, (unsigned long) frameCount,
-				(unsigned long) errorCount, (unsigned long) minBitCount, (unsigned long) maxBitCount);
-
-			// TODO(Barach): Keep hard-coded, or use database lib?
-			canFrame_t statusFrame =
-			{
-				.id = 0x180,
-				.ide = false,
-				.rtr = false,
-				.dlc = 4,
-				.data =
-				{
-					floorf (minLoad * 100.0f / 0.6f),
-					ceilf (maxLoad * 100.0f / 0.6f),
-					errorCount,
-					errorCount >> 8
-				}
-			};
-
-			// Transmit the status message.
-			if (canTransmit (channel1, &statusFrame) != 0)
-				errorPrintf ("Warning, failed to transmit status message");
-
-			// Log the status frame.
-			if (mdfCanBusLogWriteDataFrame (&log, &statusFrame, 1, true, &timeCurrent) != 0)
-				errorPrintf ("Warning, failed to log CAN data frame");
-
-			// Reset the measurements (include the status frame, as we just transmitted that)
-			frameCount = 1;
-			errorCount = 0;
-			minBitCount = canGetMinBitCount (&statusFrame);
-			maxBitCount = canGetMaxBitCount (&statusFrame);
-
-			// Set the new deadline
-			timeStart = timeCurrent;
-			timeEnd = timespecAdd (&timeStart, &(struct timespec) { .tv_sec = 1 });
-		}
-	}
+		.device		= channel1,
+		.log		= &log,
+		.busChannel	= 1
+	};
+	pthread_t channel1Thread;
+	pthread_create (&channel1Thread, NULL, loggingThread, &channel1Arg);
+	pthread_join (channel1Thread, NULL);
 
 	// Terminate the log gracefully
 	printf ("Closing MDF file...\n");
