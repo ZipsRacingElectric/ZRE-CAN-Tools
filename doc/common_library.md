@@ -32,14 +32,68 @@ Where options may take the following form
 
 `--abc`, `--def`, etc. for string options.
 
-Both character options and string options can be followed by `=<Params>` for any paramaters associated with the option. Note this means that character options need not be a single character, rather the identifier of the option is only a single character.
+Both character options and string options can be followed by `=<Value>` for any values associated with the option. Note this means that character options need not be a single character, rather the identifier of the option is only a single character.
 
-For instance, `-m=100` is a character option identifed by `m` with a parameter of `100`.
+For instance, `-m=100` is a character option identifed by `m` with a value of `100`.
 
-At the beginning of each program, before validating the number of standard arguments, the `handleOption` function should be used to check for and handle all the program's options. A simple example of how to do this is provided below:
+At the beginning of each program, before validating the number of required arguments, the `handleOptions` function should be used to check for and handle all the program's options. If finer control is required, the `handleOptions` function can be used to individually handle arguments. A simple example of how to use these is provided below:
 
 ```
-// Check standard arguments
+// At top-level scope
+void handleA (char option, char* value)
+{
+	// Only using this once, so we know option == 'a'.
+	(void) option;
+
+	// If a value is given, print it, ignore otherwise.
+	if (value == NULL)
+		printf ("Option A\n");
+	else
+		printf ("Option A = \"%s\"\n", value);
+}
+
+void handleBCD (char option, char* value)
+{
+	// If a value is given, print it, ignore otherwise.
+	if (value == NULL)
+		printf ("Option %c\n", option);
+	else
+		printf ("Option %c = \"%s\"\n", option, value);
+}
+
+void handleStr (char* option, char* value)
+{
+	// If a value is given, print it, ignore otherwise.
+	if (value == NULL)
+		printf ("Option %s\n", option);
+	else
+		printf ("Option %s = \"%s\"\n", option, value);
+}
+
+// In main...
+
+// Handle program options
+// - Note we use a pointer to argc / argv. This function modifies their values so argv only contains the unparsed values on
+// exit.
+if (handleOptions (&argc, &argv, &(handleOptionsParams_t)
+{
+	.fprintHelp		= NULL,
+	.chars			= (char []) { 'a', 'b', 'c', 'd' },
+	.charHandlers	= (optionCharCallback_t* []) { handleA, handleBCD, handleBCD, handleBCD },
+	.charCount		= 4,
+	.strings		= (char* []) { "str0", "str1", "str2" },
+	.stringHandlers	= (optionStringCallback_t* []) { handleStr, handleStr, handleStr },
+	.stringCount	= 3
+}) != 0)
+	return errorPrintf ("Failed to parse options");
+
+// Only the required arguments are left, so do something with them...
+for (int index = 0; index < argc; ++index)
+	printf ("Arg: \"%s\"\n", argv [index]);
+```
+
+```
+// Handle program options
 for (int index = 1; index < argc; ++index)
 {
 	switch (handleOption (argv [index], NULL, fprintHelp))
