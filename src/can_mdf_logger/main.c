@@ -86,6 +86,7 @@ typedef struct
 {
 	canDevice_t* device;
 	mdfCanBusLog_t* log;
+	pthread_mutex_t* logMutex;
 	uint8_t busChannel;
 } loggingThreadArg_t;
 
@@ -112,9 +113,12 @@ void* loggingThread (void* argPtr)
 
 	while (logging)
 	{
-		// Receive a CAN frame
+		// Receive a CAN frame. Due to its blocking nature, this must be outside the mutex guard.
 		canFrame_t frame;
 		int code = canReceive (arg->device, &frame);
+
+		// Acquire access to the log file. Note this must be before the timestamp is generated.
+		pthread_mutex_lock (arg->logMutex);
 
 		// Get a timestamp for the frame
 		struct timespec timeCurrent;
@@ -151,6 +155,9 @@ void* loggingThread (void* argPtr)
 			++errorCount;
 		}
 
+		// Release access to the log file.
+		pthread_mutex_unlock (arg->logMutex);
+
 		// Print status message
 		if (timespecCompare (&timeCurrent, &timeEnd, >))
 		{
@@ -182,13 +189,24 @@ void* loggingThread (void* argPtr)
 				}
 			};
 
-			// Transmit the status message.
+			// Transmit the status message. Due to its blocking nature, this must be outside the mutex guard.
 			if (canTransmit (arg->device, &statusFrame) != 0)
 				errorPrintf ("Warning, failed to transmit status message");
+
+			// Acquire access to the log file. Note this must be before the timestamp is generated.
+			pthread_mutex_lock (arg->logMutex);
+
+			// Get a timestamp for the frame. We canot reuse the previous value, as it may have already been used if a frame
+			// was received.
+			struct timespec timeCurrent;
+			clock_gettime (CLOCK_MONOTONIC, &timeCurrent);
 
 			// Log the status frame.
 			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame, arg->busChannel, true, &timeCurrent) != 0)
 				errorPrintf ("Warning, failed to log CAN data frame");
+
+			// Release access to the log file.
+			pthread_mutex_unlock (arg->logMutex);
 
 			// Reset the measurements (include the status frame, as we just transmitted that)
 			frameCount = 1;
@@ -292,8 +310,14 @@ int main (int argc, char** argv)
 	if (mdfCanBusLogInit (&log, &config) != 0)
 		return errorPrintf ("Failed to initialize CAN bus MDF log");
 
-	printf ("Starting data log: File name '%s', session number %"PRIu32", split %"PRIu32".\n",
-		config.filePath, config.sessionNumber, config.splitNumber);
+	// Create a mutex guarding access to the log file. While single fwrite operations are thread-safe on their own, this mutex
+	// is used to guarantee the timestamp written to each record of the log is monotonic, as our data analysis software imposes
+	// said requirement. As a result of this, all timestamps written must be acquired inside the guard of this mutex.
+	pthread_mutex_t logMutex;
+	pthread_mutex_init (&logMutex, NULL);
+
+	// printf ("Starting data log: File name '%s', session number %"PRIu32", split %"PRIu32".\n",
+	// 	config.filePath, config.sessionNumber, config.splitNumber);
 
 	if (signal (SIGTERM, sigtermHandler) == SIG_ERR)
 		return errorPrintf ("Failed to bind SIGTERM handler");
@@ -301,15 +325,34 @@ int main (int argc, char** argv)
 	if (signal (SIGINT, sigtermHandler) == SIG_ERR)
 		return errorPrintf ("Failed to bind SIGINT handler");
 
+	// Create the logging thread for channel 1.
 	loggingThreadArg_t channel1Arg =
 	{
 		.device		= channel1,
 		.log		= &log,
+		.logMutex	= &logMutex,
 		.busChannel	= 1
 	};
 	pthread_t channel1Thread;
 	pthread_create (&channel1Thread, NULL, loggingThread, &channel1Arg);
+
+	// Create the logging thread for channel 2.
+	loggingThreadArg_t channel2Arg =
+	{
+		.device		= channel2,
+		.log		= &log,
+		.logMutex	= &logMutex,
+		.busChannel	= 2
+	};
+	pthread_t channel2Thread;
+	pthread_create (&channel2Thread, NULL, loggingThread, &channel2Arg);
+
+	// Wait for both threads to terminate.
+	pthread_join (channel2Thread, NULL);
 	pthread_join (channel1Thread, NULL);
+
+	// Destroy the mutex.
+	pthread_mutex_destroy (&logMutex);
 
 	// Terminate the log gracefully
 	printf ("Closing MDF file...\n");
