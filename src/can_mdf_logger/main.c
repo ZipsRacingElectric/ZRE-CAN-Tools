@@ -316,6 +316,7 @@ int main (int argc, char** argv)
 	pthread_mutex_t logMutex;
 	pthread_mutex_init (&logMutex, NULL);
 
+	// TODO(Barach)
 	// printf ("Starting data log: File name '%s', session number %"PRIu32", split %"PRIu32".\n",
 	// 	config.filePath, config.sessionNumber, config.splitNumber);
 

@@ -10,6 +10,7 @@
 
 // C Standard Library
 #include <errno.h>
+#include <inttypes.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -1060,11 +1061,11 @@ static mdfBlock_t* writeDg (FILE* mdf, uint64_t firstCgAddr)
 	return block;
 }
 
-static int createDestinationDirectory (const char* parentDirectory, size_t sessionNumber)
+static int createDestinationDirectory (const char* parentDirectory, uint32_t sessionNumber)
 {
 	// Create the directory path based on the session number
 	char* path;
-	if (asprintf (&path, "%s/session_%lu", parentDirectory, (long unsigned) sessionNumber) < 0)
+	if (asprintf (&path, "%s/session_%"PRIu32"", parentDirectory, sessionNumber) < 0)
 		return errno;
 
 	// Attempt to create the directory, if it fails (not due to already existing), return failure.
@@ -1077,11 +1078,11 @@ static int createDestinationDirectory (const char* parentDirectory, size_t sessi
 	return 0;
 }
 
-static FILE* createDestinationFile (const char* parentDirectory, size_t sessionNumber, size_t splitNumber)
+static FILE* createDestinationFile (const char* parentDirectory, uint32_t sessionNumber, uint32_t splitNumber)
 {
 	// Create the file path based on the parent directory, session number, and split number.
 	char* path;
-	if (asprintf (&path, "%s/session_%lu/split_%lu.mf4", parentDirectory, (long unsigned) sessionNumber, (long unsigned) splitNumber) < 0)
+	if (asprintf (&path, "%s/session_%"PRIu32"/split_%"PRIu32".mf4", parentDirectory, sessionNumber, splitNumber) < 0)
 		return NULL;
 
 	// Attempt to create the file
@@ -1093,7 +1094,7 @@ static FILE* createDestinationFile (const char* parentDirectory, size_t sessionN
 	return file;
 }
 
-static int createSplit (mdfCanBusLog_t* log, size_t splitNumber)
+static int createSplit (mdfCanBusLog_t* log, uint32_t splitNumber)
 {
 	log->splitNumber = splitNumber;
 

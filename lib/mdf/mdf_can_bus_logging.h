@@ -66,7 +66,7 @@ typedef struct
 {
 	const mdfCanBusLogConfig_t* config;
 	FILE* mdf;
-	size_t splitNumber;
+	uint32_t splitNumber;
 	size_t splitSize;
 } mdfCanBusLog_t;
 
