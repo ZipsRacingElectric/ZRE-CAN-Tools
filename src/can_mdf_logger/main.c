@@ -196,8 +196,8 @@ void* loggingThread (void* argPtr)
 			// Acquire access to the log file. Note this must be before the timestamp is generated.
 			pthread_mutex_lock (arg->logMutex);
 
-			// Get a timestamp for the frame. We canot reuse the previous value, as it may have already been used if a frame
-			// was received.
+			// Get a timestamp for the frame. We canot reuse the previous value, as it will have already been used if a frame
+			// was just received.
 			struct timespec timeCurrent;
 			clock_gettime (CLOCK_MONOTONIC, &timeCurrent);
 
@@ -303,7 +303,7 @@ int main (int argc, char** argv)
 		.timeStart			= logTime,
 		.storageSize		= 0,
 		.storageRemaining	= 0,
-		.sessionNumber		= 0
+		.sessionNumber		= mdfCanBusLogGetSessionNumber (mdfDirectory)
 	};
 
 	mdfCanBusLog_t log;
@@ -316,9 +316,7 @@ int main (int argc, char** argv)
 	pthread_mutex_t logMutex;
 	pthread_mutex_init (&logMutex, NULL);
 
-	// TODO(Barach)
-	// printf ("Starting data log: File name '%s', session number %"PRIu32", split %"PRIu32".\n",
-	// 	config.filePath, config.sessionNumber, config.splitNumber);
+	printf ("Starting MDF log: File name '%s'.\n", mdfCanBusLogGetName (&log));
 
 	if (signal (SIGTERM, sigtermHandler) == SIG_ERR)
 		return errorPrintf ("Failed to bind SIGTERM handler");

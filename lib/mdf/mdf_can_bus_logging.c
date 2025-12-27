@@ -6,7 +6,9 @@
 #include "mdf_writer.h"
 
 // POSIX
+#include <dirent.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 // C Standard Library
 #include <errno.h>
@@ -1078,20 +1080,16 @@ static int createDestinationDirectory (const char* parentDirectory, uint32_t ses
 	return 0;
 }
 
-static FILE* createDestinationFile (const char* parentDirectory, uint32_t sessionNumber, uint32_t splitNumber)
+static FILE* createDestinationFile (const char* parentDirectory, uint32_t sessionNumber, uint32_t splitNumber, char** splitName)
 {
 	// Create the file path based on the parent directory, session number, and split number.
-	char* path;
-	if (asprintf (&path, "%s/session_%"PRIu32"/split_%"PRIu32".mf4", parentDirectory, sessionNumber, splitNumber) < 0)
+	// - Note: The split name is deallocate when the file is closed.
+	if (asprintf (splitName, "%s/session_%"PRIu32"/split_%"PRIu32".mf4", parentDirectory, sessionNumber, splitNumber) < 0)
 		return NULL;
 
 	// Attempt to create the file
-	debugPrintf ("Creating destination file '%s'.\n", path);
-	FILE* file = fopen (path, "w");
-
-	// Free the path string and return the file, whether successful or not.
-	free (path);
-	return file;
+	debugPrintf ("Creating destination file '%s'.\n", *splitName);
+	return fopen (*splitName, "w");
 }
 
 static int createSplit (mdfCanBusLog_t* log, uint32_t splitNumber)
@@ -1099,7 +1097,7 @@ static int createSplit (mdfCanBusLog_t* log, uint32_t splitNumber)
 	log->splitNumber = splitNumber;
 
 	// Create the destination file within said directory.
-	log->mdf = createDestinationFile (log->config->directory, log->config->sessionNumber, log->splitNumber);
+	log->mdf = createDestinationFile (log->config->directory, log->config->sessionNumber, log->splitNumber, &log->splitName);
 	if (log->mdf == NULL)
 		return errno;
 
@@ -1180,6 +1178,7 @@ static int createSplit (mdfCanBusLog_t* log, uint32_t splitNumber)
 
 static void closeSplit (mdfCanBusLog_t* log)
 {
+	free (log->splitName);
 	fclose (log->mdf);
 }
 
@@ -1203,6 +1202,45 @@ static int writeRecord (mdfCanBusLog_t* log, uint8_t* record, size_t recordSize)
 	return 0;
 }
 
+uint32_t mdfCanBusLogGetSessionNumber (const char* directory)
+{
+	debugPrintf ("Searching for MDF session number...\n");
+
+	DIR* dirp = opendir (directory);
+	if (dirp == NULL)
+	{
+		debugPrintf ("    Warning: MDF destination directory '%s' does not exist. Assuming session number 0.\n", directory);
+		return 0;
+	}
+
+	uint32_t sessionNumber = 0;
+	while (true)
+	{
+		struct dirent* ent = readdir (dirp);
+		if (ent == NULL)
+			break;
+
+		if (strncmp (ent->d_name, "session_", strlen ("session_")) == 0)
+		{
+			char* entSessionNumberStr = ent->d_name + strlen ("session_");
+			char* endPtr;
+			uint32_t entSessionNumber = strtoul (entSessionNumberStr, &endPtr, 0);
+			if (endPtr != entSessionNumberStr && entSessionNumber >= sessionNumber)
+			{
+				sessionNumber = entSessionNumber + 1;
+				debugPrintf ("    Session number %"PRIu32" found, current max is %"PRIu32".\n", entSessionNumber, sessionNumber);
+			}
+		}
+		else
+			debugPrintf ("    Directory entry '%s' does not appear to be a log session, skipping...\n", ent->d_name);
+	}
+
+	debugPrintf ("MDF session number assumed to be %"PRIu32".\n", sessionNumber);
+
+	closedir (dirp);
+	return sessionNumber;
+}
+
 int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 {
 	log->config = config;
@@ -1216,6 +1254,11 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 
 	debugPrintf ("Initial MDF split size: %lu bytes.\n", (long unsigned) log->splitSize);
 	return 0;
+}
+
+const char* mdfCanBusLogGetName (mdfCanBusLog_t* log)
+{
+	return log->splitName;
 }
 
 int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t busChannel, bool direction, struct timespec* timestamp)

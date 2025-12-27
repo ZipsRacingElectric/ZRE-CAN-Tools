@@ -68,9 +68,18 @@ typedef struct
 	FILE* mdf;
 	uint32_t splitNumber;
 	size_t splitSize;
+	char* splitName;
 } mdfCanBusLog_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief Gets the assumed session number a log should start at based on the entries in a parent directory. This is done by
+ * finding the highest session (ex, 'session_10') and incrementing this by 1.
+ * @param directory The parent directory to search in.
+ * @return The determined session number.
+ */
+uint32_t mdfCanBusLogGetSessionNumber (const char* directory);
 
 /**
  * @brief Initializes an MDF CAN bus log. This will create the log file based on the provided file path in the @c config
@@ -80,6 +89,13 @@ typedef struct
  * @return 0 if successful, the error code otherwise.
  */
 int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config);
+
+/**
+ * @brief Gets the name of the current logging file.
+ * @param log The log file to get from.
+ * @return The name of the current split file.
+ */
+const char* mdfCanBusLogGetName (mdfCanBusLog_t* log);
 
 /**
  * @brief Writes a CAN data frame to an MDF log.
