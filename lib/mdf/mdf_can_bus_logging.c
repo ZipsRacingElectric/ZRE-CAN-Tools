@@ -2,7 +2,11 @@
 #include "mdf_can_bus_logging.h"
 
 // Includes
+#include "debug.h"
 #include "mdf_writer.h"
+
+// POSIX
+#include <sys/stat.h>
 
 // C Standard Library
 #include <errno.h>
@@ -1050,11 +1054,52 @@ static mdfBlock_t* writeDg (FILE* mdf, uint64_t firstCgAddr)
 	return block;
 }
 
+static int createDestinationDirectory (const char* parentDirectory, size_t sessionNumber)
+{
+	// Create the directory path based on the session number
+	char* path;
+	if (asprintf (&path, "%s/session_%lu", parentDirectory, (long unsigned) sessionNumber) < 0)
+		return errno;
+
+	// Attempt to create the directory, if it fails (not due to already existing), return failure.
+	debugPrintf ("Creating destination directory '%s'.\n", path);
+	if (mkdir (path, S_IRWXU | S_IRGRP | S_IROTH) != 0 && errno != EEXIST)
+		return errno;
+
+	// Free the path string
+	free (path);
+	return 0;
+}
+
+static FILE* createDestinationFile (const char* parentDirectory, size_t sessionNumber, size_t splitNumber)
+{
+	// Create the file path based on the parent directory, session number, and split number.
+	char* path;
+	if (asprintf (&path, "%s/session_%lu/split_%lu.mf4", parentDirectory, (long unsigned) sessionNumber, (long unsigned) splitNumber) < 0)
+		return NULL;
+
+	// Attempt to create the file
+	debugPrintf ("Creating destination file '%s'.\n", path);
+	FILE* file = fopen (path, "w");
+
+	// Free the path string and return the file, whether successful or not.
+	free (path);
+	return file;
+}
+
 int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 {
 	log->config = config;
 
-	log->mdf = fopen (config->filePath, "w");
+	// TODO(Barach): CSS starts from 1, will this work?
+	log->splitNumber = 0;
+
+	// Create the destination directory.
+	if (createDestinationDirectory (config->directory, config->sessionNumber) != 0)
+		return errno;
+
+	// Create the destination file within said directory.
+	log->mdf = createDestinationFile (config->directory, config->sessionNumber, log->splitNumber);
 	if (log->mdf == NULL)
 		return errno;
 
@@ -1088,7 +1133,7 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 		return errno;
 
 	uint64_t commentAddr = writeComment (log->mdf, config->softwareVersion, config->hardwareVersion, config->serialNumber,
-		config->softwareName, config->storageSize, config->storageRemaining, config->sessionNumber, config->splitNumber);
+		config->softwareName, config->storageSize, config->storageRemaining, config->sessionNumber, log->splitNumber);
 	if (commentAddr == 0)
 		return errno;
 

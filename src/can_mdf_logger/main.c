@@ -55,8 +55,8 @@ void fprintUsage (FILE* stream)
 {
 	fprintf (stream, ""
 		"Usage:\n"
-		"    can-mdf-logger <Options> <MDF file> <Channel 1 Device Name>.\n"
-		"    can-mdf-logger <Options> <MDF file> <Channel 1 Device Name> <Channel 2 Device Name>.\n");
+		"    can-mdf-logger <Options> <MDF directory> <Channel 1 Device Name>.\n"
+		"    can-mdf-logger <Options> <MDF directory> <Channel 1 Device Name> <Channel 2 Device Name>.\n");
 }
 
 void fprintHelp (FILE* stream)
@@ -250,8 +250,8 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
-	// First arg is MDF file path
-	char* mdfFilePath = argv [0];
+	// First arg is MDF directory
+	char* mdfDirectory = argv [0];
 
 	// Initialize the channel 1 CAN device
 	char* channel1DeviceName = argv [1];
@@ -291,7 +291,7 @@ int main (int argc, char** argv)
 	mdfCanBusLogConfig_t config =
 	{
 		// TODO(Barach): How much can I change this?
-		.filePath			= mdfFilePath,
+		.directory			= mdfDirectory,
 		.programId			= "ZRECAN",
 		.softwareName		= "zre_cantools", // TODO(Barach): Want this to match the release name.
 		.softwareVersion	= ZRE_CANTOOLS_VERSION_FULL,
@@ -303,8 +303,7 @@ int main (int argc, char** argv)
 		.timeStart			= logTime,
 		.storageSize		= 0,
 		.storageRemaining	= 0,
-		.sessionNumber		= 0,
-		.splitNumber		= 1
+		.sessionNumber		= 0
 	};
 
 	mdfCanBusLog_t log;

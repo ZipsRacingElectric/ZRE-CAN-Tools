@@ -24,8 +24,8 @@
 
 typedef struct
 {
-	/// @brief The path of the file to create.
-	const char* filePath;
+	// TODO(Barach):
+	const char* directory;
 
 	/// @brief The ID of the program generating this file. Note, strings longer than 7 characters will be truncated.
 	const char* programId;
@@ -59,16 +59,13 @@ typedef struct
 
 	/// @brief The index of this data log, starting from 0 and incrementing monotonically.
 	uint32_t sessionNumber;
-
-	/// @brief The index of the split of this data log. When a log is split due to size, the session number should remain the
-	/// same, but the split number should be incremented. Should start from 1.
-	uint32_t splitNumber;
 } mdfCanBusLogConfig_t;
 
 typedef struct
 {
 	const mdfCanBusLogConfig_t* config;
 	FILE* mdf;
+	size_t splitNumber;
 } mdfCanBusLog_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
