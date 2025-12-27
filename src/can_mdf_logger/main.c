@@ -76,7 +76,7 @@ void fprintHelp (FILE* stream)
 	fprintf (stream, ""
 		"Options:\n\n"
 		"    -r                    - Test the logging timer resolution. This is both OS\n"
-		"                            and hardware dependent\n");
+		"                            and hardware dependent\n\n");
 	fprintOptionHelp (stream, "    ");
 }
 
