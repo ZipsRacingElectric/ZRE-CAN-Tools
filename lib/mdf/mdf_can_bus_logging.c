@@ -35,6 +35,12 @@ long long int diff_timespec (const struct timespec* a, const struct timespec* b)
 #define ERROR_TYPE_BUS_OFF						6
 #define ERROR_TYPE_UNSPEC_ERROR					0
 
+// Constants ------------------------------------------------------------------------------------------------------------------
+
+/// @brief The maximum size of an MDF log split (single file), in bytes.
+// TODO(Barach): Actual max
+#define MDF_SPLIT_SIZE_MAX						8600
+
 // CAN Data Frame Record ------------------------------------------------------------------------------------------------------
 
 #define DATA_FRAME_RECORD_ID					0x01
@@ -1087,28 +1093,22 @@ static FILE* createDestinationFile (const char* parentDirectory, size_t sessionN
 	return file;
 }
 
-int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
+static int createSplit (mdfCanBusLog_t* log, size_t splitNumber)
 {
-	log->config = config;
-
-	// TODO(Barach): CSS starts from 1, will this work?
-	log->splitNumber = 0;
-
-	// Create the destination directory.
-	if (createDestinationDirectory (config->directory, config->sessionNumber) != 0)
-		return errno;
+	log->splitNumber = splitNumber;
 
 	// Create the destination file within said directory.
-	log->mdf = createDestinationFile (config->directory, config->sessionNumber, log->splitNumber);
+	log->mdf = createDestinationFile (log->config->directory, log->config->sessionNumber, log->splitNumber);
 	if (log->mdf == NULL)
 		return errno;
 
-	mdfBlock_t* hd = writeHeader (log->mdf, config->programId, config->dateStart);
+	mdfBlock_t* hd = writeHeader (log->mdf, log->config->programId, log->config->dateStart);
 	if (hd == NULL)
 		return errno;
 
-	uint64_t acquisitionSourceAddr = writeAcquisitionSource (log->mdf, config->softwareVersion, config->hardwareVersion,
-		config->serialNumber, config->channel1Baudrate, config->channel2Baudrate);
+	uint64_t acquisitionSourceAddr = writeAcquisitionSource (log->mdf, log->config->softwareVersion,
+		log->config->hardwareVersion, log->config->serialNumber, log->config->channel1Baudrate,
+		log->config->channel2Baudrate);
 	if (acquisitionSourceAddr == 0)
 		return errno;
 
@@ -1128,12 +1128,14 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 	if (dataFrameCgAddr == 0)
 		return errno;
 
-	uint64_t fileHistoryAddr = writeFileHistory (log->mdf, config->dateStart, config->softwareName, config->softwareVersion);
+	uint64_t fileHistoryAddr = writeFileHistory (log->mdf, log->config->dateStart, log->config->softwareName,
+		log->config->softwareVersion);
 	if (fileHistoryAddr == 0)
 		return errno;
 
-	uint64_t commentAddr = writeComment (log->mdf, config->softwareVersion, config->hardwareVersion, config->serialNumber,
-		config->softwareName, config->storageSize, config->storageRemaining, config->sessionNumber, log->splitNumber);
+	uint64_t commentAddr = writeComment (log->mdf, log->config->softwareVersion, log->config->hardwareVersion,
+		log->config->serialNumber, log->config->softwareName, log->config->storageSize, log->config->storageRemaining,
+		log->config->sessionNumber, log->splitNumber);
 	if (commentAddr == 0)
 		return errno;
 
@@ -1165,6 +1167,53 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 	free (dg);
 	free (hd);
 
+	// Get header size
+	long splitSize = ftell (log->mdf);
+	if (splitSize < 0)
+		return errno;
+
+	log->splitSize = (size_t) splitSize;
+
+	return 0;
+}
+
+static void closeSplit (mdfCanBusLog_t* log)
+{
+	fclose (log->mdf);
+}
+
+static int writeRecord (mdfCanBusLog_t* log, uint8_t* record, size_t recordSize)
+{
+	if (log->splitSize + recordSize > MDF_SPLIT_SIZE_MAX)
+	{
+		debugPrintf ("MDF split size exceeds maximum. Splitting log... ");
+		closeSplit (log);
+		if (createSplit (log, log->splitNumber + 1) != 0)
+			return errno;
+		debugPrintf ("Success.\n");
+	}
+
+	if (fwrite (record, 1, recordSize, log->mdf) != recordSize)
+		return errno;
+
+	log->splitSize += recordSize;
+	debugPrintf ("Log size: %lu bytes.\n", (unsigned long) log->splitSize);
+
+	return 0;
+}
+
+int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
+{
+	log->config = config;
+
+	// Create the destination directory.
+	if (createDestinationDirectory (config->directory, config->sessionNumber) != 0)
+		return errno;
+
+	if (createSplit (log, 0) != 0)
+		return errno;
+
+	debugPrintf ("Initial MDF split size: %lu bytes.\n", (long unsigned) log->splitSize);
 	return 0;
 }
 
@@ -1204,7 +1253,7 @@ int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t 
 		record [DATA_FRAME_DATA_BYTES_BYTE_OFFSET + index + 1] |= frame->data [index];
 
 	// Write the record to the file.
-	if (fwrite (record, 1, sizeof (record), log->mdf) != sizeof (record))
+	if (writeRecord (log, record, sizeof (record)) != 0)
 		return errno;
 
 	return 0;
@@ -1246,7 +1295,7 @@ int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_
 		record [REMOTE_FRAME_DATA_BYTES_BYTE_OFFSET + index + 1] |= frame->data [index];
 
 	// Write the record to the file.
-	if (fwrite (record, 1, sizeof (record), log->mdf) != sizeof (record))
+	if (writeRecord (log, record, sizeof (record)) != 0)
 		return errno;
 
 	return 0;
@@ -1323,7 +1372,7 @@ int mdfCanBusLogWriteErrorFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t
 		(errorType & BIT_LENGTH_TO_BIT_MASK (ERROR_FRAME_ERROR_TYPE_BIT_LENGTH)) << ERROR_FRAME_ERROR_TYPE_BIT_OFFSET;
 
 	// Write the record to the file.
-	if (fwrite (record, 1, sizeof (record), log->mdf) != sizeof (record))
+	if (writeRecord (log, record, sizeof (record)) != 0)
 		return errno;
 
 	return 0;

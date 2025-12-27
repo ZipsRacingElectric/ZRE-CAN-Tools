@@ -48,6 +48,7 @@ typedef struct
 	/// @brief The baudrate of the second CAN bus.
 	uint32_t channel2Baudrate;
 
+	// TODO(Barach)
 	time_t dateStart;
 	struct timespec timeStart;
 
@@ -66,6 +67,7 @@ typedef struct
 	const mdfCanBusLogConfig_t* config;
 	FILE* mdf;
 	size_t splitNumber;
+	size_t splitSize;
 } mdfCanBusLog_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
