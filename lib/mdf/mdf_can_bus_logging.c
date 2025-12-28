@@ -29,6 +29,10 @@ long long int diff_timespec (const struct timespec* a, const struct timespec* b)
 
 #define TIMESTAMP_SCALE_FACTOR					1e9
 
+/// @brief The maximum size of an MDF log split (single file), in bytes. Note I do not know the reasoning for this limitation,
+/// just that none of the CSS devices exceed 52428814 bytes. Chose 800 bytes less here just to be safe.
+#define SPLIT_SIZE_MAX							52428000
+
 // Conversions from can_device error code to MDF bus logging error type
 #define ERROR_TYPE_BIT_ERROR					1
 #define ERROR_TYPE_BIT_STUFF_ERROR				3
@@ -37,12 +41,6 @@ long long int diff_timespec (const struct timespec* a, const struct timespec* b)
 #define ERROR_TYPE_CRC_ERROR					4
 #define ERROR_TYPE_BUS_OFF						6
 #define ERROR_TYPE_UNSPEC_ERROR					0
-
-// Constants ------------------------------------------------------------------------------------------------------------------
-
-/// @brief The maximum size of an MDF log split (single file), in bytes.
-// TODO(Barach): Actual max
-#define MDF_SPLIT_SIZE_MAX						8600
 
 // CAN Data Frame Record ------------------------------------------------------------------------------------------------------
 
@@ -1189,7 +1187,7 @@ static void closeSplit (mdfCanBusLog_t* log)
 
 static int writeRecord (mdfCanBusLog_t* log, uint8_t* record, size_t recordSize)
 {
-	if (log->splitSize + recordSize > MDF_SPLIT_SIZE_MAX)
+	if (log->splitSize + recordSize > SPLIT_SIZE_MAX)
 	{
 		debugPrintf ("MDF split size exceeds maximum. Splitting log... ");
 		closeSplit (log);
