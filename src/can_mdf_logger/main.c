@@ -74,6 +74,7 @@ void fprintHelp (FILE* stream)
 
 	fprintf (stream, "\nParameters:\n\n");
 	fprintCanDeviceNameHelp (stream, "    ");
+	// TODO(Barach)
 	fprintMdfFileHelp (stream, "    ");
 
 	fprintf (stream, ""
