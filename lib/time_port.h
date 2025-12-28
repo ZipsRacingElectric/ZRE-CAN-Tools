@@ -104,4 +104,16 @@ static inline struct timespec timespecSub (const struct timespec* a, const struc
 	return c;
 }
 
+/**
+ * @brief Converts a timespec structure into a measurment in nanoseconds.
+ * @note This function is susceptible to overflow, should only be used for relative times (a difference in two times). Use at
+ * own risk.
+ * @param a The time to convert.
+ * @return The time, in nanoseconds.
+ */
+static inline long long timespecToNs (const struct timespec* a)
+{
+	return a->tv_nsec + a->tv_sec * 1e9;
+}
+
 #endif // TIME_PORT_H
