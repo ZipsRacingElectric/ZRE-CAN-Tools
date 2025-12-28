@@ -131,6 +131,9 @@ ZRE_CANTOOLS_OS_TYPE				String indicating what operating system the
 ZRE_CANTOOLS_ARCH_TYPE              String indicating what architecture the
                                     application has been compiled for.
 
+ZRE_CANTOOLS_NAME			        String indicating the name of the software.
+                                    Always evaluates to "zre_cantools".
+
 ZRE_CANTOOLS_VERSION_NUMBER         String indicating the version number of the
                                     application. In the form <YYYY.MM.DD>.
 
