@@ -11,6 +11,7 @@
 #include "can_device/can_bus_load.h"
 #include "can_device/can_device.h"
 #include "can_device/can_device_stdio.h"
+#include "cjson/cjson_util.h"
 #include "debug.h"
 #include "mdf/mdf_can_bus_logging.h"
 #include "mdf/mdf_stdio.h"
@@ -21,7 +22,6 @@
 #include <pthread.h>
 
 // C Standard Library
-#include <inttypes.h>
 #include <math.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -37,9 +37,12 @@ void testSystemTick (char option, char* value)
 	(void) option;
 	(void) value;
 
-	struct timespec res;
-	clock_getres (CLOCK_MONOTONIC, &res);
-	printf ("%li ns\n", res.tv_nsec);
+	struct timespec resolution;
+	if (mdfCanBusLogGetTimeResolution (&resolution) == 0)
+		printf ("%lli ns\n", timespecToNs (&resolution));
+	else
+		errorPrintf ("Failed to get timer resolution");
+
 	exit (0);
 }
 
@@ -55,8 +58,8 @@ void fprintUsage (FILE* stream)
 {
 	fprintf (stream, ""
 		"Usage:\n"
-		"    can-mdf-logger <Options> <MDF directory> <Channel 1 Device Name>.\n"
-		"    can-mdf-logger <Options> <MDF directory> <Channel 1 Device Name> <Channel 2 Device Name>.\n");
+		"    can-mdf-logger <Options> <MDF Directory> <Config JSON> <Channel 1 Device Name>.\n"
+		"    can-mdf-logger <Options> <MDF Directory> <Config JSON> <Channel 1 Device Name> <Channel 2 Device Name>.\n");
 }
 
 void fprintHelp (FILE* stream)
@@ -99,7 +102,8 @@ void* loggingThread (void* argPtr)
 
 	// Status measurements
 	struct timespec timeStart;
-	clock_gettime (CLOCK_MONOTONIC, &timeStart);
+	if (mdfCanBusLogGetTimestamp (&timeStart) != 0)
+		errorPrintf ("Warning, failed to get MDF timestamp");
 	struct timespec timeEnd = timespecAdd (&timeStart, &(struct timespec) { .tv_sec = 1 });
 
 	// Bus load measurements
@@ -122,7 +126,8 @@ void* loggingThread (void* argPtr)
 
 		// Get a timestamp for the frame
 		struct timespec timeCurrent;
-		clock_gettime (CLOCK_MONOTONIC, &timeCurrent);
+		if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
+			errorPrintf ("Warning, failed to get MDF timestamp");
 
 		// Check for success
 		if (code == 0)
@@ -199,7 +204,8 @@ void* loggingThread (void* argPtr)
 			// Get a timestamp for the frame. We canot reuse the previous value, as it will have already been used if a frame
 			// was just received.
 			struct timespec timeCurrent;
-			clock_gettime (CLOCK_MONOTONIC, &timeCurrent);
+			if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
+				errorPrintf ("Warning, failed to get MDF timestamp");
 
 			// Log the status frame.
 			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame, arg->busChannel, true, &timeCurrent) != 0)
@@ -223,6 +229,47 @@ void* loggingThread (void* argPtr)
 	return NULL;
 }
 
+int loadConfiguration (mdfCanBusLogConfig_t* config, const char* directory, const char* configPath, canDevice_t* channel1, canDevice_t* channel2)
+{
+	cJSON* configJson = jsonLoad (configPath);
+	if (configJson == NULL)
+		return errno;
+
+	char* configName;
+	if (jsonGetString (configJson, "configName", &configName) != 0)
+		return errno;
+
+	char* hardwareName;
+	if (jsonGetString (configJson, "hardwareName", &hardwareName) != 0)
+		return errno;
+
+	char* hardwareVersion;
+	if (jsonGetString (configJson, "hardwareVersion", &hardwareVersion) != 0)
+		return errno;
+
+	char* serialNumber;
+	if (jsonGetString (configJson, "serialNumber", &serialNumber) != 0)
+		return errno;
+
+	*config = (mdfCanBusLogConfig_t)
+	{
+		.directory			= directory,
+		.configurationName	= configName,
+		.softwareName		= ZRE_CANTOOLS_NAME,
+		.softwareVersion	= ZRE_CANTOOLS_VERSION_FULL,
+		.softwareVendor		= "ZRE",
+		.hardwareName		= hardwareName,
+		.hardwareVersion	= hardwareVersion,
+		.serialNumber		= serialNumber,
+		.channel1Baudrate	= canGetBaudrate (channel1),
+		.channel2Baudrate	= channel2 == NULL ? 0 : canGetBaudrate (channel2),
+		.storageSize		= 0,
+		.storageRemaining	= 0,
+		.sessionNumber		= mdfCanBusLogGetSessionNumber (directory)
+	};
+	return 0;
+}
+
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
@@ -244,17 +291,17 @@ int main (int argc, char** argv)
 		return errorPrintf ("Failed to handle options");
 
 	// Validate usage
-	if (argc < 2 || argc > 3)
+	if (argc < 3 || argc > 4)
 	{
 		fprintUsage (stderr);
 		return -1;
 	}
 
-	// First arg is MDF directory
 	char* mdfDirectory = argv [0];
+	char* configPath = argv [1];
 
 	// Initialize the channel 1 CAN device
-	char* channel1DeviceName = argv [1];
+	char* channel1DeviceName = argv [2];
 	canDevice_t* channel1 = canInit (channel1DeviceName);
 	if (channel1 == NULL)
 		return errorPrintf ("Failed to initialize channel 1 CAN device '%s'", channel1DeviceName);
@@ -268,9 +315,9 @@ int main (int argc, char** argv)
 
 	// If provided, initialize the channel 2 CAN device
 	canDevice_t* channel2 = NULL;
-	if (argc == 3)
+	if (argc == 4)
 	{
-		char* channel2DeviceName = argv [2];
+		char* channel2DeviceName = argv [3];
 		channel2 = canInit (channel2DeviceName);
 		if (channel2 == NULL)
 			return errorPrintf ("Failed to initialize channel 2 CAN device '%s'", channel2DeviceName);
@@ -283,28 +330,9 @@ int main (int argc, char** argv)
 		}
 	}
 
-	// TODO(Barach): Internalize?
-	struct timespec logTime;
-	clock_gettime (CLOCK_MONOTONIC, &logTime);
-
-	// TODO(Barach): A lot of placeholders here.
-	mdfCanBusLogConfig_t config =
-	{
-		// TODO(Barach): How much can I change this?
-		.directory			= mdfDirectory,
-		.programId			= "ZRECAN",
-		.softwareName		= "zre_cantools", // TODO(Barach): Want this to match the release name.
-		.softwareVersion	= ZRE_CANTOOLS_VERSION_FULL,
-		.hardwareVersion	= canGetDeviceType (channel1),
-		.serialNumber		= "0",
-		.channel1Baudrate	= canGetBaudrate (channel1),
-		.channel2Baudrate	= channel2 == NULL ? 0 : canGetBaudrate (channel2),
-		.dateStart			= time (NULL),
-		.timeStart			= logTime,
-		.storageSize		= 0,
-		.storageRemaining	= 0,
-		.sessionNumber		= mdfCanBusLogGetSessionNumber (mdfDirectory)
-	};
+	mdfCanBusLogConfig_t config;
+	if (loadConfiguration (&config, mdfDirectory, configPath, channel1, channel2) != 0)
+		return errorPrintf ("Failed to load CAN bus MDF log configuration");
 
 	mdfCanBusLog_t log;
 	if (mdfCanBusLogInit (&log, &config) != 0)

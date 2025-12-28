@@ -989,8 +989,20 @@ static uint64_t writeTimestampCc (FILE* mdf)
 		});
 }
 
-static uint64_t writeFileHistory (FILE* mdf, time_t dateStart, const char* softwareName, const char* softwareVersion)
+static uint64_t writeFileHistory (FILE* mdf, time_t dateStart, const char* softwareName, const char* softwareVersion, const char* softwareVendor)
 {
+	uint64_t commentAddr = mdfMdBlockWrite (mdf,
+		"<FHcomment>\n"
+		"	<TX>\n"
+		"		Creation and logging of data.\n"
+		"	</TX>\n"
+		"	<tool_id>%s</tool_id>\n"
+		"	<tool_vendor>%s</tool_vendor>\n"
+		"	<tool_version>%s</tool_version>\n"
+		"</FHcomment>", softwareName, softwareVendor, softwareVersion);
+	if (commentAddr == 0)
+		return 0;
+
 	return mdfFhBlockWrite (mdf,
 		&(mdfFhDataSection_t)
 		{
@@ -998,27 +1010,20 @@ static uint64_t writeFileHistory (FILE* mdf, time_t dateStart, const char* softw
 		},
 		&(mdfFhLinkList_t)
 		{
-			.commentAddr = mdfMdBlockWrite (mdf,
-				"<FHcomment>\n"
-				"	<TX>\n"
-				"		Creation and logging of data.\n"
-				"	</TX>\n"
-				"	<tool_id>%s</tool_id>\n"
-				"	<tool_vendor></tool_vendor>\n"
-				"	<tool_version>%s</tool_version>\n"
-				"</FHcomment>", softwareName, softwareVersion)
+			.commentAddr = commentAddr
 		});
 }
 
-static uint64_t writeComment (FILE* mdf, const char* softwareVersion, const char* hardwareVersion, const char* serialNumber,
-	const char* softwareName, size_t storageSize, size_t storageRemaining, uint32_t sessionNumber, uint32_t splitNumber)
+static uint64_t writeComment (FILE* mdf, const char* configurationName, const char* softwareVersion,
+	const char* hardwareVersion, const char* serialNumber, const char* hardwareName, size_t storageSize,
+	size_t storageRemaining, uint32_t sessionNumber, uint32_t splitNumber)
 {
-	// TODO(Barach): Redo this.
 	return mdfMdBlockWrite (mdf,
 		"<HDcomment>\n"
 		"    <TX/>\n"
 		"    <common_properties>\n"
 		"        <tree name=\"Device Information\">\n"
+		"            <e name=\"configuration name\" ro=\"true\">%s</e>\n"
 		"            <e name=\"software version\" ro=\"true\">%s</e>\n"
 		"            <e name=\"hardware version\" ro=\"true\">%s</e>\n"
 		"            <e name=\"serial number\" ro=\"true\">%s</e>\n"
@@ -1032,7 +1037,7 @@ static uint64_t writeComment (FILE* mdf, const char* softwareVersion, const char
 		"            <e name=\"comment\" ro=\"true\"></e>\n"
 		"        </tree>\n"
 		"    </common_properties>\n"
-		"</HDcomment>", softwareVersion, hardwareVersion, serialNumber, softwareName,
+		"</HDcomment>", configurationName, softwareVersion, hardwareVersion, serialNumber, hardwareName,
 			(unsigned long) storageSize, (unsigned long) storageRemaining, sessionNumber, splitNumber);
 }
 
@@ -1101,7 +1106,7 @@ static int createSplit (mdfCanBusLog_t* log, uint32_t splitNumber)
 	if (log->mdf == NULL)
 		return errno;
 
-	mdfBlock_t* hd = writeHeader (log->mdf, log->config->programId, log->config->dateStart);
+	mdfBlock_t* hd = writeHeader (log->mdf, "ZREMDF", log->dateStart);
 	if (hd == NULL)
 		return errno;
 
@@ -1127,14 +1132,14 @@ static int createSplit (mdfCanBusLog_t* log, uint32_t splitNumber)
 	if (dataFrameCgAddr == 0)
 		return errno;
 
-	uint64_t fileHistoryAddr = writeFileHistory (log->mdf, log->config->dateStart, log->config->softwareName,
-		log->config->softwareVersion);
+	uint64_t fileHistoryAddr = writeFileHistory (log->mdf, log->dateStart, log->config->softwareName,
+		log->config->softwareVersion, log->config->softwareVendor);
 	if (fileHistoryAddr == 0)
 		return errno;
 
-	uint64_t commentAddr = writeComment (log->mdf, log->config->softwareVersion, log->config->hardwareVersion,
-		log->config->serialNumber, log->config->softwareName, log->config->storageSize, log->config->storageRemaining,
-		log->config->sessionNumber, log->splitNumber);
+	uint64_t commentAddr = writeComment (log->mdf, log->config->configurationName, log->config->softwareVersion,
+		log->config->hardwareVersion, log->config->serialNumber, log->config->hardwareName, log->config->storageSize,
+		log->config->storageRemaining, log->config->sessionNumber, log->splitNumber);
 	if (commentAddr == 0)
 		return errno;
 
@@ -1245,6 +1250,10 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config)
 {
 	log->config = config;
 
+	// Get the date and time of the log file.
+	log->dateStart = time (NULL);
+	clock_gettime (CLOCK_MONOTONIC, &log->timeStart);
+
 	// Create the destination directory.
 	if (createDestinationDirectory (config->directory, config->sessionNumber) != 0)
 		return errno;
@@ -1269,7 +1278,7 @@ int mdfCanBusLogWriteDataFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t 
 	record [0] = DATA_FRAME_RECORD_ID;
 
 	// Timestamp
-	long long timestampInt = diff_timespec (timestamp, &log->config->timeStart);
+	long long timestampInt = diff_timespec (timestamp, &log->timeStart);
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (DATA_FRAME_TIMESTAMP_BIT_LENGTH); ++index)
 		record [index + DATA_FRAME_TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
 
@@ -1311,7 +1320,7 @@ int mdfCanBusLogWriteRemoteFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_
 	record [0] = REMOTE_FRAME_RECORD_ID;
 
 	// Timestamp
-	long long timestampInt = diff_timespec (timestamp, &log->config->timeStart);
+	long long timestampInt = diff_timespec (timestamp, &log->timeStart);
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (REMOTE_FRAME_TIMESTAMP_BIT_LENGTH); ++index)
 		record [index + REMOTE_FRAME_TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
 
@@ -1353,7 +1362,7 @@ int mdfCanBusLogWriteErrorFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t
 	record [0] = ERROR_FRAME_RECORD_ID;
 
 	// Timestamp
-	long long timestampInt = diff_timespec (timestamp, &log->config->timeStart);
+	long long timestampInt = diff_timespec (timestamp, &log->timeStart);
 	for (size_t index = 0; index < BIT_LENGTH_TO_BYTE_LENGTH (ERROR_FRAME_TIMESTAMP_BIT_LENGTH); ++index)
 		record [index + ERROR_FRAME_TIMESTAMP_BYTE_OFFSET + 1] |= timestampInt >> (index * 8);
 
