@@ -1205,7 +1205,7 @@ static int writeRecord (mdfCanBusLog_t* log, uint8_t* record, size_t recordSize)
 	return 0;
 }
 
-uint32_t mdfCanBusLogGetSessionNumber (const char* directory)
+uint32_t mdfCanBusLogFindSessionNumber (const char* directory)
 {
 	debugPrintf ("Searching for MDF session number...\n");
 

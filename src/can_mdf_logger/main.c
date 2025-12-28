@@ -180,18 +180,25 @@ void* loggingThread (void* argPtr)
 				(unsigned long) frameCount, (unsigned long) errorCount, (unsigned long) minBitCount,
 				(unsigned long) maxBitCount);
 
+			uint32_t sessionNumber	= mdfCanBusLogGetSessionNumber (arg->log);
+			uint32_t splitNumber	= mdfCanBusLogGetSplitNumber (arg->log);
+
 			canFrame_t statusFrame =
 			{
-				.id = 0x180,
-				.ide = false,
-				.rtr = false,
-				.dlc = 4,
-				.data =
+				.id		= 0x180,
+				.ide	= false,
+				.rtr	= false,
+				.dlc	= 8,
+				.data	=
 				{
 					floorf (minLoad * 100.0f / 0.6f),
 					ceilf (maxLoad * 100.0f / 0.6f),
 					errorCount,
-					errorCount >> 8
+					errorCount >> 8,
+					sessionNumber,
+					sessionNumber >> 8,
+					splitNumber,
+					splitNumber >> 8
 				}
 			};
 
@@ -266,7 +273,7 @@ int loadConfiguration (mdfCanBusLogConfig_t* config, const char* directory, cons
 		.channel2Baudrate	= channel2 == NULL ? 0 : canGetBaudrate (channel2),
 		.storageSize		= 0,
 		.storageRemaining	= 0,
-		.sessionNumber		= mdfCanBusLogGetSessionNumber (directory)
+		.sessionNumber		= mdfCanBusLogFindSessionNumber (directory)
 	};
 	return 0;
 }

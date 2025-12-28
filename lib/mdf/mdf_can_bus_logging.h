@@ -82,7 +82,7 @@ typedef struct
  * @param directory The parent directory to search in.
  * @return The determined session number.
  */
-uint32_t mdfCanBusLogGetSessionNumber (const char* directory);
+uint32_t mdfCanBusLogFindSessionNumber (const char* directory);
 
 /**
  * @brief Initializes an MDF CAN bus log. This will create the log file based on the provided file path in the @c config
@@ -99,6 +99,18 @@ int mdfCanBusLogInit (mdfCanBusLog_t* log, const mdfCanBusLogConfig_t* config);
  * @return The name of the current split file.
  */
 const char* mdfCanBusLogGetName (mdfCanBusLog_t* log);
+
+/// @return The session number of the logging file.
+static inline uint32_t mdfCanBusLogGetSessionNumber (mdfCanBusLog_t* log)
+{
+	return log->config->sessionNumber;
+}
+
+/// @return The current split number of the logging file.
+static inline uint32_t mdfCanBusLogGetSplitNumber (mdfCanBusLog_t* log)
+{
+	return log->splitNumber;
+}
 
 /**
  * @brief Gets a timestamp used by an MDF log.
