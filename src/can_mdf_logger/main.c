@@ -11,22 +11,40 @@
 #include "can_device/can_bus_load.h"
 #include "can_device/can_device.h"
 #include "can_device/can_device_stdio.h"
+#include "cjson/cjson_util.h"
 #include "debug.h"
 #include "mdf/mdf_can_bus_logging.h"
 #include "mdf/mdf_stdio.h"
 #include "options.h"
 #include "time_port.h"
 
+// POSIX
+#include <pthread.h>
+
 // C Standard Library
-#include <inttypes.h>
 #include <math.h>
 #include <signal.h>
+#include <stdlib.h>
 
 // Globals --------------------------------------------------------------------------------------------------------------------
 
 bool logging = true;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
+
+void testSystemTick (char option, char* value)
+{
+	(void) option;
+	(void) value;
+
+	struct timespec resolution;
+	if (mdfCanBusLogGetTimeResolution (&resolution) == 0)
+		printf ("%lli ns\n", timespecToNs (&resolution));
+	else
+		errorPrintf ("Failed to get timer resolution");
+
+	exit (0);
+}
 
 void sigtermHandler (int sig)
 {
@@ -38,7 +56,10 @@ void sigtermHandler (int sig)
 
 void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: can-mdf-logger <Options> <Device Name> <MDF file>.\n");
+	fprintf (stream, ""
+		"Usage:\n"
+		"    can-mdf-logger <Options> <MDF Directory> <Config JSON> <Channel 1 Device Name>.\n"
+		"    can-mdf-logger <Options> <MDF Directory> <Config JSON> <Channel 1 Device Name> <Channel 2 Device Name>.\n");
 }
 
 void fprintHelp (FILE* stream)
@@ -53,99 +74,38 @@ void fprintHelp (FILE* stream)
 
 	fprintf (stream, "\nParameters:\n\n");
 	fprintCanDeviceNameHelp (stream, "    ");
+	// TODO(Barach)
 	fprintMdfFileHelp (stream, "    ");
 
-	fprintf (stream, "Options:\n\n");
+	fprintf (stream, ""
+		"Options:\n\n"
+		"    -r                    - Test the logging timer resolution. This is both OS\n"
+		"                            and hardware dependent\n\n");
 	fprintOptionHelp (stream, "    ");
 }
 
-// Entrypoint -----------------------------------------------------------------------------------------------------------------
+// Threads --------------------------------------------------------------------------------------------------------------------
 
-int main (int argc, char** argv)
+typedef struct
 {
-	// Debug initialization
-	debugInit ();
+	canDevice_t* device;
+	mdfCanBusLog_t* log;
+	pthread_mutex_t* logMutex;
+	uint8_t busChannel;
+} loggingThreadArg_t;
 
-	// Check standard arguments
-	for (int index = 1; index < argc; ++index)
-	{
-		switch (handleOption (argv [index], NULL, fprintHelp))
-		{
-		case OPTION_CHAR:
-		case OPTION_STRING:
-			fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
-			return -1;
-
-		case OPTION_QUIT:
-			return 0;
-
-		default:
-			break;
-		}
-	}
-
-	// Validate usage
-	if (argc < 3)
-	{
-		fprintUsage (stderr);
-		return -1;
-	}
-
-	// Initialize the CAN device
-	char* deviceName = argv [argc - 2];
-	canDevice_t* device = canInit (deviceName);
-	if (device == NULL)
-		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
-
-	// Calculate the bit time from the bus baudrate.
-	canBaudrate_t baudrate = canGetBaudrate (device);
-	if (baudrate == CAN_BAUDRATE_UNKNOWN)
-	{
-		fprintf (stderr, "CAN device baudrate is required.\n");
-		return -1;
-	}
-	float bitTime = canCalculateBitTime (baudrate);
-
-	// TODO(Barach): A lot of placeholders here.
-	mdfCanBusLogConfig_t config =
-	{
-		// TODO(Barach): How much can I change this?
-		.filePath			= argv [argc - 1],
-		.programId			= "ZRECAN",
-		.softwareName		= "zre_cantools", // TODO(Barach): Want this to match the release name.
-		.softwareVersion	= ZRE_CANTOOLS_VERSION_FULL,
-		.hardwareVersion	= canGetDeviceType (device),
-		.serialNumber		= "0",
-		.channel1Baudrate	= canGetBaudrate (device),
-		.channel2Baudrate	= 0,
-		.timeStart			= time (NULL),
-		.storageSize		= 0,
-		.storageRemaining	= 0,
-		.sessionNumber		= 0,
-		.splitNumber		= 1
-	};
-
-	mdfCanBusLog_t log;
-	if (mdfCanBusLogInit (&log, &config) != 0)
-		return errorPrintf ("Failed to initialize CAN bus MDF log");
-
-	printf ("Starting data log: File name '%s', session number %"PRIu32", split %"PRIu32".\n",
-		config.filePath, config.sessionNumber, config.splitNumber);
-
-	if (signal (SIGTERM, sigtermHandler) == SIG_ERR)
-		return errorPrintf ("Failed to bind SIGTERM handler");
-
-	if (signal (SIGINT, sigtermHandler) == SIG_ERR)
-		return errorPrintf ("Failed to bind SIGINT handler");
+void* loggingThread (void* argPtr)
+{
+	loggingThreadArg_t* arg = argPtr;
 
 	// Set a receive timeout so we can check for the termination signal.
-	canSetTimeout (device, 100);
+	canSetTimeout (arg->device, 100);
 
 	// Status measurements
-	struct timeval timeStart;
-	gettimeofday (&timeStart, NULL);
-	struct timeval timeEnd;
-	timeradd (&timeStart, &(struct timeval) { .tv_sec = 1 }, &timeEnd);
+	struct timespec timeStart;
+	if (mdfCanBusLogGetTimestamp (&timeStart) != 0)
+		errorPrintf ("Warning, failed to get MDF timestamp");
+	struct timespec timeEnd = timespecAdd (&timeStart, &(struct timespec) { .tv_sec = 1 });
 
 	// Bus load measurements
 	size_t frameCount = 0;
@@ -153,15 +113,22 @@ int main (int argc, char** argv)
 	size_t minBitCount = 0;
 	size_t maxBitCount = 0;
 
+	// Calculate the bit time from the bus baudrate.
+	float bitTime = canCalculateBitTime (canGetBaudrate (arg->device));
+
 	while (logging)
 	{
-		// Receive a CAN frame
+		// Receive a CAN frame. Due to its blocking nature, this must be outside the mutex guard.
 		canFrame_t frame;
-		int code = canReceive (device, &frame);
+		int code = canReceive (arg->device, &frame);
+
+		// Acquire access to the log file. Note this must be before the timestamp is generated.
+		pthread_mutex_lock (arg->logMutex);
 
 		// Get a timestamp for the frame
-		struct timeval timeCurrent;
-		gettimeofday (&timeCurrent, NULL);
+		struct timespec timeCurrent;
+		if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
+			errorPrintf ("Warning, failed to get MDF timestamp");
 
 		// Check for success
 		if (code == 0)
@@ -169,13 +136,13 @@ int main (int argc, char** argv)
 			if (!frame.rtr)
 			{
 				// Log data frame
-				if (mdfCanBusLogWriteDataFrame (&log, &frame, 1, false, &timeCurrent) != 0)
+				if (mdfCanBusLogWriteDataFrame (arg->log, &frame, arg->busChannel, false, &timeCurrent) != 0)
 					errorPrintf ("Warning, failed to log CAN data frame");
 			}
 			else
 			{
 				// Log RTR frame
-				if (mdfCanBusLogWriteRemoteFrame (&log, &frame, 1, false, &timeCurrent) != 0)
+				if (mdfCanBusLogWriteRemoteFrame (arg->log, &frame, arg->busChannel, false, &timeCurrent) != 0)
 					errorPrintf ("Warning, failed to log CAN remote frame");
 			}
 
@@ -187,30 +154,32 @@ int main (int argc, char** argv)
 		else if (canCheckBusError (code))
 		{
 			// If an error frame was generated, log it
-			if (mdfCanBusLogWriteErrorFrame (&log, &frame, 1, false, code, &timeCurrent) != 0)
+			if (mdfCanBusLogWriteErrorFrame (arg->log, &frame, arg->busChannel, false, code, &timeCurrent) != 0)
 				errorPrintf ("Warning, failed to log CAN error frame");
 
 			// Measure the error count
 			++errorCount;
 		}
 
+		// Release access to the log file.
+		pthread_mutex_unlock (arg->logMutex);
+
 		// Print status message
-		if (timercmp (&timeCurrent, &timeEnd, >))
+		if (timespecCompare (&timeCurrent, &timeEnd, >))
 		{
 			// Calculate the actual measurement period
-			struct timeval period;
-			timersub (&timeCurrent, &timeStart, &period);
+			struct timespec period = timespecSub (&timeCurrent, &timeStart);
 
 			// Calculate the min and max loads
 			float maxLoad = canCalculateBusLoad (maxBitCount, bitTime, period);
 			float minLoad = canCalculateBusLoad (minBitCount, bitTime, period);
 
 			// Print the status message
-			printf ("Bus Load: [%6.2f%%, %6.2f%%],   CAN Frames Received: %5lu,   Error Frames Received: %5lu,   "
-				"Bits Received: [%7lu, %7lu]\n", minLoad * 100.0f, maxLoad * 100.0f, (unsigned long) frameCount,
-				(unsigned long) errorCount, (unsigned long) minBitCount, (unsigned long) maxBitCount);
+			printf ("Channel %u,   Bus Load: [%6.2f%%, %6.2f%%],   CAN Frames Received: %5lu,   Error Frames Received: %5lu,   "
+				"Bits Received: [%7lu, %7lu]\n", arg->busChannel, minLoad * 100.0f, maxLoad * 100.0f,
+				(unsigned long) frameCount, (unsigned long) errorCount, (unsigned long) minBitCount,
+				(unsigned long) maxBitCount);
 
-			// TODO(Barach): Keep hard-coded, or use database lib?
 			canFrame_t statusFrame =
 			{
 				.id = 0x180,
@@ -226,12 +195,25 @@ int main (int argc, char** argv)
 				}
 			};
 
-			if (canTransmit (device, &statusFrame) != 0)
+			// Transmit the status message. Due to its blocking nature, this must be outside the mutex guard.
+			if (canTransmit (arg->device, &statusFrame) != 0)
 				errorPrintf ("Warning, failed to transmit status message");
 
+			// Acquire access to the log file. Note this must be before the timestamp is generated.
+			pthread_mutex_lock (arg->logMutex);
+
+			// Get a timestamp for the frame. We canot reuse the previous value, as it will have already been used if a frame
+			// was just received.
+			struct timespec timeCurrent;
+			if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
+				errorPrintf ("Warning, failed to get MDF timestamp");
+
 			// Log the status frame.
-			if (mdfCanBusLogWriteDataFrame (&log, &statusFrame, 1, true, &timeCurrent) != 0)
+			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame, arg->busChannel, true, &timeCurrent) != 0)
 				errorPrintf ("Warning, failed to log CAN data frame");
+
+			// Release access to the log file.
+			pthread_mutex_unlock (arg->logMutex);
 
 			// Reset the measurements (include the status frame, as we just transmitted that)
 			frameCount = 1;
@@ -241,14 +223,173 @@ int main (int argc, char** argv)
 
 			// Set the new deadline
 			timeStart = timeCurrent;
-			timeradd (&timeStart, &(struct timeval) { .tv_sec = 1 }, &timeEnd);
+			timeEnd = timespecAdd (&timeStart, &(struct timespec) { .tv_sec = 1 });
 		}
 	}
+
+	return NULL;
+}
+
+int loadConfiguration (mdfCanBusLogConfig_t* config, const char* directory, const char* configPath, canDevice_t* channel1, canDevice_t* channel2)
+{
+	cJSON* configJson = jsonLoad (configPath);
+	if (configJson == NULL)
+		return errno;
+
+	char* configName;
+	if (jsonGetString (configJson, "configName", &configName) != 0)
+		return errno;
+
+	char* hardwareName;
+	if (jsonGetString (configJson, "hardwareName", &hardwareName) != 0)
+		return errno;
+
+	char* hardwareVersion;
+	if (jsonGetString (configJson, "hardwareVersion", &hardwareVersion) != 0)
+		return errno;
+
+	char* serialNumber;
+	if (jsonGetString (configJson, "serialNumber", &serialNumber) != 0)
+		return errno;
+
+	*config = (mdfCanBusLogConfig_t)
+	{
+		.directory			= directory,
+		.configurationName	= configName,
+		.softwareName		= ZRE_CANTOOLS_NAME,
+		.softwareVersion	= ZRE_CANTOOLS_VERSION_FULL,
+		.softwareVendor		= "ZRE",
+		.hardwareName		= hardwareName,
+		.hardwareVersion	= hardwareVersion,
+		.serialNumber		= serialNumber,
+		.channel1Baudrate	= canGetBaudrate (channel1),
+		.channel2Baudrate	= channel2 == NULL ? 0 : canGetBaudrate (channel2),
+		.storageSize		= 0,
+		.storageRemaining	= 0,
+		.sessionNumber		= mdfCanBusLogGetSessionNumber (directory)
+	};
+	return 0;
+}
+
+// Entrypoint -----------------------------------------------------------------------------------------------------------------
+
+int main (int argc, char** argv)
+{
+	// Debug initialization
+	debugInit ();
+
+	// Handle program options
+	if (handleOptions (&argc, &argv, &(handleOptionsParams_t)
+	{
+		.fprintHelp		= fprintHelp,
+		.chars			= (char []) { 'r' },
+		.charHandlers	= (optionCharCallback_t* []) { testSystemTick },
+		.charCount		= 1,
+		.stringHandlers	= NULL,
+		.strings		= NULL,
+		.stringCount	= 0
+	}) != 0)
+		return errorPrintf ("Failed to handle options");
+
+	// Validate usage
+	if (argc < 3 || argc > 4)
+	{
+		fprintUsage (stderr);
+		return -1;
+	}
+
+	char* mdfDirectory = argv [0];
+	char* configPath = argv [1];
+
+	// Initialize the channel 1 CAN device
+	char* channel1DeviceName = argv [2];
+	canDevice_t* channel1 = canInit (channel1DeviceName);
+	if (channel1 == NULL)
+		return errorPrintf ("Failed to initialize channel 1 CAN device '%s'", channel1DeviceName);
+
+	// Require baudrate for bus load
+	if (canGetBaudrate (channel1) == CAN_BAUDRATE_UNKNOWN)
+	{
+		fprintf (stderr, "Channel 1 CAN device missing baudrate.\n");
+		return -1;
+	}
+
+	// If provided, initialize the channel 2 CAN device
+	canDevice_t* channel2 = NULL;
+	if (argc == 4)
+	{
+		char* channel2DeviceName = argv [3];
+		channel2 = canInit (channel2DeviceName);
+		if (channel2 == NULL)
+			return errorPrintf ("Failed to initialize channel 2 CAN device '%s'", channel2DeviceName);
+
+		// Require baudrate for bus load
+		if (canGetBaudrate (channel2) == CAN_BAUDRATE_UNKNOWN)
+		{
+			fprintf (stderr, "Channel 2 CAN device missing baudrate.\n");
+			return -1;
+		}
+	}
+
+	mdfCanBusLogConfig_t config;
+	if (loadConfiguration (&config, mdfDirectory, configPath, channel1, channel2) != 0)
+		return errorPrintf ("Failed to load CAN bus MDF log configuration");
+
+	mdfCanBusLog_t log;
+	if (mdfCanBusLogInit (&log, &config) != 0)
+		return errorPrintf ("Failed to initialize CAN bus MDF log");
+
+	// Create a mutex guarding access to the log file. While single fwrite operations are thread-safe on their own, this mutex
+	// is used to guarantee the timestamp written to each record of the log is monotonic, as our data analysis software imposes
+	// said requirement. As a result of this, all timestamps written must be acquired inside the guard of this mutex.
+	pthread_mutex_t logMutex;
+	pthread_mutex_init (&logMutex, NULL);
+
+	printf ("Starting MDF log: File name '%s'.\n", mdfCanBusLogGetName (&log));
+
+	if (signal (SIGTERM, sigtermHandler) == SIG_ERR)
+		return errorPrintf ("Failed to bind SIGTERM handler");
+
+	if (signal (SIGINT, sigtermHandler) == SIG_ERR)
+		return errorPrintf ("Failed to bind SIGINT handler");
+
+	// Create the logging thread for channel 1.
+	loggingThreadArg_t channel1Arg =
+	{
+		.device		= channel1,
+		.log		= &log,
+		.logMutex	= &logMutex,
+		.busChannel	= 1
+	};
+	pthread_t channel1Thread;
+	pthread_create (&channel1Thread, NULL, loggingThread, &channel1Arg);
+
+	// Create the logging thread for channel 2.
+	loggingThreadArg_t channel2Arg =
+	{
+		.device		= channel2,
+		.log		= &log,
+		.logMutex	= &logMutex,
+		.busChannel	= 2
+	};
+	pthread_t channel2Thread;
+	if (channel2 != NULL)
+		pthread_create (&channel2Thread, NULL, loggingThread, &channel2Arg);
+
+	// Wait for both threads to terminate.
+	if (channel2 != NULL)
+		pthread_join (channel2Thread, NULL);
+	pthread_join (channel1Thread, NULL);
+
+	// Destroy the mutex.
+	pthread_mutex_destroy (&logMutex);
 
 	// Terminate the log gracefully
 	printf ("Closing MDF file...\n");
 	mdfCanBusLogClose (&log);
-	canDealloc (device);
+	if (channel2 != NULL)
+		canDealloc (channel2);
+	canDealloc (channel1);
 
 	return 0;
 }

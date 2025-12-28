@@ -3,9 +3,12 @@
 
 // Includes
 #include "debug.h"
+#include "error_codes.h"
 
 // C Standard Library
+#include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 
 static void handleHelp (fprintCallback_t* fprintHelp)
 {
@@ -94,6 +97,103 @@ optionReturn_t handleOption (const char* arg, const char** option, fprintCallbac
 	if (option != NULL)
 		*option = arg + 1;
 	return OPTION_CHAR;
+}
+
+int handleOptions (int* argc, char*** argv, handleOptionsParams_t* params)
+{
+	int optionIndex;
+	for (optionIndex = 1; optionIndex < *argc; ++optionIndex)
+	{
+		// TODO(Barach): Const casting?
+		char* option;
+		switch (handleOption ((*argv) [optionIndex], (const char**) &option, params->fprintHelp))
+		{
+		case OPTION_CHAR:
+		{
+			// Find the correct handler
+			size_t charIndex;
+			for (charIndex = 0; charIndex < params->charCount; ++charIndex)
+			{
+				// If not the correct handler, skip and try the next.
+				if (option [0] != params->chars [charIndex])
+					continue;
+
+				// If an equal sign is present, pass in the value.
+				if (option [1] == '=')
+					params->charHandlers [charIndex] (option [0], option + 2);
+				else
+					params->charHandlers [charIndex] (option [0], NULL);
+
+				// Handled correctly, break the loop.
+				break;
+			}
+
+			// If the option was not handled, return failure.
+			if (charIndex == params->charCount)
+			{
+				debugPrintf ("Invalid char option '%s'.\n", (*argv) [optionIndex]);
+				errno = ERRNO_INVALID_OPTION;
+				return errno;
+			}
+
+			break;
+		}
+
+		case OPTION_STRING:
+		{
+			// If an equal sign is present, split at the sign and get the value after.
+			size_t splitIndex = strcspn (option, "=");
+			char* value = NULL;
+			if (option [splitIndex] == '=')
+			{
+				option [splitIndex] = '\0';
+				value = option + splitIndex + 1;
+			}
+
+			// Find the correct handler
+			size_t stringIndex;
+			for (stringIndex = 0; stringIndex < params->stringCount; ++stringIndex)
+			{
+				// If not the correct handler, skip and try the next.
+				if (strcmp (option, params->strings [stringIndex]) != 0)
+					continue;
+
+				// Call the handler
+				params->stringHandlers [stringIndex] (option, value);
+
+				// Handled correctly, break the loop.
+				break;
+			}
+
+			// If the option was not handled, return failure.
+			if (stringIndex == params->stringCount)
+			{
+				debugPrintf ("Invalid string option '%s'.\n", (*argv) [optionIndex]);
+				errno = ERRNO_INVALID_OPTION;
+				return errno;
+			}
+
+			break;
+		}
+
+		case OPTION_QUIT:
+			// Quit the program.
+			exit (0);
+
+		case OPTION_INVALID:
+			*argc -= optionIndex;
+			*argv += optionIndex;
+			return 0;
+
+		case OPTION_HANDLED:
+			// If handled, do nothing and continue parsing.
+			break;
+		}
+	}
+
+	*argc -= optionIndex;
+	*argv += optionIndex;
+	return 0;
 }
 
 int fprintOptionHelp (FILE* stream, char* indent)

@@ -57,6 +57,6 @@ float canCalculateBitTime (canBaudrate_t baudrate);
  * @param period The amount of time that has the @c bitCount was measured over.
  * @return The load of the CAN bus, 0 => 0%, 1 => 100%.
  */
-float canCalculateBusLoad (size_t bitCount, float bitTime, struct timeval period);
+float canCalculateBusLoad (size_t bitCount, float bitTime, struct timespec period);
 
 #endif // CAN_BUS_LOAD_H

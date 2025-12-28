@@ -127,10 +127,10 @@ float canCalculateBitTime (canBaudrate_t baudrate)
 	return 1.0f / baudrate;
 }
 
-float canCalculateBusLoad (size_t bitCount, float bitTime, struct timeval period)
+float canCalculateBusLoad (size_t bitCount, float bitTime, struct timespec period)
 {
 	// CAN bus load is the amount of time the bus was in use (length of bit * number of bits) divided by the total period of
 	// time we measured for.
-	float periodS = period.tv_sec + period.tv_usec * 1e-6f;
+	float periodS = period.tv_sec + period.tv_nsec * 1e-9f;
 	return bitTime * bitCount / periodS;
 }

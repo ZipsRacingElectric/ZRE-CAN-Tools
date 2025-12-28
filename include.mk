@@ -56,7 +56,8 @@ CFLAGS := -std=gnu11 -fno-strict-aliasing -Wall -Wextra -g					\
 	-D ZRE_CANTOOLS_OS=\"$(OS_TYPE)\"										\
 	-D ZRE_CANTOOLS_ARCH=\"$(ARCH_TYPE)\"									\
 	-D ZRE_CANTOOLS_VERSION_NUMBER=\"$(VERSION_NUMBER)\"					\
-	-D ZRE_CANTOOLS_VERSION_FULL=\"$(VERSION_FULL)\"
+	-D ZRE_CANTOOLS_VERSION_FULL=\"$(VERSION_FULL)\"						\
+	-D ZRE_CANTOOLS_NAME=\"zre_cantools\"
 
 # Linker flags to use for linking all applications and libraries
 LIBFLAGS := -lm

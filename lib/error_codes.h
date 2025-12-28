@@ -22,10 +22,12 @@
 #define ERRNO_UNKNOWN							1024
 #define ERRNO_OS_NOT_SUPPORTED					1025
 #define ERRNO_END_OF_FILE						1026
+#define ERRNO_INVALID_OPTION					1027
 
 #define ERRMSG_UNKNOWN							"An unknown error occurred"
 #define ERRMSG_OS_NOT_SUPPORTED					"The attempted operation is not supported on this operating system"
 #define ERRMSG_END_OF_FILE						"Unexpected end of file"
+#define ERRMSG_INVALID_OPTION					"Invalid option"
 
 // can_device Module ----------------------------------------------------------------------------------------------------------
 
@@ -178,6 +180,7 @@ static inline const char* errorCodeToMessage (int code)
 	ERROR_CODE_TO_MESSAGE_CASE (UNKNOWN);
 	ERROR_CODE_TO_MESSAGE_CASE (OS_NOT_SUPPORTED);
 	ERROR_CODE_TO_MESSAGE_CASE (END_OF_FILE);
+	ERROR_CODE_TO_MESSAGE_CASE (INVALID_OPTION);
 
 	// can_device module
 	ERROR_CODE_TO_MESSAGE_CASE (CAN_DEVICE_UNKNOWN_NAME);
