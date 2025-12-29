@@ -1,0 +1,43 @@
+#ifndef PAGE_H
+#define PAGE_H
+
+// GUI Page -------------------------------------------------------------------------------------------------------------------
+//
+// Author: Cole Barach
+// Date Created: 2025.12.29
+//
+// Description: TODO(Barach)
+
+// Includes -------------------------------------------------------------------------------------------------------------------
+
+// GTK
+#include <gtk/gtk.h>
+
+// Datatypes ------------------------------------------------------------------------------------------------------------------
+
+typedef void (pageUpdate_t) (void* page);
+
+/// @brief Virtual method table (and virtual members) for the @c page_t base structure.
+typedef struct
+{
+	pageUpdate_t* update;
+	GtkWidget* widget;
+} pageVmt_t;
+
+typedef struct
+{
+	pageVmt_t vmt;
+} page_t;
+
+// Macros ---------------------------------------------------------------------------------------------------------------------
+
+#define PAGE_TO_WIDGET(page) ((page)->vmt.widget)
+
+// Functions ------------------------------------------------------------------------------------------------------------------
+
+static inline void pageUpdate (page_t* page)
+{
+	page->vmt.update (page);
+}
+
+#endif // PAGE_H

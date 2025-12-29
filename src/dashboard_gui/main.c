@@ -1,18 +1,22 @@
 // Includes
 #include "debug.h"
 #include "page_autox.h"
+#include "page_bms_overview.h"
+#include "cjson/cjson_util.h"
 #include "options.h"
+#include "bms/bms.h"
 
 // GTK
 #include <gtk/gtk.h>
 
 static void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: dashboard-gui <Options> <Application Name> <Device Name> <DBC File Path>\n");
+	fprintf (stream, "Usage: dashboard-gui <Options> <Application Name> <Device Name> <DBC File Path> <BMS Config Path>\n");
 }
 
 static void fprintHelp (FILE* stream)
 {
+	// TODO(Barach)
 	fprintf (stream, "dashboard-gui\n\n");
 	fprintUsage (stream);
 	fprintf (stream, "\n");
@@ -23,11 +27,12 @@ typedef struct
 	const char* applicationTitle;
 	const char* applicationId;
 	canDatabase_t* database;
+	bms_t* bms;
 } activateArg_t;
 
-static gboolean updateLoop (pageAutox_t* page)
+static gboolean updateLoop (page_t* page)
 {
-	pageAutoxUpdate (page);
+	pageUpdate (page);
 
 	// Continue calling this function
 	return TRUE;
@@ -76,9 +81,8 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	gtk_window_set_title (GTK_WINDOW (window), arg->applicationTitle);
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
 
-	pageAutox_t* page = malloc (sizeof (pageAutox_t));
-	pageAutoxInit (page, arg->database);
-	gtk_window_set_child (GTK_WINDOW (window), PAGE_AUTOX_TO_WIDGET (page));
+	page_t* page = pageBmsOverviewInit (arg->database, arg->bms);
+	gtk_window_set_child (GTK_WINDOW (window), PAGE_TO_WIDGET (page));
 
 	GtkEventController* controller = gtk_event_controller_key_new ();
 
@@ -89,7 +93,7 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 
 	// Create the event loop timer
 	guint* timeout = malloc (sizeof (guint));
-	*timeout = g_timeout_add (1, G_SOURCE_FUNC (updateLoop), page);
+	*timeout = g_timeout_add (30, G_SOURCE_FUNC (updateLoop), page);
 
 	// Bind the destroy signal to a handler
 	g_signal_connect (GTK_WINDOW (window), "destroy", G_CALLBACK (gtkDestroyHandler), timeout);
@@ -150,23 +154,31 @@ int main (int argc, char** argv)
 	}
 
 	// Validate usage
-	if (argc < 4)
+	if (argc < 5)
 	{
 		fprintUsage (stderr);
 		return -1;
 	}
 
 	// Initialize the CAN device
-	char* deviceName = argv [argc - 2];
+	char* deviceName = argv [argc - 3];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
 	// Initialize the CAN database
 	canDatabase_t database;
-	char* dbcPath = argv [argc - 1];
+	char* dbcPath = argv [argc - 2];
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
 		return errorPrintf ("Failed to initialize CAN database");
+
+	// Initialize the BMS
+	bms_t bms;
+	cJSON* bmsConfig = jsonLoad (argv [argc - 1]);
+	if (bmsConfig == NULL)
+		return errorPrintf ("Failed to load BMS config");
+	if (bmsInit (&bms, bmsConfig, &database) != 0)
+		return errorPrintf ("Failed to initialize BMS");
 
 	// Create application ID from application name
 	char* applicationName = argv [argc - 3];
@@ -185,7 +197,8 @@ int main (int argc, char** argv)
 	{
 		.applicationTitle	= applicationTitle,
 		.applicationId		= applicationId,
-		.database			= &database
+		.database			= &database,
+		.bms				= &bms
 	};
 
 	// Create the GTK application bound to the activation signal

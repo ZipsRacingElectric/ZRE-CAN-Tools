@@ -12,10 +12,16 @@
 #define PANEL_STAT_FONT			"ITC Avant Garde Gothic CE Book 26px"
 #define FAULT_NAME_FONT			"Futura Std Bold Condensed 32px @color=#000000"
 
-void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
+page_t* pageAutoxInit (canDatabase_t* database)
 {
-	// Create the top-level grid
-	page->widget = gtk_grid_new ();
+	// Allocate the page
+	pageAutox_t* page = malloc (sizeof (pageAutox_t));
+	if (page == NULL)
+		return NULL;
+
+	// Setup the VMT
+	page->vmt.update = pageAutoxUpdate;
+	page->vmt.widget = gtk_grid_new ();
 
 	// BSE bar
 	page->bse = (canProgressBar_t)
@@ -29,10 +35,10 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	gtk_progress_bar_set_inverted (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (&page->bse), true);
 	gtk_widget_set_vexpand (CAN_PROGRESS_BAR_TO_WIDGET (&page->bse), true);
 	gtk_widget_set_size_request (CAN_PROGRESS_BAR_TO_WIDGET (&page->bse), 20, 0);
-	gtk_grid_attach (GTK_GRID (page->widget), CAN_PROGRESS_BAR_TO_WIDGET (&page->bse), 0, 0, 1, 6);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), CAN_PROGRESS_BAR_TO_WIDGET (&page->bse), 0, 0, 1, 6);
 
 	GtkWidget* dataLoggerPanel = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (page->widget), dataLoggerPanel, 1, 1, 2, 2);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), dataLoggerPanel, 1, 1, 2, 2);
 
 	page->dataLoggerStatus = (canLabelBool_t)
 	{
@@ -61,13 +67,13 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 
 	GtkWidget* padding = gtk_grid_new ();
 	gtk_widget_set_size_request (padding, 80, 0);
-	gtk_grid_attach (GTK_GRID (page->widget), padding, 1, 3, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), padding, 1, 3, 1, 1);
 
 	GtkWidget* leftPanel = gtk_grid_new ();
 	gtk_widget_set_margin_start (leftPanel, 10);
 	gtk_widget_set_margin_end (leftPanel, 10);
 	gtk_widget_set_valign (leftPanel, GTK_ALIGN_CENTER);
-	gtk_grid_attach (GTK_GRID (page->widget), leftPanel, 2, 3, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), leftPanel, 2, 3, 1, 1);
 
 	GtkWidget* label = gtk_label_new ("Torque Config");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
@@ -147,7 +153,7 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	GtkWidget* faultPanel = gtk_grid_new ();
 	gtk_widget_set_margin_top (faultPanel, 10);
 	gtk_widget_set_margin_bottom (faultPanel, 10);
-	gtk_grid_attach (GTK_GRID (page->widget), faultPanel, 3, 0, 2, 2);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), faultPanel, 3, 0, 2, 2);
 
 	static float points [][2] =
 	{
@@ -291,7 +297,7 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	label = gtk_label_new ("Vehicle Speed (Km/h):");
 	gtkLabelSetFont (GTK_LABEL (label), CENTER_TITLE_FONT);
 	gtk_label_set_xalign (GTK_LABEL (label), 0);
-	gtk_grid_attach (GTK_GRID (page->widget), label, 3, 2, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), label, 3, 2, 1, 1);
 
 	page->speed = (canLabelFloat_t)
 	{
@@ -303,13 +309,13 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (&page->speed), CENTER_VALUE_FONT);
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_TO_WIDGET (&page->speed), true);
 	gtk_widget_set_vexpand (CAN_LABEL_FLOAT_TO_WIDGET (&page->speed), true);
-	gtk_grid_attach (GTK_GRID (page->widget), CAN_LABEL_FLOAT_TO_WIDGET (&page->speed), 3, 3, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), CAN_LABEL_FLOAT_TO_WIDGET (&page->speed), 3, 3, 1, 1);
 
 	GtkWidget* rightPanel = gtk_grid_new ();
 	gtk_widget_set_margin_start (rightPanel, 10);
 	gtk_widget_set_margin_end (rightPanel, 10);
 	gtk_widget_set_valign (rightPanel, GTK_ALIGN_CENTER);
-	gtk_grid_attach (GTK_GRID (page->widget), rightPanel, 4, 3, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), rightPanel, 4, 3, 1, 1);
 
 	label = gtk_label_new ("Powertrain");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
@@ -382,7 +388,7 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->motorMaxTemp), 1, 4, 1, 1);
 
 	GtkWidget* buttonPanel = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (page->widget), buttonPanel, 2, 5, 3, 1);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), buttonPanel, 2, 5, 3, 1);
 
 	GtkWidget* button = gtk_button_new ();
 	gtk_widget_set_size_request (button, 0, 90);
@@ -416,26 +422,31 @@ void pageAutoxInit (pageAutox_t* page, canDatabase_t* database)
 	gtk_progress_bar_set_inverted (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (&page->apps), true);
 	gtk_widget_set_vexpand (CAN_PROGRESS_BAR_TO_WIDGET (&page->apps), true);
 	gtk_widget_set_size_request (CAN_PROGRESS_BAR_TO_WIDGET (&page->apps), 20, 0);
-	gtk_grid_attach (GTK_GRID (page->widget), CAN_PROGRESS_BAR_TO_WIDGET (&page->apps), 5, 0, 1, 6);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), CAN_PROGRESS_BAR_TO_WIDGET (&page->apps), 5, 0, 1, 6);
+
+	// Return the created page (cast to the base type).
+	return (page_t*) page;
 }
 
-void pageAutoxUpdate (pageAutox_t* page)
+void pageAutoxUpdate (void* page)
 {
-	canProgressBarUpdate (&page->bse);
-	canProgressBarUpdate (&page->apps);
-	canLabelBoolUpdate (&page->dataLoggerStatus);
-	canLabelFloatUpdate (&page->dataLoggerSession);
-	canLabelFloatUpdate (&page->glvVoltage);
-	canLabelFloatUpdate (&page->hvVoltage);
-	canLabelFloatUpdate (&page->inverterMaxTemp);
-	canLabelFloatUpdate (&page->motorMaxTemp);
-	canLabelFloatUpdate (&page->drivingTorque);
-	canLabelFloatUpdate (&page->regenTorque);
-	canLabelFloatUpdate (&page->torqueIndex);
-	canLabelFloatUpdate (&page->speed);
-	canIndicatorUpdate (&page->drsStatus);
-	canIndicatorUpdate (&page->vcuFault);
-	canIndicatorUpdate (&page->bmsFault);
-	canIndicatorUpdate (&page->amkFault);
-	canIndicatorUpdate (&page->gpsFault);
+	pageAutox_t* pageAutox = page;
+
+	canProgressBarUpdate (&pageAutox->bse);
+	canProgressBarUpdate (&pageAutox->apps);
+	canLabelBoolUpdate (&pageAutox->dataLoggerStatus);
+	canLabelFloatUpdate (&pageAutox->dataLoggerSession);
+	canLabelFloatUpdate (&pageAutox->glvVoltage);
+	canLabelFloatUpdate (&pageAutox->hvVoltage);
+	canLabelFloatUpdate (&pageAutox->inverterMaxTemp);
+	canLabelFloatUpdate (&pageAutox->motorMaxTemp);
+	canLabelFloatUpdate (&pageAutox->drivingTorque);
+	canLabelFloatUpdate (&pageAutox->regenTorque);
+	canLabelFloatUpdate (&pageAutox->torqueIndex);
+	canLabelFloatUpdate (&pageAutox->speed);
+	canIndicatorUpdate (&pageAutox->drsStatus);
+	canIndicatorUpdate (&pageAutox->vcuFault);
+	canIndicatorUpdate (&pageAutox->bmsFault);
+	canIndicatorUpdate (&pageAutox->amkFault);
+	canIndicatorUpdate (&pageAutox->gpsFault);
 }

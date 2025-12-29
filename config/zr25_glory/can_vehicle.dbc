@@ -96,7 +96,7 @@ BO_ 1831 BMS_STATUS: 6 BMS
  SG_ SHUTDOWN_LOOP_BLIP : 11|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_RELAY_STATUS : 12|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ IMD_RELAY_STATUS : 13|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_FAULT : 14|1@1+ (0,0) [0|0] "" Vector__XXX
+ SG_ BMS_FAULT : 14|1@1+ (0,0) [0|0] "Bool" Vector__XXX
 
 BO_ 1536 VCU_SENSOR_INPUT: 8 VCU
  SG_ APPS_1_PERCENT : 0|12@1+ (0.02442002442002442,0) [0|100] "%" Vector__XXX

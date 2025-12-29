@@ -23,8 +23,8 @@ void gtkLabelSetColor (GtkLabel* label, const char* color)
 		list = pango_attr_list_new ();
 
 	PangoColor pangoColor;
-	guint16 alpha;
-	if (!pango_color_parse_with_alpha(&pangoColor, &alpha, color))
+	guint16 pangoAlpha;
+	if (!pango_color_parse_with_alpha(&pangoColor, &pangoAlpha, color))
 		pangoColor = (PangoColor) { 0, 0, 0 };
 
 	PangoAttribute* attr = pango_attr_foreground_new (pangoColor.red, pangoColor.green, pangoColor.blue);
@@ -32,5 +32,21 @@ void gtkLabelSetColor (GtkLabel* label, const char* color)
 
 	// TODO(Barach): Does alpha ever vary?
 	gtk_label_set_attributes (label, list);
-	gtk_widget_set_opacity (GTK_WIDGET (label), alpha / 65535.0f);
+	gtk_widget_set_opacity (GTK_WIDGET (label), pangoAlpha / 65536.0f);
+}
+
+GdkRGBA gdkHexToColor (const char* color)
+{
+	PangoColor pangoColor;
+	guint16 pangoAlpha;
+	if (!pango_color_parse_with_alpha(&pangoColor, &pangoAlpha, color))
+		pangoColor = (PangoColor) { 0, 0, 0 };
+
+	return (GdkRGBA)
+	{
+		.red	= pangoColor.red	/ 65536.0f,
+		.green	= pangoColor.green	/ 65536.0f,
+		.blue	= pangoColor.blue	/ 65536.0f,
+		.alpha	= pangoAlpha		/ 65536.0f
+	};
 }

@@ -12,15 +12,19 @@
 
 // Includes
 #include "can_widgets.h"
+#include "page.h"
 
 // GTK
 #include <gtk/gtk.h>
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
+// TODO(Barach): Polymorphism docs
+
 typedef struct
 {
-	GtkWidget* widget;
+	pageVmt_t vmt;
+
 	canProgressBar_t bse;
 	canProgressBar_t apps;
 	canLabelBool_t dataLoggerStatus;
@@ -44,8 +48,8 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-void pageAutoxInit (pageAutox_t* page, canDatabase_t* database);
+page_t* pageAutoxInit (canDatabase_t* database);
 
-void pageAutoxUpdate (pageAutox_t* page);
+void pageAutoxUpdate (void* page);
 
 #endif // PAGE_AUTOX_H

@@ -19,4 +19,6 @@ void gtkLabelSetFont (GtkLabel* label, const char* pangoFontDescriptor);
 
 void gtkLabelSetColor (GtkLabel* label, const char* color);
 
+GdkRGBA gdkHexToColor (const char* color);
+
 #endif // GTK_UTIL
