@@ -37,7 +37,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 			.formatInvalid	= ": %s %s"
 		};
 		canLabelFloatInit (&page->statusLabels [index], database);
-
+		gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), GTK_ALIGN_START);
 		gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), column + 1, row, 1, 1);
 	}
 

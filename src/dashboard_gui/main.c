@@ -181,7 +181,7 @@ int main (int argc, char** argv)
 		return errorPrintf ("Failed to initialize BMS");
 
 	// Create application ID from application name
-	char* applicationName = argv [argc - 3];
+	char* applicationName = argv [argc - 4];
 	char* applicationTitle = getApplicationTitle (applicationName);
 	if (applicationTitle == NULL)
 		return errorPrintf ("Failed to create application title");
@@ -191,7 +191,7 @@ int main (int argc, char** argv)
 		return errorPrintf ("Failed to create application name");
 
 	debugPrintf ("Application ID: '%s'\n", applicationId);
-	debugPrintf ("Application Title '%s'\n", applicationTitle);
+	debugPrintf ("Application Title: '%s'\n", applicationTitle);
 
 	activateArg_t arg =
 	{
