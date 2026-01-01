@@ -21,9 +21,22 @@
 typedef struct
 {
 	pageVmt_t vmt;
+	bms_t* bms;
 	bmsBarGraph_t voltages;
 	bmsBarGraph_t temperatures;
 	canLabelFloat_t* statusLabels;
+	size_t statusCount;
+	canLabelFloatStatic_t voltageLabel;
+	canLabelFloatStatic_t currentLabel;
+	canLabelFloatStatic_t powerLabel;
+	canLabelFloatStatic_t minCellLabel;
+	canLabelFloatStatic_t maxCellLabel;
+	canLabelFloatStatic_t avgCellLabel;
+	canLabelFloatStatic_t minTempLabel;
+	canLabelFloatStatic_t maxTempLabel;
+	canLabelFloatStatic_t avgTempLabel;
+	canLabelFloatStatic_t maxDeltaLabel;
+	canLabelFloatStatic_t avgDeltaLabel;
 } pageBmsOverview_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

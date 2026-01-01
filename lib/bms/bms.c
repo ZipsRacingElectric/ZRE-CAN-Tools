@@ -286,6 +286,23 @@ canDatabaseSignalState_t bmsGetPackCurrent (bms_t* bms, float* current)
 	return canDatabaseGetFloat (bms->database, bms->packCurrentIndex, current);
 }
 
+canDatabaseSignalState_t bmsGetPackPower (bms_t* bms, float* power)
+{
+	float voltage;
+	canDatabaseSignalState_t voltageState = bmsGetPackVoltage (bms, &voltage);
+	float current;
+	canDatabaseSignalState_t currentState = bmsGetPackCurrent (bms, &current);
+
+	if (voltageState == CAN_DATABASE_MISSING || currentState == CAN_DATABASE_MISSING)
+		return CAN_DATABASE_MISSING;
+
+	if (voltageState == CAN_DATABASE_TIMEOUT || currentState == CAN_DATABASE_TIMEOUT)
+		return CAN_DATABASE_TIMEOUT;
+
+	*power = voltage * current;
+	return CAN_DATABASE_VALID;
+}
+
 canDatabaseSignalState_t bmsGetCellVoltage (bms_t* bms, size_t index, float* voltage)
 {
 	return canDatabaseGetFloat (bms->database, bms->cellVoltageIndices [index], voltage);

@@ -82,6 +82,7 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
 
 	page_t* page = pageBmsOverviewInit (arg->database, arg->bms);
+	// page_t* page = pageAutoxInit (arg->database);
 	gtk_window_set_child (GTK_WINDOW (window), PAGE_TO_WIDGET (page));
 
 	GtkEventController* controller = gtk_event_controller_key_new ();

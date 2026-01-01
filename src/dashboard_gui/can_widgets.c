@@ -1,45 +1,9 @@
 // Header
 #include "can_widgets.h"
 
-// TODO(Barach): Move these to can_database_stdio.h
-
-int fprintCanDatabaseFloat (FILE* stream, canDatabase_t* database, ssize_t index, const char* formatValue,
-	const char* formatInvalid)
-{
-	// Get signal reference, also check existence
-	canSignal_t* signal = canDatabaseGetSignal (database, index);
-	if (signal == NULL)
-		return fprintf (stream, formatInvalid, "--", "-");
-
-	float value;
-	if (canDatabaseGetFloat (database, index, &value) != CAN_DATABASE_VALID)
-	{
-		// Print '--' as a string using the user-provided format string. The unit is ignored if not '%s' specifier is added.
-		return fprintf (stream, formatInvalid, "--", signal->unit);
-	}
-
-	// Print the value as a float using the user-provided format string. The unit is ignored if not '%s' specifier is added.
-	return fprintf (stream, formatValue, value, signal->unit);
-}
-
-int snprintCanDatabaseFloat (char* str, size_t n, canDatabase_t* database, ssize_t index, const char* formatValue,
-	const char* formatInvalid)
-{
-	// Get signal reference, also check existence
-	canSignal_t* signal = canDatabaseGetSignal (database, index);
-	if (signal == NULL)
-		return snprintf (str, n, formatInvalid, "--", "-");
-
-	float value;
-	if (canDatabaseGetFloat (database, index, &value) != CAN_DATABASE_VALID)
-	{
-		// Print '--' as a string using the user-provided format string. The unit is ignored if not '%s' specifier is added.
-		return snprintf (str, n, formatInvalid, "--", signal->unit);
-	}
-
-	// Print the value as a float using the user-provided format string. The unit is ignored if not '%s' specifier is added.
-	return snprintf (str, n, formatValue, value, signal->unit);
-}
+// Includes
+#include "can_database/can_database_stdio.h"
+#include "zre_math.h"
 
 void canLabelFloatInit (canLabelFloat_t* label, canDatabase_t* database)
 {
@@ -51,9 +15,9 @@ void canLabelFloatInit (canLabelFloat_t* label, canDatabase_t* database)
 
 void canLabelFloatUpdate (canLabelFloat_t* label)
 {
-	char text [16] = "";
-	snprintCanDatabaseFloat (text, sizeof (text), label->database, label->index, label->formatValue,
-		label->formatInvalid);
+	char text [64] = "";
+	snprintCanDatabaseFloat (text, sizeof (text), label->formatValue, label->formatInvalid,
+		label->database, label->index);
 	gtk_label_set_text (CAN_LABEL_FLOAT_TO_LABEL (label), text);
 }
 
@@ -117,7 +81,7 @@ void canProgressBarUpdate (canProgressBar_t* bar)
 		value = bar->min;
 
 	// Inverse linear interpolation
-	value = (value - bar->min) / (bar->max - bar->min);
+	value = inverseLerp (value, bar->min, bar->max);
 
 	gtk_progress_bar_set_fraction (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (bar), value);
 }

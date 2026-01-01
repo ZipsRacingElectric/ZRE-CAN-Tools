@@ -1,6 +1,10 @@
 // Header
 #include "bms_widgets.h"
 
+// Includes
+#include "can_database/can_database_stdio.h"
+#include "zre_math.h"
+
 static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
 	(void) area;
@@ -52,6 +56,7 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 		if (graph->config.accessor (graph->bms, index + graph->config.offset, &value) != CAN_DATABASE_VALID)
 			value = 0;
 
+		// Uncomment below for test values:
 		// float value = (graph->config.max - graph->config.min) * index / (graph->config.count - 1.0f) + graph->config.min;
 		float scale = inverseLerp (value, graph->config.min, graph->config.max);
 
@@ -73,6 +78,19 @@ static void deallocTicks (bmsBarGraph_t* graph)
 		free (graph->tickLabels);
 		free (graph->tickScalars);
 	}
+}
+
+void canLabelFloatStaticInit (canLabelFloatStatic_t* label)
+{
+	label->widget = gtk_label_new ("");
+	canLabelFloatStaticUpdate (label, 0, CAN_DATABASE_MISSING, NULL);
+}
+
+void canLabelFloatStaticUpdate (canLabelFloatStatic_t* label, float value, canDatabaseSignalState_t state, const char* unit)
+{
+	char buffer [64];
+	snprintCanDatabaseFloatStatic (buffer, sizeof (buffer), label->formatValue, label->formatInvalid, value, state, unit);
+	gtk_label_set_text (GTK_LABEL (label->widget), buffer);
 }
 
 void bmsBarGraphInit (bmsBarGraph_t* graph, bms_t* bms, bmsBarGraphConfig_t* config)
@@ -126,12 +144,5 @@ void bmsBarSetBounds (bmsBarGraph_t* graph, float min, float max)
 
 void bmsBarGraphUpdate (bmsBarGraph_t* graph)
 {
-	// TODO(Barach): copy performance?
-	// for (size_t index = 0; index < graph->count; ++index)
-	// {
-	// 	// graph->values [index] = NAN;
-	// 	graph->values [index] = index;
-	// 	// graph->accessor (graph->bms, index + graph->offset, &graph->values [index]);
-	// }
 	gtk_widget_queue_draw (BMS_BAR_GRAPH_TO_WIDGET (graph));
 }

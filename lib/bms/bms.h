@@ -138,6 +138,14 @@ canDatabaseSignalState_t bmsGetPackVoltage (bms_t* bms, float* voltage);
 canDatabaseSignalState_t bmsGetPackCurrent (bms_t* bms, float* current);
 
 /**
+ * @brief Gets the pack power consumption of the BMS.
+ * @param bms The BMS to use.
+ * @param power Buffer to write the power into.
+ * @return The state of the signal. Note that @c power is only written if the return is @c CAN_DATABASE_VALID .
+ */
+canDatabaseSignalState_t bmsGetPackPower (bms_t* bms, float* power);
+
+/**
  * @brief Gets a cell voltage from the BMS.
  * @param bms The BMS to use.
  * @param index The global index of the cell to get.

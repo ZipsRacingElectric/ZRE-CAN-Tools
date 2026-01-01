@@ -12,12 +12,21 @@
 
 // Includes
 #include "bms/bms.h"
-#include "zre_math.h"
 
 // GTK
 #include <gtk/gtk.h>
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
+
+typedef struct
+{
+	GtkWidget* widget;
+	const char* formatValue;
+	const char* formatInvalid;
+} canLabelFloatStatic_t;
+
+#define CAN_LABEL_FLOAT_STATIC_TO_LABEL(label) GTK_LABEL ((label)->widget)
+#define CAN_LABEL_FLOAT_STATIC_TO_WIDGET(label) ((label)->widget)
 
 typedef canDatabaseSignalState_t (bmsBarGraphAccessor_t) (bms_t* bms, size_t index, float* value);
 
@@ -54,6 +63,10 @@ typedef struct
 #define BMS_BAR_GRAPH_TO_WIDGET(graph) ((graph)->widget)
 
 // Functions ------------------------------------------------------------------------------------------------------------------
+
+void canLabelFloatStaticInit (canLabelFloatStatic_t* label);
+
+void canLabelFloatStaticUpdate (canLabelFloatStatic_t* label, float value, canDatabaseSignalState_t state, const char* unit);
 
 void bmsBarGraphInit (bmsBarGraph_t* graph, bms_t* bms, bmsBarGraphConfig_t* config);
 
