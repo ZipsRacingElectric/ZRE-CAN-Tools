@@ -24,6 +24,7 @@ typedef struct
 	bms_t* bms;
 	bmsBarGraph_t voltages;
 	bmsBarGraph_t temperatures;
+	bmsBarGraph_t ltcTemperatures;
 	canLabelFloat_t* statusLabels;
 	size_t statusCount;
 	canLabelFloatStatic_t voltageLabel;

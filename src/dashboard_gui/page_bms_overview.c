@@ -3,7 +3,6 @@
 
 // Includes
 #include "gtk_util.h"
-#include "can_database/can_database_stdio.h"
 
 page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 {
@@ -17,10 +16,15 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 
 	page->bms = bms;
 
-		GtkWidget* statisticPanel = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (page->vmt.widget), statisticPanel, 0, 0, 1, 1);
+	GtkWidget* label = gtk_label_new ("Statistics:");
+	gtk_widget_set_hexpand (label, true);
+	gtk_widget_set_halign (label, GTK_ALIGN_START);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), label, 0, 0, 2, 1);
 
-	GtkWidget* label = gtk_label_new ("Voltage: ");
+	GtkWidget* statisticPanel = gtk_grid_new ();
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), statisticPanel, 0, 1, 2, 1);
+
+	label = gtk_label_new ("Voltage: ");
 	page->voltageLabel = (canLabelFloatStatic_t)
 	{
 		.formatValue	= "%.1f %s",
@@ -65,7 +69,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	label = gtk_label_new ("Min Cell: ");
 	page->minCellLabel = (canLabelFloatStatic_t)
 	{
-		.formatValue	= "%.2f %s",
+		.formatValue	= "%.3f %s",
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->minCellLabel);
@@ -79,7 +83,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	label = gtk_label_new ("Max Cell: ");
 	page->maxCellLabel = (canLabelFloatStatic_t)
 	{
-		.formatValue	= "%.2f %s",
+		.formatValue	= "%.3f %s",
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->maxCellLabel);
@@ -93,7 +97,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	label = gtk_label_new ("Avg Cell: ");
 	page->avgCellLabel = (canLabelFloatStatic_t)
 	{
-		.formatValue	= "%.2f %s",
+		.formatValue	= "%.3f %s",
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->avgCellLabel);
@@ -174,32 +178,10 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), true);
 	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), GTK_ALIGN_START);
 
-	GtkWidget* statusPanel = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (page->vmt.widget), statusPanel, 0, 3, 1, 1);
-
-	page->statusCount = bmsGetStatusCount (bms);
-	page->statusLabels = malloc (sizeof (canLabelFloat_t) * page->statusCount);
-	for (size_t index = 0; index < page->statusCount; ++index)
-	{
-		char* name = bmsGetStatusName (bms, index);
-
-		int column	= 2 * (index % 3);
-		int row		= index / 3;
-		GtkWidget* label = gtk_label_new (name);
-		gtk_grid_attach (GTK_GRID (statusPanel), label, column, row, 1, 1);
-		gtk_widget_set_hexpand (label, true);
-		gtk_widget_set_halign (label, GTK_ALIGN_END);
-
-		page->statusLabels [index] = (canLabelFloat_t)
-		{
-			.signalName		= name,
-			.formatValue	= ": %.1f %s",
-			.formatInvalid	= ": %s %s"
-		};
-		canLabelFloatInit (&page->statusLabels [index], database);
-		gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), GTK_ALIGN_START);
-		gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), column + 1, row, 1, 1);
-	}
+	label = gtk_label_new ("Cell Voltages:");
+	gtk_widget_set_hexpand (label, true);
+	gtk_widget_set_halign (label, GTK_ALIGN_START);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), label, 0, 2, 2, 1);
 
 	bmsBarGraphInit (&page->voltages, bms, &(bmsBarGraphConfig_t)
 	{
@@ -218,7 +200,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.tickColor		= gdkHexToColor ("#AAAAAA"),
 		.barColor		= gdkHexToColor ("#FFFFFF")
 	});
-	gtk_grid_attach (GTK_GRID (page->vmt.widget), BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), 0, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), 0, 3, 2, 1);
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), true);
@@ -228,11 +210,16 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	gtk_widget_set_margin_start (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), 5);
 	gtk_widget_set_margin_end (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), 5);
 
+	label = gtk_label_new ("Sense Line Temperatures:");
+	gtk_widget_set_hexpand (label, true);
+	gtk_widget_set_halign (label, GTK_ALIGN_START);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), label, 0, 4, 1, 1);
+
 	bmsBarGraphInit (&page->temperatures, bms, &(bmsBarGraphConfig_t)
 	{
-		.accessor		= bmsGetSenseLineTemperature,
+		.accessor		= bmsGetLogicalTemperature,
 		.offset			= 0,
-		.count			= bms->senseLineCount,
+		.count			= bmsGetLogicalTemperatureCount (bms),
 		.barSize		= 3.5f,
 		.barSpacing		= 0.5f,
 		.length			= 100,
@@ -245,7 +232,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.tickColor		= gdkHexToColor ("#AAAAAA"),
 		.barColor		= gdkHexToColor ("#FFFFFF")
 	});
-	gtk_grid_attach (GTK_GRID (page->vmt.widget), BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), 0, 2, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), 0, 5, 1, 1);
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), true);
@@ -254,6 +241,70 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	gtk_widget_set_margin_bottom (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), 5);
 	gtk_widget_set_margin_start (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), 5);
 	gtk_widget_set_margin_end (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), 5);
+
+	label = gtk_label_new ("LTC Temperatures:");
+	gtk_widget_set_hexpand (label, true);
+	gtk_widget_set_halign (label, GTK_ALIGN_START);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), label, 1, 4, 1, 1);
+
+	bmsBarGraphInit (&page->ltcTemperatures, bms, &(bmsBarGraphConfig_t)
+	{
+		.accessor		= bmsGetLtcTemperature,
+		.offset			= 0,
+		.count			= bms->ltcCount,
+		.barSize		= 3.5f,
+		.barSpacing		= 0.5f,
+		.length			= 100,
+		.min			= bms->minTemperature,
+		.max			= bms->maxLtcTemperature,
+		.tickSpacing	= 10,
+		.tickFormat		= "%.0f C",
+		.axisPosition	= 40,
+		.axisColor		= gdkHexToColor ("#AAAAFF"),
+		.tickColor		= gdkHexToColor ("#AAAAAA"),
+		.barColor		= gdkHexToColor ("#FFFFFF")
+	});
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), 1, 5, 1, 1);
+	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), GTK_ALIGN_FILL);
+	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), GTK_ALIGN_FILL);
+	gtk_widget_set_hexpand (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), true);
+	gtk_widget_set_vexpand (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), true);
+	gtk_widget_set_margin_top (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), 5);
+	gtk_widget_set_margin_bottom (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), 5);
+	gtk_widget_set_margin_start (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), 5);
+	gtk_widget_set_margin_end (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), 5);
+
+	label = gtk_label_new ("Status:");
+	gtk_widget_set_hexpand (label, true);
+	gtk_widget_set_halign (label, GTK_ALIGN_START);
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), label, 0, 6, 2, 1);
+
+	GtkWidget* statusPanel = gtk_grid_new ();
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), statusPanel, 0, 7, 2, 1);
+
+	page->statusCount = bmsGetStatusCount (bms);
+	page->statusLabels = malloc (sizeof (canLabelFloat_t) * page->statusCount);
+	for (size_t index = 0; index < page->statusCount; ++index)
+	{
+		char* name = bmsGetStatusName (bms, index);
+
+		int column	= 2 * (index % 3);
+		int row		= index / 3;
+		GtkWidget* label = gtk_label_new (name);
+		gtk_grid_attach (GTK_GRID (statusPanel), label, column, row, 1, 1);
+		gtk_widget_set_hexpand (label, true);
+		gtk_widget_set_halign (label, GTK_ALIGN_END);
+
+		page->statusLabels [index] = (canLabelFloat_t)
+		{
+			.signalName		= name,
+			.formatValue	= ": %.0f",
+			.formatInvalid	= ": %s"
+		};
+		canLabelFloatInit (&page->statusLabels [index], database);
+		gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), GTK_ALIGN_START);
+		gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), column + 1, row, 1, 1);
+	}
 
 	return (page_t*) page;
 }
@@ -264,6 +315,7 @@ void pageBmsOverviewUpdate (void* page)
 
 	bmsBarGraphUpdate (&pageBms->voltages);
 	bmsBarGraphUpdate (&pageBms->temperatures);
+	bmsBarGraphUpdate (&pageBms->ltcTemperatures);
 	for (size_t index = 0; index < pageBms->statusCount; ++index)
 		canLabelFloatUpdate (&pageBms->statusLabels [index]);
 

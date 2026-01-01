@@ -108,6 +108,10 @@ typedef struct
 	ssize_t packVoltageIndex;
 	/// @brief Global index of the pack current signal.
 	ssize_t packCurrentIndex;
+	/// @brief Global indices of the logical (gapless) temperatures.
+	ssize_t* logicalTemperatureIndices;
+	/// @brief Number of elements in @c logicalTemperatureIndices .
+	size_t logicalTemperatureCount;
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -180,6 +184,27 @@ canDatabaseSignalState_t bmsGetSenseLineTemperature (bms_t* bms, size_t index, f
  * @return The state of the signal. Note that @c open is only written if the return is @c CAN_DATABASE_VALID .
  */
 canDatabaseSignalState_t bmsGetSenseLineOpen (bms_t* bms, size_t index, bool* open);
+
+/**
+ * @brief Gets a logical temperature from the BMS. Logical temperatures are a "gapless" version of the sense line temperatures,
+ * that is, no missing signals are present in this.
+ * @param bms The BMS to use.
+ * @param index The global index of the logical temperature to get.
+ * @param temperature Buffer to write the temperature into.
+ * @return The state of the signal. Note that @c temperature is only written if the return is @c CAN_DATABASE_VALID .
+ */
+canDatabaseSignalState_t bmsGetLogicalTemperature (bms_t* bms, size_t index, float* temperature);
+
+/**
+ * @brief Gets the number of logical temperatures in the BMS. Logical temperatures are a "gapless" version of the sense line
+ * temperatures, that is, no missing signals are present in this.
+ * @param bms The BMS to use.
+ * @return The number of elements in the array.
+ */
+static inline size_t bmsGetLogicalTemperatureCount (bms_t* bms)
+{
+	return bms->logicalTemperatureCount;
+}
 
 /**
  * @brief Gets the state of an LTC from the BMS.
