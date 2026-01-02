@@ -11,8 +11,9 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_widgets.h"
 #include "page.h"
+#include "can_widgets/can_widget.h"
+#include "can_database/can_database.h"
 
 // GTK
 #include <gtk/gtk.h>
@@ -25,23 +26,23 @@ typedef struct
 {
 	pageVmt_t vmt;
 
-	canProgressBar_t bse;
-	canProgressBar_t apps;
-	canLabelBool_t dataLoggerStatus;
-	canLabelFloat_t dataLoggerSession;
-	canLabelFloat_t glvVoltage;
-	canLabelFloat_t hvVoltage;
-	canLabelFloat_t inverterMaxTemp;
-	canLabelFloat_t motorMaxTemp;
-	canLabelFloat_t drivingTorque;
-	canLabelFloat_t regenTorque;
-	canLabelFloat_t torqueIndex;
-	canLabelFloat_t speed;
-	canIndicator_t drsStatus;
-	canIndicator_t vcuFault;
-	canIndicator_t bmsFault;
-	canIndicator_t amkFault;
-	canIndicator_t gpsFault;
+	canWidget_t* bse;
+	canWidget_t* apps;
+	canWidget_t* dataLoggerStatus;
+	canWidget_t* dataLoggerSession;
+	canWidget_t* glvVoltage;
+	canWidget_t* hvVoltage;
+	canWidget_t* inverterMaxTemp;
+	canWidget_t* motorMaxTemp;
+	canWidget_t* drivingTorque;
+	canWidget_t* regenTorque;
+	canWidget_t* torqueIndex;
+	canWidget_t* speed;
+	canWidget_t* drsStatus;
+	canWidget_t* vcuFault;
+	canWidget_t* bmsFault;
+	canWidget_t* amkFault;
+	canWidget_t* gpsFault;
 } pageAutox_t;
 
 #define PAGE_AUTOX_TO_WIDGET(page) ((page)->widget)

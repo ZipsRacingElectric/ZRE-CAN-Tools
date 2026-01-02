@@ -2,6 +2,7 @@
 #include "page_bms_overview.h"
 
 // Includes
+#include "can_widgets/can_label_float.h"
 #include "gtk_util.h"
 
 #define BUTTON_LABEL_FONT		"Futura Std Bold Condensed 26px"
@@ -287,7 +288,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	gtk_grid_attach (GTK_GRID (page->vmt.widget), statusPanel, 0, 7, 2, 1);
 
 	page->statusCount = bmsGetStatusCount (bms);
-	page->statusLabels = malloc (sizeof (canLabelFloat_t) * page->statusCount);
+	page->statusLabels = malloc (sizeof (canWidget_t*) * page->statusCount);
 	for (size_t index = 0; index < page->statusCount; ++index)
 	{
 		char* name = bmsGetStatusName (bms, index);
@@ -299,15 +300,14 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		gtk_widget_set_hexpand (label, true);
 		gtk_widget_set_halign (label, GTK_ALIGN_END);
 
-		page->statusLabels [index] = (canLabelFloat_t)
+		page->statusLabels [index] = canLabelFloatInit (database, &(canLabelFloatConfig_t)
 		{
 			.signalName		= name,
 			.formatValue	= ": %.0f",
 			.formatInvalid	= ": %s"
-		};
-		canLabelFloatInit (&page->statusLabels [index], database);
-		gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), GTK_ALIGN_START);
-		gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), column + 1, row, 1, 1);
+		});
+		gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->statusLabels [index]), GTK_ALIGN_START);
+		gtk_grid_attach (GTK_GRID (statusPanel), CAN_WIDGET_TO_WIDGET (page->statusLabels [index]), column + 1, row, 1, 1);
 	}
 
 	page->vmt.buttonPanel = gtk_grid_new ();
@@ -343,7 +343,7 @@ void pageBmsOverviewUpdate (void* page)
 	bmsBarGraphUpdate (&pageBms->temperatures);
 	bmsBarGraphUpdate (&pageBms->ltcTemperatures);
 	for (size_t index = 0; index < pageBms->statusCount; ++index)
-		canLabelFloatUpdate (&pageBms->statusLabels [index]);
+		canWidgetUpdate (pageBms->statusLabels [index]);
 
 	float value;
 	canDatabaseSignalState_t state = bmsGetPackVoltage (pageBms->bms, &value);

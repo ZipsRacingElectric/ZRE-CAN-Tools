@@ -13,7 +13,7 @@
 // Includes
 #include "page.h"
 #include "bms_widgets.h"
-#include "can_widgets.h"
+#include "can_widgets/can_widget.h"
 #include "bms/bms.h"
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ typedef struct
 	canLabelFloatStatic_t avgTempLabel;
 	canLabelFloatStatic_t maxDeltaLabel;
 	canLabelFloatStatic_t avgDeltaLabel;
-	canLabelFloat_t* statusLabels;
+	canWidget_t** statusLabels;
 	size_t statusCount;
 } pageBmsOverview_t;
 

@@ -6,7 +6,9 @@
 // Author: Cole Barach
 // Date Created: 2025.12.29
 //
-// Description: TODO(Barach)
+// Description: Base polymorphic object for a single page of a GUI. A page is a single screen being rendered at a given time.
+
+// TODO(Barach): Docs
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -21,7 +23,7 @@ typedef void (pageUpdate_t) (void* page);
 
 typedef void (pageAppendButton_t) (void* page, const char* label, pageButtonCallback_t* callback, void* arg);
 
-/// @brief Virtual method table (and virtual members) for the @c page_t base structure.
+/// @brief Virtual method (and member) table for the @c page_t base polymorphic object.
 typedef struct
 {
 	pageUpdate_t* update;
