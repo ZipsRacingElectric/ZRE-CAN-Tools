@@ -22,6 +22,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 	// Setup the VMT
 	page->vmt.update = pageAutoxUpdate;
 	page->vmt.widget = gtk_grid_new ();
+	page->vmt.buttonCount = 0;
 
 	// BSE bar
 	page->bse = (canProgressBar_t)
@@ -387,29 +388,8 @@ page_t* pageAutoxInit (canDatabase_t* database)
 	gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->motorMaxTemp), GTK_ALIGN_END);
 	gtk_grid_attach (GTK_GRID (rightPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->motorMaxTemp), 1, 4, 1, 1);
 
-	GtkWidget* buttonPanel = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (page->vmt.widget), buttonPanel, 2, 5, 3, 1);
-
-	GtkWidget* button = gtk_button_new ();
-	gtk_widget_set_size_request (button, 0, 90);
-	gtk_widget_set_hexpand (button, true);
-	gtk_grid_attach (GTK_GRID (buttonPanel), button, 0, 0, 1, 1);
-
-	button = gtk_button_new ();
-	gtk_widget_set_hexpand (button, true);
-	gtk_grid_attach (GTK_GRID (buttonPanel), button, 1, 0, 1, 1);
-
-	button = gtk_button_new ();
-	gtk_widget_set_hexpand (button, true);
-	gtk_grid_attach (GTK_GRID (buttonPanel), button, 2, 0, 1, 1);
-
-	button = gtk_button_new ();
-	gtk_widget_set_hexpand (button, true);
-	gtk_grid_attach (GTK_GRID (buttonPanel), button, 3, 0, 1, 1);
-
-	button = gtk_button_new ();
-	gtk_widget_set_hexpand (button, true);
-	gtk_grid_attach (GTK_GRID (buttonPanel), button, 4, 0, 1, 1);
+	page->vmt.buttonPanel = gtk_grid_new ();
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), page->vmt.buttonPanel, 2, 5, 3, 1);
 
 	page->apps = (canProgressBar_t)
 	{

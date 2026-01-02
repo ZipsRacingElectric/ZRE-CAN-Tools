@@ -6,6 +6,8 @@ SRC :=	main.c				\
 		gtk_util.c			\
 		can_widgets.c		\
 		bms_widgets.c		\
+		page.c				\
+		page_stack.c		\
 		page_autox.c		\
 		page_bms_overview.c
 

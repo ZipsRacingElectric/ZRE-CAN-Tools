@@ -13,6 +13,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	// Setup the VMT
 	page->vmt.update = pageBmsOverviewUpdate;
 	page->vmt.widget = gtk_grid_new ();
+	page->vmt.buttonCount = 0;
 
 	page->bms = bms;
 
@@ -73,8 +74,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->minCellLabel);
-	gtk_grid_attach (GTK_GRID (statisticPanel), label, 0, 1, 1, 1);
-	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minCellLabel), 1, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), label, 6, 0, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minCellLabel), 7, 0, 1, 1);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_END);
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minCellLabel), true);
@@ -87,8 +88,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->maxCellLabel);
-	gtk_grid_attach (GTK_GRID (statisticPanel), label, 2, 1, 1, 1);
-	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxCellLabel), 3, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), label, 8, 0, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxCellLabel), 9, 0, 1, 1);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_END);
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxCellLabel), true);
@@ -101,8 +102,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->avgCellLabel);
-	gtk_grid_attach (GTK_GRID (statisticPanel), label, 4, 1, 1, 1);
-	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgCellLabel), 5, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), label, 10, 0, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgCellLabel), 11, 0, 1, 1);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_END);
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgCellLabel), true);
@@ -115,8 +116,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->minTempLabel);
-	gtk_grid_attach (GTK_GRID (statisticPanel), label, 0, 2, 1, 1);
-	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minTempLabel), 1, 2, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), label, 0, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minTempLabel), 1, 1, 1, 1);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_END);
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minTempLabel), true);
@@ -129,8 +130,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->maxTempLabel);
-	gtk_grid_attach (GTK_GRID (statisticPanel), label, 2, 2, 1, 1);
-	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxTempLabel), 3, 2, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), label, 2, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxTempLabel), 3, 1, 1, 1);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_END);
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxTempLabel), true);
@@ -143,8 +144,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->avgTempLabel);
-	gtk_grid_attach (GTK_GRID (statisticPanel), label, 4, 2, 1, 1);
-	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgTempLabel), 5, 2, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), label, 4, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgTempLabel), 5, 1, 1, 1);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_END);
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgTempLabel), true);
@@ -157,8 +158,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->maxDeltaLabel);
-	gtk_grid_attach (GTK_GRID (statisticPanel), label, 0, 3, 1, 1);
-	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxDeltaLabel), 1, 3, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), label, 6, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxDeltaLabel), 7, 1, 1, 1);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_END);
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxDeltaLabel), true);
@@ -171,8 +172,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.formatInvalid	= "%s %s"
 	};
 	canLabelFloatStaticInit (&page->avgDeltaLabel);
-	gtk_grid_attach (GTK_GRID (statisticPanel), label, 2, 3, 1, 1);
-	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), 3, 3, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), label, 8, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (statisticPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), 9, 1, 1, 1);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_END);
 	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), true);
@@ -305,6 +306,9 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		gtk_widget_set_halign (CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), GTK_ALIGN_START);
 		gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_TO_WIDGET (&page->statusLabels [index]), column + 1, row, 1, 1);
 	}
+
+	page->vmt.buttonPanel = gtk_grid_new ();
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), page->vmt.buttonPanel, 0, 8, 2, 1);
 
 	return (page_t*) page;
 }

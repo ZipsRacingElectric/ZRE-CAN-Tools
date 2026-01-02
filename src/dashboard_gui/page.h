@@ -15,6 +15,8 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
+typedef void (pageButtonCallback_t) (GtkWidget* widget, gpointer data);
+
 typedef void (pageUpdate_t) (void* page);
 
 /// @brief Virtual method table (and virtual members) for the @c page_t base structure.
@@ -22,6 +24,8 @@ typedef struct
 {
 	pageUpdate_t* update;
 	GtkWidget* widget;
+	GtkWidget* buttonPanel;
+	size_t buttonCount;
 } pageVmt_t;
 
 typedef struct
@@ -39,5 +43,7 @@ static inline void pageUpdate (page_t* page)
 {
 	page->vmt.update (page);
 }
+
+void pageAppendButton (page_t* page, const char* label, pageButtonCallback_t* callback, void* arg);
 
 #endif // PAGE_H

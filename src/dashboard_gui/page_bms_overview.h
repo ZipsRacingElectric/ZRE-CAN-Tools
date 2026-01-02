@@ -25,8 +25,6 @@ typedef struct
 	bmsBarGraph_t voltages;
 	bmsBarGraph_t temperatures;
 	bmsBarGraph_t ltcTemperatures;
-	canLabelFloat_t* statusLabels;
-	size_t statusCount;
 	canLabelFloatStatic_t voltageLabel;
 	canLabelFloatStatic_t currentLabel;
 	canLabelFloatStatic_t powerLabel;
@@ -38,6 +36,8 @@ typedef struct
 	canLabelFloatStatic_t avgTempLabel;
 	canLabelFloatStatic_t maxDeltaLabel;
 	canLabelFloatStatic_t avgDeltaLabel;
+	canLabelFloat_t* statusLabels;
+	size_t statusCount;
 } pageBmsOverview_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
