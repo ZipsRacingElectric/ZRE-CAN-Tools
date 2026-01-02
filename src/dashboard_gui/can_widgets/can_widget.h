@@ -17,7 +17,7 @@
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
 /**
- * @brief Virtual-method table entry for implementations of the @c canWidgetUpdate function.
+ * @brief Virtual method table entry for implementations of the @c canWidgetUpdate function.
  * @param widget Pointer to the widget to update.
  */
 typedef void (canWidgetUpdate_t) (void* widget);
