@@ -44,6 +44,8 @@ typedef struct
 
 page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms);
 
+void pageBmsAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg);
+
 void pageBmsOverviewUpdate (void* page);
 
 #endif // PAGE_BMS_OVERVIEW_H

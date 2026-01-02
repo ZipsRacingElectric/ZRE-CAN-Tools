@@ -50,6 +50,8 @@ typedef struct
 
 page_t* pageAutoxInit (canDatabase_t* database);
 
+void pageAutoxAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg);
+
 void pageAutoxUpdate (void* page);
 
 #endif // PAGE_AUTOX_H

@@ -4,6 +4,8 @@
 // Includes
 #include "gtk_util.h"
 
+#define BUTTON_LABEL_FONT		"Futura Std Bold Condensed 26px"
+
 page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 {
 	pageBmsOverview_t* page = malloc (sizeof (pageBmsOverview_t));
@@ -12,6 +14,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 
 	// Setup the VMT
 	page->vmt.update = pageBmsOverviewUpdate;
+	page->vmt.appendButton = pageBmsAppendButton;
 	page->vmt.widget = gtk_grid_new ();
 	page->vmt.buttonCount = 0;
 
@@ -191,7 +194,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.count			= bms->cellCount,
 		.barSize		= 3.5f,
 		.barSpacing		= 0.5f,
-		.length			= 100,
+		.length			= 60,
 		.min			= bms->minCellVoltage,
 		.max			= bms->maxCellVoltage,
 		.tickSpacing	= 0.25,
@@ -223,7 +226,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.count			= bmsGetLogicalTemperatureCount (bms),
 		.barSize		= 3.5f,
 		.barSpacing		= 0.5f,
-		.length			= 100,
+		.length			= 60,
 		.min			= bms->minTemperature,
 		.max			= bms->maxTemperature,
 		.tickSpacing	= 10,
@@ -255,7 +258,7 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		.count			= bms->ltcCount,
 		.barSize		= 3.5f,
 		.barSpacing		= 0.5f,
-		.length			= 100,
+		.length			= 60,
 		.min			= bms->minTemperature,
 		.max			= bms->maxLtcTemperature,
 		.tickSpacing	= 10,
@@ -311,6 +314,25 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	gtk_grid_attach (GTK_GRID (page->vmt.widget), page->vmt.buttonPanel, 0, 8, 2, 1);
 
 	return (page_t*) page;
+}
+
+void pageBmsAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg)
+{
+	pageBmsOverview_t* pageBms = page;
+
+	GtkWidget* button = gtk_button_new ();
+
+	if (callback != NULL)
+		g_signal_connect (button, "clicked", G_CALLBACK (callback), arg);
+
+	GtkWidget* labelWidget = gtk_label_new (label);
+	gtkLabelSetFont (GTK_LABEL (labelWidget), BUTTON_LABEL_FONT);
+	gtk_button_set_child (GTK_BUTTON (button), labelWidget);
+
+	gtk_widget_set_hexpand (button, true);
+	gtk_widget_set_size_request (button, 120, 90);
+	gtk_grid_attach (GTK_GRID (pageBms->vmt.buttonPanel), button, pageBms->vmt.buttonCount, 0, 1, 1);
+	++pageBms->vmt.buttonCount;
 }
 
 void pageBmsOverviewUpdate (void* page)

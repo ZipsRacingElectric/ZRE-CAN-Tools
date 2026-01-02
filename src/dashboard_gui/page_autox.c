@@ -4,6 +4,7 @@
 // Includes
 #include "gtk_util.h"
 
+#define BUTTON_LABEL_FONT		"Futura Std Bold Condensed 26px"
 #define DATA_LOGGER_TITLE_FONT	"Futura Std Bold Condensed 36px"
 #define DATA_LOGGER_STAT_FONT	"ITC Avant Garde Gothic CE Book 26px"
 #define CENTER_TITLE_FONT		"ITC Avant Garde Gothic CE Book 22px"
@@ -21,6 +22,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	// Setup the VMT
 	page->vmt.update = pageAutoxUpdate;
+	page->vmt.appendButton = pageAutoxAppendButton;
 	page->vmt.widget = gtk_grid_new ();
 	page->vmt.buttonCount = 0;
 
@@ -406,6 +408,25 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	// Return the created page (cast to the base type).
 	return (page_t*) page;
+}
+
+void pageAutoxAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg)
+{
+	pageAutox_t* pageAutox = page;
+
+	GtkWidget* button = gtk_button_new ();
+
+	if (callback != NULL)
+		g_signal_connect (button, "clicked", G_CALLBACK (callback), arg);
+
+	GtkWidget* labelWidget = gtk_label_new (label);
+	gtkLabelSetFont (GTK_LABEL (labelWidget), BUTTON_LABEL_FONT);
+	gtk_button_set_child (GTK_BUTTON (button), labelWidget);
+
+	gtk_widget_set_hexpand (button, true);
+	gtk_widget_set_size_request (button, 120, 90);
+	gtk_grid_attach (GTK_GRID (pageAutox->vmt.buttonPanel), button, pageAutox->vmt.buttonCount, 0, 1, 1);
+	++pageAutox->vmt.buttonCount;
 }
 
 void pageAutoxUpdate (void* page)
