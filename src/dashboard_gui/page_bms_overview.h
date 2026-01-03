@@ -21,6 +21,10 @@
 typedef struct
 {
 	pageVmt_t vmt;
+
+	GtkGrid* buttonPanel;
+	size_t buttonCount;
+
 	bms_t* bms;
 	bmsBarGraph_t voltages;
 	bmsBarGraph_t temperatures;

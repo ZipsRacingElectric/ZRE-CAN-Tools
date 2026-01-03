@@ -94,12 +94,14 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageStackPair_t* pageBmsPair = pageStackPairInit (stack, pageBms);
 
 	pageAppendButton (pageAutox, "BMS MS", pageStackSelectCallback, pageBmsPair);
+	// pageAppendButton (pageAutox, "", NULL, NULL);
 	pageAppendButton (pageAutox, "", NULL, NULL);
 	pageAppendButton (pageAutox, "", NULL, NULL);
 	pageAppendButton (pageAutox, "", NULL, NULL);
 	pageAppendButton (pageAutox, "", NULL, NULL);
 
 	pageAppendButton (pageBms, "AutoX", pageStackSelectCallback, pageAutoxPair);
+	// pageAppendButton (pageBms, "", NULL, NULL);
 	pageAppendButton (pageBms, "", NULL, NULL);
 	pageAppendButton (pageBms, "", NULL, NULL);
 	pageAppendButton (pageBms, "", NULL, NULL);

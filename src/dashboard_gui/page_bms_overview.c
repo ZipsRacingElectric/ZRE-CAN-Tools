@@ -17,7 +17,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	page->vmt.update = pageBmsOverviewUpdate;
 	page->vmt.appendButton = pageBmsAppendButton;
 	page->vmt.widget = gtk_grid_new ();
-	page->vmt.buttonCount = 0;
+
+	page->buttonCount = 0;
 
 	page->bms = bms;
 
@@ -310,8 +311,8 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 		gtk_grid_attach (GTK_GRID (statusPanel), CAN_WIDGET_TO_WIDGET (page->statusLabels [index]), column + 1, row, 1, 1);
 	}
 
-	page->vmt.buttonPanel = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (page->vmt.widget), page->vmt.buttonPanel, 0, 8, 2, 1);
+	page->buttonPanel = GTK_GRID (gtk_grid_new ());
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), GTK_WIDGET (page->buttonPanel), 0, 8, 2, 1);
 
 	return (page_t*) page;
 }
@@ -331,8 +332,8 @@ void pageBmsAppendButton (void* page, const char* label, pageButtonCallback_t* c
 
 	gtk_widget_set_hexpand (button, true);
 	gtk_widget_set_size_request (button, 120, 90);
-	gtk_grid_attach (GTK_GRID (pageBms->vmt.buttonPanel), button, pageBms->vmt.buttonCount, 0, 1, 1);
-	++pageBms->vmt.buttonCount;
+	gtk_grid_attach (pageBms->buttonPanel, button, pageBms->buttonCount, 0, 1, 1);
+	++pageBms->buttonCount;
 }
 
 void pageBmsOverviewUpdate (void* page)

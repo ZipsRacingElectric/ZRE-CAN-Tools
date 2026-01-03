@@ -29,8 +29,6 @@ typedef struct
 	pageUpdate_t* update;
 	pageAppendButton_t* appendButton;
 	GtkWidget* widget;
-	GtkWidget* buttonPanel;
-	size_t buttonCount;
 } pageVmt_t;
 
 typedef struct

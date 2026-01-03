@@ -26,6 +26,16 @@ typedef struct
 {
 	pageVmt_t vmt;
 
+	GtkGrid* grid;
+
+	GtkGrid* dataLoggerPanel;
+	GtkGrid* leftPanel;
+	GtkGrid* rightPanel;
+	GtkWidget* centerLabel;
+	GtkGrid* faultPanel;
+	GtkGrid* buttonPanel;
+	size_t buttonCount;
+
 	canWidget_t* bse;
 	canWidget_t* apps;
 	canWidget_t* dataLoggerStatus;
