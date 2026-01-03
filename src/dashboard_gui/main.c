@@ -93,19 +93,17 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageStackAppend (stack, pageBms);
 	pageStackPair_t* pageBmsPair = pageStackPairInit (stack, pageBms);
 
-	pageAppendButton (pageAutox, "BMS MS", pageStackSelectCallback, pageBmsPair);
-	// pageAppendButton (pageAutox, "", NULL, NULL);
-	pageAppendButton (pageAutox, "", NULL, NULL);
-	pageAppendButton (pageAutox, "", NULL, NULL);
-	pageAppendButton (pageAutox, "", NULL, NULL);
-	pageAppendButton (pageAutox, "", NULL, NULL);
+	pageAppendButton (pageAutox, "AUTO-X", NULL, NULL, true);
+	pageAppendButton (pageAutox, "", NULL, NULL, false);
+	pageAppendButton (pageAutox, "", NULL, NULL, false);
+	pageAppendButton (pageAutox, "", NULL, NULL, false);
+	pageAppendButton (pageAutox, "BMS", pageStackSelectCallback, pageBmsPair, false);
 
-	pageAppendButton (pageBms, "AutoX", pageStackSelectCallback, pageAutoxPair);
-	// pageAppendButton (pageBms, "", NULL, NULL);
-	pageAppendButton (pageBms, "", NULL, NULL);
-	pageAppendButton (pageBms, "", NULL, NULL);
-	pageAppendButton (pageBms, "", NULL, NULL);
-	pageAppendButton (pageBms, "", NULL, NULL);
+	pageAppendButton (pageBms, "AUTO-X", pageStackSelectCallback, pageAutoxPair, false);
+	pageAppendButton (pageBms, "", NULL, NULL, false);
+	pageAppendButton (pageBms, "", NULL, NULL, false);
+	pageAppendButton (pageBms, "", NULL, NULL, false);
+	pageAppendButton (pageBms, "BMS", NULL, NULL, true);
 
 	GtkEventController* controller = gtk_event_controller_key_new ();
   	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);

@@ -26,9 +26,9 @@ void gtkLabelSetFont (GtkLabel* label, const char* pangoFontDescriptor);
 /**
  * @brief Sets the color of a label.
  * @param label The label to set the color of.
- * @param color The hex string of the color, formatted as '#rrggbbaa'. Note alpha is optional.
+ * @param color The color to set.
  */
-void gtkLabelSetColor (GtkLabel* label, const char* color);
+void gtkLabelSetColor (GtkLabel* label, const GdkRGBA* color);
 
 /**
  * @brief Converts a hex color string into a GDK color.

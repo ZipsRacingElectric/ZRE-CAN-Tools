@@ -11,7 +11,8 @@ SRC :=	main.c								\
 		can_widgets/can_indicator.c			\
 		can_widgets/can_label_bool.c		\
 		can_widgets/can_label_float.c		\
-		can_widgets/can_progress_bar.c
+		can_widgets/can_progress_bar.c		\
+		stylized_button.c
 
 # Compiling and linking against GTK, so include its flags
 CFLAGS += $(LIB_GTK_CFLAGS)

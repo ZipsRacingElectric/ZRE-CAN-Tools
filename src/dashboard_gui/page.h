@@ -21,7 +21,7 @@ typedef void (pageButtonCallback_t) (GtkWidget* widget, gpointer data);
 
 typedef void (pageUpdate_t) (void* page);
 
-typedef void (pageAppendButton_t) (void* page, const char* label, pageButtonCallback_t* callback, void* arg);
+typedef void (pageAppendButton_t) (void* page, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
 
 /// @brief Virtual method (and member) table for the @c page_t base polymorphic object.
 typedef struct
@@ -47,9 +47,9 @@ static inline void pageUpdate (page_t* page)
 	page->vmt.update (page);
 }
 
-static inline void pageAppendButton (page_t* page, const char* label, pageButtonCallback_t* callback, void* arg)
+static inline void pageAppendButton (page_t* page, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
 {
-	page->vmt.appendButton (page, label, callback, arg);
+	page->vmt.appendButton (page, label, callback, arg, currentPage);
 }
 
 #endif // PAGE_H

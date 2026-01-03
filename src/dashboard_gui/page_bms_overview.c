@@ -317,8 +317,9 @@ page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms)
 	return (page_t*) page;
 }
 
-void pageBmsAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg)
+void pageBmsAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
 {
+	(void) currentPage;
 	pageBmsOverview_t* pageBms = page;
 
 	GtkWidget* button = gtk_button_new ();

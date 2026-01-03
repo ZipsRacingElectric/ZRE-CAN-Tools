@@ -7,10 +7,9 @@
 #include "can_widgets/can_label_float.h"
 #include "can_widgets/can_progress_bar.h"
 #include "can_widgets/can_indicator.h"
+#include "stylized_button.h"
 
-#define FONT_COLOR				"#F4931E"
-
-#define BUTTON_LABEL_FONT		"Futura Std Bold Condensed 26px"
+#define BUTTON_LABEL_FONT		"Futura Std Bold Condensed 34px"
 #define DATA_LOGGER_TITLE_FONT	"Futura Std Bold Condensed 36px"
 #define DATA_LOGGER_STAT_FONT	"ITC Avant Garde Gothic CE Book 22px"
 #define CENTER_TITLE_FONT		"ITC Avant Garde Gothic CE Book 22px"
@@ -235,7 +234,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 
 	c = gdkHexToColor ("#D3792C");
 	gdk_cairo_set_source_rgba (cr, &c);
-	cairo_set_line_width (cr, 2);
+	cairo_set_line_width (cr, 1);
 
 	cairo_move_to (cr, x10, y10);
 	cairo_line_to (cr,  x9,  y9);
@@ -270,6 +269,8 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 
 page_t* pageAutoxInit (canDatabase_t* database)
 {
+	const GdkRGBA FONT_COLOR = gdkHexToColor ("#F4931E");
+
 	// Allocate the page
 	pageAutox_t* page = malloc (sizeof (pageAutox_t));
 	if (page == NULL)
@@ -318,7 +319,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.inverted		= true
 	});
 	gtkLabelSetFont (CAN_LABEL_BOOL_TO_LABEL (page->dataLoggerStatus), DATA_LOGGER_TITLE_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->dataLoggerStatus), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->dataLoggerStatus), &FONT_COLOR);
 	gtk_label_set_xalign (CAN_LABEL_BOOL_TO_LABEL (page->dataLoggerStatus), 0);
 	gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->dataLoggerStatus), 3);
 	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->dataLoggerStatus), 3);
@@ -331,7 +332,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.formatInvalid	= "Session\nNo. %s",
 	});
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (page->dataLoggerSession), DATA_LOGGER_STAT_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->dataLoggerSession), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->dataLoggerSession), &FONT_COLOR);
 	gtk_label_set_xalign (CAN_LABEL_FLOAT_TO_LABEL (page->dataLoggerSession), 0);
 	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->dataLoggerSession), 3);
 	gtk_grid_attach (page->dataLoggerPanel, CAN_WIDGET_TO_WIDGET (page->dataLoggerSession), 0, 1, 1, 1);
@@ -347,7 +348,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	GtkWidget* label = gtk_label_new ("Torque Config");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_size_request (label, 180, 0);
 	gtk_label_set_xalign (GTK_LABEL (label), 0.5);
 	gtk_widget_set_margin_top (label, 3);
@@ -355,7 +356,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	label = gtk_label_new ("Driving:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_widget_set_margin_start (label, 3);
 	gtk_grid_attach (page->leftPanel, label, 0, 1, 1, 1);
@@ -367,14 +368,14 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.formatInvalid	= "%s%s"
 	});
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (page->drivingTorque), PANEL_STAT_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->drivingTorque), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->drivingTorque), &FONT_COLOR);
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->drivingTorque), GTK_ALIGN_END);
 	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->drivingTorque), 3);
 	gtk_grid_attach (page->leftPanel, CAN_WIDGET_TO_WIDGET (page->drivingTorque), 1, 1, 1, 1);
 
 	label = gtk_label_new ("Regen:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_widget_set_margin_start (label, 3);
 	gtk_grid_attach (page->leftPanel, label, 0, 2, 1, 1);
@@ -386,14 +387,14 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.formatInvalid	= "%s%s"
 	});
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (page->regenTorque), PANEL_STAT_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->regenTorque), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->regenTorque), &FONT_COLOR);
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->regenTorque), GTK_ALIGN_END);
 	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->regenTorque), 3);
 	gtk_grid_attach (page->leftPanel, CAN_WIDGET_TO_WIDGET (page->regenTorque), 1, 2, 1, 1);
 
 	label = gtk_label_new ("Index:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_widget_set_margin_start (label, 3);
 	gtk_grid_attach (page->leftPanel, label, 0, 3, 1, 1);
@@ -405,14 +406,14 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.formatInvalid	= "%s"
 	});
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (page->torqueIndex), PANEL_STAT_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->torqueIndex), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->torqueIndex), &FONT_COLOR);
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->torqueIndex), GTK_ALIGN_END);
 	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->torqueIndex), 3);
 	gtk_grid_attach (page->leftPanel, CAN_WIDGET_TO_WIDGET (page->torqueIndex), 1, 3, 1, 1);
 
 	label = gtk_label_new ("DRS:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_widget_set_margin_start (label, 3);
 	gtk_grid_attach (page->leftPanel, label, 0, 4, 1, 1);
@@ -460,7 +461,8 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	label = gtk_label_new ("VCU");
 	gtkLabelSetFont (GTK_LABEL (label), FAULT_NAME_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), "#000000");
+	const GdkRGBA COLOR_BLACK = gdkHexToColor ("#000000");
+	gtkLabelSetColor (GTK_LABEL (label), &COLOR_BLACK);
 	gtk_grid_attach (page->faultPanel, label, 0, 0, 1, 1);
 
 	page->bmsFault = canIndicatorInit (database, &(canIndicatorConfig_t)
@@ -481,7 +483,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	label = gtk_label_new ("BMS");
 	gtkLabelSetFont (GTK_LABEL (label), FAULT_NAME_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), "#000000");
+	gtkLabelSetColor (GTK_LABEL (label), &COLOR_BLACK);
 	gtk_grid_attach (page->faultPanel, label, 1, 0, 1, 1);
 
 	page->amkFault = canIndicatorInit (database, &(canIndicatorConfig_t)
@@ -502,7 +504,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	label = gtk_label_new ("AMK");
 	gtkLabelSetFont (GTK_LABEL (label), FAULT_NAME_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), "#000000");
+	gtkLabelSetColor (GTK_LABEL (label), &COLOR_BLACK);
 	gtk_grid_attach (page->faultPanel, label, 2, 0, 1, 1);
 
 	page->gpsFault = canIndicatorInit (database, &(canIndicatorConfig_t)
@@ -523,12 +525,12 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	label = gtk_label_new ("GPS");
 	gtkLabelSetFont (GTK_LABEL (label), FAULT_NAME_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), "#000000");
+	gtkLabelSetColor (GTK_LABEL (label), &COLOR_BLACK);
 	gtk_grid_attach (page->faultPanel, label, 3, 0, 1, 1);
 
 	page->centerLabel = gtk_label_new ("Vehicle Speed (Km/h):");
 	gtkLabelSetFont (GTK_LABEL (page->centerLabel), CENTER_TITLE_FONT);
-	gtkLabelSetColor (GTK_LABEL (page->centerLabel), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (page->centerLabel), &FONT_COLOR);
 	gtk_label_set_xalign (GTK_LABEL (page->centerLabel), 0);
 	gtk_grid_attach (page->grid, page->centerLabel, 3, 1, 1, 1);
 
@@ -539,7 +541,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.formatInvalid	= "XX"
 	});
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (page->speed), CENTER_VALUE_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->speed), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->speed), &FONT_COLOR);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->speed), true);
 	gtk_widget_set_vexpand (CAN_WIDGET_TO_WIDGET (page->speed), true);
 	gtk_grid_attach (page->grid, CAN_WIDGET_TO_WIDGET (page->speed), 3, 2, 1, 1);
@@ -551,7 +553,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	label = gtk_label_new ("Powertrain");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_size_request (label, 180, 0);
 	gtk_label_set_xalign (GTK_LABEL (label), 0.5);
 	gtk_widget_set_margin_top (label, 3);
@@ -559,7 +561,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	label = gtk_label_new ("GLV:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_widget_set_margin_start (label, 3);
 	gtk_grid_attach (page->rightPanel, label, 0, 1, 1, 1);
@@ -571,14 +573,14 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.formatInvalid	= "%s %s"
 	});
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (page->glvVoltage), PANEL_STAT_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->glvVoltage), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->glvVoltage), &FONT_COLOR);
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->glvVoltage), GTK_ALIGN_END);
 	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->glvVoltage), 3);
 	gtk_grid_attach (page->rightPanel, CAN_WIDGET_TO_WIDGET (page->glvVoltage), 1, 1, 1, 1);
 
 	label = gtk_label_new ("HV:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_widget_set_margin_start (label, 3);
 	gtk_grid_attach (page->rightPanel, label, 0, 2, 1, 1);
@@ -590,14 +592,14 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.formatInvalid	= "%s %s"
 	});
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (page->hvVoltage), PANEL_STAT_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->hvVoltage), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->hvVoltage), &FONT_COLOR);
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->hvVoltage), GTK_ALIGN_END);
 	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->hvVoltage), 3);
 	gtk_grid_attach (page->rightPanel, CAN_WIDGET_TO_WIDGET (page->hvVoltage), 1, 2, 1, 1);
 
 	label = gtk_label_new ("Inv:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_widget_set_margin_start (label, 3);
 	gtk_grid_attach (page->rightPanel, label, 0, 3, 1, 1);
@@ -609,14 +611,14 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.formatInvalid	= "%s %s"
 	});
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (page->inverterMaxTemp), PANEL_STAT_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->inverterMaxTemp), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->inverterMaxTemp), &FONT_COLOR);
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->inverterMaxTemp), GTK_ALIGN_END);
 	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->inverterMaxTemp), 3);
 	gtk_grid_attach (page->rightPanel, CAN_WIDGET_TO_WIDGET (page->inverterMaxTemp), 1, 3, 1, 1);
 
 	label = gtk_label_new ("Mtr:");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_STAT_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), FONT_COLOR);
+	gtkLabelSetColor (GTK_LABEL (label), &FONT_COLOR);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_widget_set_margin_start (label, 3);
 	gtk_grid_attach (page->rightPanel, label, 0, 4, 1, 1);
@@ -628,7 +630,7 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.formatInvalid	= "%s %s"
 	});
 	gtkLabelSetFont (CAN_LABEL_FLOAT_TO_LABEL (page->motorMaxTemp), PANEL_STAT_FONT);
-	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->motorMaxTemp), FONT_COLOR);
+	gtkLabelSetColor (CAN_LABEL_BOOL_TO_LABEL (page->motorMaxTemp), &FONT_COLOR);
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->motorMaxTemp), GTK_ALIGN_END);
 	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->motorMaxTemp), 3);
 	gtk_grid_attach (page->rightPanel, CAN_WIDGET_TO_WIDGET (page->motorMaxTemp), 1, 4, 1, 1);
@@ -653,25 +655,27 @@ page_t* pageAutoxInit (canDatabase_t* database)
 	return (page_t*) page;
 }
 
-void pageAutoxAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg)
+void pageAutoxAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
 {
 	pageAutox_t* pageAutox = page;
 
-	GtkWidget* button = gtk_button_new ();
-
-	if (callback != NULL)
-		g_signal_connect (button, "clicked", G_CALLBACK (callback), arg);
-
-	GtkWidget* labelWidget = gtk_label_new (label);
-	gtkLabelSetFont (GTK_LABEL (labelWidget), BUTTON_LABEL_FONT);
-	gtk_button_set_child (GTK_BUTTON (button), labelWidget);
-	gtk_widget_set_margin_top (button, 8);
-	gtk_widget_set_margin_start (button, 4);
-	gtk_widget_set_margin_end (button, 4);
-
-	gtk_widget_set_hexpand (button, true);
-	gtk_widget_set_size_request (button, 120, 80);
-	gtk_grid_attach (GTK_GRID (pageAutox->buttonPanel), button, pageAutox->buttonCount, 0, 1, 1);
+	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
+	{
+		.width				= 120,
+		.height				= 80,
+		.label				= label,
+		.borderWidth		= 1,
+		.backgroundColor	= gdkHexToColor ("#000000"),
+		.borderColor		= gdkHexToColor ("#D3792C"),
+		.selectedColor		= gdkHexToColor ("#F4931E"),
+		.indicatorColor		= currentPage ? gdkHexToColor ("#FF0000") : gdkHexToColor ("#580000")
+	});
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), BUTTON_LABEL_FONT);
+	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
+	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
+	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);
+	gtk_widget_set_hexpand (STYLIZED_BUTTON_TO_WIDGET (button), true);
+	gtk_grid_attach (GTK_GRID (pageAutox->buttonPanel), STYLIZED_BUTTON_TO_WIDGET (button), pageAutox->buttonCount, 0, 1, 1);
 	++pageAutox->buttonCount;
 }
 
