@@ -2,17 +2,18 @@ ROOT_DIR := ../..
 include $(ROOT_DIR)/include.mk
 
 BIN := $(BIN_DIR)/dashboard-gui
-SRC :=	main.c								\
-		gtk_util.c							\
-		bms_widgets.c						\
-		page_stack.c						\
-		page_autox.c						\
-		page_bms_overview.c					\
-		can_widgets/can_indicator.c			\
-		can_widgets/can_label_bool.c		\
-		can_widgets/can_label_float.c		\
-		can_widgets/can_progress_bar.c		\
-		stylized_button.c
+SRC :=	main.c										\
+		gtk_util.c									\
+		bms_widgets.c								\
+		page_stack.c								\
+		page_autox.c								\
+		page_bms_overview.c							\
+		can_widgets/can_indicator.c					\
+		can_widgets/can_label_bool.c				\
+		can_widgets/can_label_float.c				\
+		can_widgets/can_progress_bar.c				\
+		stylized_widgets/stylized_button.c			\
+		stylized_widgets/stylized_progress_bar.c
 
 # Compiling and linking against GTK, so include its flags
 CFLAGS += $(LIB_GTK_CFLAGS)

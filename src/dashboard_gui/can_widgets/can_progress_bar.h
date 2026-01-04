@@ -13,6 +13,7 @@
 // Includes
 #include "can_widget.h"
 #include "can_database/can_database.h"
+#include "../stylized_widgets/stylized_progress_bar.h"
 
 // GTK
 #include <gtk/gtk.h>
@@ -22,6 +23,9 @@
 /// @brief Configuration for the @c canProgressBar_t widget.
 typedef struct
 {
+	/// @brief Configuration of the base progress bar.
+	stylizedProgressBarConfig_t barConfig;
+
 	/// @brief The name of the CAN database signal to bind to.
 	const char* signalName;
 
@@ -31,12 +35,6 @@ typedef struct
 	/// @brief The signal value to map to the maximum bar fill (100%).
 	float max;
 } canProgressBarConfig_t;
-
-/// @brief Converts a @c canProgressBar_t into a GTK progress bar.
-#define CAN_PROGRESS_BAR_TO_PROGRESS_BAR(wdgt) GTK_PROGRESS_BAR (CAN_WIDGET_TO_WIDGET (wdgt))
-
-/// @brief Converts a @c canProgressBar_t into an orientable object.
-#define CAN_PROGRESS_BAR_TO_ORIENTABLE(wdgt) GTK_ORIENTABLE (CAN_WIDGET_TO_WIDGET (wdgt))
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@
 #include "can_widgets/can_label_float.h"
 #include "can_widgets/can_progress_bar.h"
 #include "can_widgets/can_indicator.h"
-#include "stylized_button.h"
+#include "stylized_widgets/stylized_button.h"
 
 #define BUTTON_LABEL_FONT		"Futura Std Bold Condensed 34px"
 #define DATA_LOGGER_TITLE_FONT	"Futura Std Bold Condensed 36px"
@@ -94,16 +94,15 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 
 	float xGMin = 0;
 	float yGMin = bounds.origin.y;
-	float xGMax = width;
 	float yGMax = bounds.origin.y + bounds.size.height;
 
 	c = gdkHexToColor ("#FF00FF");
 	gdk_cairo_set_source_rgba (cr, &c);
 
-	if (!gtk_widget_compute_bounds (CAN_WIDGET_TO_WIDGET (page->apps), GTK_WIDGET (area), &bounds))
+	if (!gtk_widget_compute_bounds (GTK_WIDGET (page->rightPanel), GTK_WIDGET (area), &bounds))
 		bounds = *graphene_rect_zero ();
 
-	xGMax -= bounds.size.width;
+	float xGMax = bounds.origin.x + bounds.size.width;
 
 	cairo_pattern_t* gradient;
 	gradient = cairo_pattern_create_linear (xGMin, yGMin, xGMax, yGMin);
@@ -295,14 +294,26 @@ page_t* pageAutoxInit (canDatabase_t* database)
 	// BSE bar
 	page->bse = canProgressBarInit (database, &(canProgressBarConfig_t)
 	{
-		.signalName = "BSE_FRONT_PERCENT",
-		.min		= 0,
-		.max		= 100
+		.barConfig	=
+		{
+			.width				= 10,
+			.height				= 0,
+			.borderThickness	= 1,
+			.orientation		= GTK_ORIENTATION_VERTICAL,
+			.inverted			= false,
+			.backgroundColor	= gdkHexToColor ("#000000"),
+			.borderColor		= gdkHexToColor ("#000000"),
+			.fillColor			= gdkHexToColor ("#FF0000")
+		},
+		.signalName 			= "BSE_FRONT_PERCENT",
+		.min					= 0,
+		.max					= 100
 	});
-	gtk_orientable_set_orientation (CAN_PROGRESS_BAR_TO_ORIENTABLE (page->bse), GTK_ORIENTATION_VERTICAL);
-	gtk_progress_bar_set_inverted (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (page->bse), true);
+	gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->bse), 2);
+	gtk_widget_set_margin_bottom (CAN_WIDGET_TO_WIDGET (page->bse), 2);
+	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->bse), 2);
+	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->bse), 8);
 	gtk_widget_set_vexpand (CAN_WIDGET_TO_WIDGET (page->bse), true);
-	gtk_widget_set_size_request (CAN_WIDGET_TO_WIDGET (page->bse), 20, 0);
 	gtk_grid_attach (page->grid, CAN_WIDGET_TO_WIDGET (page->bse), 0, 0, 1, 5);
 
 	page->dataLoggerPanel = GTK_GRID (gtk_grid_new ());
@@ -454,9 +465,12 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.polygon		= FAULT_INDICATOR_POLYGON,
 		.polygonSize	= FAULT_INDICATOR_POLYGON_SIZE,
 	});
+	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->vcuFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->vcuFault), true);
 	gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->vcuFault), 5);
 	gtk_widget_set_margin_bottom (CAN_WIDGET_TO_WIDGET (page->vcuFault), 5);
+	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->vcuFault), 4);
+	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->vcuFault), 4);
 	gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->vcuFault), 0, 0, 1, 1);
 
 	label = gtk_label_new ("VCU");
@@ -478,7 +492,10 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.polygon		= FAULT_INDICATOR_POLYGON,
 		.polygonSize	= FAULT_INDICATOR_POLYGON_SIZE,
 	});
+	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->bmsFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->bmsFault), true);
+	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->bmsFault), 4);
+	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->bmsFault), 4);
 	gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->bmsFault), 1, 0, 1, 1);
 
 	label = gtk_label_new ("BMS");
@@ -499,7 +516,10 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.polygon		= FAULT_INDICATOR_POLYGON,
 		.polygonSize	= FAULT_INDICATOR_POLYGON_SIZE,
 	});
+	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->amkFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->amkFault), true);
+	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->amkFault), 4);
+	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->amkFault), 4);
 	gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->amkFault), 2, 0, 1, 1);
 
 	label = gtk_label_new ("AMK");
@@ -520,7 +540,10 @@ page_t* pageAutoxInit (canDatabase_t* database)
 		.polygon		= FAULT_INDICATOR_POLYGON,
 		.polygonSize	= FAULT_INDICATOR_POLYGON_SIZE,
 	});
+	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->gpsFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->gpsFault), true);
+	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->gpsFault), 4);
+	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->gpsFault), 4);
 	gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->gpsFault), 3, 0, 1, 1);
 
 	label = gtk_label_new ("GPS");
@@ -636,19 +659,31 @@ page_t* pageAutoxInit (canDatabase_t* database)
 	gtk_grid_attach (page->rightPanel, CAN_WIDGET_TO_WIDGET (page->motorMaxTemp), 1, 4, 1, 1);
 
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());
-	gtk_widget_set_margin_top (GTK_WIDGET (page->buttonPanel), 50);
+	gtk_widget_set_margin_top (GTK_WIDGET (page->buttonPanel), 40);
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->buttonPanel), 2, 3, 3, 1);
 
 	page->apps = canProgressBarInit (database, &(canProgressBarConfig_t)
 	{
-		.signalName = "APPS_1_PERCENT",
-		.min		= 0,
-		.max		= 100
+		.barConfig	=
+		{
+			.width				= 10,
+			.height				= 0,
+			.borderThickness	= 1,
+			.orientation		= GTK_ORIENTATION_VERTICAL,
+			.inverted			= false,
+			.backgroundColor	= gdkHexToColor ("#000000"),
+			.borderColor		= gdkHexToColor ("#51BC58"),
+			.fillColor			= gdkHexToColor ("#51BC58")
+		},
+		.signalName 			= "APPS_1_PERCENT",
+		.min					= 0,
+		.max					= 100
 	});
-	gtk_orientable_set_orientation (CAN_PROGRESS_BAR_TO_ORIENTABLE (page->apps), GTK_ORIENTATION_VERTICAL);
-	gtk_progress_bar_set_inverted (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (page->apps), true);
+	gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->apps), 2);
+	gtk_widget_set_margin_bottom (CAN_WIDGET_TO_WIDGET (page->apps), 2);
+	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->apps), 5);
+	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->apps), 5);
 	gtk_widget_set_vexpand (CAN_WIDGET_TO_WIDGET (page->apps), true);
-	gtk_widget_set_size_request (CAN_WIDGET_TO_WIDGET (page->apps), 20, 0);
 	gtk_grid_attach (page->grid, CAN_WIDGET_TO_WIDGET (page->apps), 5, 0, 1, 5);
 
 	// Return the created page (cast to the base type).

@@ -8,6 +8,7 @@ typedef struct
 {
 	canWidgetVmt_t vmt;
 	canProgressBarConfig_t config;
+	stylizedProgressBar_t* bar;
 	canDatabase_t* database;
 	ssize_t index;
 } canProgressBar_t;
@@ -25,7 +26,7 @@ static void update (void* widget)
 	value = inverseLerp (value, bar->config.min, bar->config.max);
 
 	// Set fill
-	gtk_progress_bar_set_fraction (CAN_PROGRESS_BAR_TO_PROGRESS_BAR (bar), value);
+	stylizedProgressBarSetValue (bar->bar, value);
 }
 
 canWidget_t* canProgressBarInit (canDatabase_t* database, canProgressBarConfig_t* config)
@@ -41,12 +42,16 @@ canWidget_t* canProgressBarInit (canDatabase_t* database, canProgressBarConfig_t
 		.vmt =
 		{
 			.update = update,
-			.widget	= gtk_progress_bar_new ()
+			.widget	= NULL
 		},
 		.config		= *config,
+		.bar		= stylizedProgressBarInit (&config->barConfig),
 		.database	= database,
 		.index		= canDatabaseFindSignal (database, config->signalName)
 	};
+
+	// Store a reference to the base widget
+	bar->vmt.widget = STYLIZED_PROGRESS_BAR_TO_WIDGET (bar->bar);
 
 	// Update initial value
 	update (bar);

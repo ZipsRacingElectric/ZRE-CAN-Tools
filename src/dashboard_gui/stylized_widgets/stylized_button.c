@@ -2,7 +2,7 @@
 #include "stylized_button.h"
 
 // Includes
-#include "gtk_util.h"
+#include "../gtk_util.h"
 
 static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
