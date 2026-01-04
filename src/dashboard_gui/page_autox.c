@@ -264,6 +264,93 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 		bounds = *graphene_rect_zero ();
 	cairo_rectangle (cr, bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
 	cairo_stroke (cr);
+
+	float xDecalMin = xGMin + 20;
+	float xDecalMax = xGMax - 20;
+	int decalCount = (xDecalMax - xDecalMin) / 50;
+
+	c = gdkHexToColor ("#51BC58");
+	gdk_cairo_set_source_rgba (cr, &c);
+	cairo_set_line_width (cr, 2);
+	for (int index = 0; index < decalCount; ++index)
+	{
+		float pos = index / (decalCount - 1.0f) * (xDecalMax - xDecalMin) + xDecalMin;
+		cairo_move_to (cr, pos - 3, yGMin - 1);
+		cairo_line_to (cr, pos - 3, yGMin - 6);
+		cairo_stroke (cr);
+		cairo_move_to (cr, pos + 3, yGMin - 1);
+		cairo_line_to (cr, pos + 3, yGMin - 6);
+		cairo_stroke (cr);
+	}
+
+	c = gdkHexToColor ("#000000");
+	gdk_cairo_set_source_rgba (cr, &c);
+	for (int index = 0; index < decalCount; ++index)
+	{
+		float pos = index / (decalCount - 1.0f) * (xDecalMax - xDecalMin) + xDecalMin;
+		cairo_move_to (cr, pos, yGMin + 1);
+		cairo_line_to (cr, pos, yGMin + 6);
+		cairo_stroke (cr);
+	}
+
+	float xButtonDecalMin = x15;
+	float xButtonDecalMax = x16;
+	int buttonDecalCount = page->buttonCount + 1;
+
+	c = gdkHexToColor ("#51BC58");
+	gdk_cairo_set_source_rgba (cr, &c);
+	for (int index = 0; index < buttonDecalCount; ++index)
+	{
+		float pos = index / (buttonDecalCount - 1.0f) * (xButtonDecalMax - xButtonDecalMin) + xButtonDecalMin;
+
+		if (index != 0)
+		{
+			cairo_move_to (cr, pos - 3, y15 + 1);
+			cairo_line_to (cr, pos - 3, y15 + 6);
+			cairo_stroke (cr);
+		}
+
+		if (index != buttonDecalCount - 1)
+		{
+			cairo_move_to (cr, pos + 3, y15 + 1);
+			cairo_line_to (cr, pos + 3, y15 + 6);
+			cairo_stroke (cr);
+		}
+	}
+
+	c = gdkHexToColor ("#000000");
+	gdk_cairo_set_source_rgba (cr, &c);
+	for (int index = 0; index < buttonDecalCount; ++index)
+	{
+		float pos = index / (buttonDecalCount - 1.0f) * (xButtonDecalMax - xButtonDecalMin) + xButtonDecalMin;
+		cairo_move_to (cr, pos, y15 - 1);
+		cairo_line_to (cr, pos, y15 - 6);
+		cairo_stroke (cr);
+	}
+
+	float centerDecalXMin = x2 + 10;
+	float centerDecalXMax = x3 - 10;
+	int centerTopDecalCount = (centerDecalXMax - centerDecalXMin) / 80;
+	c = gdkHexToColor ("#000000");
+	gdk_cairo_set_source_rgba (cr, &c);
+	for (int index = 0; index < centerTopDecalCount; ++index)
+	{
+		float pos = index / (centerTopDecalCount - 1.0f) * (centerDecalXMax - centerDecalXMin) + centerDecalXMin;
+		cairo_move_to (cr, pos, y2 - 1);
+		cairo_line_to (cr, pos, y2 - 6);
+		cairo_stroke (cr);
+	}
+
+	c = gdkHexToColor ("#51BC58");
+	gdk_cairo_set_source_rgba (cr, &c);
+
+	cairo_move_to (cr, x6, y6 + 1);
+	cairo_line_to (cr, x6, y6 + 6);
+	cairo_stroke (cr);
+
+	cairo_move_to (cr, x7, y7 + 1);
+	cairo_line_to (cr, x7, y7 + 6);
+	cairo_stroke (cr);
 }
 
 page_t* pageAutoxInit (canDatabase_t* database)
@@ -318,14 +405,15 @@ page_t* pageAutoxInit (canDatabase_t* database)
 
 	page->dataLoggerPanel = GTK_GRID (gtk_grid_new ());
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->dataLoggerPanel), 1, 0, 2, 2);
-	gtk_widget_set_valign (GTK_WIDGET (page->dataLoggerPanel), GTK_ALIGN_END);
+	gtk_widget_set_valign (GTK_WIDGET (page->dataLoggerPanel), GTK_ALIGN_FILL);
+	gtk_widget_set_margin_top (GTK_WIDGET (page->dataLoggerPanel), 20);
 
 	page->dataLoggerStatus = canLabelBoolInit (database, &(canLabelBoolConfig_t)
 	{
 		.signalName		= "SESSION_NUMBER",
-		.activeValue	= "Logging: On",
-		.inactiveValue	= "Logging: On",
-		.invalidValue	= "Logging: Off",
+		.activeValue	= "LOGGING: ON",
+		.inactiveValue	= "LOGGING: ON",
+		.invalidValue	= "LOGGING: OFF",
 		.threshold		= 0,
 		.inverted		= true
 	});
