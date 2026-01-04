@@ -121,13 +121,13 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 
 static char* getApplicationTitle (const char* applicationName)
 {
-	size_t length = snprintf (NULL, 0, "dashboard - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) + 1;
+	size_t length = snprintf (NULL, 0, "dashboard-gui - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) + 1;
 
 	char* title = malloc (length);
 	if (title == NULL)
 		return NULL;
 
-	if (snprintf (title, length, "dashboard - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) < 0)
+	if (snprintf (title, length, "dashboard-gui - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) < 0)
 		return NULL;
 
 	return title;
@@ -136,13 +136,13 @@ static char* getApplicationTitle (const char* applicationName)
 static char* getApplicationId (const char* applicationName)
 {
 	const char* APPLICATION_DOMAIN = "org.zre";
-	size_t length = snprintf (NULL, 0, "%s.dashboard-%s", APPLICATION_DOMAIN, applicationName) + 1;
+	size_t length = snprintf (NULL, 0, "%s.dashboard-gui-%s", APPLICATION_DOMAIN, applicationName) + 1;
 
 	char* id = malloc (length);
 	if (id == NULL)
 		return NULL;
 
-	if (snprintf (id, length, "%s.dashboard-%s", APPLICATION_DOMAIN, applicationName) < 0)
+	if (snprintf (id, length, "%s.dashboard-gui-%s", APPLICATION_DOMAIN, applicationName) < 0)
 		return NULL;
 
 	return id;
