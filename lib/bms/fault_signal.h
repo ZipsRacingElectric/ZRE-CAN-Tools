@@ -1,6 +1,8 @@
 #ifndef FAULT_SIGNAL_H
 #define FAULT_SIGNAL_H
 
+// TODO(Barach): Docs
+
 // Includes
 #include "can_database/can_database.h"
 #include "cjson/cjson.h"
