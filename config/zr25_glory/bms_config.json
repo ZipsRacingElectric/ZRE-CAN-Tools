@@ -9,6 +9,51 @@
 	"minTemperature":		"-10",
 	"maxTemperature":		"60",
 	"maxLtcTemperature":	"80",
+	"faults":
+	[
+		{
+			"name":			"ISOSPI FAULT",
+			"signal":		"BMS_ISOSPI_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"SELF TEST FAULT",
+			"signal":		"BMS_SELF_TEST_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"SENSE-LINE FAULT",
+			"signal":		"BMS_SENSE_LINE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"UNDERVOLTAGE FAULT",
+			"signal":		"BMS_UNDERVOLTAGE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"OVERVOLTAGE FAULT",
+			"signal":		"BMS_OVERVOLTAGE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"UNDERTEMPERATURE FAULT",
+			"signal":		"BMS_UNDERTEMPERATURE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"OVERTEMPERATURE FAULT",
+			"signal":		"BMS_OVERTEMPERATURE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		}
+	],
 	"variables":
 	[
 		{

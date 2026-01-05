@@ -290,6 +290,21 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	if (bms->logicalTemperatureIndices == NULL)
 		return errno;
 
+	// Load the BMS's fault signals
+	cJSON* faults;
+	if (jsonGetObject (config, "faults", &faults) == 0)
+	{
+		bms->faults = faultSignalsLoad (faults, &bms->faultCount, database);
+		if (bms->faults == NULL)
+			return errno;
+	}
+	else
+	{
+		debugPrintf ("Warning: BMS config file is missing 'faults' array.\n");
+		bms->faults = NULL;
+		bms->faultCount = 0;
+	}
+
 	return 0;
 }
 
@@ -522,6 +537,7 @@ void bmsDealloc (bms_t* bms)
 {
 	// TODO(Barach): Init doesn't deallocate correctly on failure.
 	// Deallocate all dynamically allocated memory.
+	free (bms->faults);
 	free (bms->statusSignalIndices);
 	free (bms->ltcTemperatureIndices);
 	free (bms->ltcSelfTestFaultIndices);
