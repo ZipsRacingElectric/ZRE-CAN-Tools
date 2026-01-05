@@ -146,3 +146,22 @@ void bmsBarGraphUpdate (bmsBarGraph_t* graph)
 {
 	gtk_widget_queue_draw (BMS_BAR_GRAPH_TO_WIDGET (graph));
 }
+
+void bmsFaultLabelInit (bmsFaultLabel_t* label, bms_t* bms)
+{
+	*label = (bmsFaultLabel_t)
+	{
+		.widget	= gtk_label_new (""),
+		.bms	= bms
+	};
+}
+
+void bmsFaultLabelUpdate (bmsFaultLabel_t* label)
+{
+	char* state = bmsGetFaultState (label->bms);
+	if (state == label->state)
+		return;
+
+	label->state = state;
+	gtk_label_set_text (GTK_LABEL (label->widget), state);
+}

@@ -89,7 +89,7 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageStackAppend (stack, pageAutox);
 	pageStackPair_t* pageAutoxPair = pageStackPairInit (stack, pageAutox);
 
-	page_t* pageBms = pageBmsOverviewInit (arg->database, arg->bms);
+	page_t* pageBms = pageBmsOverviewInit (arg->bms);
 	pageStackAppend (stack, pageBms);
 	pageStackPair_t* pageBmsPair = pageStackPairInit (stack, pageBms);
 
@@ -104,6 +104,8 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageAppendButton (pageBms, "", NULL, NULL, false);
 	pageAppendButton (pageBms, "", NULL, NULL, false);
 	pageAppendButton (pageBms, "BMS", NULL, NULL, true);
+
+	pageStackSelect (stack, pageBms);
 
 	GtkEventController* controller = gtk_event_controller_key_new ();
   	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);

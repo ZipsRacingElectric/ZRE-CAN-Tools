@@ -62,6 +62,16 @@ typedef struct
 #define BMS_BAR_GRAPH_TO_DRAWING_AREA(graph) GTK_DRAWING_AREA ((graph)->widget)
 #define BMS_BAR_GRAPH_TO_WIDGET(graph) ((graph)->widget)
 
+typedef struct
+{
+	GtkWidget* widget;
+	bms_t* bms;
+	char* state;
+} bmsFaultLabel_t;
+
+#define BMS_FAULT_LABEL_TO_LABEL(label) GTK_LABEL ((label)->widget)
+#define BMS_FAULT_LABEL_TO_WIDGET(label) ((label)->widget)
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 void canLabelFloatStaticInit (canLabelFloatStatic_t* label);
@@ -73,5 +83,9 @@ void bmsBarGraphInit (bmsBarGraph_t* graph, bms_t* bms, bmsBarGraphConfig_t* con
 void bmsBarSetBounds (bmsBarGraph_t* graph, float min, float max);
 
 void bmsBarGraphUpdate (bmsBarGraph_t* graph);
+
+void bmsFaultLabelInit (bmsFaultLabel_t* label, bms_t* bms);
+
+void bmsFaultLabelUpdate (bmsFaultLabel_t* label);
 
 #endif // BMS_WIDGETS_H

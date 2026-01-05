@@ -13,7 +13,6 @@
 // Includes
 #include "page.h"
 #include "bms_widgets.h"
-#include "can_widgets/can_widget.h"
 #include "bms/bms.h"
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
@@ -29,6 +28,7 @@ typedef struct
 	bmsBarGraph_t voltages;
 	bmsBarGraph_t temperatures;
 	bmsBarGraph_t ltcTemperatures;
+	bmsFaultLabel_t faultLabel;
 	canLabelFloatStatic_t voltageLabel;
 	canLabelFloatStatic_t currentLabel;
 	canLabelFloatStatic_t powerLabel;
@@ -40,13 +40,11 @@ typedef struct
 	canLabelFloatStatic_t avgTempLabel;
 	canLabelFloatStatic_t maxDeltaLabel;
 	canLabelFloatStatic_t avgDeltaLabel;
-	canWidget_t** statusLabels;
-	size_t statusCount;
 } pageBmsOverview_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageBmsOverviewInit (canDatabase_t* database, bms_t* bms);
+page_t* pageBmsOverviewInit (bms_t* bms);
 
 void pageBmsAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
 
