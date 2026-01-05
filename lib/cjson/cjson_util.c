@@ -131,6 +131,33 @@ int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value)
 	return 0;
 }
 
+int jsonGetBool (cJSON* json, const char* key, bool* value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
+	}
+
+	char* str = cJSON_GetStringValue (item);
+	if (strcmp (str, "true") == 0)
+	{
+		*value = true;
+		return 0;
+	}
+
+	if (strcmp (str, "false") == 0)
+	{
+		*value = false;
+		return 0;
+	}
+
+	debugPrintf ("Invalid value in boolean JSON '%s'\n", str);
+	return ERRNO_CJSON_PARSE_FAIL;
+}
+
 int jsonGetFloat (cJSON* json, const char* key, float* value)
 {
 	cJSON* item = cJSON_GetObjectItem (json, key);
