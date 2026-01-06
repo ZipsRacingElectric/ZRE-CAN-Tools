@@ -81,6 +81,7 @@ cJSON* jsonRead (FILE* stream)
 		else if (c == '}')
 			--bracketCount;
 	}
+	*head = '\0';
 
 	// Parse the JSON data
 	cJSON* json = cJSON_Parse (buffer);
