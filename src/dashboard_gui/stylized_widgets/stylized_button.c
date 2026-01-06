@@ -29,10 +29,12 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 
 	// Draw the frame
 
-	cairo_set_line_width (cr, button->config.borderWidth);
+	cairo_set_line_width (cr, button->config.borderThickness);
 
 	gdk_cairo_set_source_rgba (cr, &button->config.borderColor);
-	cairo_rectangle (cr, button->config.borderWidth / 2.0f, button->config.borderWidth / 2.0f, width - button->config.borderWidth, height - button->config.borderWidth);
+	cairo_rectangle (cr,
+		button->config.borderThickness / 2.0f, button->config.borderThickness / 2.0f,
+		width - button->config.borderThickness, height - button->config.borderThickness);
 	cairo_stroke (cr);
 
 	// Draw the indicator frame

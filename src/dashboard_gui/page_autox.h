@@ -24,22 +24,62 @@
 
 typedef struct
 {
+	pageStyle_t* pageStyle;
+
+	GdkRGBA appsColor;
+	GdkRGBA bseColor;
+
+	GdkRGBA decalTickColorLight;
+	GdkRGBA decalTickColorDark;
+	float decalUpperTickSpacing;
+	float decalUpperTickMargin;
+	float decalCenterTickSpacing;
+	float decalCenterTickMargin;
+	float decalHeight;
+	float decalThickness;
+	float decalWidth;
+
+	GdkRGBA faultActiveColor;
+	GdkRGBA faultInactiveColor;
+
+	GdkRGBA gradientStartColor;
+	float gradientStartPosition;
+	GdkRGBA gradientMiddleColor;
+	float gradientMiddlePosition;
+	GdkRGBA gradientEndColor;
+	float gradientEndPosition;
+
+	const char* dataLoggerTitleFont;
+	const char* dataLoggerStatFont;
+	const char* centerPanelTitleFont;
+	const char* centerPanelStatFont;
+	const char* leftPanelTitleFont;
+	const char* leftPanelStatFont;
+	const char* rightPanelTitleFont;
+	const char* rightPanelStatFont;
+	const char* faultIndicatorFont;
+} pageAutoxStyle_t;
+
+typedef struct
+{
 	pageVmt_t vmt;
+
+	pageAutoxStyle_t style;
 
 	GtkGrid* grid;
 
 	GtkGrid* dataLoggerPanel;
 	GtkGrid* leftPanel;
 	GtkGrid* rightPanel;
-	GtkWidget* centerLabel;
+	GtkWidget* centerTitle;
 	GtkGrid* faultPanel;
 	GtkGrid* buttonPanel;
 	size_t buttonCount;
 
 	canWidget_t* bse;
 	canWidget_t* apps;
-	canWidget_t* dataLoggerStatus;
-	canWidget_t* dataLoggerSession;
+	canWidget_t* dataLoggerTitle;
+	canWidget_t* dataLoggerStat;
 	canWidget_t* glvVoltage;
 	canWidget_t* hvVoltage;
 	canWidget_t* inverterMaxTemp;
@@ -47,7 +87,7 @@ typedef struct
 	canWidget_t* drivingTorque;
 	canWidget_t* regenTorque;
 	canWidget_t* torqueIndex;
-	canWidget_t* speed;
+	canWidget_t* centerStat;
 	canWidget_t* drsStatus;
 	canWidget_t* vcuFault;
 	canWidget_t* bmsFault;
@@ -55,13 +95,11 @@ typedef struct
 	canWidget_t* gpsFault;
 } pageAutox_t;
 
-#define PAGE_AUTOX_TO_WIDGET(page) ((page)->widget)
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageAutoxInit (canDatabase_t* database);
+page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style);
 
-void pageAutoxAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
+void pageAutoxAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
 
 void pageAutoxUpdate (void* page);
 

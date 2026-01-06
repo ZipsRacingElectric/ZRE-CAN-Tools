@@ -37,4 +37,15 @@ void gtkLabelSetColor (GtkLabel* label, const GdkRGBA* color);
  */
 GdkRGBA gdkHexToColor (const char* color);
 
+/**
+ * @brief Adds a GDK color stop to a cairo pattern.
+ * @param pattern The cairo pattern to add to.
+ * @param offset The offset to add the stop at.
+ * @param color The GDK color to add.
+ */
+static inline void gdkCairoPatternAddColorStop (cairo_pattern_t* pattern, double offset, GdkRGBA* color)
+{
+	cairo_pattern_add_color_stop_rgba (pattern, offset, color->red, color->green, color->blue, color->alpha);
+}
+
 #endif // GTK_UTIL

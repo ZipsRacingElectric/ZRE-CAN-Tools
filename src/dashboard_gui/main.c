@@ -6,6 +6,7 @@
 #include "cjson/cjson_util.h"
 #include "options.h"
 #include "bms/bms.h"
+#include "gtk_util.h"
 
 // GTK
 #include <gtk/gtk.h>
@@ -82,14 +83,28 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	gtk_window_set_title (GTK_WINDOW (window), arg->applicationTitle);
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
 
+	// TODO(Barach): JSON
+	pageStyle_t* style = malloc (sizeof (pageStyle_t));
+	*style = (pageStyle_t)
+	{
+		.backgroundColor		= gdkHexToColor ("#000000"),
+		.fontColor				= gdkHexToColor ("#F4931E"),
+		.borderColor			= gdkHexToColor ("#D3792C"),
+		.borderThickness		= 1.5,
+		.indicatorActiveColor	= gdkHexToColor ("#FF0000"),
+		.indicatorInactiveColor	= gdkHexToColor ("#580000"),
+		.buttonHeight			= 80,
+		.buttonFont				= "Futura Std Bold Condensed 34px"
+	};
+
 	pageStack_t* stack = pageStackInit ();
 	gtk_window_set_child (GTK_WINDOW (window), PAGE_STACK_TO_WIDGET (stack));
 
-	page_t* pageAutox = pageAutoxInit (arg->database);
+	page_t* pageAutox = pageAutoxInit (arg->database, style);
 	pageStackAppend (stack, pageAutox);
 	pageStackPair_t* pageAutoxPair = pageStackPairInit (stack, pageAutox);
 
-	page_t* pageBms = pageBmsOverviewInit (arg->bms);
+	page_t* pageBms = pageBmsOverviewInit (arg->bms, style);
 	pageStackAppend (stack, pageBms);
 	pageStackPair_t* pageBmsPair = pageStackPairInit (stack, pageBms);
 
@@ -104,8 +119,6 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageAppendButton (pageBms, "", NULL, NULL, false);
 	pageAppendButton (pageBms, "", NULL, NULL, false);
 	pageAppendButton (pageBms, "BMS", NULL, NULL, true);
-
-	pageStackSelect (stack, pageBms);
 
 	GtkEventController* controller = gtk_event_controller_key_new ();
   	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);

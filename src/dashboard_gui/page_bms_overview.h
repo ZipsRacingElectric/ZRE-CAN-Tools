@@ -19,10 +19,17 @@
 
 typedef struct
 {
+	pageStyle_t* pageStyle;
+} pageBmsOverviewStyle_t;
+
+typedef struct
+{
 	pageVmt_t vmt;
 
 	GtkGrid* buttonPanel;
 	size_t buttonCount;
+
+	pageBmsOverviewStyle_t style;
 
 	bms_t* bms;
 	bmsBarGraph_t voltages;
@@ -44,9 +51,9 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageBmsOverviewInit (bms_t* bms);
+page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style);
 
-void pageBmsAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
+void pageBmsAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
 
 void pageBmsOverviewUpdate (void* page);
 

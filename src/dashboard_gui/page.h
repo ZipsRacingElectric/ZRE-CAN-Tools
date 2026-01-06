@@ -17,6 +17,18 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
+typedef struct
+{
+	GdkRGBA backgroundColor;
+	GdkRGBA fontColor;
+	GdkRGBA borderColor;
+	float borderThickness;
+	GdkRGBA indicatorActiveColor;
+	GdkRGBA indicatorInactiveColor;
+	int buttonHeight;
+	const char* buttonFont;
+} pageStyle_t;
+
 typedef void (pageButtonCallback_t) (GtkWidget* widget, gpointer data);
 
 typedef void (pageUpdate_t) (void* page);

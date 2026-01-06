@@ -6,7 +6,6 @@
 #include "stylized_widgets/stylized_button.h"
 
 #define STATUS_FONT				"Monospace 12px"
-#define BUTTON_LABEL_FONT		"Futura Std Bold Condensed 34px"
 #define PANEL_TITLE_FONT		"ITC Avant Garde Gothic CE Book 18px"
 
 static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
@@ -21,19 +20,26 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	cairo_fill (cr);
 }
 
-page_t* pageBmsOverviewInit (bms_t* bms)
+page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 {
 	pageBmsOverview_t* page = malloc (sizeof (pageBmsOverview_t));
 	if (page == NULL)
 		return NULL;
 
 	// Setup the VMT
-	page->vmt.update = pageBmsOverviewUpdate;
-	page->vmt.appendButton = pageBmsAppendButton;
-	page->vmt.widget = gtk_overlay_new ();
+	page->vmt = (pageVmt_t)
+	{
+		.update = pageBmsOverviewUpdate,
+		.appendButton = pageBmsAppendButton,
+		.widget = gtk_overlay_new ()
+	};
+
+	page->style = (pageBmsOverviewStyle_t)
+	{
+		.pageStyle	= style,
+	};
 
 	page->buttonCount = 0;
-
 	page->bms = bms;
 
 	GtkWidget* bg = gtk_drawing_area_new ();
@@ -346,30 +352,29 @@ page_t* pageBmsOverviewInit (bms_t* bms)
 	return (page_t*) page;
 }
 
-void pageBmsAppendButton (void* page, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
+void pageBmsAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
 {
-	(void) currentPage;
-	pageBmsOverview_t* pageBms = page;
+	pageBmsOverview_t* page = pageArg;
 
 	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
 	{
-		.width				= 120,
-		.height				= 80,
+		.width				= 0,
+		.height				= page->style.pageStyle->buttonHeight,
 		.label				= label,
-		.borderWidth		= 1,
-		.backgroundColor	= gdkHexToColor ("#000000"),
-		.borderColor		= gdkHexToColor ("#D3792C"),
-		.selectedColor		= gdkHexToColor ("#F4931E"),
-		.indicatorColor		= currentPage ? gdkHexToColor ("#FF0000") : gdkHexToColor ("#580000")
+		.borderThickness	= page->style.pageStyle->borderThickness,
+		.backgroundColor	= page->style.pageStyle->backgroundColor,
+		.borderColor		= page->style.pageStyle->borderColor,
+		.selectedColor		= page->style.pageStyle->fontColor,
+		.indicatorColor		= currentPage ?
+			page->style.pageStyle->indicatorActiveColor : page->style.pageStyle->indicatorInactiveColor
 	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), BUTTON_LABEL_FONT);
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.pageStyle->buttonFont);
 	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
 	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
 	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);
 	gtk_widget_set_hexpand (STYLIZED_BUTTON_TO_WIDGET (button), true);
-
-	gtk_grid_attach (GTK_GRID (pageBms->buttonPanel), STYLIZED_BUTTON_TO_WIDGET (button), pageBms->buttonCount + 1, 0, 1, 1);
-	++pageBms->buttonCount;
+	gtk_grid_attach (GTK_GRID (page->buttonPanel), STYLIZED_BUTTON_TO_WIDGET (button), page->buttonCount, 0, 1, 1);
+	++page->buttonCount;
 }
 
 void pageBmsOverviewUpdate (void* page)

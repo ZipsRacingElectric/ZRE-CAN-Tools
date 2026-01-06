@@ -26,7 +26,7 @@ typedef struct
 	int height;
 
 	/// @brief The thickness, in pixels, of the button's border.
-	float borderWidth;
+	float borderThickness;
 
 	/// @brief The label of the button.
 	const char* label;
