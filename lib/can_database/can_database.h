@@ -174,6 +174,26 @@ static inline canSignal_t* canDatabaseGetSignal (canDatabase_t* database, ssize_
 }
 
 /**
+ * @brief Gets the number of signals in a CAN database.
+ * @param database The database to get from.
+ * @return The number of signals in the database.
+ */
+static inline size_t canDatabaseGetSignalCount (canDatabase_t* database)
+{
+	return database->signalCount;
+}
+
+/**
+ * @brief Gets the number of messages in a CAN database.
+ * @param database The database to get from.
+ * @return The number of messages in the database.
+ */
+static inline size_t canDatabaseGetMessageCount (canDatabase_t* database)
+{
+	return database->messageCount;
+}
+
+/**
  * @brief Gets a reference to a CAN message, from its global index.
  * @param database The database to get from.
  * @param index The global index of the signal.
