@@ -48,6 +48,7 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 
 	GtkWidget* grid = gtk_grid_new ();
 	gtk_overlay_add_overlay (GTK_OVERLAY (page->vmt.widget), grid);
+	gtk_overlay_set_measure_overlay (GTK_OVERLAY (page->vmt.widget), grid, true);
 
 	GtkWidget* statusTitle = gtk_grid_new ();
 	gtk_grid_attach (GTK_GRID (grid), statusTitle, 0, 0, 2, 1);
@@ -358,7 +359,7 @@ void pageBmsAppendButton (void* pageArg, const char* label, pageButtonCallback_t
 
 	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
 	{
-		.width				= 0,
+		.width				= 100,
 		.height				= page->style.pageStyle->buttonHeight,
 		.label				= label,
 		.borderThickness	= page->style.pageStyle->borderThickness,

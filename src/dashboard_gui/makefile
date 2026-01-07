@@ -14,6 +14,7 @@ SRC :=	main.c										\
 		can_widgets/can_label_float.c				\
 		can_widgets/can_progress_bar.c				\
 		stylized_widgets/stylized_button.c			\
+		stylized_widgets/stylized_frame.c			\
 		stylized_widgets/stylized_progress_bar.c	\
 		stylized_widgets/stylized_terminal.c
 

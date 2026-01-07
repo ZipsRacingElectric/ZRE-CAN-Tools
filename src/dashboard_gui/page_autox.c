@@ -385,6 +385,7 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style)
 	gtk_widget_set_margin_top (GTK_WIDGET (page->grid), 10);
 	gtk_widget_set_margin_bottom (GTK_WIDGET (page->grid), 10);
 	gtk_overlay_add_overlay (GTK_OVERLAY (page->vmt.widget), GTK_WIDGET (page->grid));
+	gtk_overlay_set_measure_overlay (GTK_OVERLAY (page->vmt.widget), GTK_WIDGET (page->grid), true);
 
 	// BSE bar
 	page->bse = canProgressBarInit (database, &(canProgressBarConfig_t)
@@ -791,7 +792,7 @@ void pageAutoxAppendButton (void* pageArg, const char* label, pageButtonCallback
 
 	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
 	{
-		.width				= 0,
+		.width				= 100,
 		.height				= page->style.pageStyle->buttonHeight,
 		.label				= label,
 		.borderThickness	= page->style.pageStyle->borderThickness,

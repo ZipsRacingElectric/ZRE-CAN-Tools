@@ -3,6 +3,7 @@
 
 // Includes
 #include "stylized_widgets/stylized_button.h"
+#include "stylized_widgets/stylized_frame.h"
 #include "gtk_util.h"
 #include "can_device/can_device_stdio.h"
 #include "can_database/can_database_stdio.h"
@@ -32,6 +33,18 @@ page_t* pageCanBusInit (canDatabase_t* database, pageStyle_t* style)
 
 	page->grid = gtk_grid_new ();
 	gtk_overlay_add_overlay (GTK_OVERLAY (page->vmt.widget), page->grid);
+	gtk_overlay_set_measure_overlay (GTK_OVERLAY (page->vmt.widget), page->grid, true);
+
+	stylizedFrame_t* frame = stylizedFrameInit (&(stylizedFrameConfig_t)
+	{
+		.backgroundColor	= gdkHexToColor ("#000000"),
+		.borderColor		= gdkHexToColor ("#00FFAA"),
+		.borderThickness	= 1.5f,
+		.cornerRadius		= 0
+	});
+	gtk_widget_set_hexpand (STYLIZED_FRAME_TO_WIDGET (frame), true);
+	gtk_widget_set_vexpand (STYLIZED_FRAME_TO_WIDGET (frame), true);
+	gtk_grid_attach (GTK_GRID (page->grid), STYLIZED_FRAME_TO_WIDGET (frame), 0, 0, 1, 1);
 
 	page->term = stylizedTerminalInit (&(stylizedTerminalConfig_t)
 	{
@@ -42,14 +55,16 @@ page_t* pageCanBusInit (canDatabase_t* database, pageStyle_t* style)
 		.scrollEnabled			= true,
 		.scrollMin				= 0,
 		.scrollMax				= canDatabaseGetMessageCount (database) + canDatabaseGetSignalCount (database),
-		.backgroundColor		= gdkHexToColor ("#000000"),
+		.backgroundColor		= gdkHexToColor ("#00000000"),
 		.fontColor				= gdkHexToColor ("#00FFAA"),
 		.fontOutlineColor		= gdkHexToColor ("#006600"),
 		.fontOutlineThickness	= 0.75f,
 	});
-	gtk_widget_set_hexpand (STYLIZED_TERMINAL_TO_WIDGET (page->term), true);
-	gtk_widget_set_vexpand (STYLIZED_TERMINAL_TO_WIDGET (page->term), true);
-	gtk_grid_attach (GTK_GRID (page->grid), STYLIZED_TERMINAL_TO_WIDGET (page->term), 0, 0, 1, 1);
+	gtk_widget_set_margin_top (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
+	gtk_widget_set_margin_bottom (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
+	gtk_widget_set_margin_start (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
+	gtk_widget_set_margin_end (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
+	stylizedFrameSetChild (frame, STYLIZED_TERMINAL_TO_WIDGET (page->term));
 
 	page->buttonCount = 0;
 	page->buttonPanel = gtk_grid_new ();
@@ -68,7 +83,7 @@ void pageCanBusAppendButton (void* pageArg, const char* label, pageButtonCallbac
 
 	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
 	{
-		.width				= 0,
+		.width				= 100,
 		.height				= page->style.pageStyle->buttonHeight,
 		.label				= label,
 		.borderThickness	= page->style.pageStyle->borderThickness,

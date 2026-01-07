@@ -119,6 +119,7 @@ stylizedButton_t* stylizedButtonInit (stylizedButtonCallback_t* callback, void* 
 	// Setup the overlay hierarchy (label overlaid onto drawing area)
 	gtk_overlay_set_child (GTK_OVERLAY (button->widget), GTK_WIDGET (button->drawingArea));
 	gtk_overlay_add_overlay (GTK_OVERLAY (button->widget), GTK_WIDGET (button->label));
+	gtk_overlay_set_measure_overlay (GTK_OVERLAY (button->widget), GTK_WIDGET (button->label), true);
 
 	return button;
 }
