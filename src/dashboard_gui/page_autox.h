@@ -67,7 +67,6 @@ typedef struct
 	pageAutoxStyle_t style;
 
 	GtkGrid* grid;
-
 	GtkGrid* dataLoggerPanel;
 	GtkGrid* leftPanel;
 	GtkGrid* rightPanel;
@@ -101,6 +100,6 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style);
 
 void pageAutoxAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
 
-void pageAutoxUpdate (void* page);
+void pageAutoxUpdate (void* pageArg);
 
 #endif // PAGE_AUTOX_H

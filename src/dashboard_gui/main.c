@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "page_autox.h"
 #include "page_bms_overview.h"
+#include "page_can_bus.h"
 #include "page_stack.h"
 #include "cjson/cjson_util.h"
 #include "options.h"
@@ -108,27 +109,39 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageStackAppend (stack, pageBms);
 	pageStackPair_t* pageBmsPair = pageStackPairInit (stack, pageBms);
 
+	page_t* pageCanBus = pageCanBusInit (arg->database, style);
+	pageStackAppend (stack, pageCanBus);
+	pageStackPair_t* pageCanBusPair = pageStackPairInit (stack, pageCanBus);
+
 	pageAppendButton (pageAutox, "AUTO-X", NULL, NULL, true);
 	pageAppendButton (pageAutox, "", NULL, NULL, false);
 	pageAppendButton (pageAutox, "", NULL, NULL, false);
-	pageAppendButton (pageAutox, "", NULL, NULL, false);
 	pageAppendButton (pageAutox, "BMS", pageStackSelectCallback, pageBmsPair, false);
+	pageAppendButton (pageAutox, "CAN", pageStackSelectCallback, pageCanBusPair, false);
 
 	pageAppendButton (pageBms, "AUTO-X", pageStackSelectCallback, pageAutoxPair, false);
 	pageAppendButton (pageBms, "", NULL, NULL, false);
 	pageAppendButton (pageBms, "", NULL, NULL, false);
-	pageAppendButton (pageBms, "", NULL, NULL, false);
 	pageAppendButton (pageBms, "BMS", NULL, NULL, true);
+	pageAppendButton (pageBms, "CAN", pageStackSelectCallback, pageCanBusPair, false);
+
+	pageAppendButton (pageCanBus, "AUTO-X", pageStackSelectCallback, pageAutoxPair, false);
+	pageAppendButton (pageCanBus, "", NULL, NULL, false);
+	pageAppendButton (pageCanBus, "", NULL, NULL, false);
+	pageAppendButton (pageCanBus, "BMS", pageStackSelectCallback, pageBmsPair, false);
+	pageAppendButton (pageCanBus, "CAN", NULL, NULL, true);
+
+	pageStackSelect (stack, pageCanBus);
 
 	GtkEventController* controller = gtk_event_controller_key_new ();
-  	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);
+	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);
 	gtk_widget_add_controller (window, controller);
 
 	gtk_window_present (GTK_WINDOW (window));
 
 	// Create the event loop timer
 	guint* timeout = malloc (sizeof (guint));
-	*timeout = g_timeout_add (30, G_SOURCE_FUNC (updateLoop), stack);
+	*timeout = g_timeout_add (40, G_SOURCE_FUNC (updateLoop), stack);
 
 	// Bind the destroy signal to a handler
 	g_signal_connect (GTK_WINDOW (window), "destroy", G_CALLBACK (gtkDestroyHandler), timeout);

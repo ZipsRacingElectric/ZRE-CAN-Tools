@@ -8,12 +8,14 @@ SRC :=	main.c										\
 		page_stack.c								\
 		page_autox.c								\
 		page_bms_overview.c							\
+		page_can_bus.c								\
 		can_widgets/can_indicator.c					\
 		can_widgets/can_label_bool.c				\
 		can_widgets/can_label_float.c				\
 		can_widgets/can_progress_bar.c				\
 		stylized_widgets/stylized_button.c			\
-		stylized_widgets/stylized_progress_bar.c
+		stylized_widgets/stylized_progress_bar.c	\
+		stylized_widgets/stylized_terminal.c
 
 # Compiling and linking against GTK, so include its flags
 CFLAGS += $(LIB_GTK_CFLAGS)
@@ -33,4 +35,4 @@ all: $(BIN)
 
 $(BIN): $(SRC) $(LIB)
 	mkdir -p $(BIN_DIR)
-	gcc $^ $(CFLAGS) -o $@ $(LIBFLAGS)
+	gcc $^ -fno-inline $(CFLAGS) -o $@ $(LIBFLAGS)

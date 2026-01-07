@@ -240,7 +240,7 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), GTK_ALIGN_START);
 
 	label = gtk_label_new ("Cell Voltages:");
-	GdkRGBA c = gdkHexToColor ("#7FD1D1");
+	GdkRGBA c = gdkHexToColor ("#00AAFF");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
 	gtkLabelSetColor (GTK_LABEL (label), &c);
 	gtk_widget_set_hexpand (label, true);
@@ -260,9 +260,9 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 		.tickSpacing	= 0.25,
 		.tickFormat		= "%.2f V",
 		.axisPosition	= 40,
-		.axisColor		= gdkHexToColor ("#7FD1D1"),
-		.tickColor		= gdkHexToColor ("#406D6D"),
-		.barColor		= gdkHexToColor ("#7FD1D1")
+		.axisColor		= gdkHexToColor ("#00AAFF"),
+		.tickColor		= gdkHexToColor ("#00AAFF"),
+		.barColor		= gdkHexToColor ("#00AAFF")
 	});
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), GTK_ALIGN_FILL);
@@ -275,7 +275,7 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 	gtk_grid_attach (GTK_GRID (grid), BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), 0, 3, 2, 1);
 
 	label = gtk_label_new ("Sense Line Temperatures:");
-	c = gdkHexToColor ("#9ee396");
+	c = gdkHexToColor ("#00FFAA");
 	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
 	gtkLabelSetColor (GTK_LABEL (label), &c);
 	gtk_widget_set_hexpand (label, true);
@@ -295,9 +295,9 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 		.tickSpacing	= 10,
 		.tickFormat		= "%.0f C",
 		.axisPosition	= 40,
-		.axisColor		= gdkHexToColor ("#9ee396"),
-		.tickColor		= gdkHexToColor ("#4C9044"),
-		.barColor		= gdkHexToColor ("#9ee396")
+		.axisColor		= gdkHexToColor ("#00FFAA"),
+		.tickColor		= gdkHexToColor ("#00FFAA"),
+		.barColor		= gdkHexToColor ("#00FFAA")
 	});
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), GTK_ALIGN_FILL);
@@ -329,9 +329,9 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 		.tickSpacing	= 10,
 		.tickFormat		= "%.0f C",
 		.axisPosition	= 40,
-		.axisColor		= gdkHexToColor ("#9ee396"),
-		.tickColor		= gdkHexToColor ("#4C9044"),
-		.barColor		= gdkHexToColor ("#9ee396")
+		.axisColor		= gdkHexToColor ("#00FFAA"),
+		.tickColor		= gdkHexToColor ("#00FFAA"),
+		.barColor		= gdkHexToColor ("#00FFAA")
 	});
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), GTK_ALIGN_FILL);

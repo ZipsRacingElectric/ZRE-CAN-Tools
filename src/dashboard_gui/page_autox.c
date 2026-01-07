@@ -810,25 +810,25 @@ void pageAutoxAppendButton (void* pageArg, const char* label, pageButtonCallback
 	++page->buttonCount;
 }
 
-void pageAutoxUpdate (void* page)
+void pageAutoxUpdate (void* pageArg)
 {
-	pageAutox_t* pageAutox = page;
+	pageAutox_t* page = pageArg;
 
-	canWidgetUpdate (pageAutox->bse);
-	canWidgetUpdate (pageAutox->apps);
-	canWidgetUpdate (pageAutox->dataLoggerTitle);
-	canWidgetUpdate (pageAutox->dataLoggerStat);
-	canWidgetUpdate (pageAutox->glvVoltage);
-	canWidgetUpdate (pageAutox->hvVoltage);
-	canWidgetUpdate (pageAutox->inverterMaxTemp);
-	canWidgetUpdate (pageAutox->motorMaxTemp);
-	canWidgetUpdate (pageAutox->drivingTorque);
-	canWidgetUpdate (pageAutox->regenTorque);
-	canWidgetUpdate (pageAutox->torqueIndex);
-	canWidgetUpdate (pageAutox->centerStat);
-	canWidgetUpdate (pageAutox->drsStatus);
-	canWidgetUpdate (pageAutox->vcuFault);
-	canWidgetUpdate (pageAutox->bmsFault);
-	canWidgetUpdate (pageAutox->amkFault);
-	canWidgetUpdate (pageAutox->gpsFault);
+	canWidgetUpdate (page->bse);
+	canWidgetUpdate (page->apps);
+	canWidgetUpdate (page->dataLoggerTitle);
+	canWidgetUpdate (page->dataLoggerStat);
+	canWidgetUpdate (page->glvVoltage);
+	canWidgetUpdate (page->hvVoltage);
+	canWidgetUpdate (page->inverterMaxTemp);
+	canWidgetUpdate (page->motorMaxTemp);
+	canWidgetUpdate (page->drivingTorque);
+	canWidgetUpdate (page->regenTorque);
+	canWidgetUpdate (page->torqueIndex);
+	canWidgetUpdate (page->centerStat);
+	canWidgetUpdate (page->drsStatus);
+	canWidgetUpdate (page->vcuFault);
+	canWidgetUpdate (page->bmsFault);
+	canWidgetUpdate (page->amkFault);
+	canWidgetUpdate (page->gpsFault);
 }
