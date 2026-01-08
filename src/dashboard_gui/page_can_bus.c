@@ -56,9 +56,7 @@ page_t* pageCanBusInit (canDatabase_t* database, pageStyle_t* style)
 		.scrollMin				= 0,
 		.scrollMax				= canDatabaseGetMessageCount (database) + canDatabaseGetSignalCount (database),
 		.backgroundColor		= gdkHexToColor ("#00000000"),
-		.fontColor				= gdkHexToColor ("#00FFAA"),
-		.fontOutlineColor		= gdkHexToColor ("#006600"),
-		.fontOutlineThickness	= 0.75f,
+		.fontColor				= gdkHexToColor ("#00FFAA")
 	});
 	gtk_widget_set_margin_top (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
 	gtk_widget_set_margin_bottom (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
@@ -114,6 +112,31 @@ void pageCanBusUpdate (void* pageArg)
 		return;
 	}
 
+	int code = snprintf (buffer, bufferSize, "%-36s | %-16s | Unit", "Message / Signal Name", "Value");
+	if (code < 0 || (size_t) code >= bufferSize)
+	{
+		debugPrintf ("Failed to print CAN database, buffer overflow.\n");
+		stylizedTerminalWriteBuffer (page->term);
+		return;
+	}
+	buffer = stylizedTerminalNextLine (page->term);
+	if (buffer == NULL)
+	{
+		stylizedTerminalWriteBuffer (page->term);
+		return;
+	}
+
+	size_t lineLength = stylizedTerminalGetLineLength (page->term);
+	for (size_t index = 0; index < lineLength; ++index)
+		buffer [index] = '-';
+	buffer [lineLength] = '\0';
+	buffer = stylizedTerminalNextLine (page->term);
+	if (buffer == NULL)
+	{
+		stylizedTerminalWriteBuffer (page->term);
+		return;
+	}
+
 	int scroll = stylizedTerminalGetScrollPosition (page->term);
 	size_t messageCount = canDatabaseGetMessageCount (page->database);
 	for (size_t messageIndex = 0; messageIndex < messageCount; ++messageIndex)
@@ -122,7 +145,7 @@ void pageCanBusUpdate (void* pageArg)
 
 		if (scroll <= 0)
 		{
-			int code = snprintf (buffer, bufferSize, "%s - ", message->name);
+			code = snprintf (buffer, bufferSize, "%s - ", message->name);
 			if (code < 0 || (size_t) code >= bufferSize)
 			{
 				debugPrintf ("Failed to print CAN database, buffer overflow.\n");
@@ -167,7 +190,7 @@ void pageCanBusUpdate (void* pageArg)
 			if (scroll <= 0)
 			{
 				size_t globalIndex = canDatabaseGetGlobalIndex (page->database, messageIndex, signalIndex);
-				int code = snprintf (buffer, bufferSize, "    %-32s | ", signal->name);
+				code = snprintf (buffer, bufferSize, "    %-32s | ", signal->name);
 				if (code < 0 || (size_t) code >= bufferSize)
 				{
 					debugPrintf ("Failed to print CAN database, buffer overflow.\n");
@@ -177,7 +200,7 @@ void pageCanBusUpdate (void* pageArg)
 				buffer += code;
 				bufferSize -= code;
 
-				code = snprintCanDatabaseFloat (buffer, bufferSize, "%16f | %s", "%16s | %s", page->database, globalIndex);
+				code = snprintCanDatabaseFloat (buffer, bufferSize, "%-16f | %s", "%-16s | %s", page->database, globalIndex);
 				if (code < 0 || (size_t) code >= bufferSize)
 				{
 					debugPrintf ("Failed to print CAN database, buffer overflow.\n");
