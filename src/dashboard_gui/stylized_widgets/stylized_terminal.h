@@ -35,10 +35,6 @@ typedef struct
 	GdkRGBA backgroundColor;
 	/// @brief The color of the terminal's font.
 	GdkRGBA fontColor;
-	/// @brief The color of the outline of the terminal's font, if any.
-	GdkRGBA fontOutlineColor;
-	/// @brief The thickness, in pixels, of the outline of the terminal's font.
-	float fontOutlineThickness;
 } stylizedTerminalConfig_t;
 
 typedef struct
@@ -48,6 +44,7 @@ typedef struct
 	stylizedTerminalConfig_t config;
 	size_t linesWritten;
 	size_t lineCount;
+	size_t lineLength;
 
 	int scrollPosition;
 	int scrollPressed;
@@ -105,7 +102,21 @@ void stylizedTerminalWriteBuffer (stylizedTerminal_t* term);
  * @param term The terminal to get the line count of.
  * @return The number of visable and usable lines in the terminal.
  */
-size_t stylizedTerminalGetLineCount (stylizedTerminal_t* term);
+static inline size_t stylizedTerminalGetLineCount (stylizedTerminal_t* term)
+{
+	return term->lineCount;
+}
+
+/**
+ * @brief Gets the number of visible characters in each of a terminal's line. Note this is only valid after a call to
+ * @c stylizedTerminalGetBuffer .
+ * @param term The terminal to get the line length of.
+ * @return The number of visable and usable characters in a single line.
+ */
+static inline size_t stylizedTerminalGetLineLength (stylizedTerminal_t* term)
+{
+	return term->lineLength;
+}
 
 /**
  * @brief Gets the scroll position of a terminal, in number of lines.

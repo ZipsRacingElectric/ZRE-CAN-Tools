@@ -11,29 +11,17 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 	cairo_rectangle (cr, 0, 0, width, height);
 	cairo_fill (cr);
 
-	cairo_set_line_width (cr, 2 * term->config.fontOutlineThickness);
 	cairo_set_font_size (cr, term->config.fontSize);
 	cairo_select_font_face (cr, "Monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+	gdk_cairo_set_source_rgba (cr, &term->config.fontColor);
 
 	float fontSpacing = term->config.fontSize + term->config.fontSpacing;
 	for (size_t index = 0; index < term->linesWritten; ++index)
 	{
 		char* line = term->buffer + index * (term->config.lineLengthMax + 1);
 		cairo_move_to (cr, 0, (index + 1) * fontSpacing);
-		cairo_text_path (cr, line);
+		cairo_show_text (cr, line);
 	}
-
-	gdk_cairo_set_source_rgba (cr, &term->config.fontOutlineColor);
-	cairo_stroke_preserve (cr);
-	gdk_cairo_set_source_rgba (cr, &term->config.fontColor);
-	cairo_fill (cr);
-
-	// // Draw the border
-	// gdk_cairo_set_source_rgba (cr, &bar->config.borderColor);
-	// cairo_rectangle (cr,
-	// 	bar->config.borderThickness / 2, bar->config.borderThickness / 2,
-	// 	width - bar->config.borderThickness, height - bar->config.borderThickness);
-	// cairo_stroke (cr);
 }
 
 static gboolean keyPress (GtkEventControllerKey* controller, guint keyValue, guint keyCode, GdkModifierType state, stylizedTerminal_t* term)
@@ -190,6 +178,17 @@ char* stylizedTerminalGetBuffer (stylizedTerminal_t* term)
 		lineCount = term->config.lineCountMax;
 	term->lineCount = lineCount;
 
+	int width = gtk_widget_get_size (term->widget, GTK_ORIENTATION_HORIZONTAL);
+	if (width < 0)
+		width = 0;
+
+	int lineLength = width / (term->config.fontSize * 0.575f);
+	if (lineLength < 0)
+		lineLength = 0;
+	if ((size_t) lineLength > term->config.lineLengthMax)
+		lineLength = term->config.lineLengthMax;
+	term->lineLength = lineLength;
+
 	// If no lines can be written, return no buffer
 	if (term->lineCount == 0)
 		return NULL;
@@ -210,9 +209,4 @@ char* stylizedTerminalNextLine (stylizedTerminal_t* term)
 void stylizedTerminalWriteBuffer (stylizedTerminal_t* term)
 {
 	gtk_widget_queue_draw (STYLIZED_TERMINAL_TO_WIDGET (term));
-}
-
-size_t stylizedTerminalGetLineCount (stylizedTerminal_t* term)
-{
-	return term->lineCount;
 }
