@@ -72,6 +72,18 @@
 		"formatValue":		"%.0f",
 		"formatInvalid":	"%s"
 	},
+	"drsStatus":
+	{
+		"type":				"canIndicator_t",
+		"signalName":		"TODO",
+		"threshold":		"0.5",
+		"inverted":			"false",
+		"width":			"26",
+		"height":			"26",
+		"activeColor":		"#FFFFFF",
+		"inactiveColor":	"#580000",
+		"invalidColor":		"#FF0000"
+	},
 	"centerTitle":			"Vehicle Speed (Km/h):",
 	"centerStat":
 	{

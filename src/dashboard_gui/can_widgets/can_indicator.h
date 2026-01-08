@@ -73,4 +73,7 @@ typedef struct
  */
 canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* config);
 
+// TODO(Barach)
+canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config);
+
 #endif // CAN_WIDGETS_H

@@ -537,22 +537,14 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 	gtk_widget_set_margin_start (label, 3);
 	gtk_grid_attach (page->leftPanel, label, 0, 4, 1, 1);
 
-	page->drsStatus = canIndicatorInit (database, &(canIndicatorConfig_t)
+	page->drsStatus = canWidgetLoad (database, cJSON_GetObjectItem (config, "drsStatus"));
+	if (page->drsStatus != NULL)
 	{
-		.signalName 	= "TODO",
-		.threshold		= 0.5f,
-		.inverted		= false,
-		.width			= 26,
-		.height			= 26,
-		.activeColor	= gdkHexToColor ("#FFFFFF"),
-		.inactiveColor	= gdkHexToColor ("#580000"),
-		.invalidColor	= gdkHexToColor ("#FF0000"),
-		.polygon		= NULL,
-		.polygonSize	= 0
-	});
-	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->drsStatus), GTK_ALIGN_END);
-	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->drsStatus), 3);
-	gtk_grid_attach (page->leftPanel, CAN_WIDGET_TO_WIDGET (page->drsStatus), 1, 4, 1, 1);
+		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->drsStatus);
+		gtk_widget_set_halign (widget, GTK_ALIGN_END);
+		gtk_widget_set_margin_end (widget, 3);
+		gtk_grid_attach (page->leftPanel, widget, 1, 4, 1, 1);
+	}
 
 	page->faultPanel = GTK_GRID (gtk_grid_new ());
 	gtk_widget_set_margin_top (GTK_WIDGET (page->faultPanel), 20);

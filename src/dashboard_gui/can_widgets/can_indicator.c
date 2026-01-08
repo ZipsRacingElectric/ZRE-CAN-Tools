@@ -1,6 +1,10 @@
 // Header
 #include "can_indicator.h"
 
+// Includes
+#include "../gtk_util.h"
+#include "cjson/cjson_util.h"
+
 typedef enum
 {
 	CAN_INDICATOR_INVALID,
@@ -120,4 +124,58 @@ canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* co
 
 	// Cast into the base type
 	return (canWidget_t*) indicator;
+}
+
+canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config)
+{
+	char* widgetType;
+	if (jsonGetString (config, "type", &widgetType) != 0)
+		return NULL;
+
+	if (strcmp (widgetType, "canIndicator_t") != 0)
+		return NULL;
+
+	char* signalName;
+	if (jsonGetString (config, "signalName", &signalName) != 0)
+		return NULL;
+
+	float threshold;
+	if (jsonGetFloat (config, "threshold", &threshold) != 0)
+		return NULL;
+
+	bool inverted;
+	if (jsonGetBool (config, "inverted", &inverted) != 0)
+		return NULL;
+
+	uint16_t width = 0;
+	jsonGetUint16_t (config, "width", &width);
+
+	uint16_t height = 0;
+	jsonGetUint16_t (config, "height", &height);
+
+	char* activeColor;
+	if (jsonGetString (config, "activeColor", &activeColor) != 0)
+		return NULL;
+
+	char* inactiveColor;
+	if (jsonGetString (config, "inactiveColor", &inactiveColor) != 0)
+		return NULL;
+
+	char* invalidColor;
+	if (jsonGetString (config, "invalidColor", &invalidColor) != 0)
+		return NULL;
+
+	return canIndicatorInit (database, &(canIndicatorConfig_t)
+	{
+		.signalName		= signalName,
+		.threshold		= threshold,
+		.inverted		= inverted,
+		.width			= width,
+		.height			= height,
+		.activeColor	= gdkHexToColor (activeColor),
+		.inactiveColor	= gdkHexToColor (inactiveColor),
+		.invalidColor	= gdkHexToColor (invalidColor),
+		.polygon		= NULL,
+		.polygonSize	= 0
+	});
 }

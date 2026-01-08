@@ -4,6 +4,7 @@
 // Includes
 #include "can_label_float.h"
 #include "can_label_bool.h"
+#include "can_indicator.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
 
@@ -21,6 +22,10 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 		return widget;
 
 	widget = canLabelBoolLoad (database, config);
+	if (widget != NULL)
+		return widget;
+
+	widget = canIndicatorLoad (database, config);
 	if (widget != NULL)
 		return widget;
 
