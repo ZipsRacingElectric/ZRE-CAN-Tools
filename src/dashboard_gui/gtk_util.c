@@ -15,6 +15,12 @@ void gtkLabelSetFont (GtkLabel* label, const char* pangoFontDescriptor)
 	gtk_label_set_attributes (label, list);
 }
 
+void gtkTryLabelSetFont (GtkWidget* widget, const char* pangoFontDescriptor)
+{
+	if (GTK_IS_LABEL (widget))
+		gtkLabelSetFont (GTK_LABEL (widget), pangoFontDescriptor);
+}
+
 void gtkLabelSetColor (GtkLabel* label, const GdkRGBA* color)
 {
 	// Get the label's pango attributes, create a new list if none exist.
@@ -27,6 +33,24 @@ void gtkLabelSetColor (GtkLabel* label, const GdkRGBA* color)
 
 	gtk_label_set_attributes (label, list);
 	gtk_widget_set_opacity (GTK_WIDGET (label), color->alpha);
+}
+
+void gtkTryLabelSetColor (GtkWidget* widget, const GdkRGBA* color)
+{
+	if (GTK_IS_LABEL (widget))
+		gtkLabelSetColor (GTK_LABEL (widget), color);
+}
+
+void gtkTryLabelSetXAlign (GtkWidget* widget, float xalign)
+{
+	if (GTK_IS_LABEL (widget))
+		gtk_label_set_xalign (GTK_LABEL (widget), xalign);
+}
+
+void gtkTryLabelSetYAlign (GtkWidget* widget, float yalign)
+{
+	if (GTK_IS_LABEL (widget))
+		gtk_label_set_yalign (GTK_LABEL (widget), yalign);
 }
 
 GdkRGBA gdkHexToColor (const char* color)

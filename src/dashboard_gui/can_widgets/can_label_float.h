@@ -34,9 +34,6 @@ typedef struct
 	const char* formatInvalid;
 } canLabelFloatConfig_t;
 
-/// @brief Converts a @c canLabelFloat_t into a GTK label.
-#define CAN_LABEL_FLOAT_TO_LABEL(wdgt) GTK_LABEL (CAN_WIDGET_TO_WIDGET (wdgt))
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -46,5 +43,8 @@ typedef struct
  * @return The created widget, if successful, @c NULL otherwise.
  */
 canWidget_t* canLabelFloatInit (canDatabase_t* database, canLabelFloatConfig_t* config);
+
+// TODO(Barach)
+canWidget_t* canLabelFloatLoad (canDatabase_t* database, cJSON* config);
 
 #endif // CAN_LABEL_FLOAT_H

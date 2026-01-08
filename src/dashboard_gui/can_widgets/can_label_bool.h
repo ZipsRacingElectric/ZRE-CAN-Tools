@@ -43,9 +43,6 @@ typedef struct
 	bool inverted;
 } canLabelBoolConfig_t;
 
-/// @brief Converts a @c canLabelBool_t into a GTK label.
-#define CAN_LABEL_BOOL_TO_LABEL(wdgt) GTK_LABEL (CAN_WIDGET_TO_WIDGET (wdgt))
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -55,5 +52,8 @@ typedef struct
  * @return The created widget, if successful, @c NULL otherwise.
  */
 canWidget_t* canLabelBoolInit (canDatabase_t* database, canLabelBoolConfig_t* config);
+
+// TODO(Barach)
+canWidget_t* canLabelBoolLoad (canDatabase_t* database, cJSON* config);
 
 #endif // CAN_LABEL_BOOL_H

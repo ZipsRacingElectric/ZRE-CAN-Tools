@@ -1,6 +1,9 @@
 // Header
 #include "can_label_bool.h"
 
+// Includes
+#include "cjson/cjson_util.h"
+
 typedef enum
 {
 	CAN_LABEL_BOOL_INVALID,
@@ -55,7 +58,7 @@ static void update (void* widget)
 			break;
 		}
 
-		gtk_label_set_text (CAN_LABEL_BOOL_TO_LABEL (label), str);
+		gtk_label_set_text (GTK_LABEL (label->vmt.widget), str);
 	}
 }
 
@@ -85,4 +88,48 @@ canWidget_t* canLabelBoolInit (canDatabase_t* database, canLabelBoolConfig_t* co
 
 	// Cast into the base type
 	return (canWidget_t*) label;
+}
+
+canWidget_t* canLabelBoolLoad (canDatabase_t* database, cJSON* config)
+{
+	char* widgetType;
+	if (jsonGetString (config, "type", &widgetType) != 0)
+		return NULL;
+
+	if (strcmp (widgetType, "canLabelBool_t") != 0)
+		return NULL;
+
+	char* signalName;
+	if (jsonGetString (config, "signalName", &signalName) != 0)
+		return NULL;
+
+	char* activeValue;
+	if (jsonGetString (config, "activeValue", &activeValue) != 0)
+		return NULL;
+
+	char* inactiveValue;
+	if (jsonGetString (config, "inactiveValue", &inactiveValue) != 0)
+		return NULL;
+
+	char* invalidValue;
+	if (jsonGetString (config, "invalidValue", &invalidValue) != 0)
+		return NULL;
+
+	float threshold;
+	if (jsonGetFloat (config, "threshold", &threshold) != 0)
+		return NULL;
+
+	bool inverted;
+	if (jsonGetBool (config, "inverted", &inverted) != 0)
+		return NULL;
+
+	return canLabelBoolInit (database, &(canLabelBoolConfig_t)
+	{
+		.signalName		= signalName,
+		.activeValue	= activeValue,
+		.inactiveValue	= inactiveValue,
+		.invalidValue	= invalidValue,
+		.threshold		= threshold,
+		.inverted		= inverted
+	});
 }

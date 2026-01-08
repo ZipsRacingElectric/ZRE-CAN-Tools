@@ -3,6 +3,7 @@
 
 // Includes
 #include "can_database/can_database_stdio.h"
+#include "cjson/cjson_util.h"
 
 typedef struct
 {
@@ -19,7 +20,7 @@ static void update (void* widget)
 	char text [64] = "";
 	snprintCanDatabaseFloat (text, sizeof (text), label->config.formatValue, label->config.formatInvalid,
 		label->database, label->index);
-	gtk_label_set_text (CAN_LABEL_FLOAT_TO_LABEL (label), text);
+	gtk_label_set_text (GTK_LABEL (label->vmt.widget), text);
 }
 
 canWidget_t* canLabelFloatInit (canDatabase_t* database, canLabelFloatConfig_t* config)
@@ -47,4 +48,33 @@ canWidget_t* canLabelFloatInit (canDatabase_t* database, canLabelFloatConfig_t* 
 
 	// Cast into the base type
 	return (canWidget_t*) label;
+}
+
+canWidget_t* canLabelFloatLoad (canDatabase_t* database, cJSON* config)
+{
+	char* widgetType;
+	if (jsonGetString (config, "type", &widgetType) != 0)
+		return NULL;
+
+	if (strcmp (widgetType, "canLabelFloat_t") != 0)
+		return NULL;
+
+	char* signalName;
+	if (jsonGetString (config, "signalName", &signalName) != 0)
+		return NULL;
+
+	char* formatValue;
+	if (jsonGetString (config, "formatValue", &formatValue) != 0)
+		return NULL;
+
+	char* formatInvalid;
+	if (jsonGetString (config, "formatInvalid", &formatInvalid) != 0)
+		return NULL;
+
+	return canLabelFloatInit (database, &(canLabelFloatConfig_t)
+	{
+		.signalName		= signalName,
+		.formatValue	= formatValue,
+		.formatInvalid	= formatInvalid
+	});
 }

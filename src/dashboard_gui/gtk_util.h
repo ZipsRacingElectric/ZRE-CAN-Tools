@@ -24,11 +24,44 @@
 void gtkLabelSetFont (GtkLabel* label, const char* pangoFontDescriptor);
 
 /**
+ * @brief Attempts to set the font of a label. This function is safe to call even if the widget is not a label, in which case
+ * nothing will happen.
+ * @param widget The widget to attempt to set the font of.
+ * @param pangoFontDescriptor The font descriptor string to use. See the below URL for more details:
+ *   https://docs.gtk.org/Pango/type_func.FontDescription.from_string.html
+ */
+void gtkTryLabelSetFont (GtkWidget* widget, const char* pangoFontDescriptor);
+
+/**
  * @brief Sets the color of a label.
  * @param label The label to set the color of.
  * @param color The color to set.
  */
 void gtkLabelSetColor (GtkLabel* label, const GdkRGBA* color);
+
+/**
+ * @brief Attempts to set the color of a label. This function is safe to call even if the widget is not a label, in which case
+ * nothing will happen.
+ * @param widget The widget to attempt to set the color of.
+ * @param color The color to set.
+ */
+void gtkTryLabelSetColor (GtkWidget* widget, const GdkRGBA* color);
+
+/**
+ * @brief Attempts to set the X alignment of a label. This function is safe to call even if the widget is not a label, in which
+ * case nothing will happen.
+ * @param widget The widget to attempt to set the alignment of.
+ * @param xalign The alignment to set. See @c gtk_label_set_xalign for more details.
+ */
+void gtkTryLabelSetXAlign (GtkWidget* widget, float xalign);
+
+/**
+ * @brief Attempts to set the Y alignment of a label. This function is safe to call even if the widget is not a label, in which
+ * case nothing will happen.
+ * @param widget The widget to attempt to set the alignment of.
+ * @param yalign The alignment to set. See @c gtk_label_set_yalign for more details.
+ */
+void gtkTryLabelSetYAlign (GtkWidget* widget, float yalign);
 
 /**
  * @brief Converts a hex color string into a GDK color.

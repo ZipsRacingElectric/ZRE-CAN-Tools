@@ -101,7 +101,9 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageStack_t* stack = pageStackInit ();
 	gtk_window_set_child (GTK_WINDOW (window), PAGE_STACK_TO_WIDGET (stack));
 
-	page_t* pageAutox = pageAutoxInit (arg->database, style);
+	// TODO(Barach): Path
+	cJSON* pageAutoxConfig = jsonLoad ("config/zr25_glory/temp.json");
+	page_t* pageAutox = pageAutoxInit (arg->database, style, pageAutoxConfig);
 	pageStackAppend (stack, pageAutox);
 	pageStackPair_t* pageAutoxPair = pageStackPairInit (stack, pageAutox);
 
@@ -130,8 +132,6 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageAppendButton (pageCanBus, "", NULL, NULL, false);
 	pageAppendButton (pageCanBus, "BMS", pageStackSelectCallback, pageBmsPair, false);
 	pageAppendButton (pageCanBus, "CAN", NULL, NULL, true);
-
-	pageStackSelect (stack, pageCanBus);
 
 	GtkEventController* controller = gtk_event_controller_key_new ();
 	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);

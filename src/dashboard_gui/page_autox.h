@@ -14,6 +14,7 @@
 #include "page.h"
 #include "can_widgets/can_widget.h"
 #include "can_database/can_database.h"
+#include "cjson/cjson.h"
 
 // GTK
 #include <gtk/gtk.h>
@@ -24,7 +25,7 @@
 
 typedef struct
 {
-	pageStyle_t* pageStyle;
+	pageStyle_t pageStyle;
 
 	GdkRGBA appsColor;
 	GdkRGBA bseColor;
@@ -49,15 +50,15 @@ typedef struct
 	GdkRGBA gradientEndColor;
 	float gradientEndPosition;
 
-	const char* dataLoggerTitleFont;
-	const char* dataLoggerStatFont;
-	const char* centerPanelTitleFont;
-	const char* centerPanelStatFont;
-	const char* leftPanelTitleFont;
-	const char* leftPanelStatFont;
-	const char* rightPanelTitleFont;
-	const char* rightPanelStatFont;
-	const char* faultIndicatorFont;
+	char* dataLoggerTitleFont;
+	char* dataLoggerStatFont;
+	char* centerPanelTitleFont;
+	char* centerPanelStatFont;
+	char* leftPanelTitleFont;
+	char* leftPanelStatFont;
+	char* rightPanelTitleFont;
+	char* rightPanelStatFont;
+	char* faultIndicatorFont;
 } pageAutoxStyle_t;
 
 typedef struct
@@ -96,7 +97,7 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style);
+page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* config);
 
 void pageAutoxAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
 

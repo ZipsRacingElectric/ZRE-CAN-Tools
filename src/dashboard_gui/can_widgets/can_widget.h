@@ -11,6 +11,10 @@
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
+// Includes
+#include "can_database/can_database.h"
+#include "cjson/cjson.h"
+
 // GTK
 #include <gtk/gtk.h>
 
@@ -41,6 +45,9 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+// TODO(Barach): Docs
+canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config);
+
 /**
  * @brief Updates a CAN widget with new information.
  * @param widget The widget to update.
@@ -48,7 +55,8 @@ typedef struct
 static inline void canWidgetUpdate (canWidget_t* widget)
 {
 	// Invoke the overridden update function
-	widget->vmt.update (widget);
+	if (widget != NULL)
+		widget->vmt.update (widget);
 }
 
 #endif // CAN_WIDGET_H

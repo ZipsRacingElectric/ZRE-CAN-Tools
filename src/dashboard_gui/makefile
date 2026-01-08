@@ -9,6 +9,7 @@ SRC :=	main.c										\
 		page_autox.c								\
 		page_bms_overview.c							\
 		page_can_bus.c								\
+		can_widgets/can_widget.c					\
 		can_widgets/can_indicator.c					\
 		can_widgets/can_label_bool.c				\
 		can_widgets/can_label_float.c				\
