@@ -28,96 +28,116 @@
 		"dataLoggerStatFont":		"ITC Avant Garde Gothic CE Book 22px",
 		"centerPanelTitleFont":		"ITC Avant Garde Gothic CE Book 22px",
 		"centerPanelStatFont":		"Technology Bold 200px",
-		"leftPanelTitleFont":		"Futura Std Bold Condensed 26px",
-		"leftPanelStatFont":		"ITC Avant Garde Gothic CE Book 26px",
-		"rightPanelTitleFont":		"Futura Std Bold Condensed 26px",
-		"rightPanelStatFont":		"ITC Avant Garde Gothic CE Book 26px",
+		"sidePanelTitleFont":		"Futura Std Bold Condensed 26px",
+		"sidePanelStatFont":		"ITC Avant Garde Gothic CE Book 26px",
 		"faultIndicatorFont":		"Futura Std Bold Condensed 32px"
 	},
 	"dataLoggerTitle":
 	{
-		"type":				"canLabelBool_t",
-		"signalName":		"SESSION_NUMBER",
-		"activeValue":		"LOGGING: ON",
-		"inactiveValue":	"LOGGING: ON",
-		"invalidValue":		"LOGGING: OFF",
-		"threshold":		"0",
-		"inverted":			"false"
+		"type":						"canLabelBool_t",
+		"signalName":				"SESSION_NUMBER",
+		"activeValue":				"LOGGING: ON",
+		"inactiveValue":			"LOGGING: ON",
+		"invalidValue":				"LOGGING: OFF",
+		"threshold":				"0",
+		"inverted":					"false"
 	},
 	"dataLoggerStat":
 	{
-		"type":				"canLabelFloat_t",
-		"signalName":		"SESSION_NUMBER",
-		"formatValue":		"Session\nNo. %.0f",
-		"formatInvalid":	"Session\nNo. %s"
+		"type":						"canLabelFloat_t",
+		"signalName":				"SESSION_NUMBER",
+		"formatValue":				"Session\nNo. %.0f",
+		"formatInvalid":			"Session\nNo. %s"
 	},
-	"drivingTorque":
-	{
-		"type":				"canLabelFloat_t",
-		"signalName":		"DRIVING_TORQUE_LIMIT",
-		"formatValue":		"%.0f%s",
-		"formatInvalid":	"%s%s"
-	},
-	"regenTorque":
-	{
-		"type":				"canLabelFloat_t",
-		"signalName":		"REGEN_TORQUE_LIMIT",
-		"formatValue":		"%.0f%s",
-		"formatInvalid":	"%s%s"
-	},
-	"torqueIndex":
-	{
-		"type":				"canLabelFloat_t",
-		"signalName":		"TORQUE_ALGORITHM_INDEX",
-		"formatValue":		"%.0f",
-		"formatInvalid":	"%s"
-	},
-	"drsStatus":
-	{
-		"type":				"canIndicator_t",
-		"signalName":		"TODO",
-		"threshold":		"0.5",
-		"inverted":			"false",
-		"width":			"26",
-		"height":			"26",
-		"activeColor":		"#FFFFFF",
-		"inactiveColor":	"#580000",
-		"invalidColor":		"#FF0000"
-	},
-	"centerTitle":			"Vehicle Speed (Km/h):",
+	"centerTitle":					"Vehicle Speed (Km/h):",
 	"centerStat":
 	{
-		"type":				"canLabelFloat_t",
-		"signalName":		"SPEED",
-		"formatValue":		"%02.0f",
-		"formatInvalid":	"XX"
+		"type":						"canLabelFloat_t",
+		"signalName":				"SPEED",
+		"formatValue":				"%02.0f",
+		"formatInvalid":			"XX"
 	},
-	"glvVoltage":
+	"leftSidePanel":
 	{
-		"type":				"canLabelFloat_t",
-		"signalName":		"GLV_BATTERY_VOLTAGE",
-		"formatValue":		"%.1f %s",
-		"formatInvalid":	"%s %s"
+		"title":					"Torque Config",
+		"width":					"180",
+		"labels":
+		[
+			"Torque:",
+			"Regen:",
+			"Index:",
+			"DRS:"
+		],
+		"widgets":
+		[
+			{
+				"type":				"canLabelFloat_t",
+				"signalName":		"DRIVING_TORQUE_LIMIT",
+				"formatValue":		"%.0f%s",
+				"formatInvalid":	"%s%s"
+			},
+			{
+				"type":				"canLabelFloat_t",
+				"signalName":		"REGEN_TORQUE_LIMIT",
+				"formatValue":		"%.0f%s",
+				"formatInvalid":	"%s%s"
+			},
+			{
+				"type":				"canLabelFloat_t",
+				"signalName":		"TORQUE_ALGORITHM_INDEX",
+				"formatValue":		"%.0f",
+				"formatInvalid":	"%s"
+			},
+			{
+				"type":				"canIndicator_t",
+				"signalName":		"TODO",
+				"threshold":		"0.5",
+				"inverted":			"false",
+				"width":			"26",
+				"height":			"26",
+				"activeColor":		"#FFFFFF",
+				"inactiveColor":	"#580000",
+				"invalidColor":		"#FF0000"
+			}
+		]
 	},
-	"hvVoltage":
+	"rightSidePanel":
 	{
-		"type":				"canLabelFloat_t",
-		"signalName":		"PACK_VOLTAGE",
-		"formatValue":		"%.1f %s",
-		"formatInvalid":	"%s %s"
-	},
-	"inverterMaxTemp":
-	{
-		"type":				"canLabelFloat_t",
-		"signalName":		"AMK_INVERTER_TEMPERATURE_MAX",
-		"formatValue":		"%.1f %s",
-		"formatInvalid":	"%s %s"
-	},
-	"motorMaxTemp":
-	{
-		"type":				"canLabelFloat_t",
-		"signalName":		"AMK_MOTOR_TEMPERATURE_MAX",
-		"formatValue":		"%.1f %s",
-		"formatInvalid":	"%s %s"
+		"title":					"Torque Config",
+		"width":					"180",
+		"labels":
+		[
+			"Torque:",
+			"Regen:",
+			"Index:",
+			"DRS:"
+		],
+		"widgets":
+		[
+			{
+				"type":				"canLabelFloat_t",
+				"signalName":		"GLV_BATTERY_VOLTAGE",
+				"formatValue":		"%.1f %s",
+				"formatInvalid":	"%s %s"
+			},
+			{
+				"type":				"canLabelFloat_t",
+				"signalName":		"PACK_VOLTAGE",
+				"formatValue":		"%.1f %s",
+				"formatInvalid":	"%s %s"
+			},
+			{
+				"type":				"canLabelFloat_t",
+				"signalName":		"AMK_INVERTER_TEMPERATURE_MAX",
+				"formatValue":		"%.1f %s",
+				"formatInvalid":	"%s %s"
+			},
+			{
+				"type":				"canLabelFloat_t",
+				"signalName":		"AMK_MOTOR_TEMPERATURE_MAX",
+				"formatValue":		"%.1f %s",
+				"formatInvalid":	"%s %s"
+			}
+		]
 	}
 }

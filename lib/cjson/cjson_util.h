@@ -27,6 +27,8 @@ cJSON* jsonRead (FILE* stream);
 
 int jsonGetObject (cJSON* json, const char* key, cJSON** object);
 
+cJSON* jsonGetObjectV2 (cJSON* json, const char* key);
+
 int jsonGetString (cJSON* json, const char* key, char** value);
 
 int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value);

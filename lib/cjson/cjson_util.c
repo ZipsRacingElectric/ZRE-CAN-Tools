@@ -104,6 +104,19 @@ int jsonGetObject (cJSON* json, const char* key, cJSON** value)
 	return 0;
 }
 
+cJSON* jsonGetObjectV2 (cJSON* json, const char* key)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return NULL;
+	}
+
+	return item;
+}
+
 int jsonGetString (cJSON* json, const char* key, char** value)
 {
 	cJSON* item = cJSON_GetObjectItem (json, key);

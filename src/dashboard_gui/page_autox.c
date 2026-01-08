@@ -132,7 +132,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	float yGMin = bounds.origin.y;
 	float yGMax = bounds.origin.y + bounds.size.height;
 
-	if (!gtk_widget_compute_bounds (GTK_WIDGET (page->rightPanel), GTK_WIDGET (area), &bounds))
+	if (!gtk_widget_compute_bounds (page->rightPanel, GTK_WIDGET (area), &bounds))
 		bounds = *graphene_rect_zero ();
 
 	float xGMax = bounds.origin.x + bounds.size.width;
@@ -165,7 +165,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 
 	x1 -= (y2 - y1) / 2;
 
-	if (!gtk_widget_compute_bounds (GTK_WIDGET (page->rightPanel), GTK_WIDGET (area), &bounds))
+	if (!gtk_widget_compute_bounds (page->rightPanel, GTK_WIDGET (area), &bounds))
 		bounds = *graphene_rect_zero ();
 
 	float x3 = bounds.origin.x + bounds.size.width;
@@ -177,7 +177,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	float x4 = x3;
 	float y4 = bounds.origin.y + bounds.size.height;
 
-	if (!gtk_widget_compute_bounds (GTK_WIDGET (page->leftPanel), GTK_WIDGET (area), &bounds))
+	if (!gtk_widget_compute_bounds (page->leftPanel, GTK_WIDGET (area), &bounds))
 		bounds = *graphene_rect_zero ();
 
 	float x5 = bounds.origin.x;
@@ -285,12 +285,12 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	cairo_line_to (cr, x11, y11);
 	cairo_stroke (cr);
 
-	if (!gtk_widget_compute_bounds (GTK_WIDGET (page->leftPanel), GTK_WIDGET (area), &bounds))
+	if (!gtk_widget_compute_bounds (page->leftPanel, GTK_WIDGET (area), &bounds))
 		bounds = *graphene_rect_zero ();
 	cairo_rectangle (cr, bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
 	cairo_stroke (cr);
 
-	if (!gtk_widget_compute_bounds (GTK_WIDGET (page->rightPanel), GTK_WIDGET (area), &bounds))
+	if (!gtk_widget_compute_bounds (page->rightPanel, GTK_WIDGET (area), &bounds))
 		bounds = *graphene_rect_zero ();
 	cairo_rectangle (cr, bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
 	cairo_stroke (cr);
@@ -322,7 +322,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	cairo_stroke (cr);
 }
 
-static void loadSyle (pageAutoxStyle_t* style, pageStyle_t* pageStyle, cJSON* config)
+static void styleLoad (pageAutoxStyle_t* style, pageStyle_t* pageStyle, cJSON* config)
 {
 	*style = (pageAutoxStyle_t)
 	{
@@ -369,11 +369,76 @@ static void loadSyle (pageAutoxStyle_t* style, pageStyle_t* pageStyle, cJSON* co
 	jsonGetString (config, "dataLoggerStatFont", &style->dataLoggerStatFont);
 	jsonGetString (config, "centerPanelTitleFont", &style->centerPanelTitleFont);
 	jsonGetString (config, "centerPanelStatFont", &style->centerPanelStatFont);
-	jsonGetString (config, "leftPanelTitleFont", &style->leftPanelTitleFont);
-	jsonGetString (config, "leftPanelStatFont", &style->leftPanelStatFont);
-	jsonGetString (config, "rightPanelTitleFont", &style->rightPanelTitleFont);
-	jsonGetString (config, "rightPanelStatFont", &style->rightPanelStatFont);
+	jsonGetString (config, "sidePanelTitleFont", &style->sidePanelTitleFont);
+	jsonGetString (config, "sidePanelStatFont", &style->sidePanelStatFont);
 	jsonGetString (config, "faultIndicatorFont", &style->faultIndicatorFont);
+}
+
+static void sidePanelLoad (pageAutox_t* page, cJSON* config, canDatabase_t* database, GtkWidget** sidePanel, canWidget_t*** widgets, size_t* widgetCount)
+{
+	*widgets = NULL;
+	*widgetCount = 0;
+
+	if (config == NULL)
+		return;
+
+	uint16_t width = 0;
+	jsonGetUint16_t (config, "width", &width);
+	gtk_widget_set_size_request (*sidePanel, width, 0);
+
+	char* title = "";
+	jsonGetString (config, "title", &title);
+	GtkWidget* label = gtk_label_new (title);
+	gtkLabelSetFont (GTK_LABEL (label), page->style.sidePanelTitleFont);
+	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
+	gtk_label_set_xalign (GTK_LABEL (label), 0.5);
+	gtk_widget_set_size_request (label, width, 0);
+	gtk_widget_set_margin_top (label, 3);
+	gtk_grid_attach (GTK_GRID (*sidePanel), label, 0, 0, 2, 1);
+
+	cJSON* labelConfigs = jsonGetObjectV2 (config, "labels");
+	if (labelConfigs == NULL)
+		return;
+
+	size_t labelConfigCount = cJSON_GetArraySize (labelConfigs);
+	for (size_t index = 0; index < labelConfigCount; ++index)
+	{
+		cJSON* labelConfig = cJSON_GetArrayItem (labelConfigs, index);
+		char* labelValue = cJSON_GetStringValue (labelConfig);
+
+		label = gtk_label_new (labelValue);
+		gtkLabelSetFont (GTK_LABEL (label), page->style.sidePanelStatFont);
+		gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
+		gtk_widget_set_halign (label, GTK_ALIGN_START);
+		gtk_widget_set_margin_start (label, 3);
+		gtk_grid_attach (GTK_GRID (*sidePanel), label, 0, index + 1, 1, 1);
+	}
+
+	cJSON* widgetConfigs = jsonGetObjectV2 (config, "widgets");
+	if (widgetConfigs == NULL)
+		return;
+
+	size_t widgetConfigCount = cJSON_GetArraySize (widgetConfigs);
+	*widgets = malloc (sizeof (canWidget_t*) * widgetConfigCount);
+	if (*widgets == NULL)
+		return;
+
+	*widgetCount = widgetConfigCount;
+	for (size_t index = 0; index < widgetConfigCount; ++index)
+	{
+		cJSON* widgetConfig = cJSON_GetArrayItem (widgetConfigs, index);
+
+		(*widgets) [index] = canWidgetLoad (database, widgetConfig);
+		if ((*widgets) [index] != NULL)
+		{
+			GtkWidget* widget = CAN_WIDGET_TO_WIDGET ((*widgets) [index]);
+			gtkTryLabelSetFont (widget, page->style.sidePanelStatFont);
+			gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
+			gtk_widget_set_halign (widget, GTK_ALIGN_END);
+			gtk_widget_set_margin_end (widget, 3);
+			gtk_grid_attach (GTK_GRID (*sidePanel), widget, 1, index + 1, 1, 1);
+		}
+	}
 }
 
 page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* config)
@@ -391,8 +456,8 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 		.widget			= gtk_overlay_new ()
 	};
 
-	cJSON* styleConfig = cJSON_GetObjectItem (config, "style");
-	loadSyle (&page->style, style, styleConfig);
+	cJSON* styleConfig = jsonGetObjectV2 (config, "style");
+	styleLoad (&page->style, style, styleConfig);
 
 	page->buttonCount = 0;
 
@@ -436,7 +501,7 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 	gtk_widget_set_valign (GTK_WIDGET (page->dataLoggerPanel), GTK_ALIGN_FILL);
 	gtk_widget_set_margin_top (GTK_WIDGET (page->dataLoggerPanel), 20);
 
-	page->dataLoggerTitle = canWidgetLoad (database, cJSON_GetObjectItem (config, "dataLoggerTitle"));
+	page->dataLoggerTitle = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerTitle"));
 	if (page->dataLoggerTitle != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerTitle);
@@ -448,7 +513,7 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 		gtk_grid_attach (page->dataLoggerPanel, widget, 0, 0, 1, 1);
 	}
 
-	page->dataLoggerStat = canWidgetLoad (database, cJSON_GetObjectItem (config, "dataLoggerStat"));
+	page->dataLoggerStat = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerStat"));
 	if (page->dataLoggerStat != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerStat);
@@ -463,88 +528,13 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 	gtk_widget_set_size_request (padding, 80, 0);
 	gtk_grid_attach (page->grid, padding, 1, 2, 1, 1);
 
-	page->leftPanel = GTK_GRID (gtk_grid_new ());
-	gtk_widget_set_margin_end (GTK_WIDGET (page->leftPanel), 10);
-	gtk_widget_set_valign (GTK_WIDGET (page->leftPanel), GTK_ALIGN_CENTER);
-	gtk_grid_attach (page->grid, GTK_WIDGET (page->leftPanel), 2, 2, 1, 1);
+	page->leftPanel = gtk_grid_new ();
+	gtk_widget_set_margin_end (page->leftPanel, 10);
+	gtk_widget_set_valign (page->leftPanel, GTK_ALIGN_CENTER);
+	gtk_grid_attach (page->grid, page->leftPanel, 2, 2, 1, 1);
 
-	GtkWidget* label = gtk_label_new ("Torque Config");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.leftPanelTitleFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_size_request (label, 180, 0);
-	gtk_label_set_xalign (GTK_LABEL (label), 0.5);
-	gtk_widget_set_margin_top (label, 3);
-	gtk_grid_attach (page->leftPanel, label, 0, 0, 2, 1);
-
-	label = gtk_label_new ("Driving:");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.leftPanelStatFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_widget_set_margin_start (label, 3);
-	gtk_grid_attach (page->leftPanel, label, 0, 1, 1, 1);
-
-	page->drivingTorque = canWidgetLoad (database, cJSON_GetObjectItem (config, "drivingTorque"));
-	if (page->drivingTorque != NULL)
-	{
-		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->drivingTorque);
-		gtkTryLabelSetFont (widget, page->style.leftPanelStatFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
-		gtk_widget_set_halign (widget, GTK_ALIGN_END);
-		gtk_widget_set_margin_end (widget, 3);
-		gtk_grid_attach (page->leftPanel, widget, 1, 1, 1, 1);
-	}
-
-	label = gtk_label_new ("Regen:");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.leftPanelStatFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_widget_set_margin_start (label, 3);
-	gtk_grid_attach (page->leftPanel, label, 0, 2, 1, 1);
-
-	page->regenTorque = canWidgetLoad (database, cJSON_GetObjectItem (config, "regenTorque"));
-	if (page->regenTorque != NULL)
-	{
-		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->regenTorque);
-		gtkTryLabelSetFont (widget, page->style.leftPanelStatFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
-		gtk_widget_set_halign (widget, GTK_ALIGN_END);
-		gtk_widget_set_margin_end (widget, 3);
-		gtk_grid_attach (page->leftPanel, widget, 1, 2, 1, 1);
-	}
-
-	label = gtk_label_new ("Index:");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.leftPanelStatFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_widget_set_margin_start (label, 3);
-	gtk_grid_attach (page->leftPanel, label, 0, 3, 1, 1);
-
-	page->torqueIndex = canWidgetLoad (database, cJSON_GetObjectItem (config, "torqueIndex"));
-	if (page->torqueIndex != NULL)
-	{
-		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->torqueIndex);
-		gtkTryLabelSetFont (widget, page->style.leftPanelStatFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
-		gtk_widget_set_halign (widget, GTK_ALIGN_END);
-		gtk_widget_set_margin_end (widget, 3);
-		gtk_grid_attach (page->leftPanel, widget, 1, 3, 1, 1);
-	}
-
-	label = gtk_label_new ("DRS:");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.leftPanelStatFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_widget_set_margin_start (label, 3);
-	gtk_grid_attach (page->leftPanel, label, 0, 4, 1, 1);
-
-	page->drsStatus = canWidgetLoad (database, cJSON_GetObjectItem (config, "drsStatus"));
-	if (page->drsStatus != NULL)
-	{
-		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->drsStatus);
-		gtk_widget_set_halign (widget, GTK_ALIGN_END);
-		gtk_widget_set_margin_end (widget, 3);
-		gtk_grid_attach (page->leftPanel, widget, 1, 4, 1, 1);
-	}
+	cJSON* leftPanelConfig = jsonGetObjectV2 (config, "leftSidePanel");
+	sidePanelLoad (page, leftPanelConfig, database, &page->leftPanel, &page->leftPanelWidgets, &page->leftPanelWidgetCount);
 
 	page->faultPanel = GTK_GRID (gtk_grid_new ());
 	gtk_widget_set_margin_top (GTK_WIDGET (page->faultPanel), 20);
@@ -573,7 +563,7 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->vcuFault), 4);
 	gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->vcuFault), 0, 0, 1, 1);
 
-	label = gtk_label_new ("VCU");
+	GtkWidget* label = gtk_label_new ("VCU");
 	gtkLabelSetFont (GTK_LABEL (label), page->style.faultIndicatorFont);
 	gtkLabelSetColor (GTK_LABEL (label), &style->backgroundColor);
 	gtk_grid_attach (page->faultPanel, label, 0, 0, 1, 1);
@@ -659,7 +649,7 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 	gtk_label_set_xalign (GTK_LABEL (page->centerTitle), 0);
 	gtk_grid_attach (page->grid, page->centerTitle, 3, 1, 1, 1);
 
-	page->centerStat = canWidgetLoad (database, cJSON_GetObjectItem (config, "centerStat"));
+	page->centerStat = canWidgetLoad (database, jsonGetObjectV2 (config, "centerStat"));
 	if (page->centerStat != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->centerStat);
@@ -670,90 +660,13 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 		gtk_grid_attach (page->grid, widget, 3, 2, 1, 1);
 	}
 
-	page->rightPanel = GTK_GRID (gtk_grid_new ());
-	gtk_widget_set_margin_start (GTK_WIDGET (page->rightPanel), 10);
-	gtk_widget_set_valign (GTK_WIDGET (page->rightPanel), GTK_ALIGN_CENTER);
-	gtk_grid_attach (page->grid, GTK_WIDGET (page->rightPanel), 4, 2, 1, 1);
+	page->rightPanel = gtk_grid_new ();
+	gtk_widget_set_margin_start (page->rightPanel, 10);
+	gtk_widget_set_valign (page->rightPanel, GTK_ALIGN_CENTER);
+	gtk_grid_attach (page->grid, page->rightPanel, 4, 2, 1, 1);
 
-	label = gtk_label_new ("Powertrain");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.rightPanelTitleFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_size_request (label, 180, 0);
-	gtk_label_set_xalign (GTK_LABEL (label), 0.5);
-	gtk_widget_set_margin_top (label, 3);
-	gtk_grid_attach (page->rightPanel, label, 0, 0, 2, 1);
-
-	label = gtk_label_new ("GLV:");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.rightPanelStatFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_widget_set_margin_start (label, 3);
-	gtk_grid_attach (page->rightPanel, label, 0, 1, 1, 1);
-
-	page->glvVoltage = canWidgetLoad (database, cJSON_GetObjectItem (config, "glvVoltage"));
-	if (page->glvVoltage != NULL)
-	{
-		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->glvVoltage);
-		gtkTryLabelSetFont (widget, page->style.rightPanelStatFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
-		gtk_widget_set_halign (widget, GTK_ALIGN_END);
-		gtk_widget_set_margin_end (widget, 3);
-		gtk_grid_attach (page->rightPanel, widget, 1, 1, 1, 1);
-	}
-
-	label = gtk_label_new ("HV:");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.rightPanelStatFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_widget_set_margin_start (label, 3);
-	gtk_grid_attach (page->rightPanel, label, 0, 2, 1, 1);
-
-	page->hvVoltage = canWidgetLoad (database, cJSON_GetObjectItem (config, "hvVoltage"));
-	if (page->hvVoltage != NULL)
-	{
-		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->hvVoltage);
-		gtkTryLabelSetFont (widget, page->style.rightPanelStatFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
-		gtk_widget_set_halign (widget, GTK_ALIGN_END);
-		gtk_widget_set_margin_end (widget, 3);
-		gtk_grid_attach (page->rightPanel, widget, 1, 2, 1, 1);
-	}
-
-	label = gtk_label_new ("Inv:");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.rightPanelStatFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_widget_set_margin_start (label, 3);
-	gtk_grid_attach (page->rightPanel, label, 0, 3, 1, 1);
-
-	page->inverterMaxTemp = canWidgetLoad (database, cJSON_GetObjectItem (config, "inverterMaxTemp"));
-	if (page->inverterMaxTemp != NULL)
-	{
-		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->inverterMaxTemp);
-		gtkTryLabelSetFont (widget, page->style.rightPanelStatFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
-		gtk_widget_set_halign (widget, GTK_ALIGN_END);
-		gtk_widget_set_margin_end (widget, 3);
-		gtk_grid_attach (page->rightPanel, widget, 1, 3, 1, 1);
-	};
-
-	label = gtk_label_new ("Mtr:");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.rightPanelStatFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
-	gtk_widget_set_halign (label, GTK_ALIGN_START);
-	gtk_widget_set_margin_start (label, 3);
-	gtk_grid_attach (page->rightPanel, label, 0, 4, 1, 1);
-
-	page->motorMaxTemp = canWidgetLoad (database, cJSON_GetObjectItem (config, "motorMaxTemp"));
-	if (page->motorMaxTemp != NULL)
-	{
-		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->motorMaxTemp);
-		gtkTryLabelSetFont (widget, page->style.rightPanelStatFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
-		gtk_widget_set_halign (widget, GTK_ALIGN_END);
-		gtk_widget_set_margin_end (widget, 3);
-		gtk_grid_attach (page->rightPanel, widget, 1, 4, 1, 1);
-	}
+	cJSON* rightPanelConfig = jsonGetObjectV2 (config, "rightSidePanel");
+	sidePanelLoad (page, rightPanelConfig, database, &page->rightPanel, &page->rightPanelWidgets, &page->rightPanelWidgetCount);
 
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());
 	gtk_widget_set_margin_top (GTK_WIDGET (page->buttonPanel), 40);
@@ -820,17 +733,15 @@ void pageAutoxUpdate (void* pageArg)
 	canWidgetUpdate (page->apps);
 	canWidgetUpdate (page->dataLoggerTitle);
 	canWidgetUpdate (page->dataLoggerStat);
-	canWidgetUpdate (page->glvVoltage);
-	canWidgetUpdate (page->hvVoltage);
-	canWidgetUpdate (page->inverterMaxTemp);
-	canWidgetUpdate (page->motorMaxTemp);
-	canWidgetUpdate (page->drivingTorque);
-	canWidgetUpdate (page->regenTorque);
-	canWidgetUpdate (page->torqueIndex);
 	canWidgetUpdate (page->centerStat);
-	canWidgetUpdate (page->drsStatus);
 	canWidgetUpdate (page->vcuFault);
 	canWidgetUpdate (page->bmsFault);
 	canWidgetUpdate (page->amkFault);
 	canWidgetUpdate (page->gpsFault);
+
+	for (size_t index = 0; index < page->leftPanelWidgetCount; ++index)
+		canWidgetUpdate (page->leftPanelWidgets [index]);
+
+	for (size_t index = 0; index < page->rightPanelWidgetCount; ++index)
+		canWidgetUpdate (page->rightPanelWidgets [index]);
 }

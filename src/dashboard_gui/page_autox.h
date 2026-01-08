@@ -54,10 +54,8 @@ typedef struct
 	char* dataLoggerStatFont;
 	char* centerPanelTitleFont;
 	char* centerPanelStatFont;
-	char* leftPanelTitleFont;
-	char* leftPanelStatFont;
-	char* rightPanelTitleFont;
-	char* rightPanelStatFont;
+	char* sidePanelTitleFont;
+	char* sidePanelStatFont;
 	char* faultIndicatorFont;
 } pageAutoxStyle_t;
 
@@ -69,26 +67,24 @@ typedef struct
 
 	GtkGrid* grid;
 	GtkGrid* dataLoggerPanel;
-	GtkGrid* leftPanel;
-	GtkGrid* rightPanel;
+	GtkWidget* leftPanel;
+	GtkWidget* rightPanel;
 	GtkWidget* centerTitle;
 	GtkGrid* faultPanel;
 	GtkGrid* buttonPanel;
 	size_t buttonCount;
 
+	canWidget_t** leftPanelWidgets;
+	size_t leftPanelWidgetCount;
+
+	canWidget_t** rightPanelWidgets;
+	size_t rightPanelWidgetCount;
+
 	canWidget_t* bse;
 	canWidget_t* apps;
 	canWidget_t* dataLoggerTitle;
 	canWidget_t* dataLoggerStat;
-	canWidget_t* glvVoltage;
-	canWidget_t* hvVoltage;
-	canWidget_t* inverterMaxTemp;
-	canWidget_t* motorMaxTemp;
-	canWidget_t* drivingTorque;
-	canWidget_t* regenTorque;
-	canWidget_t* torqueIndex;
 	canWidget_t* centerStat;
-	canWidget_t* drsStatus;
 	canWidget_t* vcuFault;
 	canWidget_t* bmsFault;
 	canWidget_t* amkFault;
