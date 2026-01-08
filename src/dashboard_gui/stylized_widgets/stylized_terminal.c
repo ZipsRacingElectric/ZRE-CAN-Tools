@@ -182,6 +182,7 @@ char* stylizedTerminalGetBuffer (stylizedTerminal_t* term)
 	if (width < 0)
 		width = 0;
 
+	// TODO(Barach): Terrible constant, won't work with other fonts.
 	int lineLength = width / (term->config.fontSize * 0.575f);
 	if (lineLength < 0)
 		lineLength = 0;
