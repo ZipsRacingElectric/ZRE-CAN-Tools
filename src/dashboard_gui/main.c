@@ -7,7 +7,6 @@
 #include "cjson/cjson_util.h"
 #include "options.h"
 #include "bms/bms.h"
-#include "gtk_util.h"
 
 // GTK
 #include <gtk/gtk.h>
@@ -84,28 +83,20 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	gtk_window_set_title (GTK_WINDOW (window), arg->applicationTitle);
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
 
-	// TODO(Barach): JSON
-	pageStyle_t* style = malloc (sizeof (pageStyle_t));
-	*style = (pageStyle_t)
-	{
-		.backgroundColor		= gdkHexToColor ("#000000"),
-		.fontColor				= gdkHexToColor ("#F4931E"),
-		.borderColor			= gdkHexToColor ("#D3792C"),
-		.borderThickness		= 1.5,
-		.indicatorActiveColor	= gdkHexToColor ("#FF0000"),
-		.indicatorInactiveColor	= gdkHexToColor ("#580000"),
-		.buttonHeight			= 80,
-		.buttonFont				= "Futura Std Bold Condensed 34px"
-	};
-
 	pageStack_t* stack = pageStackInit ();
 	gtk_window_set_child (GTK_WINDOW (window), PAGE_STACK_TO_WIDGET (stack));
 
 	// TODO(Barach): Path
-	cJSON* pageAutoxConfig = jsonLoad ("config/zr25_glory/temp.json");
-	page_t* pageAutox = pageAutoxInit (arg->database, style, pageAutoxConfig);
+	cJSON* config = jsonLoad ("config/zr25_glory/temp.json");
+	pageStyle_t* style = pageStyleLoad (jsonGetObjectV2 (config, "style"), NULL);
+
+	page_t* pageAutox = pageAutoxInit (arg->database, style, jsonGetObjectV2 (config, "autox"));
 	pageStackAppend (stack, pageAutox);
 	pageStackPair_t* pageAutoxPair = pageStackPairInit (stack, pageAutox);
+
+	page_t* pageEndr = pageAutoxInit (arg->database, style, jsonGetObjectV2 (config, "endr"));
+	pageStackAppend (stack, pageEndr);
+	pageStackPair_t* pageEndrPair = pageStackPairInit (stack, pageEndr);
 
 	page_t* pageBms = pageBmsOverviewInit (arg->bms, style);
 	pageStackAppend (stack, pageBms);
@@ -116,19 +107,25 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageStackPair_t* pageCanBusPair = pageStackPairInit (stack, pageCanBus);
 
 	pageAppendButton (pageAutox, "AUTO-X", NULL, NULL, true);
-	pageAppendButton (pageAutox, "", NULL, NULL, false);
+	pageAppendButton (pageAutox, "ENDR.", pageStackSelectCallback, pageEndrPair, false);
 	pageAppendButton (pageAutox, "", NULL, NULL, false);
 	pageAppendButton (pageAutox, "BMS", pageStackSelectCallback, pageBmsPair, false);
 	pageAppendButton (pageAutox, "CAN", pageStackSelectCallback, pageCanBusPair, false);
 
+	pageAppendButton (pageEndr, "AUTO-X", pageStackSelectCallback, pageAutoxPair, false);
+	pageAppendButton (pageEndr, "ENDR.", NULL, NULL, true);
+	pageAppendButton (pageEndr, "", NULL, NULL, false);
+	pageAppendButton (pageEndr, "BMS", pageStackSelectCallback, pageBmsPair, false);
+	pageAppendButton (pageEndr, "CAN", pageStackSelectCallback, pageCanBusPair, false);
+
 	pageAppendButton (pageBms, "AUTO-X", pageStackSelectCallback, pageAutoxPair, false);
-	pageAppendButton (pageBms, "", NULL, NULL, false);
+	pageAppendButton (pageBms, "ENDR.", pageStackSelectCallback, pageEndrPair, false);
 	pageAppendButton (pageBms, "", NULL, NULL, false);
 	pageAppendButton (pageBms, "BMS", NULL, NULL, true);
 	pageAppendButton (pageBms, "CAN", pageStackSelectCallback, pageCanBusPair, false);
 
 	pageAppendButton (pageCanBus, "AUTO-X", pageStackSelectCallback, pageAutoxPair, false);
-	pageAppendButton (pageCanBus, "", NULL, NULL, false);
+	pageAppendButton (pageCanBus, "ENDR.", pageStackSelectCallback, pageEndrPair, false);
 	pageAppendButton (pageCanBus, "", NULL, NULL, false);
 	pageAppendButton (pageCanBus, "BMS", pageStackSelectCallback, pageBmsPair, false);
 	pageAppendButton (pageCanBus, "CAN", NULL, NULL, true);

@@ -12,6 +12,9 @@
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
+// Includes
+#include "cjson/cjson.h"
+
 // GTK
 #include <gtk/gtk.h>
 
@@ -26,7 +29,7 @@ typedef struct
 	GdkRGBA indicatorActiveColor;
 	GdkRGBA indicatorInactiveColor;
 	int buttonHeight;
-	const char* buttonFont;
+	char* buttonFont;
 } pageStyle_t;
 
 typedef void (pageButtonCallback_t) (GtkWidget* widget, gpointer data);
@@ -63,5 +66,7 @@ static inline void pageAppendButton (page_t* page, const char* label, pageButton
 {
 	page->vmt.appendButton (page, label, callback, arg, currentPage);
 }
+
+pageStyle_t* pageStyleLoad (cJSON* config, pageStyle_t* parent);
 
 #endif // PAGE_H

@@ -443,6 +443,9 @@ static void sidePanelLoad (pageAutox_t* page, cJSON* config, canDatabase_t* data
 
 page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* config)
 {
+	if (config == NULL)
+		return NULL;
+
 	// Allocate the page
 	pageAutox_t* page = malloc (sizeof (pageAutox_t));
 	if (page == NULL)

@@ -5,6 +5,7 @@ BIN := $(BIN_DIR)/dashboard-gui
 SRC :=	main.c										\
 		gtk_util.c									\
 		bms_widgets.c								\
+		page.c										\
 		page_stack.c								\
 		page_autox.c								\
 		page_bms_overview.c							\
