@@ -120,7 +120,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	(void) area;
 	(void) arg;
 
-	gdk_cairo_set_source_rgba (cr, &page->style.pageStyle.backgroundColor);
+	gdk_cairo_set_source_rgba (cr, &page->style.baseStyle->backgroundColor);
 	cairo_rectangle (cr, 0, 0, width, height);
 	cairo_fill (cr);
 
@@ -237,7 +237,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	float x18 = x6 + 10;
 	float y18 = y17;
 
-	gdk_cairo_set_source_rgba (cr, &page->style.pageStyle.backgroundColor);
+	gdk_cairo_set_source_rgba (cr, &page->style.baseStyle->backgroundColor);
 	cairo_move_to (cr, x0, y0);
 	cairo_line_to (cr, x1, y1);
 	cairo_line_to (cr, x2, y2);
@@ -262,8 +262,8 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	cairo_line_to (cr, x18, y18);
 	cairo_fill (cr);
 
-	gdk_cairo_set_source_rgba (cr, &page->style.pageStyle.borderColor);
-	cairo_set_line_width (cr, page->style.pageStyle.borderThickness);
+	gdk_cairo_set_source_rgba (cr, &page->style.baseStyle->borderColor);
+	cairo_set_line_width (cr, page->style.baseStyle->borderThickness);
 
 	cairo_move_to (cr, x10, y10);
 	cairo_line_to (cr,  x9,  y9);
@@ -322,15 +322,17 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	cairo_stroke (cr);
 }
 
-static void styleLoad (pageAutoxStyle_t* style, pageStyle_t* pageStyle, cJSON* config)
+static void styleLoad (pageAutoxStyle_t* style, pageStyle_t* baseStyle, cJSON* config)
 {
 	*style = (pageAutoxStyle_t)
 	{
-		.pageStyle = *pageStyle
+		.baseStyle = baseStyle
 	};
 
 	if (config == NULL)
 		return;
+
+	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
 
 	char* color;
 	if (jsonGetString (config, "appsColor", &color) == 0)
@@ -390,7 +392,7 @@ static void sidePanelLoad (pageAutox_t* page, cJSON* config, canDatabase_t* data
 	jsonGetString (config, "title", &title);
 	GtkWidget* label = gtk_label_new (title);
 	gtkLabelSetFont (GTK_LABEL (label), page->style.sidePanelTitleFont);
-	gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
+	gtkLabelSetColor (GTK_LABEL (label), &page->style.baseStyle->fontColor);
 	gtk_label_set_xalign (GTK_LABEL (label), 0.5);
 	gtk_widget_set_size_request (label, width, 0);
 	gtk_widget_set_margin_top (label, 3);
@@ -408,7 +410,7 @@ static void sidePanelLoad (pageAutox_t* page, cJSON* config, canDatabase_t* data
 
 		label = gtk_label_new (labelValue);
 		gtkLabelSetFont (GTK_LABEL (label), page->style.sidePanelStatFont);
-		gtkLabelSetColor (GTK_LABEL (label), &page->style.pageStyle.fontColor);
+		gtkLabelSetColor (GTK_LABEL (label), &page->style.baseStyle->fontColor);
 		gtk_widget_set_halign (label, GTK_ALIGN_START);
 		gtk_widget_set_margin_start (label, 3);
 		gtk_grid_attach (GTK_GRID (*sidePanel), label, 0, index + 1, 1, 1);
@@ -433,7 +435,7 @@ static void sidePanelLoad (pageAutox_t* page, cJSON* config, canDatabase_t* data
 		{
 			GtkWidget* widget = CAN_WIDGET_TO_WIDGET ((*widgets) [index]);
 			gtkTryLabelSetFont (widget, page->style.sidePanelStatFont);
-			gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
+			gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
 			gtk_widget_set_halign (widget, GTK_ALIGN_END);
 			gtk_widget_set_margin_end (widget, 3);
 			gtk_grid_attach (GTK_GRID (*sidePanel), widget, 1, index + 1, 1, 1);
@@ -481,11 +483,11 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 		{
 			.width				= 10,
 			.height				= 0,
-			.borderThickness	= page->style.pageStyle.borderThickness,
+			.borderThickness	= page->style.baseStyle->borderThickness,
 			.orientation		= GTK_ORIENTATION_VERTICAL,
 			.inverted			= false,
-			.backgroundColor	= page->style.pageStyle.backgroundColor,
-			.borderColor		= page->style.pageStyle.backgroundColor,
+			.backgroundColor	= page->style.baseStyle->backgroundColor,
+			.borderColor		= page->style.baseStyle->backgroundColor,
 			.fillColor			= page->style.bseColor
 		},
 		.signalName 			= "BSE_FRONT_PERCENT",
@@ -509,7 +511,7 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerTitle);
 		gtkTryLabelSetFont (widget, page->style.dataLoggerTitleFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
+		gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
 		gtkTryLabelSetXAlign (widget, 0);
 		gtk_widget_set_margin_top (widget, 3);
 		gtk_widget_set_margin_start (widget, 3);
@@ -521,7 +523,7 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerStat);
 		gtkTryLabelSetFont (widget, page->style.dataLoggerStatFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
+		gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
 		gtkTryLabelSetXAlign (widget, 0);
 		gtk_widget_set_margin_start (widget, 3);
 		gtk_grid_attach (page->dataLoggerPanel, widget, 0, 1, 1, 1);
@@ -648,7 +650,7 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 	page->centerTitle = gtk_label_new (centerTitle);
 
 	gtkLabelSetFont (GTK_LABEL (page->centerTitle), page->style.centerPanelTitleFont);
-	gtkLabelSetColor (GTK_LABEL (page->centerTitle), &page->style.pageStyle.fontColor);
+	gtkLabelSetColor (GTK_LABEL (page->centerTitle), &page->style.baseStyle->fontColor);
 	gtk_label_set_xalign (GTK_LABEL (page->centerTitle), 0);
 	gtk_grid_attach (page->grid, page->centerTitle, 3, 1, 1, 1);
 
@@ -657,7 +659,7 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->centerStat);
 		gtkTryLabelSetFont (widget, page->style.centerPanelStatFont);
-		gtkTryLabelSetColor (widget, &page->style.pageStyle.fontColor);
+		gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
 		gtk_widget_set_hexpand (widget, true);
 		gtk_widget_set_vexpand (widget, true);
 		gtk_grid_attach (page->grid, widget, 3, 2, 1, 1);
@@ -681,10 +683,10 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 		{
 			.width				= 10,
 			.height				= 0,
-			.borderThickness	= page->style.pageStyle.borderThickness,
+			.borderThickness	= page->style.baseStyle->borderThickness,
 			.orientation		= GTK_ORIENTATION_VERTICAL,
 			.inverted			= false,
-			.backgroundColor	= page->style.pageStyle.backgroundColor,
+			.backgroundColor	= page->style.baseStyle->backgroundColor,
 			.borderColor		= page->style.appsColor,
 			.fillColor			= page->style.appsColor
 		},
@@ -710,16 +712,16 @@ void pageAutoxAppendButton (void* pageArg, const char* label, pageButtonCallback
 	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
 	{
 		.width				= 100,
-		.height				= page->style.pageStyle.buttonHeight,
+		.height				= page->style.baseStyle->buttonHeight,
 		.label				= label,
-		.borderThickness	= page->style.pageStyle.borderThickness,
-		.backgroundColor	= page->style.pageStyle.backgroundColor,
-		.borderColor		= page->style.pageStyle.borderColor,
-		.selectedColor		= page->style.pageStyle.fontColor,
+		.borderThickness	= page->style.baseStyle->borderThickness,
+		.backgroundColor	= page->style.baseStyle->backgroundColor,
+		.borderColor		= page->style.baseStyle->borderColor,
+		.selectedColor		= page->style.baseStyle->fontColor,
 		.indicatorColor		= currentPage ?
-			page->style.pageStyle.indicatorActiveColor : page->style.pageStyle.indicatorInactiveColor
+			page->style.baseStyle->indicatorActiveColor : page->style.baseStyle->indicatorInactiveColor
 	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.pageStyle.buttonFont);
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.baseStyle->buttonFont);
 	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
 	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
 	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);

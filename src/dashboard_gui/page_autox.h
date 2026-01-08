@@ -25,7 +25,7 @@
 
 typedef struct
 {
-	pageStyle_t pageStyle;
+	pageStyle_t* baseStyle;
 
 	GdkRGBA appsColor;
 	GdkRGBA bseColor;

@@ -29,6 +29,6 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 	if (widget != NULL)
 		return widget;
 
-	debugPrintf ("Warning, unknown CAN widget type '%s'.\n", widgetType);
+	debugPrintf ("Warning, failed to create CAN widget of type '%s'.\n", widgetType);
 	return NULL;
 }

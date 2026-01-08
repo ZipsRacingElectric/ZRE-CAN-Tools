@@ -1,14 +1,14 @@
 {
-	"style":
+	"baseStyle":
 	{
-		"backgroundColor":			"#000000",
-		"fontColor":				"#F4931E",
-		"borderColor":				"#D3792C",
-		"borderThickness":			"1.5",
-		"indicatorActiveColor":		"#FF0000",
-		"indicatorInactiveColor":	"#580000",
-		"buttonHeight":				"80",
-		"buttonFont":				"Futura Std Bold Condensed 34px"
+		"backgroundColor":				"#000000",
+		"fontColor":					"#F4931E",
+		"borderColor":					"#D3792C",
+		"borderThickness":				"1.5",
+		"indicatorActiveColor":			"#FF0000",
+		"indicatorInactiveColor":		"#580000",
+		"buttonHeight":					"80",
+		"buttonFont":					"Futura Std Bold Condensed 34px"
 	},
 	"autox":
 	{
@@ -158,7 +158,13 @@
 	{
 		"style":
 		{
-			"appsColor":				"#51BC58",
+			"baseStyle":
+			{
+				"borderColor":			"#CC4400",
+				"fontColor":			"#FF6600"
+			},
+
+			"appsColor":				"#BC9100",
 			"bseColor":					"#FF0000",
 
 			"decalTickColorLight":		"#CC0000",

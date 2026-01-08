@@ -88,7 +88,7 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 
 	// TODO(Barach): Path
 	cJSON* config = jsonLoad ("config/zr25_glory/temp.json");
-	pageStyle_t* style = pageStyleLoad (jsonGetObjectV2 (config, "style"), NULL);
+	pageStyle_t* style = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), NULL);
 
 	page_t* pageAutox = pageAutoxInit (arg->database, style, jsonGetObjectV2 (config, "autox"));
 	pageStackAppend (stack, pageAutox);
