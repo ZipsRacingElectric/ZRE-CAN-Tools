@@ -3,6 +3,7 @@
 
 // Include
 #include "page_drive.h"
+#include "page_bms.h"
 #include "gtk_util.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
@@ -19,6 +20,13 @@ page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 	page_t* page = pageDriveLoad (config, database, style);
 	if (page != NULL)
 		return page;
+
+	page = pageBmsLoad (config, database, style);
+	if (page != NULL)
+		return page;
+
+	if (strcmp (pageType, "null") == 0)
+		return NULL;
 
 	debugPrintf ("Warning, failed to load page of type '%s'.\n", pageType);
 

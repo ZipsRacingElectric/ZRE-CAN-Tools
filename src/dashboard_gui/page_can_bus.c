@@ -22,7 +22,8 @@ page_t* pageCanBusInit (canDatabase_t* database, pageStyle_t* style)
 		.update			= pageCanBusUpdate,
 		.appendButton	= pageCanBusAppendButton,
 		.widget			= gtk_overlay_new (),
-		.name			= "CAN"
+		.name			= "CAN",
+		.parent			= NULL
 	};
 
 	page->style = (pageCanBusStyle_t)

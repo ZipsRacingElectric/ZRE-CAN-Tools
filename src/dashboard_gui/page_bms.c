@@ -1,16 +1,20 @@
 // Header
-#include "page_bms_overview.h"
+#include "page_bms.h"
 
 // Includes
 #include "gtk_util.h"
 #include "stylized_widgets/stylized_button.h"
+#include "cjson/cjson_util.h"
+#include "debug.h"
+
+// POSIX
+#include <wordexp.h>
 
 #define STATUS_FONT				"Monospace 12px"
-#define PANEL_TITLE_FONT		"ITC Avant Garde Gothic CE Book 18px"
 
 static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
-	pageBmsOverview_t* page = arg;
+	pageBms_t* page = arg;
 	(void) area;
 	(void) arg;
 
@@ -20,28 +24,193 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	cairo_fill (cr);
 }
 
-page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
+static void styleLoad (pageBmsStyle_t* style, pageStyle_t* baseStyle, cJSON* config)
 {
-	pageBmsOverview_t* page = malloc (sizeof (pageBmsOverview_t));
+	*style = (pageBmsStyle_t)
+	{
+		.baseStyle = baseStyle
+	};
+
+	if (config == NULL)
+		return;
+
+	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
+
+	jsonGetString (config, "cellVoltageGraphTitleFont", &style->cellVoltageGraphTitleFont);
+
+	char* cellVoltageGraphTitleColor;
+	if (jsonGetString (config, "cellVoltageGraphTitleColor", &cellVoltageGraphTitleColor) == 0)
+		style->cellVoltageGraphTitleColor = gdkHexToColor (cellVoltageGraphTitleColor);
+
+	char* cellVoltageGraphBarColor;
+	if (jsonGetString (config, "cellVoltageGraphBarColor", &cellVoltageGraphBarColor) == 0)
+		style->cellVoltageGraphBarColor = gdkHexToColor (cellVoltageGraphBarColor);
+
+	char* cellVoltageGraphTickColor;
+	if (jsonGetString (config, "cellVoltageGraphTickColor", &cellVoltageGraphTickColor) == 0)
+		style->cellVoltageGraphTickColor = gdkHexToColor (cellVoltageGraphTickColor);
+
+	char* cellVoltageGraphAxisColor;
+	if (jsonGetString (config, "cellVoltageGraphAxisColor", &cellVoltageGraphAxisColor) == 0)
+		style->cellVoltageGraphAxisColor = gdkHexToColor (cellVoltageGraphAxisColor);
+
+	jsonGetString (config, "senseLineTemperatureGraphTitleFont", &style->senseLineTemperatureGraphTitleFont);
+
+	char* senseLineTemperatureGraphTitleColor;
+	if (jsonGetString (config, "senseLineTemperatureGraphTitleColor", &senseLineTemperatureGraphTitleColor) == 0)
+		style->senseLineTemperatureGraphTitleColor = gdkHexToColor (senseLineTemperatureGraphTitleColor);
+
+	char* senseLineTemperatureGraphBarColor;
+	if (jsonGetString (config, "senseLineTemperatureGraphBarColor", &senseLineTemperatureGraphBarColor) == 0)
+		style->senseLineTemperatureGraphBarColor = gdkHexToColor (senseLineTemperatureGraphBarColor);
+
+	char* senseLineTemperatureGraphTickColor;
+	if (jsonGetString (config, "senseLineTemperatureGraphTickColor", &senseLineTemperatureGraphTickColor) == 0)
+		style->senseLineTemperatureGraphTickColor = gdkHexToColor (senseLineTemperatureGraphTickColor);
+
+	char* senseLineTemperatureGraphAxisColor;
+	if (jsonGetString (config, "senseLineTemperatureGraphAxisColor", &senseLineTemperatureGraphAxisColor) == 0)
+		style->senseLineTemperatureGraphAxisColor = gdkHexToColor (senseLineTemperatureGraphAxisColor);
+
+	jsonGetString (config, "ltcTemperatureGraphTitleFont", &style->ltcTemperatureGraphTitleFont);
+
+	char* ltcTemperatureGraphTitleColor;
+	if (jsonGetString (config, "ltcTemperatureGraphTitleColor", &ltcTemperatureGraphTitleColor) == 0)
+		style->ltcTemperatureGraphTitleColor = gdkHexToColor (ltcTemperatureGraphTitleColor);
+
+	char* ltcTemperatureGraphBarColor;
+	if (jsonGetString (config, "ltcTemperatureGraphBarColor", &ltcTemperatureGraphBarColor) == 0)
+		style->ltcTemperatureGraphBarColor = gdkHexToColor (ltcTemperatureGraphBarColor);
+
+	char* ltcTemperatureGraphTickColor;
+	if (jsonGetString (config, "ltcTemperatureGraphTickColor", &ltcTemperatureGraphTickColor) == 0)
+		style->ltcTemperatureGraphTickColor = gdkHexToColor (ltcTemperatureGraphTickColor);
+
+	char* ltcTemperatureGraphAxisColor;
+	if (jsonGetString (config, "ltcTemperatureGraphAxisColor", &ltcTemperatureGraphAxisColor) == 0)
+		style->ltcTemperatureGraphAxisColor = gdkHexToColor (ltcTemperatureGraphAxisColor);
+}
+
+static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
+{
+	pageBms_t* page = pageArg;
+
+	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
+	{
+		.width				= 100,
+		.height				= page->style.baseStyle->buttonHeight,
+		.label				= label,
+		.borderThickness	= page->style.baseStyle->borderThickness,
+		.backgroundColor	= page->style.baseStyle->backgroundColor,
+		.borderColor		= page->style.baseStyle->borderColor,
+		.selectedColor		= page->style.baseStyle->fontColor,
+		.indicatorColor		= currentPage ?
+			page->style.baseStyle->indicatorActiveColor : page->style.baseStyle->indicatorInactiveColor
+	});
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.baseStyle->buttonFont);
+	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
+	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
+	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);
+	gtk_widget_set_hexpand (STYLIZED_BUTTON_TO_WIDGET (button), true);
+	gtk_grid_attach (GTK_GRID (page->buttonPanel), STYLIZED_BUTTON_TO_WIDGET (button), page->buttonCount, 0, 1, 1);
+	++page->buttonCount;
+}
+
+static void update (void* pageArg)
+{
+	pageBms_t* page = pageArg;
+
+	bmsBarGraphUpdate (&page->voltages);
+	bmsBarGraphUpdate (&page->temperatures);
+	bmsBarGraphUpdate (&page->ltcTemperatures);
+
+	bmsFaultLabelUpdate (&page->faultLabel);
+
+	float value;
+	canDatabaseSignalState_t state = bmsGetPackVoltage (&page->bms, &value);
+	canLabelFloatStaticUpdate (&page->voltageLabel, value, state, "V");
+
+	state = bmsGetPackCurrent (&page->bms, &value);
+	canLabelFloatStaticUpdate (&page->currentLabel, value, state, "A");
+
+	state = bmsGetPackPower (&page->bms, &value);
+	canLabelFloatStaticUpdate (&page->powerLabel, value, state, "W");
+
+	float min;
+	float max;
+	float avg;
+	bool valid = bmsGetCellVoltageStats (&page->bms, &min, &max, &avg);
+	state = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
+	canLabelFloatStaticUpdate (&page->minCellLabel, min, state, "V");
+	canLabelFloatStaticUpdate (&page->maxCellLabel, max, state, "V");
+	canLabelFloatStaticUpdate (&page->avgCellLabel, avg, state, "V");
+
+	valid = bmsGetTemperatureStats (&page->bms, &min, &max, &avg);
+	state = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
+	canLabelFloatStaticUpdate (&page->minTempLabel, min, state, "C");
+	canLabelFloatStaticUpdate (&page->maxTempLabel, max, state, "C");
+	canLabelFloatStaticUpdate (&page->avgTempLabel, avg, state, "C");
+
+	valid = bmsGetCellDeltaStats (&page->bms, &max, &avg);
+	state = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
+	canLabelFloatStaticUpdate (&page->maxDeltaLabel, max, state, "V");
+	canLabelFloatStaticUpdate (&page->avgDeltaLabel, avg, state, "V");
+}
+
+page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
+{
+	if (config == NULL)
+		return NULL;
+
+	char* pageType;
+	if (jsonGetString (config, "type", &pageType) != 0)
+		return NULL;
+
+	if (strcmp (pageType, "pageBms_t") != 0)
+		return NULL;
+
+	char* pageName;
+	if (jsonGetString (config, "name", &pageName) != 0)
+		return NULL;
+
+	pageBms_t* page = malloc (sizeof (pageBms_t));
 	if (page == NULL)
 		return NULL;
 
 	// Setup the VMT
 	page->vmt = (pageVmt_t)
 	{
-		.update			= pageBmsOverviewUpdate,
-		.appendButton	= pageBmsAppendButton,
+		.update			= update,
+		.appendButton	= appendButton,
 		.widget			= gtk_overlay_new (),
-		.name			= "BMS"
+		.name			= pageName,
+		.parent			= NULL
 	};
 
-	page->style = (pageBmsOverviewStyle_t)
+	char* bmsConfigPath;
+	if (jsonGetString (config, "bmsConfig", &bmsConfigPath) != 0)
 	{
-		.pageStyle	= style,
-	};
+		debugPrintf ("Warning, BMS config JSON not specified.\n");
+		return NULL;
+	}
+	// TODO(Barach): Wordexp
+	cJSON* bmsConfig = jsonLoad (bmsConfigPath);
+	if (bmsConfig == NULL)
+	{
+		debugPrintf ("Warning, failed to load BMS config JSON.\n");
+		return NULL;
+	}
+
+	if (bmsInit (&page->bms, bmsConfig, database) != 0)
+	{
+		debugPrintf ("Warning, failed to initialize BMS interface.\n");
+		return NULL;
+	}
+
+	cJSON* styleConfig = jsonGetObjectV2 (config, "style");
+	styleLoad (&page->style, style, styleConfig);
 
 	page->buttonCount = 0;
-	page->bms = bms;
 
 	GtkWidget* bg = gtk_drawing_area_new ();
 	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (bg), drawBg, page, NULL);
@@ -58,7 +227,7 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 	gtk_grid_attach (GTK_GRID (statusTitle), label, 0, 0, 1, 1);
 	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
 
-	bmsFaultLabelInit (&page->faultLabel, bms);
+	bmsFaultLabelInit (&page->faultLabel, &page->bms);
 	gtk_grid_attach (GTK_GRID (statusTitle), BMS_FAULT_LABEL_TO_WIDGET (&page->faultLabel), 1, 0, 2, 1);
 	gtkLabelSetFont (BMS_FAULT_LABEL_TO_LABEL (&page->faultLabel), STATUS_FONT);
 
@@ -242,29 +411,28 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), GTK_ALIGN_START);
 
 	label = gtk_label_new ("Cell Voltages:");
-	GdkRGBA c = gdkHexToColor ("#00AAFF");
-	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), &c);
+	gtkLabelSetFont (GTK_LABEL (label), page->style.cellVoltageGraphTitleFont);
+	gtkLabelSetColor (GTK_LABEL (label), &page->style.cellVoltageGraphTitleColor);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_grid_attach (GTK_GRID (grid), label, 0, 2, 2, 1);
 
-	bmsBarGraphInit (&page->voltages, bms, &(bmsBarGraphConfig_t)
+	bmsBarGraphInit (&page->voltages, &page->bms, &(bmsBarGraphConfig_t)
 	{
 		.accessor		= bmsGetCellVoltage,
 		.offset			= 0,
-		.count			= bms->cellCount,
+		.count			= page->bms.cellCount,
 		.barSize		= 3.5f,
 		.barSpacing		= 0.5f,
 		.length			= 60,
-		.min			= bms->minCellVoltage,
-		.max			= bms->maxCellVoltage,
+		.min			= page->bms.minCellVoltage,
+		.max			= page->bms.maxCellVoltage,
 		.tickSpacing	= 0.25,
 		.tickFormat		= "%.2f V",
 		.axisPosition	= 40,
-		.axisColor		= gdkHexToColor ("#00AAFF"),
-		.tickColor		= gdkHexToColor ("#00AAFF"),
-		.barColor		= gdkHexToColor ("#00AAFF")
+		.axisColor		= page->style.cellVoltageGraphAxisColor,
+		.tickColor		= page->style.cellVoltageGraphTickColor,
+		.barColor		= page->style.cellVoltageGraphBarColor
 	});
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), GTK_ALIGN_FILL);
@@ -276,30 +444,29 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 	gtk_widget_set_margin_end (BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), 5);
 	gtk_grid_attach (GTK_GRID (grid), BMS_BAR_GRAPH_TO_WIDGET (&page->voltages), 0, 3, 2, 1);
 
-	label = gtk_label_new ("Sense Line Temperatures:");
-	c = gdkHexToColor ("#00FFAA");
-	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), &c);
+	label = gtk_label_new ("Cell Sense Line Temperatures:");
+	gtkLabelSetFont (GTK_LABEL (label), page->style.senseLineTemperatureGraphTitleFont);
+	gtkLabelSetColor (GTK_LABEL (label), &page->style.senseLineTemperatureGraphTitleColor);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_grid_attach (GTK_GRID (grid), label, 0, 4, 1, 1);
 
-	bmsBarGraphInit (&page->temperatures, bms, &(bmsBarGraphConfig_t)
+	bmsBarGraphInit (&page->temperatures, &page->bms, &(bmsBarGraphConfig_t)
 	{
 		.accessor		= bmsGetLogicalTemperature,
 		.offset			= 0,
-		.count			= bmsGetLogicalTemperatureCount (bms),
+		.count			= bmsGetLogicalTemperatureCount (&page->bms),
 		.barSize		= 3.5f,
 		.barSpacing		= 0.5f,
 		.length			= 60,
-		.min			= bms->minTemperature,
-		.max			= bms->maxTemperature,
+		.min			= page->bms.minTemperature,
+		.max			= page->bms.maxTemperature,
 		.tickSpacing	= 10,
 		.tickFormat		= "%.0f C",
 		.axisPosition	= 40,
-		.axisColor		= gdkHexToColor ("#00FFAA"),
-		.tickColor		= gdkHexToColor ("#00FFAA"),
-		.barColor		= gdkHexToColor ("#00FFAA")
+		.axisColor		= page->style.senseLineTemperatureGraphAxisColor,
+		.tickColor		= page->style.senseLineTemperatureGraphTickColor,
+		.barColor		= page->style.senseLineTemperatureGraphBarColor
 	});
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), GTK_ALIGN_FILL);
@@ -311,29 +478,29 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 	gtk_widget_set_margin_end (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), 5);
 	gtk_grid_attach (GTK_GRID (grid), BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), 0, 5, 1, 1);
 
-	label = gtk_label_new ("LTC Temperatures:");
-	gtkLabelSetFont (GTK_LABEL (label), PANEL_TITLE_FONT);
-	gtkLabelSetColor (GTK_LABEL (label), &c);
+	label = gtk_label_new ("Sense Board IC Temperatures:");
+	gtkLabelSetFont (GTK_LABEL (label), page->style.ltcTemperatureGraphTitleFont);
+	gtkLabelSetColor (GTK_LABEL (label), &page->style.ltcTemperatureGraphTitleColor);
 	gtk_widget_set_hexpand (label, true);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_grid_attach (GTK_GRID (grid), label, 1, 4, 1, 1);
 
-	bmsBarGraphInit (&page->ltcTemperatures, bms, &(bmsBarGraphConfig_t)
+	bmsBarGraphInit (&page->ltcTemperatures, &page->bms, &(bmsBarGraphConfig_t)
 	{
 		.accessor		= bmsGetLtcTemperature,
 		.offset			= 0,
-		.count			= bms->ltcCount,
+		.count			= page->bms.ltcCount,
 		.barSize		= 3.5f,
 		.barSpacing		= 0.5f,
 		.length			= 60,
-		.min			= bms->minTemperature,
-		.max			= bms->maxLtcTemperature,
+		.min			= page->bms.minTemperature,
+		.max			= page->bms.maxLtcTemperature,
 		.tickSpacing	= 10,
 		.tickFormat		= "%.0f C",
 		.axisPosition	= 40,
-		.axisColor		= gdkHexToColor ("#00FFAA"),
-		.tickColor		= gdkHexToColor ("#00FFAA"),
-		.barColor		= gdkHexToColor ("#00FFAA")
+		.axisColor		= page->style.ltcTemperatureGraphAxisColor,
+		.tickColor		= page->style.ltcTemperatureGraphTickColor,
+		.barColor		= page->style.ltcTemperatureGraphBarColor
 	});
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), GTK_ALIGN_FILL);
@@ -352,70 +519,4 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 	gtk_grid_attach (GTK_GRID (grid), GTK_WIDGET (page->buttonPanel), 0, 6, 2, 1);
 
 	return (page_t*) page;
-}
-
-void pageBmsAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
-{
-	pageBmsOverview_t* page = pageArg;
-
-	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
-	{
-		.width				= 100,
-		.height				= page->style.pageStyle->buttonHeight,
-		.label				= label,
-		.borderThickness	= page->style.pageStyle->borderThickness,
-		.backgroundColor	= page->style.pageStyle->backgroundColor,
-		.borderColor		= page->style.pageStyle->borderColor,
-		.selectedColor		= page->style.pageStyle->fontColor,
-		.indicatorColor		= currentPage ?
-			page->style.pageStyle->indicatorActiveColor : page->style.pageStyle->indicatorInactiveColor
-	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.pageStyle->buttonFont);
-	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
-	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
-	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);
-	gtk_widget_set_hexpand (STYLIZED_BUTTON_TO_WIDGET (button), true);
-	gtk_grid_attach (GTK_GRID (page->buttonPanel), STYLIZED_BUTTON_TO_WIDGET (button), page->buttonCount, 0, 1, 1);
-	++page->buttonCount;
-}
-
-void pageBmsOverviewUpdate (void* page)
-{
-	pageBmsOverview_t* pageBms = page;
-
-	bmsBarGraphUpdate (&pageBms->voltages);
-	bmsBarGraphUpdate (&pageBms->temperatures);
-	bmsBarGraphUpdate (&pageBms->ltcTemperatures);
-
-	bmsFaultLabelUpdate (&pageBms->faultLabel);
-
-	float value;
-	canDatabaseSignalState_t state = bmsGetPackVoltage (pageBms->bms, &value);
-	canLabelFloatStaticUpdate (&pageBms->voltageLabel, value, state, "V");
-
-	state = bmsGetPackCurrent (pageBms->bms, &value);
-	canLabelFloatStaticUpdate (&pageBms->currentLabel, value, state, "A");
-
-	state = bmsGetPackPower (pageBms->bms, &value);
-	canLabelFloatStaticUpdate (&pageBms->powerLabel, value, state, "W");
-
-	float min;
-	float max;
-	float avg;
-	bool valid = bmsGetCellVoltageStats (pageBms->bms, &min, &max, &avg);
-	state = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
-	canLabelFloatStaticUpdate (&pageBms->minCellLabel, min, state, "V");
-	canLabelFloatStaticUpdate (&pageBms->maxCellLabel, max, state, "V");
-	canLabelFloatStaticUpdate (&pageBms->avgCellLabel, avg, state, "V");
-
-	valid = bmsGetTemperatureStats (pageBms->bms, &min, &max, &avg);
-	state = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
-	canLabelFloatStaticUpdate (&pageBms->minTempLabel, min, state, "C");
-	canLabelFloatStaticUpdate (&pageBms->maxTempLabel, max, state, "C");
-	canLabelFloatStaticUpdate (&pageBms->avgTempLabel, avg, state, "C");
-
-	valid = bmsGetCellDeltaStats (pageBms->bms, &max, &avg);
-	state = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
-	canLabelFloatStaticUpdate (&pageBms->maxDeltaLabel, max, state, "V");
-	canLabelFloatStaticUpdate (&pageBms->avgDeltaLabel, avg, state, "V");
 }

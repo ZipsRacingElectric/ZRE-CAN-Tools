@@ -1,14 +1,14 @@
 {
 	"baseStyle":
 	{
-		"backgroundColor":				"#000000",
-		"fontColor":					"#F4931E",
-		"borderColor":					"#D3792C",
-		"borderThickness":				"1.5",
-		"indicatorActiveColor":			"#FF0000",
-		"indicatorInactiveColor":		"#580000",
-		"buttonHeight":					"80",
-		"buttonFont":					"Futura Std Bold Condensed 34px"
+		"backgroundColor":					"#000000",
+		"fontColor":						"#F4931E",
+		"borderColor":						"#D3792C",
+		"borderThickness":					"1.5",
+		"indicatorActiveColor":				"#FF0000",
+		"indicatorInactiveColor":			"#580000",
+		"buttonHeight":						"80",
+		"buttonFont":						"Futura Std Bold Condensed 34px"
 	},
 	"pages":
 	[
@@ -306,6 +306,34 @@
 						"formatInvalid":	"%s %s"
 					}
 				]
+			}
+		},
+		{
+			"type":							"null"
+		},
+		{
+			"type":										"pageBms_t",
+			"name":										"BMS",
+			"bmsConfig":								"config/zr25_glory/bms_config.json",
+			"style":
+			{
+				"cellVoltageGraphTitleFont":			"ITC Avant Garde Gothic CE Book 18px",
+				"cellVoltageGraphTitleColor":			"#00AAFF",
+				"cellVoltageGraphBarColor":				"#00AAFF",
+				"cellVoltageGraphTickColor":			"#00AAFF",
+				"cellVoltageGraphAxisColor":			"#00AAFF",
+
+				"senseLineTemperatureGraphTitleFont":	"ITC Avant Garde Gothic CE Book 18px",
+				"senseLineTemperatureGraphTitleColor":	"#00FFAA",
+				"senseLineTemperatureGraphBarColor":	"#00FFAA",
+				"senseLineTemperatureGraphTickColor":	"#00FFAA",
+				"senseLineTemperatureGraphAxisColor":	"#00FFAA",
+
+				"ltcTemperatureGraphTitleFont":			"ITC Avant Garde Gothic CE Book 18px",
+				"ltcTemperatureGraphTitleColor":		"#00FFAA",
+				"ltcTemperatureGraphBarColor":			"#00FFAA",
+				"ltcTemperatureGraphTickColor":			"#00FFAA",
+				"ltcTemperatureGraphAxisColor":			"#00FFAA"
 			}
 		}
 	]

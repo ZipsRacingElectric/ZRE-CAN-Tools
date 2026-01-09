@@ -1,18 +1,16 @@
 // Includes
 #include "debug.h"
-#include "page_bms_overview.h"
 #include "page_can_bus.h"
 #include "page_stack.h"
 #include "cjson/cjson_util.h"
 #include "options.h"
-#include "bms/bms.h"
 
 // GTK
 #include <gtk/gtk.h>
 
 static void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: dashboard-gui <Options> <Application Name> <Device Name> <DBC File Path> <BMS Config Path>\n");
+	fprintf (stream, "Usage: dashboard-gui <Options> <Application Name> <Device Name> <DBC File Path>\n");
 }
 
 static void fprintHelp (FILE* stream)
@@ -28,7 +26,6 @@ typedef struct
 	const char* applicationTitle;
 	const char* applicationId;
 	canDatabase_t* database;
-	bms_t* bms;
 } activateArg_t;
 
 static gboolean updateLoop (pageStack_t* stack)
@@ -97,36 +94,43 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 		return;
 	}
 
-	size_t pageCount = cJSON_GetArraySize (pageConfigs) + 2;
+	size_t pageCount = cJSON_GetArraySize (pageConfigs) + 1;
 	page_t** pages = malloc (sizeof (page_t*) * pageCount);
 	if (pages == NULL)
 		return;
 
-	// TODO(Barach): + 2
-	for (size_t index = 0; index < pageCount - 2; ++index)
+	// TODO(Barach): + 1
+	for (size_t index = 0; index < pageCount - 1; ++index)
 	{
 		cJSON* pageConfig = cJSON_GetArrayItem (pageConfigs, index);
 		pages [index] = pageLoad (pageConfig, arg->database, style);
-		if (pages [index] != NULL)
-			pageStackAppend (stack, pages [index]);
-	}
+		if (pages [index] == NULL)
+			continue;
 
-	pages [pageCount - 2] = pageBmsOverviewInit (arg->bms, style);
-	pageStackAppend (stack, pages [pageCount - 2]);
+		pageStackAppend (stack, pages [index]);
+	}
 
 	pages [pageCount - 1] = pageCanBusInit (arg->database, style);
 	pageStackAppend (stack, pages [pageCount - 1]);
 
 	for (size_t index = 0; index < pageCount; ++index)
 	{
+		if (pages [index] == NULL)
+			continue;
+
 		for (size_t buttonIndex = 0; buttonIndex < pageCount; ++buttonIndex)
 		{
-			pageStackPair_t* pagePair = pageStackPairInit (stack, pages [buttonIndex]);
-
-			if (index != buttonIndex)
-				pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), pageStackSelectCallback, pagePair, false);
+			if (pages [buttonIndex] != NULL)
+			{
+				if (index != buttonIndex)
+					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), pageStackSelectCallback, pages [buttonIndex], false);
+				else
+					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), NULL, NULL, true);
+			}
 			else
-				pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), NULL, NULL, true);
+			{
+				pageAppendButton (pages [index], "", NULL, NULL, false);
+			}
 		}
 	}
 
@@ -199,34 +203,26 @@ int main (int argc, char** argv)
 	}
 
 	// Validate usage
-	if (argc < 5)
+	if (argc < 4)
 	{
 		fprintUsage (stderr);
 		return -1;
 	}
 
 	// Initialize the CAN device
-	char* deviceName = argv [argc - 3];
+	char* deviceName = argv [argc - 2];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
 	// Initialize the CAN database
 	canDatabase_t database;
-	char* dbcPath = argv [argc - 2];
+	char* dbcPath = argv [argc - 1];
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
 		return errorPrintf ("Failed to initialize CAN database");
 
-	// Initialize the BMS
-	bms_t bms;
-	cJSON* bmsConfig = jsonLoad (argv [argc - 1]);
-	if (bmsConfig == NULL)
-		return errorPrintf ("Failed to load BMS config");
-	if (bmsInit (&bms, bmsConfig, &database) != 0)
-		return errorPrintf ("Failed to initialize BMS");
-
 	// Create application ID from application name
-	char* applicationName = argv [argc - 4];
+	char* applicationName = argv [argc - 3];
 	char* applicationTitle = getApplicationTitle (applicationName);
 	if (applicationTitle == NULL)
 		return errorPrintf ("Failed to create application title");
@@ -242,8 +238,7 @@ int main (int argc, char** argv)
 	{
 		.applicationTitle	= applicationTitle,
 		.applicationId		= applicationId,
-		.database			= &database,
-		.bms				= &bms
+		.database			= &database
 	};
 
 	// Create the GTK application bound to the activation signal

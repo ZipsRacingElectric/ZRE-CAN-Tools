@@ -20,17 +20,12 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
-typedef struct
+struct pageStack
 {
 	GtkWidget* widget;
 	page_t* selectedPage;
-} pageStack_t;
-
-typedef struct
-{
-	pageStack_t* stack;
-	page_t* page;
-} pageStackPair_t;
+};
+typedef struct pageStack pageStack_t;
 
 #define PAGE_STACK_TO_WIDGET(stack) ((stack)->widget)
 #define PAGE_STACK_TO_STACK(stack) GTK_STACK ((stack)->widget)
@@ -46,7 +41,5 @@ void pageStackSelect (pageStack_t* stack, page_t* page);
 void pageStackSelectCallback (GtkWidget* widget, void* arg);
 
 void pageStackUpdate (pageStack_t* stack);
-
-pageStackPair_t* pageStackPairInit (pageStack_t* stack, page_t* page);
 
 #endif // PAGE_STACK_H

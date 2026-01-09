@@ -7,7 +7,7 @@ SRC :=	main.c										\
 		bms_widgets.c								\
 		page.c										\
 		page_stack.c								\
-		page_bms_overview.c							\
+		page_bms.c									\
 		page_can_bus.c								\
 		page_drive.c								\
 		can_widgets/can_widget.c					\

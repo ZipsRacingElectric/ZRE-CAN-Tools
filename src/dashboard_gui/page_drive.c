@@ -516,7 +516,8 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.update			= update,
 		.appendButton	= appendButton,
 		.widget			= gtk_overlay_new (),
-		.name			= pageName
+		.name			= pageName,
+		.parent			= NULL
 	};
 
 	cJSON* styleConfig = jsonGetObjectV2 (config, "style");

@@ -1,7 +1,7 @@
-#ifndef PAGE_BMS_OVERVIEW_H
-#define PAGE_BMS_OVERVIEW_H
+#ifndef PAGE_BMS_H
+#define PAGE_BMS_H
 
-// BMS Overview Page ----------------------------------------------------------------------------------------------------------
+// BMS Page -------------------------------------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
 // Date Created: 2025.12.29
@@ -19,8 +19,26 @@
 
 typedef struct
 {
-	pageStyle_t* pageStyle;
-} pageBmsOverviewStyle_t;
+	pageStyle_t* baseStyle;
+
+	char* cellVoltageGraphTitleFont;
+	GdkRGBA cellVoltageGraphTitleColor;
+	GdkRGBA cellVoltageGraphBarColor;
+	GdkRGBA cellVoltageGraphTickColor;
+	GdkRGBA cellVoltageGraphAxisColor;
+
+	char* senseLineTemperatureGraphTitleFont;
+	GdkRGBA senseLineTemperatureGraphTitleColor;
+	GdkRGBA senseLineTemperatureGraphBarColor;
+	GdkRGBA senseLineTemperatureGraphTickColor;
+	GdkRGBA senseLineTemperatureGraphAxisColor;
+
+	char* ltcTemperatureGraphTitleFont;
+	GdkRGBA ltcTemperatureGraphTitleColor;
+	GdkRGBA ltcTemperatureGraphBarColor;
+	GdkRGBA ltcTemperatureGraphTickColor;
+	GdkRGBA ltcTemperatureGraphAxisColor;
+} pageBmsStyle_t;
 
 typedef struct
 {
@@ -29,9 +47,9 @@ typedef struct
 	GtkGrid* buttonPanel;
 	size_t buttonCount;
 
-	pageBmsOverviewStyle_t style;
+	pageBmsStyle_t style;
 
-	bms_t* bms;
+	bms_t bms;
 	bmsBarGraph_t voltages;
 	bmsBarGraph_t temperatures;
 	bmsBarGraph_t ltcTemperatures;
@@ -47,14 +65,10 @@ typedef struct
 	canLabelFloatStatic_t avgTempLabel;
 	canLabelFloatStatic_t maxDeltaLabel;
 	canLabelFloatStatic_t avgDeltaLabel;
-} pageBmsOverview_t;
+} pageBms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style);
+page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
 
-void pageBmsAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
-
-void pageBmsOverviewUpdate (void* page);
-
-#endif // PAGE_BMS_OVERVIEW_H
+#endif // PAGE_BMS_H

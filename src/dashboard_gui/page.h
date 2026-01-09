@@ -21,6 +21,8 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
+typedef struct pageStack pageStack_t;
+
 typedef struct
 {
 	GdkRGBA backgroundColor;
@@ -46,6 +48,7 @@ typedef struct
 	pageAppendButton_t* appendButton;
 	GtkWidget* widget;
 	char* name;
+	pageStack_t* parent;
 } pageVmt_t;
 
 typedef struct
@@ -76,6 +79,16 @@ static inline void pageAppendButton (page_t* page, const char* label, pageButton
 static inline char* pageGetName (page_t* page)
 {
 	return page->vmt.name;
+}
+
+static inline void pageSetParent (page_t* page, pageStack_t* parent)
+{
+	page->vmt.parent = parent;
+}
+
+static inline pageStack_t* pageGetParent (page_t* page)
+{
+	return page->vmt.parent;
 }
 
 #endif // PAGE_H
