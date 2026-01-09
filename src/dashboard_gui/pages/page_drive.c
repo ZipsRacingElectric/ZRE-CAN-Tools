@@ -2,11 +2,11 @@
 #include "page_drive.h"
 
 // Includes
-#include "gtk_util.h"
-#include "can_widgets/can_widget.h"
-#include "can_widgets/can_progress_bar.h"
-#include "can_widgets/can_indicator.h"
-#include "stylized_widgets/stylized_button.h"
+#include "../can_widgets/can_widget.h"
+#include "../can_widgets/can_progress_bar.h"
+#include "../can_widgets/can_indicator.h"
+#include "../stylized_widgets/stylized_button.h"
+#include "../gtk_util.h"
 #include "cjson/cjson_util.h"
 
 const canIndicatorPoint_t FAULT_INDICATOR_POLYGON [] =

@@ -2,98 +2,44 @@
 #include "page_can_bus.h"
 
 // Includes
-#include "stylized_widgets/stylized_button.h"
-#include "stylized_widgets/stylized_frame.h"
-#include "gtk_util.h"
+#include "../stylized_widgets/stylized_button.h"
+#include "../stylized_widgets/stylized_frame.h"
+#include "../gtk_util.h"
 #include "can_device/can_device_stdio.h"
 #include "can_database/can_database_stdio.h"
+#include "cjson/cjson_util.h"
 #include "debug.h"
 
-page_t* pageCanBusInit (canDatabase_t* database, pageStyle_t* style)
+static void styleLoad (pageCanBusStyle_t* style, pageStyle_t* baseStyle, cJSON* config)
 {
-	// Allocate the page
-	pageCanBus_t* page = malloc (sizeof (pageCanBus_t));
-	if (page == NULL)
-		return NULL;
-
-	// Setup the VMT
-	page->vmt = (pageVmt_t)
+	*style = (pageCanBusStyle_t)
 	{
-		.update			= pageCanBusUpdate,
-		.appendButton	= pageCanBusAppendButton,
-		.widget			= gtk_overlay_new (),
-		.name			= "CAN",
-		.parent			= NULL
+		.baseStyle = baseStyle
 	};
 
-	page->style = (pageCanBusStyle_t)
-	{
-		.pageStyle = style,
-	};
+	if (config == NULL)
+		return;
 
-	page->database = database;
-
-	page->grid = gtk_grid_new ();
-	gtk_overlay_add_overlay (GTK_OVERLAY (page->vmt.widget), page->grid);
-	gtk_overlay_set_measure_overlay (GTK_OVERLAY (page->vmt.widget), page->grid, true);
-
-	stylizedFrame_t* frame = stylizedFrameInit (&(stylizedFrameConfig_t)
-	{
-		.backgroundColor	= gdkHexToColor ("#000000"),
-		.borderColor		= gdkHexToColor ("#00FFAA"),
-		.borderThickness	= 1.5f,
-		.cornerRadius		= 0
-	});
-	gtk_widget_set_hexpand (STYLIZED_FRAME_TO_WIDGET (frame), true);
-	gtk_widget_set_vexpand (STYLIZED_FRAME_TO_WIDGET (frame), true);
-	gtk_grid_attach (GTK_GRID (page->grid), STYLIZED_FRAME_TO_WIDGET (frame), 0, 0, 1, 1);
-
-	page->term = stylizedTerminalInit (&(stylizedTerminalConfig_t)
-	{
-		.lineLengthMax			= 128,
-		.lineCountMax			= 64,
-		.fontSize				= 14,
-		.fontSpacing			= 2,
-		.scrollEnabled			= true,
-		.scrollMin				= 0,
-		.scrollMax				= canDatabaseGetMessageCount (database) + canDatabaseGetSignalCount (database),
-		.backgroundColor		= gdkHexToColor ("#00000000"),
-		.fontColor				= gdkHexToColor ("#00FFAA")
-	});
-	gtk_widget_set_margin_top (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
-	gtk_widget_set_margin_bottom (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
-	gtk_widget_set_margin_start (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
-	gtk_widget_set_margin_end (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
-	stylizedFrameSetChild (frame, STYLIZED_TERMINAL_TO_WIDGET (page->term));
-
-	page->buttonCount = 0;
-	page->buttonPanel = gtk_grid_new ();
-	gtk_widget_set_margin_bottom (GTK_WIDGET (page->buttonPanel), 10);
-	gtk_widget_set_margin_start (GTK_WIDGET (page->buttonPanel), 100);
-	gtk_widget_set_margin_end (GTK_WIDGET (page->buttonPanel), 20);
-	gtk_grid_attach (GTK_GRID (page->grid), page->buttonPanel, 0, 1, 1, 1);
-
-	// Return the created page (cast to the base type).
-	return (page_t*) page;
+	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
 }
 
-void pageCanBusAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
+static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
 {
 	pageCanBus_t* page = pageArg;
 
 	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
 	{
 		.width				= 100,
-		.height				= page->style.pageStyle->buttonHeight,
+		.height				= page->style.baseStyle->buttonHeight,
 		.label				= label,
-		.borderThickness	= page->style.pageStyle->borderThickness,
-		.backgroundColor	= page->style.pageStyle->backgroundColor,
-		.borderColor		= page->style.pageStyle->borderColor,
-		.selectedColor		= page->style.pageStyle->fontColor,
+		.borderThickness	= page->style.baseStyle->borderThickness,
+		.backgroundColor	= page->style.baseStyle->backgroundColor,
+		.borderColor		= page->style.baseStyle->borderColor,
+		.selectedColor		= page->style.baseStyle->fontColor,
 		.indicatorColor		= currentPage ?
-			page->style.pageStyle->indicatorActiveColor : page->style.pageStyle->indicatorInactiveColor
+			page->style.baseStyle->indicatorActiveColor : page->style.baseStyle->indicatorInactiveColor
 	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.pageStyle->buttonFont);
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.baseStyle->buttonFont);
 	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
 	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
 	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);
@@ -102,7 +48,7 @@ void pageCanBusAppendButton (void* pageArg, const char* label, pageButtonCallbac
 	++page->buttonCount;
 }
 
-void pageCanBusUpdate (void* pageArg)
+static void update (void* pageArg)
 {
 	pageCanBus_t* page = pageArg;
 
@@ -223,4 +169,84 @@ void pageCanBusUpdate (void* pageArg)
 	}
 
 	stylizedTerminalWriteBuffer (page->term);
+}
+
+page_t* pageCanBusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
+{
+	if (config == NULL)
+		return NULL;
+
+	char* pageType;
+	if (jsonGetString (config, "type", &pageType) != 0)
+		return NULL;
+
+	if (strcmp (pageType, "pageCanBus_t") != 0)
+		return NULL;
+
+	char* pageName;
+	if (jsonGetString (config, "name", &pageName) != 0)
+		return NULL;
+
+	// Allocate the page
+	pageCanBus_t* page = malloc (sizeof (pageCanBus_t));
+	if (page == NULL)
+		return NULL;
+
+	// Setup the VMT
+	page->vmt = (pageVmt_t)
+	{
+		.update			= update,
+		.appendButton	= appendButton,
+		.widget			= gtk_overlay_new (),
+		.name			= pageName,
+		.parent			= NULL
+	};
+
+	cJSON* styleConfig = jsonGetObjectV2 (config, "style");
+	styleLoad (&page->style, style, styleConfig);
+
+	page->database = database;
+
+	page->grid = gtk_grid_new ();
+	gtk_overlay_add_overlay (GTK_OVERLAY (page->vmt.widget), page->grid);
+	gtk_overlay_set_measure_overlay (GTK_OVERLAY (page->vmt.widget), page->grid, true);
+
+	stylizedFrame_t* frame = stylizedFrameInit (&(stylizedFrameConfig_t)
+	{
+		.backgroundColor	= gdkHexToColor ("#000000"),
+		.borderColor		= gdkHexToColor ("#00FFAA"),
+		.borderThickness	= 1.5f,
+		.cornerRadius		= 0
+	});
+	gtk_widget_set_hexpand (STYLIZED_FRAME_TO_WIDGET (frame), true);
+	gtk_widget_set_vexpand (STYLIZED_FRAME_TO_WIDGET (frame), true);
+	gtk_grid_attach (GTK_GRID (page->grid), STYLIZED_FRAME_TO_WIDGET (frame), 0, 0, 1, 1);
+
+	page->term = stylizedTerminalInit (&(stylizedTerminalConfig_t)
+	{
+		.lineLengthMax			= 128,
+		.lineCountMax			= 64,
+		.fontSize				= 14,
+		.fontSpacing			= 2,
+		.scrollEnabled			= true,
+		.scrollMin				= 0,
+		.scrollMax				= canDatabaseGetMessageCount (database) + canDatabaseGetSignalCount (database),
+		.backgroundColor		= gdkHexToColor ("#00000000"),
+		.fontColor				= gdkHexToColor ("#00FFAA")
+	});
+	gtk_widget_set_margin_top (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
+	gtk_widget_set_margin_bottom (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
+	gtk_widget_set_margin_start (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
+	gtk_widget_set_margin_end (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
+	stylizedFrameSetChild (frame, STYLIZED_TERMINAL_TO_WIDGET (page->term));
+
+	page->buttonCount = 0;
+	page->buttonPanel = gtk_grid_new ();
+	gtk_widget_set_margin_bottom (GTK_WIDGET (page->buttonPanel), 10);
+	gtk_widget_set_margin_start (GTK_WIDGET (page->buttonPanel), 100);
+	gtk_widget_set_margin_end (GTK_WIDGET (page->buttonPanel), 20);
+	gtk_grid_attach (GTK_GRID (page->grid), page->buttonPanel, 0, 1, 1, 1);
+
+	// Return the created page (cast to the base type).
+	return (page_t*) page;
 }

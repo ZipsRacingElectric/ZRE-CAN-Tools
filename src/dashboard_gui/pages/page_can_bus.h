@@ -12,8 +12,8 @@
 
 // Includes
 #include "page.h"
+#include "../stylized_widgets/stylized_terminal.h"
 #include "can_database/can_database.h"
-#include "stylized_widgets/stylized_terminal.h"
 
 // GTK
 #include <gtk/gtk.h>
@@ -22,7 +22,7 @@
 
 typedef struct
 {
-	pageStyle_t* pageStyle;
+	pageStyle_t* baseStyle;
 } pageCanBusStyle_t;
 
 typedef struct
@@ -41,10 +41,6 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageCanBusInit (canDatabase_t* database, pageStyle_t* style);
-
-void pageCanBusAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
-
-void pageCanBusUpdate (void* pageArg);
+page_t* pageCanBusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
 
 #endif // PAGE_CAN_BUS_H

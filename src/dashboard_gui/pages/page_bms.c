@@ -2,8 +2,8 @@
 #include "page_bms.h"
 
 // Includes
-#include "gtk_util.h"
-#include "stylized_widgets/stylized_button.h"
+#include "../stylized_widgets/stylized_button.h"
+#include "../gtk_util.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
 

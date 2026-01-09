@@ -1,9 +1,8 @@
 // Includes
-#include "debug.h"
-#include "page_can_bus.h"
 #include "page_stack.h"
 #include "cjson/cjson_util.h"
 #include "options.h"
+#include "debug.h"
 
 // GTK
 #include <gtk/gtk.h>
@@ -94,13 +93,12 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 		return;
 	}
 
-	size_t pageCount = cJSON_GetArraySize (pageConfigs) + 1;
+	size_t pageCount = cJSON_GetArraySize (pageConfigs);
 	page_t** pages = malloc (sizeof (page_t*) * pageCount);
 	if (pages == NULL)
 		return;
 
-	// TODO(Barach): + 1
-	for (size_t index = 0; index < pageCount - 1; ++index)
+	for (size_t index = 0; index < pageCount; ++index)
 	{
 		cJSON* pageConfig = cJSON_GetArrayItem (pageConfigs, index);
 		pages [index] = pageLoad (pageConfig, arg->database, style);
@@ -109,9 +107,6 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 
 		pageStackAppend (stack, pages [index]);
 	}
-
-	pages [pageCount - 1] = pageCanBusInit (arg->database, style);
-	pageStackAppend (stack, pages [pageCount - 1]);
 
 	for (size_t index = 0; index < pageCount; ++index)
 	{

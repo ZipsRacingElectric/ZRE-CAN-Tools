@@ -1,82 +1,82 @@
 {
 	"baseStyle":
 	{
-		"backgroundColor":					"#000000",
-		"fontColor":						"#F4931E",
-		"borderColor":						"#D3792C",
-		"borderThickness":					"1.5",
-		"indicatorActiveColor":				"#FF0000",
-		"indicatorInactiveColor":			"#580000",
-		"buttonHeight":						"80",
-		"buttonFont":						"Futura Std Bold Condensed 34px"
+		"backgroundColor":								"#000000",
+		"fontColor":									"#F4931E",
+		"borderColor":									"#D3792C",
+		"borderThickness":								"1.5",
+		"indicatorActiveColor":							"#FF0000",
+		"indicatorInactiveColor":						"#580000",
+		"buttonHeight":									"80",
+		"buttonFont":									"Futura Std Bold Condensed 34px"
 	},
 	"pages":
 	[
 		{
-			"type":							"pageDrive_t",
-			"name":							"AUTO-X",
+			"type":										"pageDrive_t",
+			"name":										"AUTO-X",
 			"style":
 			{
-				"appsColor":				"#51BC58",
-				"bseColor":					"#FF0000",
+				"appsColor":							"#51BC58",
+				"bseColor":								"#FF0000",
 
-				"decalTickColorLight":		"#51BC58",
-				"decalTickColorDark":		"#000000",
-				"decalUpperTickMargin":		"20.0",
-				"decalUpperTickSpacing":	"50.0",
-				"decalCenterTickMargin":	"10.0",
-				"decalCenterTickSpacing":	"80.0",
-				"decalHeight":				"6.0",
-				"decalThickness":			"2.0",
-				"decalWidth":				"6.0",
+				"decalTickColorLight":					"#51BC58",
+				"decalTickColorDark":					"#000000",
+				"decalUpperTickMargin":					"20.0",
+				"decalUpperTickSpacing":				"50.0",
+				"decalCenterTickMargin":				"10.0",
+				"decalCenterTickSpacing":				"80.0",
+				"decalHeight":							"6.0",
+				"decalThickness":						"2.0",
+				"decalWidth":							"6.0",
 
-				"faultActiveColor":			"#FF0000",
-				"faultInactiveColor":		"#580000",
+				"faultActiveColor":						"#FF0000",
+				"faultInactiveColor":					"#580000",
 
-				"gradientStartColor":		"#B63D24",
-				"gradientStartPosition":	"0.0",
-				"gradientMiddleColor":		"#C79418",
-				"gradientMiddlePosition":	"0.4",
-				"gradientEndColor":			"#0D5E2C",
-				"gradientEndPosition":		"1.0",
+				"gradientStartColor":					"#B63D24",
+				"gradientStartPosition":				"0.0",
+				"gradientMiddleColor":					"#C79418",
+				"gradientMiddlePosition":				"0.4",
+				"gradientEndColor":						"#0D5E2C",
+				"gradientEndPosition":					"1.0",
 
-				"dataLoggerTitleFont":		"Futura Std Bold Condensed 36px",
-				"dataLoggerStatFont":		"ITC Avant Garde Gothic CE Book 22px",
-				"centerPanelTitleFont":		"ITC Avant Garde Gothic CE Book 22px",
-				"centerPanelStatFont":		"Technology Bold 200px",
-				"sidePanelTitleFont":		"Futura Std Bold Condensed 26px",
-				"sidePanelStatFont":		"ITC Avant Garde Gothic CE Book 26px",
-				"faultIndicatorFont":		"Futura Std Bold Condensed 32px"
+				"dataLoggerTitleFont":					"Futura Std Bold Condensed 36px",
+				"dataLoggerStatFont":					"ITC Avant Garde Gothic CE Book 22px",
+				"centerPanelTitleFont":					"ITC Avant Garde Gothic CE Book 22px",
+				"centerPanelStatFont":					"Technology Bold 200px",
+				"sidePanelTitleFont":					"Futura Std Bold Condensed 26px",
+				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px",
+				"faultIndicatorFont":					"Futura Std Bold Condensed 32px"
 			},
 			"dataLoggerTitle":
 			{
-				"type":						"canLabelBool_t",
-				"signalName":				"SESSION_NUMBER",
-				"activeValue":				"LOGGING: ON",
-				"inactiveValue":			"LOGGING: ON",
-				"invalidValue":				"LOGGING: OFF",
-				"threshold":				"0",
-				"inverted":					"false"
+				"type":									"canLabelBool_t",
+				"signalName":							"SESSION_NUMBER",
+				"activeValue":							"LOGGING: ON",
+				"inactiveValue":						"LOGGING: ON",
+				"invalidValue":							"LOGGING: OFF",
+				"threshold":							"0",
+				"inverted":								"false"
 			},
 			"dataLoggerStat":
 			{
-				"type":						"canLabelFloat_t",
-				"signalName":				"SESSION_NUMBER",
-				"formatValue":				"Session\nNo. %.0f",
-				"formatInvalid":			"Session\nNo. %s"
+				"type":									"canLabelFloat_t",
+				"signalName":							"SESSION_NUMBER",
+				"formatValue":							"Session\nNo. %.0f",
+				"formatInvalid":						"Session\nNo. %s"
 			},
-			"centerTitle":					"Vehicle Speed (Km/h):",
+			"centerTitle":								"Vehicle Speed (Km/h):",
 			"centerStat":
 			{
-				"type":						"canLabelFloat_t",
-				"signalName":				"SPEED",
-				"formatValue":				"%02.0f",
-				"formatInvalid":			"XX"
+				"type":									"canLabelFloat_t",
+				"signalName":							"SPEED",
+				"formatValue":							"%02.0f",
+				"formatInvalid":						"XX"
 			},
 			"leftSidePanel":
 			{
-				"title":					"Torque Config",
-				"width":					"180",
+				"title":								"Torque Config",
+				"width":								"180",
 				"labels":
 				[
 					"Torque:",
@@ -87,40 +87,40 @@
 				"widgets":
 				[
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"DRIVING_TORQUE_LIMIT",
-						"formatValue":		"%.0f%s",
-						"formatInvalid":	"%s%s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"DRIVING_TORQUE_LIMIT",
+						"formatValue":					"%.0f%s",
+						"formatInvalid":				"%s%s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"REGEN_TORQUE_LIMIT",
-						"formatValue":		"%.0f%s",
-						"formatInvalid":	"%s%s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"REGEN_TORQUE_LIMIT",
+						"formatValue":					"%.0f%s",
+						"formatInvalid":				"%s%s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"TORQUE_ALGORITHM_INDEX",
-						"formatValue":		"%.0f",
-						"formatInvalid":	"%s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"TORQUE_ALGORITHM_INDEX",
+						"formatValue":					"%.0f",
+						"formatInvalid":				"%s"
 					},
 					{
-						"type":				"canIndicator_t",
-						"signalName":		"TODO",
-						"threshold":		"0.5",
-						"inverted":			"false",
-						"width":			"26",
-						"height":			"26",
-						"activeColor":		"#FFFFFF",
-						"inactiveColor":	"#580000",
-						"invalidColor":		"#FF0000"
+						"type":							"canIndicator_t",
+						"signalName":					"TODO",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"26",
+						"height":						"26",
+						"activeColor":					"#FFFFFF",
+						"inactiveColor":				"#580000",
+						"invalidColor":					"#FF0000"
 					}
 				]
 			},
 			"rightSidePanel":
 			{
-				"title":					"Powertrain",
-				"width":					"180",
+				"title":								"Powertrain",
+				"width":								"180",
 				"labels":
 				[
 					"GLV:",
@@ -131,103 +131,103 @@
 				"widgets":
 				[
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"GLV_BATTERY_VOLTAGE",
-						"formatValue":		"%.1f %s",
-						"formatInvalid":	"%s %s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"GLV_BATTERY_VOLTAGE",
+						"formatValue":					"%.1f %s",
+						"formatInvalid":				"%s %s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"PACK_VOLTAGE",
-						"formatValue":		"%.1f %s",
-						"formatInvalid":	"%s %s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"PACK_VOLTAGE",
+						"formatValue":					"%.1f %s",
+						"formatInvalid":				"%s %s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"AMK_INVERTER_TEMPERATURE_MAX",
-						"formatValue":		"%.1f %s",
-						"formatInvalid":	"%s %s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"AMK_INVERTER_TEMPERATURE_MAX",
+						"formatValue":					"%.1f %s",
+						"formatInvalid":				"%s %s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"AMK_MOTOR_TEMPERATURE_MAX",
-						"formatValue":		"%.1f %s",
-						"formatInvalid":	"%s %s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"AMK_MOTOR_TEMPERATURE_MAX",
+						"formatValue":					"%.1f %s",
+						"formatInvalid":				"%s %s"
 					}
 				]
 			}
 		},
 		{
-			"type":							"pageDrive_t",
-			"name":							"ENDR.",
+			"type":										"pageDrive_t",
+			"name":										"ENDR.",
 			"style":
 			{
 				"baseStyle":
 				{
-					"borderColor":			"#CC4400",
-					"fontColor":			"#FF6600"
+					"borderColor":						"#CC4400",
+					"fontColor":						"#FF6600"
 				},
 
-				"appsColor":				"#BC9100",
-				"bseColor":					"#FF0000",
+				"appsColor":							"#BC9100",
+				"bseColor":								"#FF0000",
 
-				"decalTickColorLight":		"#CC0000",
-				"decalTickColorDark":		"#000000",
-				"decalUpperTickMargin":		"20.0",
-				"decalUpperTickSpacing":	"50.0",
-				"decalCenterTickMargin":	"10.0",
-				"decalCenterTickSpacing":	"80.0",
-				"decalHeight":				"6.0",
-				"decalThickness":			"2.0",
-				"decalWidth":				"6.0",
+				"decalTickColorLight":					"#CC0000",
+				"decalTickColorDark":					"#000000",
+				"decalUpperTickMargin":					"20.0",
+				"decalUpperTickSpacing":				"50.0",
+				"decalCenterTickMargin":				"10.0",
+				"decalCenterTickSpacing":				"80.0",
+				"decalHeight":							"6.0",
+				"decalThickness":						"2.0",
+				"decalWidth":							"6.0",
 
-				"faultActiveColor":			"#FF0000",
-				"faultInactiveColor":		"#580000",
+				"faultActiveColor":						"#FF0000",
+				"faultInactiveColor":					"#580000",
 
-				"gradientStartColor":		"#B63D24",
-				"gradientStartPosition":	"0.0",
-				"gradientMiddleColor":		"#B63D24",
-				"gradientMiddlePosition":	"0.4",
-				"gradientEndColor":			"#7d3a11",
-				"gradientEndPosition":		"1.0",
+				"gradientStartColor":					"#B63D24",
+				"gradientStartPosition":				"0.0",
+				"gradientMiddleColor":					"#B63D24",
+				"gradientMiddlePosition":				"0.4",
+				"gradientEndColor":						"#7d3a11",
+				"gradientEndPosition":					"1.0",
 
-				"dataLoggerTitleFont":		"Futura Std Bold Condensed 36px",
-				"dataLoggerStatFont":		"ITC Avant Garde Gothic CE Book 22px",
-				"centerPanelTitleFont":		"ITC Avant Garde Gothic CE Book 22px",
-				"centerPanelStatFont":		"Technology Bold 200px",
-				"sidePanelTitleFont":		"Futura Std Bold Condensed 26px",
-				"sidePanelStatFont":		"ITC Avant Garde Gothic CE Book 26px",
-				"faultIndicatorFont":		"Futura Std Bold Condensed 32px"
+				"dataLoggerTitleFont":					"Futura Std Bold Condensed 36px",
+				"dataLoggerStatFont":					"ITC Avant Garde Gothic CE Book 22px",
+				"centerPanelTitleFont":					"ITC Avant Garde Gothic CE Book 22px",
+				"centerPanelStatFont":					"Technology Bold 200px",
+				"sidePanelTitleFont":					"Futura Std Bold Condensed 26px",
+				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px",
+				"faultIndicatorFont":					"Futura Std Bold Condensed 32px"
 			},
 			"dataLoggerTitle":
 			{
-				"type":						"canLabelBool_t",
-				"signalName":				"SESSION_NUMBER",
-				"activeValue":				"LOGGING: ON",
-				"inactiveValue":			"LOGGING: ON",
-				"invalidValue":				"LOGGING: OFF",
-				"threshold":				"0",
-				"inverted":					"false"
+				"type":									"canLabelBool_t",
+				"signalName":							"SESSION_NUMBER",
+				"activeValue":							"LOGGING: ON",
+				"inactiveValue":						"LOGGING: ON",
+				"invalidValue":							"LOGGING: OFF",
+				"threshold":							"0",
+				"inverted":								"false"
 			},
 			"dataLoggerStat":
 			{
-				"type":						"canLabelFloat_t",
-				"signalName":				"SESSION_NUMBER",
-				"formatValue":				"Session\nNo. %.0f",
-				"formatInvalid":			"Session\nNo. %s"
+				"type":									"canLabelFloat_t",
+				"signalName":							"SESSION_NUMBER",
+				"formatValue":							"Session\nNo. %.0f",
+				"formatInvalid":						"Session\nNo. %s"
 			},
-			"centerTitle":					"Pack Voltage (V):",
+			"centerTitle":								"Pack Voltage (V):",
 			"centerStat":
 			{
-				"type":						"canLabelFloat_t",
-				"signalName":				"PACK_VOLTAGE",
-				"formatValue":				"%03.0f",
-				"formatInvalid":			"XXX"
+				"type":									"canLabelFloat_t",
+				"signalName":							"PACK_VOLTAGE",
+				"formatValue":							"%03.0f",
+				"formatInvalid":						"XXX"
 			},
 			"leftSidePanel":
 			{
-				"title":					"Torque Config",
-				"width":					"180",
+				"title":								"Torque Config",
+				"width":								"180",
 				"labels":
 				[
 					"Torque:",
@@ -238,40 +238,40 @@
 				"widgets":
 				[
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"DRIVING_TORQUE_LIMIT",
-						"formatValue":		"%.0f%s",
-						"formatInvalid":	"%s%s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"DRIVING_TORQUE_LIMIT",
+						"formatValue":					"%.0f%s",
+						"formatInvalid":				"%s%s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"REGEN_TORQUE_LIMIT",
-						"formatValue":		"%.0f%s",
-						"formatInvalid":	"%s%s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"REGEN_TORQUE_LIMIT",
+						"formatValue":					"%.0f%s",
+						"formatInvalid":				"%s%s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"TORQUE_ALGORITHM_INDEX",
-						"formatValue":		"%.0f",
-						"formatInvalid":	"%s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"TORQUE_ALGORITHM_INDEX",
+						"formatValue":					"%.0f",
+						"formatInvalid":				"%s"
 					},
 					{
-						"type":				"canIndicator_t",
-						"signalName":		"TODO",
-						"threshold":		"0.5",
-						"inverted":			"false",
-						"width":			"26",
-						"height":			"26",
-						"activeColor":		"#FFFFFF",
-						"inactiveColor":	"#580000",
-						"invalidColor":		"#FF0000"
+						"type":							"canIndicator_t",
+						"signalName":					"TODO",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"26",
+						"height":						"26",
+						"activeColor":					"#FFFFFF",
+						"inactiveColor":				"#580000",
+						"invalidColor":					"#FF0000"
 					}
 				]
 			},
 			"rightSidePanel":
 			{
-				"title":					"Powertrain",
-				"width":					"180",
+				"title":								"Powertrain",
+				"width":								"180",
 				"labels":
 				[
 					"GLV:",
@@ -282,34 +282,34 @@
 				"widgets":
 				[
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"GLV_BATTERY_VOLTAGE",
-						"formatValue":		"%.1f %s",
-						"formatInvalid":	"%s %s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"GLV_BATTERY_VOLTAGE",
+						"formatValue":					"%.1f %s",
+						"formatInvalid":				"%s %s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"PACK_VOLTAGE",
-						"formatValue":		"%.1f %s",
-						"formatInvalid":	"%s %s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"PACK_VOLTAGE",
+						"formatValue":					"%.1f %s",
+						"formatInvalid":				"%s %s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"AMK_INVERTER_TEMPERATURE_MAX",
-						"formatValue":		"%.1f %s",
-						"formatInvalid":	"%s %s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"AMK_INVERTER_TEMPERATURE_MAX",
+						"formatValue":					"%.1f %s",
+						"formatInvalid":				"%s %s"
 					},
 					{
-						"type":				"canLabelFloat_t",
-						"signalName":		"AMK_MOTOR_TEMPERATURE_MAX",
-						"formatValue":		"%.1f %s",
-						"formatInvalid":	"%s %s"
+						"type":							"canLabelFloat_t",
+						"signalName":					"AMK_MOTOR_TEMPERATURE_MAX",
+						"formatValue":					"%.1f %s",
+						"formatInvalid":				"%s %s"
 					}
 				]
 			}
 		},
 		{
-			"type":							"null"
+			"type":										"null"
 		},
 		{
 			"type":										"pageBms_t",
@@ -335,6 +335,10 @@
 				"ltcTemperatureGraphTickColor":			"#00FFAA",
 				"ltcTemperatureGraphAxisColor":			"#00FFAA"
 			}
+		},
+		{
+			"type":										"pageCanBus_t",
+			"name":										"CAN"
 		}
 	]
 }

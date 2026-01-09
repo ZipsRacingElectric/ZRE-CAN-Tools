@@ -5,11 +5,11 @@ BIN := $(BIN_DIR)/dashboard-gui
 SRC :=	main.c										\
 		gtk_util.c									\
 		bms_widgets.c								\
-		page.c										\
 		page_stack.c								\
-		page_bms.c									\
-		page_can_bus.c								\
-		page_drive.c								\
+		pages/page.c								\
+		pages/page_drive.c							\
+		pages/page_bms.c							\
+		pages/page_can_bus.c						\
 		can_widgets/can_widget.c					\
 		can_widgets/can_indicator.c					\
 		can_widgets/can_label_bool.c				\

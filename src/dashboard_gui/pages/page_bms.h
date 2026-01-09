@@ -12,7 +12,7 @@
 
 // Includes
 #include "page.h"
-#include "bms_widgets.h"
+#include "../bms_widgets.h"
 #include "bms/bms.h"
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------

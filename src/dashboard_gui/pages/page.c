@@ -4,7 +4,8 @@
 // Include
 #include "page_drive.h"
 #include "page_bms.h"
-#include "gtk_util.h"
+#include "page_can_bus.h"
+#include "../gtk_util.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
 
@@ -22,6 +23,10 @@ page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 		return page;
 
 	page = pageBmsLoad (config, database, style);
+	if (page != NULL)
+		return page;
+
+	page = pageCanBusLoad (config, database, style);
 	if (page != NULL)
 		return page;
 
