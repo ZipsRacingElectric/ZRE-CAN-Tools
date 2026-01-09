@@ -443,23 +443,23 @@ static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* data
 	}
 }
 
-static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
+static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage, pageStyle_t* style)
 {
 	pageDrive_t* page = pageArg;
 
 	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
 	{
 		.width				= 100,
-		.height				= page->style.baseStyle->buttonHeight,
+		.height				= style->buttonHeight,
 		.label				= label,
-		.borderThickness	= page->style.baseStyle->borderThickness,
-		.backgroundColor	= page->style.baseStyle->backgroundColor,
-		.borderColor		= page->style.baseStyle->borderColor,
-		.selectedColor		= page->style.baseStyle->fontColor,
+		.borderThickness	= style->borderThickness,
+		.backgroundColor	= style->backgroundColor,
+		.borderColor		= style->borderColor,
+		.selectedColor		= style->fontColor,
 		.indicatorColor		= currentPage ?
 			page->style.baseStyle->indicatorActiveColor : page->style.baseStyle->indicatorInactiveColor
 	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.baseStyle->buttonFont);
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), style->buttonFont);
 	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
 	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
 	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);

@@ -13,6 +13,9 @@
 // GTK
 #include <gtk/gtk.h>
 
+// C Standard Library
+#include <stdarg.h>
+
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
 typedef struct
@@ -64,30 +67,21 @@ typedef struct
 stylizedTerminal_t* stylizedTerminalInit (stylizedTerminalConfig_t* config);
 
 /**
- * @brief Gets the size of a terminal's line buffer. See @c stylizedTerminalGetBuffer .
- * @param term The terminal widget to use.
- * @return The size of the buffer, including a byte for the terminator.
- */
-static inline size_t stylizedTerminalGetBufferSize (stylizedTerminal_t* term)
-{
-	return term->config.lineLengthMax + 1;
-}
-
-/**
  * @brief Starts a write operation to a terminal widget. All lines in the buffer are cleared and a buffer for the first line is
  * returned.
  * @param term The terminal to get the buffer for.
- * @note Use @c stylizedTerminalGetBufferSize to determine the size of this buffer.
+ * @param bufferSize Buffer to write the size of the text buffer into.
  * @return The buffer belonging to the first line. @c NULL if there are no lines to write to.
  */
-char* stylizedTerminalGetBuffer (stylizedTerminal_t* term);
+char* stylizedTerminalGetBuffer (stylizedTerminal_t* term, size_t* bufferSize);
 
 /**
  * @brief Gets a buffer for the next line in a terminal widget.
  * @param term The terminal to get the buffer for.
+ * @param bufferSize Buffer to write the size of the text buffer into.
  * @return The buffer belonging to the next line. @c NULL if there is no next line to write to.
  */
-char* stylizedTerminalNextLine (stylizedTerminal_t* term);
+char* stylizedTerminalNextLine (stylizedTerminal_t* term, size_t* bufferSize);
 
 /**
  * @brief Finalizes a write operation to a terminal widget. The number of lines to render is based on the number of buffers
@@ -108,17 +102,6 @@ static inline size_t stylizedTerminalGetLineCount (stylizedTerminal_t* term)
 }
 
 /**
- * @brief Gets the number of visible characters in each of a terminal's line. Note this is only valid after a call to
- * @c stylizedTerminalGetBuffer .
- * @param term The terminal to get the line length of.
- * @return The number of visable and usable characters in a single line.
- */
-static inline size_t stylizedTerminalGetLineLength (stylizedTerminal_t* term)
-{
-	return term->lineLength;
-}
-
-/**
  * @brief Gets the scroll position of a terminal, in number of lines.
  * @param term The terminal to get the scroll of.
  * @return The scroll position.
@@ -127,5 +110,28 @@ static inline int stylizedTerminalGetScrollPosition (stylizedTerminal_t* term)
 {
 	return term->scrollPosition;
 }
+
+int stylizedTerminalSnprintf (stylizedTerminal_t* term, char** buffer, size_t* bufferSize, char* format, ...);
+
+#define stylizedTerminalSnprintCallback(term, buffer, bufferSize, callback, ...)												\
+	({																															\
+		int retval = 0;																											\
+		int code = (callback) ((buffer), (bufferSize), __VA_ARGS__);															\
+		if (code < 0 || (size_t) code >= (bufferSize))																			\
+		{																														\
+			stylizedTerminalWriteBuffer (term);																					\
+			errno = EOVERFLOW;																									\
+			retval = errno;																										\
+		}																														\
+		else																													\
+		{																														\
+			(bufferSize) -= code;																								\
+			(buffer) += code;																									\
+		}																														\
+																																\
+		retval;																													\
+	})
+
+int stylizedTerminalPrintNewline (stylizedTerminal_t* term, char** buffer, size_t* bufferSize);
 
 #endif // STYLIZED_TERMINAL_H

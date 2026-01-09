@@ -160,7 +160,7 @@ stylizedTerminal_t* stylizedTerminalInit (stylizedTerminalConfig_t* config)
 	return term;
 }
 
-char* stylizedTerminalGetBuffer (stylizedTerminal_t* term)
+char* stylizedTerminalGetBuffer (stylizedTerminal_t* term, size_t* bufferSize)
 {
 	// Reset the number of written lines
 	term->linesWritten = 0;
@@ -192,22 +192,60 @@ char* stylizedTerminalGetBuffer (stylizedTerminal_t* term)
 
 	// If no lines can be written, return no buffer
 	if (term->lineCount == 0)
+	{
+		stylizedTerminalWriteBuffer (term);
 		return NULL;
+	}
 
 	// Otherwise, return the first line buffer
+	*bufferSize = term->lineLength + 1;
 	return term->buffer;
 }
 
-char* stylizedTerminalNextLine (stylizedTerminal_t* term)
+char* stylizedTerminalNextLine (stylizedTerminal_t* term, size_t* bufferSize)
 {
 	++term->linesWritten;
 	if (term->linesWritten >= term->lineCount)
 		return NULL;
 
+	*bufferSize = term->lineLength + 1;
 	return term->buffer + term->linesWritten * (term->config.lineLengthMax + 1);
 }
 
 void stylizedTerminalWriteBuffer (stylizedTerminal_t* term)
 {
 	gtk_widget_queue_draw (STYLIZED_TERMINAL_TO_WIDGET (term));
+}
+
+int stylizedTerminalSnprintf (stylizedTerminal_t* term, char** buffer, size_t* bufferSize, char* format, ...)
+{
+	va_list args;
+	va_start (args, format);
+	int code = vsnprintf (*buffer, *bufferSize, format, args);
+	va_end (args);
+
+	if (code < 0 || (size_t) code >= *bufferSize)
+	{
+		stylizedTerminalWriteBuffer (term);
+		errno = EOVERFLOW;
+		return errno;
+	}
+
+	*bufferSize -= code;
+	*buffer += code;
+
+	return 0;
+}
+
+int stylizedTerminalPrintNewline (stylizedTerminal_t* term, char** buffer, size_t* bufferSize)
+{
+	*buffer = stylizedTerminalNextLine (term, bufferSize);
+	if (*buffer == NULL)
+	{
+		stylizedTerminalWriteBuffer (term);
+		errno = EOVERFLOW;
+		return errno;
+	}
+
+	return 0;
 }

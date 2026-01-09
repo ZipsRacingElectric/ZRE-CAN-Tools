@@ -118,13 +118,13 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 			if (pages [buttonIndex] != NULL)
 			{
 				if (index != buttonIndex)
-					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), pageStackSelectCallback, pages [buttonIndex], false);
+					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), pageStackSelectCallback, pages [buttonIndex], false, style);
 				else
-					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), NULL, NULL, true);
+					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), NULL, NULL, true, style);
 			}
 			else
 			{
-				pageAppendButton (pages [index], "", NULL, NULL, false);
+				pageAppendButton (pages [index], "", NULL, NULL, false, style);
 			}
 		}
 	}

@@ -4,6 +4,7 @@
 // Includes
 #include "../stylized_widgets/stylized_button.h"
 #include "../gtk_util.h"
+#include "can_database/can_database_stdio.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
 
@@ -35,6 +36,10 @@ static void styleLoad (pageBmsStyle_t* style, pageStyle_t* baseStyle, cJSON* con
 		return;
 
 	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
+
+	char* terminalBackgroundColor;
+	if (jsonGetString (config, "terminalBackgroundColor", &terminalBackgroundColor) == 0)
+		style->terminalBackgroundColor = gdkHexToColor (terminalBackgroundColor);
 
 	jsonGetString (config, "cellVoltageGraphTitleFont", &style->cellVoltageGraphTitleFont);
 
@@ -91,23 +96,23 @@ static void styleLoad (pageBmsStyle_t* style, pageStyle_t* baseStyle, cJSON* con
 		style->ltcTemperatureGraphAxisColor = gdkHexToColor (ltcTemperatureGraphAxisColor);
 }
 
-static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
+static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage, pageStyle_t* style)
 {
 	pageBms_t* page = pageArg;
 
 	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
 	{
 		.width				= 100,
-		.height				= page->style.baseStyle->buttonHeight,
+		.height				= style->buttonHeight,
 		.label				= label,
-		.borderThickness	= page->style.baseStyle->borderThickness,
-		.backgroundColor	= page->style.baseStyle->backgroundColor,
-		.borderColor		= page->style.baseStyle->borderColor,
-		.selectedColor		= page->style.baseStyle->fontColor,
+		.borderThickness	= style->borderThickness,
+		.backgroundColor	= style->backgroundColor,
+		.borderColor		= style->borderColor,
+		.selectedColor		= style->fontColor,
 		.indicatorColor		= currentPage ?
 			page->style.baseStyle->indicatorActiveColor : page->style.baseStyle->indicatorInactiveColor
 	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.baseStyle->buttonFont);
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), style->buttonFont);
 	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
 	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
 	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);
@@ -124,37 +129,122 @@ static void update (void* pageArg)
 	bmsBarGraphUpdate (&page->temperatures);
 	bmsBarGraphUpdate (&page->ltcTemperatures);
 
-	bmsFaultLabelUpdate (&page->faultLabel);
+	size_t bufferSize;
+	char* buffer = stylizedTerminalGetBuffer (page->term, &bufferSize);
+	if (buffer == NULL)
+		return;
 
-	float value;
-	canDatabaseSignalState_t state = bmsGetPackVoltage (&page->bms, &value);
-	canLabelFloatStaticUpdate (&page->voltageLabel, value, state, "V");
+	if (stylizedTerminalSnprintf (page->term, &buffer, &bufferSize, "- BMS Status: %s ", bmsGetFaultState (&page->bms)) != 0)
+		return;
 
-	state = bmsGetPackCurrent (&page->bms, &value);
-	canLabelFloatStaticUpdate (&page->currentLabel, value, state, "A");
+	for (size_t index = 0; index < bufferSize - 1; ++index)
+		buffer [index] = '-';
+	buffer [bufferSize - 1] = '\0';
 
-	state = bmsGetPackPower (&page->bms, &value);
-	canLabelFloatStaticUpdate (&page->powerLabel, value, state, "W");
+	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
+		return;
 
-	float min;
-	float max;
-	float avg;
-	bool valid = bmsGetCellVoltageStats (&page->bms, &min, &max, &avg);
-	state = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
-	canLabelFloatStaticUpdate (&page->minCellLabel, min, state, "V");
-	canLabelFloatStaticUpdate (&page->maxCellLabel, max, state, "V");
-	canLabelFloatStaticUpdate (&page->avgCellLabel, avg, state, "V");
+	float voltage, current, power;
+	canDatabaseSignalState_t voltageState = bmsGetPackVoltage (&page->bms, &voltage);
+	canDatabaseSignalState_t currentState = bmsGetPackCurrent (&page->bms, &current);
+	canDatabaseSignalState_t powerState = bmsGetPackPower (&page->bms, &power);
 
-	valid = bmsGetTemperatureStats (&page->bms, &min, &max, &avg);
-	state = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
-	canLabelFloatStaticUpdate (&page->minTempLabel, min, state, "C");
-	canLabelFloatStaticUpdate (&page->maxTempLabel, max, state, "C");
-	canLabelFloatStaticUpdate (&page->avgTempLabel, avg, state, "C");
+	float cellMin, cellMax, cellAvg;
+	bool valid = bmsGetCellVoltageStats (&page->bms, &cellMin, &cellMax, &cellAvg);
+	canDatabaseSignalState_t cellStatsState = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
 
-	valid = bmsGetCellDeltaStats (&page->bms, &max, &avg);
-	state = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
-	canLabelFloatStaticUpdate (&page->maxDeltaLabel, max, state, "V");
-	canLabelFloatStaticUpdate (&page->avgDeltaLabel, avg, state, "V");
+	float tempMin, tempMax, tempAvg;
+	valid = bmsGetTemperatureStats (&page->bms, &tempMin, &tempMax, &tempAvg);
+	canDatabaseSignalState_t tempStatsState = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
+
+	float deltaMax, deltaAvg;
+	valid = bmsGetCellDeltaStats (&page->bms, &deltaMax, &deltaAvg);
+	canDatabaseSignalState_t deltaStatsState = valid ? CAN_DATABASE_VALID : CAN_DATABASE_TIMEOUT;
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  Voltage: %7.1f%s", "  Voltage: %7s%s", voltage, voltageState, "V") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  |  Min Cell: %6.3f%s", "  |  Min Cell: %6s%s", cellMin, cellStatsState, "V") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  |  Min Temp: %6.2f%s", "  |  Min Temp: %6s%s", tempMin, tempStatsState, "C") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  |  Max Delta: %5.3f%s", "  |  Max Delta: %5s%s", deltaMax, deltaStatsState, "V") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
+		return;
+
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  Current: %7.1f%s", "  Current: %7s%s", current, currentState, "A") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  |  Max Cell: %6.3f%s", "  |  Max Cell: %6s%s", cellMax, cellStatsState, "V") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  |  Max Temp: %6.2f%s", "  |  Max Temp: %6s%s", tempMax, tempStatsState, "C") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  |  Avg Delta: %5.3f%s", "  |  Avg Delta: %5s%s", deltaAvg, deltaStatsState, "V") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
+		return;
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  Power: %9.1f%s", "  Power: %9s%s", power, powerState, "W") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  |  Avg Cell: %6.3f%s", "  |  Avg Cell: %6s%s", cellAvg, cellStatsState, "V") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
+		snprintCanDatabaseFloatStatic, "  |  Avg Temp: %6.2f%s  |", "  |  Avg Temp: %6s%s  |", tempAvg, tempStatsState, "C") != 0)
+	{
+		return;
+	}
+
+	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
+		return;
+
+	for (size_t index = 0; index < bufferSize - 1; ++index)
+		buffer [index] = '-';
+	buffer [bufferSize - 1] = '\0';
+
+	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
+		return;
+
+	stylizedTerminalWriteBuffer (page->term);
 }
 
 page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
@@ -223,194 +313,20 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 	GtkWidget* statusTitle = gtk_grid_new ();
 	gtk_grid_attach (GTK_GRID (grid), statusTitle, 0, 0, 2, 1);
 
-	GtkWidget* label = gtk_label_new ("BMS Status: ");
-	gtk_grid_attach (GTK_GRID (statusTitle), label, 0, 0, 1, 1);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-
-	bmsFaultLabelInit (&page->faultLabel, &page->bms);
-	gtk_grid_attach (GTK_GRID (statusTitle), BMS_FAULT_LABEL_TO_WIDGET (&page->faultLabel), 1, 0, 2, 1);
-	gtkLabelSetFont (BMS_FAULT_LABEL_TO_LABEL (&page->faultLabel), STATUS_FONT);
-
-	GtkWidget* statusPanel = gtk_grid_new ();
-	gtk_grid_attach (GTK_GRID (grid), statusPanel, 0, 1, 2, 1);
-
-	label = gtk_label_new ("Voltage: ");
-	page->voltageLabel = (canLabelFloatStatic_t)
+	page->term = stylizedTerminalInit (&(stylizedTerminalConfig_t)
 	{
-		.formatValue	= "%.1f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->voltageLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->voltageLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 0, 0, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->voltageLabel), 1, 0, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->voltageLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->voltageLabel), GTK_ALIGN_START);
+		.lineLengthMax		= 128,
+		.lineCountMax		= 8,
+		.fontSize			= 14,
+		.fontSpacing		= 2,
+		.scrollEnabled		= false,
+		.backgroundColor	= page->style.terminalBackgroundColor,
+		.fontColor			= page->style.baseStyle->fontColor,
+	});
+	gtk_widget_set_size_request (STYLIZED_TERMINAL_TO_WIDGET (page->term), 50, 80);
+	gtk_grid_attach (GTK_GRID (grid), STYLIZED_TERMINAL_TO_WIDGET (page->term), 0, 0, 2, 1);
 
-	label = gtk_label_new ("Current: ");
-	page->currentLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.1f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->currentLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->currentLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 2, 0, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->currentLabel), 3, 0, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->currentLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->currentLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Power: ");
-	page->powerLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.1f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->powerLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->powerLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 4, 0, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->powerLabel), 5, 0, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->powerLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->powerLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Min Cell: ");
-	page->minCellLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.3f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->minCellLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->minCellLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 6, 0, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minCellLabel), 7, 0, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minCellLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minCellLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Max Cell: ");
-	page->maxCellLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.3f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->maxCellLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->maxCellLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 8, 0, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxCellLabel), 9, 0, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxCellLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxCellLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Avg Cell: ");
-	page->avgCellLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.3f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->avgCellLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->avgCellLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 10, 0, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgCellLabel), 11, 0, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgCellLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgCellLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Min Temp: ");
-	page->minTempLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.1f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->minTempLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->minTempLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 0, 1, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minTempLabel), 1, 1, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minTempLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->minTempLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Max Temp: ");
-	page->maxTempLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.1f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->maxTempLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->maxTempLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 2, 1, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxTempLabel), 3, 1, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxTempLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxTempLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Avg Temp: ");
-	page->avgTempLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.1f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->avgTempLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->avgTempLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 4, 1, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgTempLabel), 5, 1, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgTempLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgTempLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Max Delta: ");
-	page->maxDeltaLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.3f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->maxDeltaLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->maxDeltaLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 6, 1, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxDeltaLabel), 7, 1, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxDeltaLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->maxDeltaLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Avg Delta: ");
-	page->avgDeltaLabel = (canLabelFloatStatic_t)
-	{
-		.formatValue	= "%.3f%s",
-		.formatInvalid	= "%s%s"
-	};
-	canLabelFloatStaticInit (&page->avgDeltaLabel);
-	gtkLabelSetFont (GTK_LABEL (label), STATUS_FONT);
-	gtkLabelSetFont (CAN_LABEL_FLOAT_STATIC_TO_LABEL (&page->avgDeltaLabel), STATUS_FONT);
-	gtk_grid_attach (GTK_GRID (statusPanel), label, 8, 1, 1, 1);
-	gtk_grid_attach (GTK_GRID (statusPanel), CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), 9, 1, 1, 1);
-	gtk_widget_set_hexpand (label, true);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
-	gtk_widget_set_hexpand (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), true);
-	gtk_widget_set_halign (CAN_LABEL_FLOAT_STATIC_TO_WIDGET (&page->avgDeltaLabel), GTK_ALIGN_START);
-
-	label = gtk_label_new ("Cell Voltages:");
+	GtkWidget* label = gtk_label_new ("Cell Voltages:");
 	gtkLabelSetFont (GTK_LABEL (label), page->style.cellVoltageGraphTitleFont);
 	gtkLabelSetColor (GTK_LABEL (label), &page->style.cellVoltageGraphTitleColor);
 	gtk_widget_set_hexpand (label, true);
@@ -471,6 +387,7 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), true);
+	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_vexpand (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), true);
 	gtk_widget_set_margin_top (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), 5);
 	gtk_widget_set_margin_bottom (BMS_BAR_GRAPH_TO_WIDGET (&page->temperatures), 5);
@@ -505,6 +422,7 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), true);
+	gtk_widget_set_halign (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), GTK_ALIGN_FILL);
 	gtk_widget_set_vexpand (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), true);
 	gtk_widget_set_margin_top (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), 5);
 	gtk_widget_set_margin_bottom (BMS_BAR_GRAPH_TO_WIDGET (&page->ltcTemperatures), 5);

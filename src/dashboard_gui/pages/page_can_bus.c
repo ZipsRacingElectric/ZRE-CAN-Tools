@@ -10,6 +10,17 @@
 #include "cjson/cjson_util.h"
 #include "debug.h"
 
+static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
+{
+	pageCanBus_t* page = arg;
+	(void) area;
+	(void) arg;
+
+	gdk_cairo_set_source_rgba (cr, &page->style.baseStyle->backgroundColor);
+	cairo_rectangle (cr, 0, 0, width, height);
+	cairo_fill (cr);
+}
+
 static void styleLoad (pageCanBusStyle_t* style, pageStyle_t* baseStyle, cJSON* config)
 {
 	*style = (pageCanBusStyle_t)
@@ -21,25 +32,29 @@ static void styleLoad (pageCanBusStyle_t* style, pageStyle_t* baseStyle, cJSON* 
 		return;
 
 	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
+
+	char* color;
+	if (jsonGetString (config, "terminalBackgroundColor", &color) == 0)
+		style->terminalBackgroundColor = gdkHexToColor (color);
 }
 
-static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
+static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage, pageStyle_t* style)
 {
 	pageCanBus_t* page = pageArg;
 
 	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
 	{
 		.width				= 100,
-		.height				= page->style.baseStyle->buttonHeight,
+		.height				= style->buttonHeight,
 		.label				= label,
-		.borderThickness	= page->style.baseStyle->borderThickness,
-		.backgroundColor	= page->style.baseStyle->backgroundColor,
-		.borderColor		= page->style.baseStyle->borderColor,
-		.selectedColor		= page->style.baseStyle->fontColor,
+		.borderThickness	= style->borderThickness,
+		.backgroundColor	= style->backgroundColor,
+		.borderColor		= style->borderColor,
+		.selectedColor		= style->fontColor,
 		.indicatorColor		= currentPage ?
 			page->style.baseStyle->indicatorActiveColor : page->style.baseStyle->indicatorInactiveColor
 	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.baseStyle->buttonFont);
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), style->buttonFont);
 	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
 	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
 	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);
@@ -52,38 +67,23 @@ static void update (void* pageArg)
 {
 	pageCanBus_t* page = pageArg;
 
-	char* buffer = stylizedTerminalGetBuffer (page->term);
-	size_t bufferSize = stylizedTerminalGetBufferSize (page->term);
+	size_t bufferSize;
+	char* buffer = stylizedTerminalGetBuffer (page->term, &bufferSize);
 	if (buffer == NULL)
-	{
-		stylizedTerminalWriteBuffer (page->term);
 		return;
-	}
 
-	int code = snprintf (buffer, bufferSize, "%-36s | %-16s | Unit", "Message / Signal Name", "Value");
-	if (code < 0 || (size_t) code >= bufferSize)
-	{
-		debugPrintf ("Failed to print CAN database, buffer overflow.\n");
-		stylizedTerminalWriteBuffer (page->term);
+	if (stylizedTerminalSnprintf (page->term, &buffer, &bufferSize, "%-36s | %-16s | Unit", "Message / Signal Name", "Value") != 0)
 		return;
-	}
-	buffer = stylizedTerminalNextLine (page->term);
-	if (buffer == NULL)
-	{
-		stylizedTerminalWriteBuffer (page->term);
-		return;
-	}
 
-	size_t lineLength = stylizedTerminalGetLineLength (page->term);
-	for (size_t index = 0; index < lineLength; ++index)
+	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
+		return;
+
+	for (size_t index = 0; index < bufferSize - 1; ++index)
 		buffer [index] = '-';
-	buffer [lineLength] = '\0';
-	buffer = stylizedTerminalNextLine (page->term);
-	if (buffer == NULL)
-	{
-		stylizedTerminalWriteBuffer (page->term);
+	buffer [bufferSize - 1] = '\0';
+
+	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
 		return;
-	}
 
 	int scroll = stylizedTerminalGetScrollPosition (page->term);
 	size_t messageCount = canDatabaseGetMessageCount (page->database);
@@ -93,40 +93,17 @@ static void update (void* pageArg)
 
 		if (scroll <= 0)
 		{
-			code = snprintf (buffer, bufferSize, "%s - ", message->name);
-			if (code < 0 || (size_t) code >= bufferSize)
-			{
-				debugPrintf ("Failed to print CAN database, buffer overflow.\n");
-				stylizedTerminalWriteBuffer (page->term);
+			if (stylizedTerminalSnprintf (page->term, &buffer, &bufferSize, "%s - ", message->name) != 0)
 				return;
-			}
-			buffer += code;
-			bufferSize -= code;
 
-			code = snprintCanId (buffer, bufferSize, message->id, message->ide, false);
-			if (code < 0 || (size_t) code >= bufferSize)
-			{
-				debugPrintf ("Failed to print CAN database, buffer overflow.\n");
-				stylizedTerminalWriteBuffer (page->term);
+			if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize, snprintCanId, message->id, message->ide, false) != 0)
 				return;
-			}
-			buffer += code;
-			bufferSize -= code;
 
-			code = snprintf (buffer, bufferSize, ":");
-			if (code < 0 || (size_t) code >= bufferSize)
-			{
-				debugPrintf ("Failed to print CAN database, buffer overflow.\n");
-				stylizedTerminalWriteBuffer (page->term);
+			if (stylizedTerminalSnprintf (page->term, &buffer, &bufferSize, ":") != 0)
 				return;
-			}
-			buffer = stylizedTerminalNextLine (page->term);
-			if (buffer == NULL)
-			{
-				stylizedTerminalWriteBuffer (page->term);
+
+			if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
 				return;
-			}
-			bufferSize = stylizedTerminalGetBufferSize (page->term);
 		}
 		else
 			--scroll;
@@ -138,30 +115,14 @@ static void update (void* pageArg)
 			if (scroll <= 0)
 			{
 				size_t globalIndex = canDatabaseGetGlobalIndex (page->database, messageIndex, signalIndex);
-				code = snprintf (buffer, bufferSize, "    %-32s | ", signal->name);
-				if (code < 0 || (size_t) code >= bufferSize)
-				{
-					debugPrintf ("Failed to print CAN database, buffer overflow.\n");
-					stylizedTerminalWriteBuffer (page->term);
+				if (stylizedTerminalSnprintf (page->term, &buffer, &bufferSize, "    %-32s | ", signal->name) != 0)
 					return;
-				}
-				buffer += code;
-				bufferSize -= code;
 
-				code = snprintCanDatabaseFloat (buffer, bufferSize, "%-16f | %s", "%-16s | %s", page->database, globalIndex);
-				if (code < 0 || (size_t) code >= bufferSize)
-				{
-					debugPrintf ("Failed to print CAN database, buffer overflow.\n");
-					stylizedTerminalWriteBuffer (page->term);
+				if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize, snprintCanDatabaseFloat, "%16f | %s", "%16s | %s", page->database, globalIndex) != 0)
 					return;
-				}
-				buffer = stylizedTerminalNextLine (page->term);
-				if (buffer == NULL)
-				{
-					stylizedTerminalWriteBuffer (page->term);
+
+				if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
 					return;
-				}
-				bufferSize = stylizedTerminalGetBufferSize (page->term);
 			}
 			else
 				--scroll;
@@ -207,15 +168,19 @@ page_t* pageCanBusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 
 	page->database = database;
 
+	GtkWidget* bg = gtk_drawing_area_new ();
+	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (bg), drawBg, page, NULL);
+	gtk_overlay_set_child (GTK_OVERLAY (page->vmt.widget), bg);
+
 	page->grid = gtk_grid_new ();
 	gtk_overlay_add_overlay (GTK_OVERLAY (page->vmt.widget), page->grid);
 	gtk_overlay_set_measure_overlay (GTK_OVERLAY (page->vmt.widget), page->grid, true);
 
 	stylizedFrame_t* frame = stylizedFrameInit (&(stylizedFrameConfig_t)
 	{
-		.backgroundColor	= gdkHexToColor ("#000000"),
-		.borderColor		= gdkHexToColor ("#00FFAA"),
-		.borderThickness	= 1.5f,
+		.backgroundColor	= page->style.terminalBackgroundColor,
+		.borderColor		= page->style.baseStyle->borderColor,
+		.borderThickness	= page->style.baseStyle->borderThickness,
 		.cornerRadius		= 0
 	});
 	gtk_widget_set_hexpand (STYLIZED_FRAME_TO_WIDGET (frame), true);
@@ -231,8 +196,8 @@ page_t* pageCanBusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 		.scrollEnabled			= true,
 		.scrollMin				= 0,
 		.scrollMax				= canDatabaseGetMessageCount (database) + canDatabaseGetSignalCount (database),
-		.backgroundColor		= gdkHexToColor ("#00000000"),
-		.fontColor				= gdkHexToColor ("#00FFAA")
+		.backgroundColor		= page->style.terminalBackgroundColor,
+		.fontColor				= page->style.baseStyle->fontColor
 	});
 	gtk_widget_set_margin_top (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
 	gtk_widget_set_margin_bottom (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);

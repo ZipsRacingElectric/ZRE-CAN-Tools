@@ -23,6 +23,8 @@
 typedef struct
 {
 	pageStyle_t* baseStyle;
+
+	GdkRGBA terminalBackgroundColor;
 } pageCanBusStyle_t;
 
 typedef struct

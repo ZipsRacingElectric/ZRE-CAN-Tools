@@ -317,6 +317,13 @@
 			"bmsConfig":								"config/zr25_glory/bms_config.json",
 			"style":
 			{
+				"baseStyle":
+				{
+					"fontColor":						"#FFAF4F"
+				},
+
+				"terminalBackgroundColor":				"#201000",
+
 				"cellVoltageGraphTitleFont":			"ITC Avant Garde Gothic CE Book 18px",
 				"cellVoltageGraphTitleColor":			"#00AAFF",
 				"cellVoltageGraphBarColor":				"#00AAFF",
@@ -338,7 +345,16 @@
 		},
 		{
 			"type":										"pageCanBus_t",
-			"name":										"CAN"
+			"name":										"CAN",
+			"style":
+			{
+				"baseStyle":
+				{
+					"borderColor":						"#00FFAA",
+					"fontColor":						"#00FFAA"
+				},
+				"terminalBackgroundColor":				"#001012"
+			}
 		}
 	]
 }
