@@ -1,6 +1,5 @@
 // Includes
 #include "debug.h"
-#include "page_autox.h"
 #include "page_bms_overview.h"
 #include "page_can_bus.h"
 #include "page_stack.h"
@@ -90,45 +89,46 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	cJSON* config = jsonLoad ("config/zr25_glory/temp.json");
 	pageStyle_t* style = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), NULL);
 
-	page_t* pageAutox = pageAutoxInit (arg->database, style, jsonGetObjectV2 (config, "autox"));
-	pageStackAppend (stack, pageAutox);
-	pageStackPair_t* pageAutoxPair = pageStackPairInit (stack, pageAutox);
+	cJSON* pageConfigs = jsonGetObjectV2 (config, "pages");
+	if (pageConfigs == NULL)
+	{
+		// TODO(Barach)
+		debugPrintf ("Warning, page config array missing.\n");
+		return;
+	}
 
-	page_t* pageEndr = pageAutoxInit (arg->database, style, jsonGetObjectV2 (config, "endr"));
-	pageStackAppend (stack, pageEndr);
-	pageStackPair_t* pageEndrPair = pageStackPairInit (stack, pageEndr);
+	size_t pageCount = cJSON_GetArraySize (pageConfigs) + 2;
+	page_t** pages = malloc (sizeof (page_t*) * pageCount);
+	if (pages == NULL)
+		return;
 
-	page_t* pageBms = pageBmsOverviewInit (arg->bms, style);
-	pageStackAppend (stack, pageBms);
-	pageStackPair_t* pageBmsPair = pageStackPairInit (stack, pageBms);
+	// TODO(Barach): + 2
+	for (size_t index = 0; index < pageCount - 2; ++index)
+	{
+		cJSON* pageConfig = cJSON_GetArrayItem (pageConfigs, index);
+		pages [index] = pageLoad (pageConfig, arg->database, style);
+		if (pages [index] != NULL)
+			pageStackAppend (stack, pages [index]);
+	}
 
-	page_t* pageCanBus = pageCanBusInit (arg->database, style);
-	pageStackAppend (stack, pageCanBus);
-	pageStackPair_t* pageCanBusPair = pageStackPairInit (stack, pageCanBus);
+	pages [pageCount - 2] = pageBmsOverviewInit (arg->bms, style);
+	pageStackAppend (stack, pages [pageCount - 2]);
 
-	pageAppendButton (pageAutox, "AUTO-X", NULL, NULL, true);
-	pageAppendButton (pageAutox, "ENDR.", pageStackSelectCallback, pageEndrPair, false);
-	pageAppendButton (pageAutox, "", NULL, NULL, false);
-	pageAppendButton (pageAutox, "BMS", pageStackSelectCallback, pageBmsPair, false);
-	pageAppendButton (pageAutox, "CAN", pageStackSelectCallback, pageCanBusPair, false);
+	pages [pageCount - 1] = pageCanBusInit (arg->database, style);
+	pageStackAppend (stack, pages [pageCount - 1]);
 
-	pageAppendButton (pageEndr, "AUTO-X", pageStackSelectCallback, pageAutoxPair, false);
-	pageAppendButton (pageEndr, "ENDR.", NULL, NULL, true);
-	pageAppendButton (pageEndr, "", NULL, NULL, false);
-	pageAppendButton (pageEndr, "BMS", pageStackSelectCallback, pageBmsPair, false);
-	pageAppendButton (pageEndr, "CAN", pageStackSelectCallback, pageCanBusPair, false);
+	for (size_t index = 0; index < pageCount; ++index)
+	{
+		for (size_t buttonIndex = 0; buttonIndex < pageCount; ++buttonIndex)
+		{
+			pageStackPair_t* pagePair = pageStackPairInit (stack, pages [buttonIndex]);
 
-	pageAppendButton (pageBms, "AUTO-X", pageStackSelectCallback, pageAutoxPair, false);
-	pageAppendButton (pageBms, "ENDR.", pageStackSelectCallback, pageEndrPair, false);
-	pageAppendButton (pageBms, "", NULL, NULL, false);
-	pageAppendButton (pageBms, "BMS", NULL, NULL, true);
-	pageAppendButton (pageBms, "CAN", pageStackSelectCallback, pageCanBusPair, false);
-
-	pageAppendButton (pageCanBus, "AUTO-X", pageStackSelectCallback, pageAutoxPair, false);
-	pageAppendButton (pageCanBus, "ENDR.", pageStackSelectCallback, pageEndrPair, false);
-	pageAppendButton (pageCanBus, "", NULL, NULL, false);
-	pageAppendButton (pageCanBus, "BMS", pageStackSelectCallback, pageBmsPair, false);
-	pageAppendButton (pageCanBus, "CAN", NULL, NULL, true);
+			if (index != buttonIndex)
+				pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), pageStackSelectCallback, pagePair, false);
+			else
+				pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), NULL, NULL, true);
+		}
+	}
 
 	GtkEventController* controller = gtk_event_controller_key_new ();
 	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);

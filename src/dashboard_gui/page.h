@@ -13,6 +13,7 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
+#include "can_database/can_database.h"
 #include "cjson/cjson.h"
 
 // GTK
@@ -44,6 +45,7 @@ typedef struct
 	pageUpdate_t* update;
 	pageAppendButton_t* appendButton;
 	GtkWidget* widget;
+	char* name;
 } pageVmt_t;
 
 typedef struct
@@ -57,6 +59,10 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
+
+pageStyle_t* pageStyleLoad (cJSON* config, pageStyle_t* parent);
+
 static inline void pageUpdate (page_t* page)
 {
 	page->vmt.update (page);
@@ -67,6 +73,9 @@ static inline void pageAppendButton (page_t* page, const char* label, pageButton
 	page->vmt.appendButton (page, label, callback, arg, currentPage);
 }
 
-pageStyle_t* pageStyleLoad (cJSON* config, pageStyle_t* parent);
+static inline char* pageGetName (page_t* page)
+{
+	return page->vmt.name;
+}
 
 #endif // PAGE_H

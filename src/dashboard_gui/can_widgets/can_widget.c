@@ -15,7 +15,10 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 
 	char* widgetType;
 	if (jsonGetString (config, "type", &widgetType) != 0)
+	{
+		debugPrintf ("Warning, CAN widget is missing type.\n");
 		return NULL;
+	}
 
 	canWidget_t* widget = canLabelFloatLoad (database, config);
 	if (widget != NULL)

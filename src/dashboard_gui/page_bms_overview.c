@@ -29,9 +29,10 @@ page_t* pageBmsOverviewInit (bms_t* bms, pageStyle_t* style)
 	// Setup the VMT
 	page->vmt = (pageVmt_t)
 	{
-		.update = pageBmsOverviewUpdate,
-		.appendButton = pageBmsAppendButton,
-		.widget = gtk_overlay_new ()
+		.update			= pageBmsOverviewUpdate,
+		.appendButton	= pageBmsAppendButton,
+		.widget			= gtk_overlay_new (),
+		.name			= "BMS"
 	};
 
 	page->style = (pageBmsOverviewStyle_t)

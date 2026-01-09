@@ -1,5 +1,5 @@
 // Header
-#include "page_autox.h"
+#include "page_drive.h"
 
 // Includes
 #include "gtk_util.h"
@@ -69,7 +69,7 @@ const canIndicatorPoint_t FAULT_INDICATOR_POLYGON [] =
 };
 const size_t FAULT_INDICATOR_POLYGON_SIZE = sizeof (FAULT_INDICATOR_POLYGON) / sizeof (canIndicatorPoint_t);
 
-static void drawHorizontalDecals (cairo_t* cr, pageAutox_t* page, float x0, float x1, float y, int count, bool direction, bool drawDark, bool drawLight, bool clip)
+static void drawHorizontalDecals (cairo_t* cr, pageDrive_t* page, float x0, float x1, float y, int count, bool direction, bool drawDark, bool drawLight, bool clip)
 {
 	float spacing = 1.0f / (count - 1.0f) * (x1 - x0);
 	float halfWidth = page->style.decalWidth / 2.0f;
@@ -116,7 +116,7 @@ static void drawHorizontalDecals (cairo_t* cr, pageAutox_t* page, float x0, floa
 
 static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
-	pageAutox_t* page = arg;
+	pageDrive_t* page = arg;
 	(void) area;
 	(void) arg;
 
@@ -322,9 +322,9 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	cairo_stroke (cr);
 }
 
-static void styleLoad (pageAutoxStyle_t* style, pageStyle_t* baseStyle, cJSON* config)
+static void styleLoad (pageDriveStyle_t* style, pageStyle_t* baseStyle, cJSON* config)
 {
-	*style = (pageAutoxStyle_t)
+	*style = (pageDriveStyle_t)
 	{
 		.baseStyle = baseStyle
 	};
@@ -376,7 +376,7 @@ static void styleLoad (pageAutoxStyle_t* style, pageStyle_t* baseStyle, cJSON* c
 	jsonGetString (config, "faultIndicatorFont", &style->faultIndicatorFont);
 }
 
-static void sidePanelLoad (pageAutox_t* page, cJSON* config, canDatabase_t* database, GtkWidget** sidePanel, canWidget_t*** widgets, size_t* widgetCount)
+static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* database, GtkWidget** sidePanel, canWidget_t*** widgets, size_t* widgetCount)
 {
 	*widgets = NULL;
 	*widgetCount = 0;
@@ -443,22 +443,80 @@ static void sidePanelLoad (pageAutox_t* page, cJSON* config, canDatabase_t* data
 	}
 }
 
-page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* config)
+static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
+{
+	pageDrive_t* page = pageArg;
+
+	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
+	{
+		.width				= 100,
+		.height				= page->style.baseStyle->buttonHeight,
+		.label				= label,
+		.borderThickness	= page->style.baseStyle->borderThickness,
+		.backgroundColor	= page->style.baseStyle->backgroundColor,
+		.borderColor		= page->style.baseStyle->borderColor,
+		.selectedColor		= page->style.baseStyle->fontColor,
+		.indicatorColor		= currentPage ?
+			page->style.baseStyle->indicatorActiveColor : page->style.baseStyle->indicatorInactiveColor
+	});
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.baseStyle->buttonFont);
+	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
+	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
+	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);
+	gtk_widget_set_hexpand (STYLIZED_BUTTON_TO_WIDGET (button), true);
+	gtk_grid_attach (GTK_GRID (page->buttonPanel), STYLIZED_BUTTON_TO_WIDGET (button), page->buttonCount, 0, 1, 1);
+	++page->buttonCount;
+}
+
+static void update (void* pageArg)
+{
+	pageDrive_t* page = pageArg;
+
+	canWidgetUpdate (page->bse);
+	canWidgetUpdate (page->apps);
+	canWidgetUpdate (page->dataLoggerTitle);
+	canWidgetUpdate (page->dataLoggerStat);
+	canWidgetUpdate (page->centerStat);
+	canWidgetUpdate (page->vcuFault);
+	canWidgetUpdate (page->bmsFault);
+	canWidgetUpdate (page->amkFault);
+	canWidgetUpdate (page->gpsFault);
+
+	for (size_t index = 0; index < page->leftPanelWidgetCount; ++index)
+		canWidgetUpdate (page->leftPanelWidgets [index]);
+
+	for (size_t index = 0; index < page->rightPanelWidgetCount; ++index)
+		canWidgetUpdate (page->rightPanelWidgets [index]);
+}
+
+page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 {
 	if (config == NULL)
 		return NULL;
 
+	char* pageType;
+	if (jsonGetString (config, "type", &pageType) != 0)
+		return NULL;
+
+	if (strcmp (pageType, "pageDrive_t") != 0)
+		return NULL;
+
+	char* pageName;
+	if (jsonGetString (config, "name", &pageName) != 0)
+		return NULL;
+
 	// Allocate the page
-	pageAutox_t* page = malloc (sizeof (pageAutox_t));
+	pageDrive_t* page = malloc (sizeof (pageDrive_t));
 	if (page == NULL)
 		return NULL;
 
 	// Setup the VMT
 	page->vmt = (pageVmt_t)
 	{
-		.update			= pageAutoxUpdate,
-		.appendButton	= pageAutoxAppendButton,
-		.widget			= gtk_overlay_new ()
+		.update			= update,
+		.appendButton	= appendButton,
+		.widget			= gtk_overlay_new (),
+		.name			= pageName
 	};
 
 	cJSON* styleConfig = jsonGetObjectV2 (config, "style");
@@ -703,50 +761,4 @@ page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* confi
 
 	// Return the created page (cast to the base type).
 	return (page_t*) page;
-}
-
-void pageAutoxAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage)
-{
-	pageAutox_t* page = pageArg;
-
-	stylizedButton_t* button = stylizedButtonInit (callback, arg, &(stylizedButtonConfig_t)
-	{
-		.width				= 100,
-		.height				= page->style.baseStyle->buttonHeight,
-		.label				= label,
-		.borderThickness	= page->style.baseStyle->borderThickness,
-		.backgroundColor	= page->style.baseStyle->backgroundColor,
-		.borderColor		= page->style.baseStyle->borderColor,
-		.selectedColor		= page->style.baseStyle->fontColor,
-		.indicatorColor		= currentPage ?
-			page->style.baseStyle->indicatorActiveColor : page->style.baseStyle->indicatorInactiveColor
-	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), page->style.baseStyle->buttonFont);
-	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
-	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
-	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);
-	gtk_widget_set_hexpand (STYLIZED_BUTTON_TO_WIDGET (button), true);
-	gtk_grid_attach (GTK_GRID (page->buttonPanel), STYLIZED_BUTTON_TO_WIDGET (button), page->buttonCount, 0, 1, 1);
-	++page->buttonCount;
-}
-
-void pageAutoxUpdate (void* pageArg)
-{
-	pageAutox_t* page = pageArg;
-
-	canWidgetUpdate (page->bse);
-	canWidgetUpdate (page->apps);
-	canWidgetUpdate (page->dataLoggerTitle);
-	canWidgetUpdate (page->dataLoggerStat);
-	canWidgetUpdate (page->centerStat);
-	canWidgetUpdate (page->vcuFault);
-	canWidgetUpdate (page->bmsFault);
-	canWidgetUpdate (page->amkFault);
-	canWidgetUpdate (page->gpsFault);
-
-	for (size_t index = 0; index < page->leftPanelWidgetCount; ++index)
-		canWidgetUpdate (page->leftPanelWidgets [index]);
-
-	for (size_t index = 0; index < page->rightPanelWidgetCount; ++index)
-		canWidgetUpdate (page->rightPanelWidgets [index]);
 }

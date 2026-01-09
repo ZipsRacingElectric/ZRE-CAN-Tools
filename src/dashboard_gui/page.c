@@ -2,8 +2,28 @@
 #include "page.h"
 
 // Include
+#include "page_drive.h"
 #include "gtk_util.h"
 #include "cjson/cjson_util.h"
+#include "debug.h"
+
+page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
+{
+	char* pageType;
+	if (jsonGetString (config, "type", &pageType) != 0)
+	{
+		debugPrintf ("Warning, page is missing type.\n");
+		return NULL;
+	}
+
+	page_t* page = pageDriveLoad (config, database, style);
+	if (page != NULL)
+		return page;
+
+	debugPrintf ("Warning, failed to load page of type '%s'.\n", pageType);
+
+	return NULL;
+}
 
 pageStyle_t* pageStyleLoad (cJSON* config, pageStyle_t* parent)
 {

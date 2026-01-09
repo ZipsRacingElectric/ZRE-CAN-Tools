@@ -1,7 +1,7 @@
-#ifndef PAGE_AUTOX_H
-#define PAGE_AUTOX_H
+#ifndef PAGE_DRIVE_H
+#define PAGE_DRIVE_H
 
-// Autocross Page -------------------------------------------------------------------------------------------------------------
+// Driving Page ---------------------------------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
 // Date Created: 2025.12.16
@@ -57,13 +57,13 @@ typedef struct
 	char* sidePanelTitleFont;
 	char* sidePanelStatFont;
 	char* faultIndicatorFont;
-} pageAutoxStyle_t;
+} pageDriveStyle_t;
 
 typedef struct
 {
 	pageVmt_t vmt;
 
-	pageAutoxStyle_t style;
+	pageDriveStyle_t style;
 
 	GtkGrid* grid;
 	GtkGrid* dataLoggerPanel;
@@ -89,14 +89,10 @@ typedef struct
 	canWidget_t* bmsFault;
 	canWidget_t* amkFault;
 	canWidget_t* gpsFault;
-} pageAutox_t;
+} pageDrive_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageAutoxInit (canDatabase_t* database, pageStyle_t* style, cJSON* config);
+page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
 
-void pageAutoxAppendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage);
-
-void pageAutoxUpdate (void* pageArg);
-
-#endif // PAGE_AUTOX_H
+#endif // PAGE_DRIVE_H
