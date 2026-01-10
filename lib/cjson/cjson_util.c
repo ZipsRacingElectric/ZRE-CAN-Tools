@@ -5,6 +5,9 @@
 #include "debug.h"
 #include "error_codes.h"
 
+// POSIX
+#include <wordexp.h>
+
 // C Standard Library
 #include <errno.h>
 #include <stdlib.h>
@@ -31,6 +34,30 @@ cJSON* jsonLoad (const char* path)
 	int code = errno;
 	fclose (file);
 	errno = code;
+
+	return json;
+}
+
+cJSON* jsonLoadPath (const char* path)
+{
+	// Expand the path using shell environment varibles
+	wordexp_t pathWord;
+	if (wordexp (path, &pathWord, WRDE_NOCMD | WRDE_UNDEF) != 0)
+		return NULL;
+
+	// Validate at least 1 word was expanded. Technically only 1 should be expanded, however we'll be generous here and allow
+	// more.
+	if (pathWord.we_wordc == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	// Try to load the JSON. We don't need to check success here, as the user of this function should be doing so.
+	cJSON* json = jsonLoad (pathWord.we_wordv [0]);
+
+	// Free the allocate memory.
+	wordfree (&pathWord);
 
 	return json;
 }

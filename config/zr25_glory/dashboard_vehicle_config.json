@@ -315,7 +315,7 @@
 		{
 			"type":										"pageBms_t",
 			"name":										"BMS",
-			"bmsConfig":								"config/zr25_glory/bms_config.json",
+			"bmsConfig":								"$ZRE_CANTOOLS_DIR/config/zr25_glory/bms_config.json",
 			"style":
 			{
 				"baseStyle":

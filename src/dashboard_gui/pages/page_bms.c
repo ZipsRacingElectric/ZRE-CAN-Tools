@@ -8,9 +8,6 @@
 #include "cjson/cjson_util.h"
 #include "debug.h"
 
-// POSIX
-#include <wordexp.h>
-
 #define STATUS_FONT				"Monospace 12px"
 
 static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
@@ -283,8 +280,7 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 		debugPrintf ("Warning, BMS config JSON not specified.\n");
 		return NULL;
 	}
-	// TODO(Barach): Wordexp
-	cJSON* bmsConfig = jsonLoad (bmsConfigPath);
+	cJSON* bmsConfig = jsonLoadPath (bmsConfigPath);
 	if (bmsConfig == NULL)
 	{
 		debugPrintf ("Warning, failed to load BMS config JSON.\n");

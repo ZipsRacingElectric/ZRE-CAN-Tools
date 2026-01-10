@@ -23,6 +23,8 @@
 
 cJSON* jsonLoad (const char* path);
 
+cJSON* jsonLoadPath (const char* path);
+
 cJSON* jsonRead (FILE* stream);
 
 int jsonGetObject (cJSON* json, const char* key, cJSON** object);

@@ -10,6 +10,8 @@
 
 page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 {
+	// TODO(Barach): Type checking should be done here so we can distinguish errors.
+
 	char* pageType;
 	if (jsonGetString (config, "type", &pageType) != 0)
 	{
