@@ -9,7 +9,7 @@
 
 static void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: dashboard-gui <Options> <Application Name> <Device Name> <DBC File Path>\n");
+	fprintf (stream, "Usage: dashboard-gui <Options> <Config JSON> <Device Name> <DBC File Path>\n");
 }
 
 static void fprintHelp (FILE* stream)
@@ -24,6 +24,7 @@ typedef struct
 {
 	const char* applicationTitle;
 	const char* applicationId;
+	cJSON* config;
 	canDatabase_t* database;
 } activateArg_t;
 
@@ -81,15 +82,13 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	pageStack_t* stack = pageStackInit ();
 	gtk_window_set_child (GTK_WINDOW (window), PAGE_STACK_TO_WIDGET (stack));
 
-	// TODO(Barach): Path
-	cJSON* config = jsonLoad ("config/zr25_glory/temp.json");
-	pageStyle_t* style = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), NULL);
+	pageStyle_t* style = pageStyleLoad (jsonGetObjectV2 (arg->config, "baseStyle"), NULL);
 
-	cJSON* pageConfigs = jsonGetObjectV2 (config, "pages");
+	cJSON* pageConfigs = jsonGetObjectV2 (arg->config, "pages");
 	if (pageConfigs == NULL)
 	{
-		// TODO(Barach)
-		debugPrintf ("Warning, page config array missing.\n");
+		errorPrintf ("Failed to load pages");
+		gtk_window_destroy (GTK_WINDOW (window));
 		return;
 	}
 
@@ -204,6 +203,12 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
+	// Load the config file
+	char* configPath = argv [argc - 3];
+	cJSON* config = jsonLoad (configPath);
+	if (config == NULL)
+		return errorPrintf ("Failed to load config JSON '%s'", configPath);
+
 	// Initialize the CAN device
 	char* deviceName = argv [argc - 2];
 	canDevice_t* device = canInit (deviceName);
@@ -214,10 +219,13 @@ int main (int argc, char** argv)
 	canDatabase_t database;
 	char* dbcPath = argv [argc - 1];
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
-		return errorPrintf ("Failed to initialize CAN database");
+		return errorPrintf ("Failed to initialize CAN database '%s'", dbcPath);
 
 	// Create application ID from application name
-	char* applicationName = argv [argc - 3];
+	char* applicationName;
+	if (jsonGetString (config, "name", &applicationName) != 0)
+		return errorPrintf ("Failed to load application name");
+
 	char* applicationTitle = getApplicationTitle (applicationName);
 	if (applicationTitle == NULL)
 		return errorPrintf ("Failed to create application title");
@@ -233,6 +241,7 @@ int main (int argc, char** argv)
 	{
 		.applicationTitle	= applicationTitle,
 		.applicationId		= applicationId,
+		.config				= config,
 		.database			= &database
 	};
 

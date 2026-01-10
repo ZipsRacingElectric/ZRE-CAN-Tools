@@ -7,14 +7,13 @@
 #include "page_can_bus.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
-#include "debug.h"
 
 page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 {
 	char* pageType;
 	if (jsonGetString (config, "type", &pageType) != 0)
 	{
-		debugPrintf ("Warning, page is missing type.\n");
+		fprintf (stderr, "Failed to load page: Page type key is missing.\n");
 		return NULL;
 	}
 
@@ -33,7 +32,7 @@ page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 	if (strcmp (pageType, "null") == 0)
 		return NULL;
 
-	debugPrintf ("Warning, failed to load page of type '%s'.\n", pageType);
+	fprintf (stderr, "Failed to load page of type '%s'.\n", pageType);
 
 	return NULL;
 }
