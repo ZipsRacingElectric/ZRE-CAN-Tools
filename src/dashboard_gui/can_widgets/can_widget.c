@@ -10,6 +10,8 @@
 
 canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 {
+	// TODO(Barach): Same as pageLoad
+
 	if (config == NULL)
 		return NULL;
 

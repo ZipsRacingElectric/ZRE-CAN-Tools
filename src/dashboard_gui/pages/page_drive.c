@@ -157,7 +157,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	float x1 = bounds.origin.x + bounds.size.width;
 	float y1 = bounds.origin.y;
 
-	if (!gtk_widget_compute_bounds (GTK_WIDGET (page->centerTitle), GTK_WIDGET (area), &bounds))
+	if (!gtk_widget_compute_bounds (page->centerPanelTitle, GTK_WIDGET (area), &bounds))
 		bounds = *graphene_rect_zero ();
 
 	float x2 = bounds.origin.x;
@@ -171,7 +171,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	float x3 = bounds.origin.x + bounds.size.width;
 	float y3 = y2;
 
-	if (!gtk_widget_compute_bounds (CAN_WIDGET_TO_WIDGET (page->centerStat), GTK_WIDGET (area), &bounds))
+	if (!gtk_widget_compute_bounds (page->centerPanel, GTK_WIDGET (area), &bounds))
 		bounds = *graphene_rect_zero ();
 
 	float x4 = x3;
@@ -370,10 +370,82 @@ static void styleLoad (pageDriveStyle_t* style, pageStyle_t* baseStyle, cJSON* c
 	jsonGetString (config, "dataLoggerTitleFont", &style->dataLoggerTitleFont);
 	jsonGetString (config, "dataLoggerStatFont", &style->dataLoggerStatFont);
 	jsonGetString (config, "centerPanelTitleFont", &style->centerPanelTitleFont);
+	jsonGetString (config, "centerPanelLabelFont", &style->centerPanelLabelFont);
 	jsonGetString (config, "centerPanelStatFont", &style->centerPanelStatFont);
 	jsonGetString (config, "sidePanelTitleFont", &style->sidePanelTitleFont);
 	jsonGetString (config, "sidePanelStatFont", &style->sidePanelStatFont);
 	jsonGetString (config, "faultIndicatorFont", &style->faultIndicatorFont);
+}
+
+static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* database)
+{
+	page->centerPanelWidgets = NULL;
+	page->centerPanelWidgetCount = 0;
+
+	if (config == NULL)
+		return;
+
+	char* title;
+	if (jsonGetString (config, "title", &title) == 0)
+		gtk_label_set_text (GTK_LABEL (page->centerPanelTitle), title);
+
+	cJSON* labelConfigs = jsonGetObjectV2 (config, "labels");
+	if (labelConfigs == NULL)
+		return;
+
+	GtkWidget* padding = gtk_grid_new ();
+	gtk_widget_set_vexpand (padding, true);
+	gtk_grid_attach (GTK_GRID (page->centerPanel), padding, 0, 0, 2, 1);
+
+	size_t labelConfigCount = cJSON_GetArraySize (labelConfigs);
+	for (size_t index = 0; index < labelConfigCount; ++index)
+	{
+		cJSON* labelConfig = cJSON_GetArrayItem (labelConfigs, index);
+		char* labelValue = cJSON_GetStringValue (labelConfig);
+
+		GtkWidget* label = gtk_label_new (labelValue);
+		gtkLabelSetFont (GTK_LABEL (label), page->style.centerPanelLabelFont);
+		gtkLabelSetColor (GTK_LABEL (label), &page->style.baseStyle->fontColor);
+		gtk_widget_set_halign (label, GTK_ALIGN_START);
+		gtk_widget_set_valign (label, GTK_ALIGN_BASELINE_CENTER);
+		gtk_widget_set_margin_start (label, 3);
+		gtk_grid_attach (GTK_GRID (page->centerPanel), label, 0, index + 1, 1, 1);
+	}
+
+	cJSON* widgetConfigs = jsonGetObjectV2 (config, "widgets");
+	if (widgetConfigs == NULL)
+		return;
+
+	size_t widgetConfigCount = cJSON_GetArraySize (widgetConfigs);
+	page->centerPanelWidgets = malloc (sizeof (canWidget_t*) * widgetConfigCount);
+	if (page->centerPanelWidgets == NULL)
+		return;
+
+	page->centerPanelWidgetCount = widgetConfigCount;
+	for (size_t index = 0; index < widgetConfigCount; ++index)
+	{
+		cJSON* widgetConfig = cJSON_GetArrayItem (widgetConfigs, index);
+
+		page->centerPanelWidgets [index] = canWidgetLoad (database, widgetConfig);
+		if (page->centerPanelWidgets [index] != NULL)
+		{
+			GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->centerPanelWidgets [index]);
+			gtkTryLabelSetFont (widget, page->style.centerPanelStatFont);
+			gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
+			if (labelConfigCount == 0)
+				gtk_widget_set_halign (widget, GTK_ALIGN_CENTER);
+			else
+				gtk_widget_set_halign (widget, GTK_ALIGN_END);
+			gtk_widget_set_hexpand (widget, true);
+			gtk_widget_set_valign (widget, GTK_ALIGN_BASELINE_CENTER);
+			gtk_widget_set_margin_end (widget, 3);
+			gtk_grid_attach (GTK_GRID (page->centerPanel), widget, 1, index + 1, 1, 1);
+		}
+	}
+
+	padding = gtk_grid_new ();
+	gtk_widget_set_vexpand (padding, true);
+	gtk_grid_attach (GTK_GRID (page->centerPanel), padding, 0, page->centerPanelWidgetCount + 1, 2, 1);
 }
 
 static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* database, GtkWidget** sidePanel, canWidget_t*** widgets, size_t* widgetCount)
@@ -476,11 +548,13 @@ static void update (void* pageArg)
 	canWidgetUpdate (page->apps);
 	canWidgetUpdate (page->dataLoggerTitle);
 	canWidgetUpdate (page->dataLoggerStat);
-	canWidgetUpdate (page->centerStat);
 	canWidgetUpdate (page->vcuFault);
 	canWidgetUpdate (page->bmsFault);
 	canWidgetUpdate (page->amkFault);
 	canWidgetUpdate (page->gpsFault);
+
+	for (size_t index = 0; index < page->centerPanelWidgetCount; ++index)
+		canWidgetUpdate (page->centerPanelWidgets [index]);
 
 	for (size_t index = 0; index < page->leftPanelWidgetCount; ++index)
 		canWidgetUpdate (page->leftPanelWidgets [index]);
@@ -704,25 +778,19 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtkLabelSetColor (GTK_LABEL (label), &style->backgroundColor);
 	gtk_grid_attach (page->faultPanel, label, 3, 0, 1, 1);
 
-	char* centerTitle = "";
-	jsonGetString (config, "centerTitle", &centerTitle);
-	page->centerTitle = gtk_label_new (centerTitle);
+	page->centerPanelTitle = gtk_label_new ("");
+	gtkLabelSetFont (GTK_LABEL (page->centerPanelTitle), page->style.centerPanelTitleFont);
+	gtkLabelSetColor (GTK_LABEL (page->centerPanelTitle), &page->style.baseStyle->fontColor);
+	gtk_label_set_xalign (GTK_LABEL (page->centerPanelTitle), 0);
+	gtk_grid_attach (page->grid, page->centerPanelTitle, 3, 1, 1, 1);
 
-	gtkLabelSetFont (GTK_LABEL (page->centerTitle), page->style.centerPanelTitleFont);
-	gtkLabelSetColor (GTK_LABEL (page->centerTitle), &page->style.baseStyle->fontColor);
-	gtk_label_set_xalign (GTK_LABEL (page->centerTitle), 0);
-	gtk_grid_attach (page->grid, page->centerTitle, 3, 1, 1, 1);
+	page->centerPanel = gtk_grid_new ();
+	gtk_widget_set_hexpand (page->centerPanel, true);
+	gtk_widget_set_vexpand (page->centerPanel, true);
+	gtk_grid_attach (page->grid, page->centerPanel, 3, 2, 1, 1);
 
-	page->centerStat = canWidgetLoad (database, jsonGetObjectV2 (config, "centerStat"));
-	if (page->centerStat != NULL)
-	{
-		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->centerStat);
-		gtkTryLabelSetFont (widget, page->style.centerPanelStatFont);
-		gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
-		gtk_widget_set_hexpand (widget, true);
-		gtk_widget_set_vexpand (widget, true);
-		gtk_grid_attach (page->grid, widget, 3, 2, 1, 1);
-	}
+	cJSON* centerPanelConfig = jsonGetObjectV2 (config, "centerPanel");
+	centerPanelLoad (page, centerPanelConfig, database);
 
 	page->rightPanel = gtk_grid_new ();
 	gtk_widget_set_margin_start (page->rightPanel, 10);

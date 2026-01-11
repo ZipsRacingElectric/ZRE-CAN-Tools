@@ -53,6 +53,7 @@ typedef struct
 	char* dataLoggerTitleFont;
 	char* dataLoggerStatFont;
 	char* centerPanelTitleFont;
+	char* centerPanelLabelFont;
 	char* centerPanelStatFont;
 	char* sidePanelTitleFont;
 	char* sidePanelStatFont;
@@ -69,7 +70,8 @@ typedef struct
 	GtkGrid* dataLoggerPanel;
 	GtkWidget* leftPanel;
 	GtkWidget* rightPanel;
-	GtkWidget* centerTitle;
+	GtkWidget* centerPanelTitle;
+	GtkWidget* centerPanel;
 	GtkGrid* faultPanel;
 	GtkGrid* buttonPanel;
 	size_t buttonCount;
@@ -80,11 +82,13 @@ typedef struct
 	canWidget_t** rightPanelWidgets;
 	size_t rightPanelWidgetCount;
 
+	canWidget_t** centerPanelWidgets;
+	size_t centerPanelWidgetCount;
+
 	canWidget_t* bse;
 	canWidget_t* apps;
 	canWidget_t* dataLoggerTitle;
 	canWidget_t* dataLoggerStat;
-	canWidget_t* centerStat;
 	canWidget_t* vcuFault;
 	canWidget_t* bmsFault;
 	canWidget_t* amkFault;

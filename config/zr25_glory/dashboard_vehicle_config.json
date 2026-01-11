@@ -44,7 +44,8 @@
 				"dataLoggerTitleFont":					"Futura Std Bold Condensed 36px",
 				"dataLoggerStatFont":					"ITC Avant Garde Gothic CE Book 22px",
 				"centerPanelTitleFont":					"ITC Avant Garde Gothic CE Book 22px",
-				"centerPanelStatFont":					"Technology Bold 200px",
+				"centerPanelLabelFont":					"Technology-Monospace Bold 0px",
+				"centerPanelStatFont":					"Technology-Monospace Bold 150px",
 				"sidePanelTitleFont":					"Futura Std Bold Condensed 26px",
 				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px",
 				"faultIndicatorFont":					"Futura Std Bold Condensed 32px"
@@ -66,13 +67,19 @@
 				"formatValue":							"Session\nNo. %.0f",
 				"formatInvalid":						"Session\nNo. %s"
 			},
-			"centerTitle":								"Vehicle Speed (Km/h):",
-			"centerStat":
+			"centerPanel":
 			{
-				"type":									"canLabelFloat_t",
-				"signalName":							"SPEED",
-				"formatValue":							"%02.0f",
-				"formatInvalid":						"XX"
+				"title":								"Vehicle Speed (Km/h):",
+				"labels":								[],
+				"widgets":
+				[
+					{
+						"type":							"canLabelFloat_t",
+						"signalName":					"SPEED",
+						"formatValue":					"%02.0f",
+						"formatInvalid":				"XX"
+					}
+				]
 			},
 			"leftSidePanel":
 			{
@@ -163,16 +170,10 @@
 			"name":										"ENDR.",
 			"style":
 			{
-				"baseStyle":
-				{
-					"borderColor":						"#CC4400",
-					"fontColor":						"#FF6600"
-				},
-
-				"appsColor":							"#BC9100",
+				"appsColor":							"#51BC58",
 				"bseColor":								"#FF0000",
 
-				"decalTickColorLight":					"#CC0000",
+				"decalTickColorLight":					"#51BC58",
 				"decalTickColorDark":					"#000000",
 				"decalUpperTickMargin":					"20.0",
 				"decalUpperTickSpacing":				"50.0",
@@ -187,15 +188,16 @@
 
 				"gradientStartColor":					"#B63D24",
 				"gradientStartPosition":				"0.0",
-				"gradientMiddleColor":					"#B63D24",
+				"gradientMiddleColor":					"#C79418",
 				"gradientMiddlePosition":				"0.4",
-				"gradientEndColor":						"#7d3a11",
+				"gradientEndColor":						"#0D5E2C",
 				"gradientEndPosition":					"1.0",
 
 				"dataLoggerTitleFont":					"Futura Std Bold Condensed 36px",
 				"dataLoggerStatFont":					"ITC Avant Garde Gothic CE Book 22px",
 				"centerPanelTitleFont":					"ITC Avant Garde Gothic CE Book 22px",
-				"centerPanelStatFont":					"Technology Bold 200px",
+				"centerPanelLabelFont":					"Technology-Monospace Bold 28px",
+				"centerPanelStatFont":					"Technology-Monospace Bold 50px",
 				"sidePanelTitleFont":					"Futura Std Bold Condensed 26px",
 				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px",
 				"faultIndicatorFont":					"Futura Std Bold Condensed 32px"
@@ -217,13 +219,36 @@
 				"formatValue":							"Session\nNo. %.0f",
 				"formatInvalid":						"Session\nNo. %s"
 			},
-			"centerTitle":								"Pack Voltage (V):",
-			"centerStat":
+			"centerPanel":
 			{
-				"type":									"canLabelFloat_t",
-				"signalName":							"PACK_VOLTAGE",
-				"formatValue":							"%03.0f",
-				"formatInvalid":						"XXX"
+				"title":								"Accumulator:",
+				"labels":
+				[
+					"Volt.V:",
+					"Pwr.kW:",
+					"Nrg.kWh:"
+				],
+				"widgets":
+				[
+					{
+						"type":							"canLabelFloat_t",
+						"signalName":					"PACK_VOLTAGE",
+						"formatValue":					"%03.0f",
+						"formatInvalid":				"XXX"
+					},
+					{
+						"type":							"canLabelFloat_t",
+						"signalName":					"TODO",
+						"formatValue":					"%04.1f",
+						"formatInvalid":				"XX.X"
+					},
+					{
+						"type":							"canLabelFloat_t",
+						"signalName":					"TODO",
+						"formatValue":					"%04.2f",
+						"formatInvalid":				"X.XX"
+					}
+				]
 			},
 			"leftSidePanel":
 			{
