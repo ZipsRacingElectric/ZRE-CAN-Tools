@@ -238,13 +238,13 @@
 					},
 					{
 						"type":							"canLabelFloat_t",
-						"signalName":					"TODO",
+						"signalName":					"POWER_ROLLING_AVERAGE",
 						"formatValue":					"%04.1f",
 						"formatInvalid":				"XX.X"
 					},
 					{
 						"type":							"canLabelFloat_t",
-						"signalName":					"TODO",
+						"signalName":					"ENERGY_DELIVERED",
 						"formatValue":					"%04.2f",
 						"formatInvalid":				"X.XX"
 					}

@@ -216,7 +216,13 @@
 			"address":	"0x0068",
 			"name":		"LTC_TEMPERATURE_MAX",
 			"type":		"float",
-			"comment":	"The die temperature at which an LTC is not allowed to exceed, in Celsius."
+			"comment":	"The die temperature which an LTC is not allowed to exceed, in Celsius."
+		},
+		{
+			"address":	"0x006C",
+			"name":		"POWER_ROLLING_AVERAGE_COUNT",
+			"type":		"uint16_t",
+			"comment":	"The number of samples to include the rolling average for instantaneous power delivery."
 		},
 		{
 			"address":	"0x1000",
