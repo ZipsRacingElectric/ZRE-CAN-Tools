@@ -47,6 +47,23 @@ static int parseDeviceName (char* deviceName, unsigned int* baudrate)
 	return 0;
 }
 
+/*
+	DiBacco: Implementation of the Slcan Enumeration
+	canInit()
+	{
+		if (slcanNameDomain()) 
+		{
+			if (slcanWildcard())
+			{
+				dev [] = slcanEnumerate();
+				...
+				// Include functionality where the user decides which slcan device to use via command prompt
+				slcanDealloc();
+			}
+		}
+	}
+*/
+
 canDevice_t* canInit (char* deviceName)
 {
 	// Split the device name into the device handle and baudrate (if specified).
