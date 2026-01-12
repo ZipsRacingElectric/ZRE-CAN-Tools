@@ -2,6 +2,7 @@
 #include "slcan.h"
 
 // Includes
+#include "list.h"
 #include "debug.h"
 #include "error_codes.h"
 
@@ -22,13 +23,18 @@
 #include <windows.h>
 #endif
 
+// Define a list of canDevice_t pointers
+typedef canDevice_t* canDevicePtr_t;
+listDefine (canDevicePtr_t); // Defines the list methods for the specific datatype 
+list_t (canDevicePtr_t) devices; // Creates an instance of a list of the specific datatype
+
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
 typedef struct
 {
 	canDeviceVmt_t vmt;
 	int handle;
-	const char* name;
+	char* name;
 	long int timeoutMs;
 	canBaudrate_t baudrate;
 } slcan_t;
@@ -149,7 +155,12 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 
 	// Internal housekeeping
 	device->handle = handle;
-	device->name = name;
+	device->name = strdup (name);
+	if (device->name == NULL)
+	{
+		return NULL;
+	}
+
 	device->baudrate = baudrate;
 
 	// Default to blocking.
@@ -166,8 +177,8 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 	// This implies that the list implementation cannot be used, given that it does not support pointers, & the function must return a double pointer 
 	// to act as an array of canDevice pointers. 
 
-	// Dynamically store each enumerated canDevice
-	canDevice_t** devices = NULL;
+	// Dynamically store each enumerated canDevice in a list
+	listInit (canDevicePtr_t) (&devices, 1);
 
 	# ifdef ZRE_CANTOOLS_OS_linux
 		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
@@ -206,20 +217,47 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 
 	# ifdef ZRE_CANTOOLS_OS_windows
 		// QueryDosDeviceA: retrieves information about MS-DOS (Microsoft Disk Operating System) device names
-		// DWORD (Double-Word): 32-bit unsigned data type
+		// DWORD (Double-Word): 32-bit unsigned data type representing an array of null-terminated strings
 		// LPSTR (Long Pointer to a String): typedef (alias) for a char*
+		
+		// REG_MULTI_SZ: data type in the Windows registry that stores a list of null terminated strings
+		// 		Strings are seperated by a double null character (\0\0) 
+
 		LPSTR device;
 		char buffer [32768];
 		DWORD bufferSize = 32768;
 		QueryDosDeviceA (NULL, buffer, bufferSize);
+		
+		size_t counter = 0;
+		debugPrintf ("QueryDosDeviceA() => \n");
+
+		// List the verbose content of the buffer
+		for (int i = 0; i < 32768; ++i)
+		{
+			if (buffer[i] == '\0')
+			{
+				++counter;
+				debugPrintf ("\n");
+				continue;
+			}
+
+			// Indicates Double-Null Character
+			if (counter > 1) 
+			{
+				break;
+			}
+			counter = 0;
+
+			debugPrintf ("%c", buffer[i]);
+		}
+
 		device = buffer;
 		while (*device)
 		{
 			if (strstr (device, "COM") && strlen (device) <= 5)
 			{
 				canDevice_t* slcanDevice = slcanInit (device, baudrate);
- 				devices = realloc (devices, sizeof (canDevice_t*) * (*deviceCount));
-				devices [*deviceCount] = slcanDevice;
+				listAppend (canDevicePtr_t) (&devices, slcanDevice);
 				++(*deviceCount);
 			}
 			device += strlen (device) + 1;
@@ -227,10 +265,9 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 
 	# endif // ZRE_CANTOOLS_OS_windows
 
-	if ((*deviceCount) > 0)
-		return devices; 
+	if (listSize (canDevicePtr_t) (&devices) > 0)
+		return listArray (canDevicePtr_t) (&devices);
 
-	free (devices);
 	return NULL;
 }
 
@@ -268,6 +305,7 @@ void slcanDealloc (void* device)
 	can_exit (slcan->handle);
 
 	// Free the device's memory
+	free(slcan->name);
 	free (device);
 }
 
