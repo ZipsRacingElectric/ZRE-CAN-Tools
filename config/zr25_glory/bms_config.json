@@ -225,6 +225,30 @@
 			"comment":	"The number of samples to include the rolling average for instantaneous power delivery."
 		},
 		{
+			"address":	"0x0070",
+			"name":		"CELL_VOLTAGE_MIN",
+			"type":		"float",
+			"comment":	"The minimum allowable cell voltage, any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x0074",
+			"name":		"CELL_VOLTAGE_MAX",
+			"type":		"float",
+			"comment":	"The maximum allowable cell voltage, any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0078",
+			"name":		"CELL_VOLTAGE_FAULT_THRESHOLD",
+			"type":		"uint16_t",
+			"comment":	"The maximum number of faulted cell voltage samples until a cell voltage fault is thrown."
+		},
+		{
+			"address":	"0x007A",
+			"name":		"TEMPERATURE_FAULT_THRESHOLD",
+			"type":		"uint16_t",
+			"comment":	"The maximum number of faulted temperature samples until a temperature fault is thrown."
+		},
+		{
 			"address":	"0x1000",
 			"name":		"CURRENT_SENSOR_CHANNEL_1_SAMPLE",
 			"type":		"uint16_t",
