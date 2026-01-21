@@ -22,6 +22,12 @@
 #include <windows.h>
 #endif
 
+// Constants ------------------------------------------------------------------------------------------------------------------
+// Note: These error codes aren't defined anywhere, but this is what they appear to be.
+
+#define ERRNO_MISSING	-102
+#define ERRNO_PERM		-113
+
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
 typedef struct
@@ -40,6 +46,14 @@ static int getErrorCode (int code)
 	// The receiver empty error indicates a timeout occurred, so translate that into a timeout error.
 	if (code == CANERR_RX_EMPTY)
 		return ERRNO_CAN_DEVICE_TIMEOUT;
+
+	// Translate SerialCAN-specific codes into common ones.
+
+	if (code == ERRNO_MISSING)
+		return ERRNO_CAN_DEVICE_MISSING_DEVICE;
+
+	if (code == ERRNO_PERM)
+		return EPERM;
 
 	// Offset the error code to match this project's convention.
 	return code + 10000;
