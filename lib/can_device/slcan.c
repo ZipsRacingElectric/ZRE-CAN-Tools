@@ -416,30 +416,3 @@ const char* slcanGetDeviceType (void)
 {
 	return "SLCAN";
 }
-
-/*
-	TODO(DiBacco): change device enumeration option syntax
-	- slcan: /dev/tty*@1000000
-	- /dev/tty*@1000000
-	- *@1000000
-	- ?
-	NOTE(Barach): For now, I'd say /dev/tty*@1000000 and COM*@1000000 are the preferred options. We can consider switching
-	  things up if need be, but for now this is distinct enough.
-*/
-
-// REVIEW(Barach): Temporarily removed this just in case it causes any compilation issues on ARM. Probably okay, but didn't
-//   really feel like testing on the RPi.
-
-// int slcanEnumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRate)
-// {
-// 	
-
-// 	// Check the OS running the program based on system-defined macro
-
-// 	#endif // __unix__
-
-// 	if (!(*deviceCount))
-// 		return -1;
-
-// 	return 0;
-// }
