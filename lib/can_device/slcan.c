@@ -175,30 +175,15 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 
 canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 {	
-	// DiBacco: 
-	// The canDevice vmt requires the canDevice instances to persist as pointers because the vmt will not recognize the requested members -- that are 
-	// required for the handle (such as the deviceName & baudrate) -- if the instance is a copy of another instance or has been dereferenced.
-	// This implies that the list implementation cannot be used, given that it does not support pointers, & the function must return a double pointer 
-	// to act as an array of canDevice pointers. 
-
-	// Dynamically store each enumerated canDevice in a list
+	// Dynamic list stores enumerated can devices 
 	listInit (canDevicePtr_t) (&devices, 1);
 
 	# ifdef ZRE_CANTOOLS_OS_linux
-		// Communication device enumeration on a Linux OS will involve enumerating the /dev directory
-		// dirent (directory entry): represents an entry inside a directory
-		/* struct dirent {
-		   		ino_t d_ino;            // inode number
-				char d_name[256];       // filename
-				unsigned char d_type;   // file type
-			};
-		*/
-		// DIR: data type representing a directory stream
-		// included in the dirent header file
-
 		const char* dev = "/dev";
 		struct dirent* entry;
 		DIR* directory = opendir (dev);
+		
+		// Traverses the /dev directory
 		while ((entry = readdir (directory)))
 		{
 			if (entry == NULL)
@@ -206,23 +191,24 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 				break;
 			}
 			char* device = entry->d_name;
+
+			// Checks if device is of type ttyACM
 			if (strstr (device, "ttyACM"))
 			{
 				// Prepend the device path to the device name
 				char* devicePath = "/dev/";
 				char* x = malloc (strlen(devicePath) + strlen(device) + 1);
-
 				strcpy (x, devicePath);
 				strcat (x, device);
 
+				// Attempts to create slcan device
 				canDevice_t* slcanDevice = slcanInit (x, baudrate);
 				if (slcanDevice == NULL) {
 					printf ("Errno: %s\n", errorCodeToMessage(errno));
 					continue;
 				}
 				
-				slcanGetDeviceName(slcanDevice);
-
+				// Appends slcan device to the list of enumerated slcan devices 
 				listAppend (canDevicePtr_t) (&devices, slcanDevice);
 				++(*deviceCount);
 				free (x);
@@ -235,13 +221,6 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 	# endif // ZRE_CANTOOLS_OS_linux
 
 	# ifdef ZRE_CANTOOLS_OS_windows
-		// QueryDosDeviceA: retrieves information about MS-DOS (Microsoft Disk Operating System) device names
-		// DWORD (Double-Word): 32-bit unsigned data type representing an array of null-terminated strings
-		// LPSTR (Long Pointer to a String): typedef (alias) for a char*
-		
-		// REG_MULTI_SZ: data type in the Windows registry that stores a list of null terminated strings
-		// 		Strings are seperated by a double null character (\0\0) 
-
 		LPSTR device;
 		char buffer [32768];
 		DWORD bufferSize = 32768;
@@ -273,20 +252,26 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 		device = buffer;
 		while (*device)
 		{
+			// Checks if device is of type COM
 			if (strstr (device, "COM") && strlen (device) <= 5)
 			{
+				// Attempts to create slcan device
 				canDevice_t* slcanDevice = slcanInit (device, baudrate);
 				if (slcanDevice == NULL) 
 					continue;
 
+				// Appends slcan device to the list of enumerated slcan devices
 				listAppend (canDevicePtr_t) (&devices, slcanDevice);
 				++(*deviceCount);
 			}
+
+			// Points pointer at the next device
 			device += strlen (device) + 1;
 		}
 
 	# endif // ZRE_CANTOOLS_OS_windows
-		
+	
+	// Returns array of enumerated slcan devices
 	if (listSize (canDevicePtr_t) (&devices) > 0)
 		return listArray (canDevicePtr_t) (&devices);
 
