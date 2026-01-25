@@ -1,4 +1,5 @@
 ROOT_DIR := .
+SHELL := /bin/bash
 include include.mk
 
 # Releasing -------------------------------------------------------------------

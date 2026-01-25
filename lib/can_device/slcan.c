@@ -65,10 +65,14 @@ bool slcanNameDomain (const char* name)
 }
 
 bool slcanWildcard (const char* name) {
-	// determine whether the * is directly after COM or /dev/tty/
-	if ((strstr (name,  "/dev/tty/*")) || strstr (name,  "COM*")) {
+	// POSIX device format
+	if (strncmp("/dev/tty*", name, strlen ("/dev/tty*")) == 0)
 		return true;
-	}
+
+	// Windows device format
+	if (strncmp("COM*", name, strlen ("COM*")) == 0)
+		return true;
+
 	return false;
 }	
 
@@ -78,7 +82,7 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 	can_bitrate_t slcanBaudrate;
 	switch (baudrate)
 	{
-	case 1000000:
+	case 1000000: 
 		slcanBaudrate.index = CANBTR_INDEX_1M;
 		break;
 	case 800000:
@@ -191,10 +195,11 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 		*/
 		// DIR: data type representing a directory stream
 		// included in the dirent header file
+
 		const char* dev = "/dev";
 		struct dirent* entry;
 		DIR* directory = opendir (dev);
-		while (entry = readdir (directory))
+		while ((entry = readdir (directory)))
 		{
 			if (entry == NULL)
 			{
@@ -203,10 +208,24 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 			char* device = entry->d_name;
 			if (strstr (device, "ttyACM"))
 			{
-				canDevice_t* slcanDevice = slcanInit (device, baudrate);
- 				devices = realloc (devices, sizeof (canDevice_t*) * (*deviceCount));
-				devices [*deviceCount] = slcanDevice;
+				// Prepend the device path to the device name
+				char* devicePath = "/dev/";
+				char* x = malloc (strlen(devicePath) + strlen(device) + 1);
+
+				strcpy (x, devicePath);
+				strcat (x, device);
+
+				canDevice_t* slcanDevice = slcanInit (x, baudrate);
+				if (slcanDevice == NULL) {
+					printf ("Errno: %s\n", errorCodeToMessage(errno));
+					continue;
+				}
+				
+				slcanGetDeviceName(slcanDevice);
+
+				listAppend (canDevicePtr_t) (&devices, slcanDevice);
 				++(*deviceCount);
+				free (x);
 			}
 		}
 
@@ -257,6 +276,9 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 			if (strstr (device, "COM") && strlen (device) <= 5)
 			{
 				canDevice_t* slcanDevice = slcanInit (device, baudrate);
+				if (slcanDevice == NULL) 
+					continue;
+
 				listAppend (canDevicePtr_t) (&devices, slcanDevice);
 				++(*deviceCount);
 			}
@@ -264,13 +286,14 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 		}
 
 	# endif // ZRE_CANTOOLS_OS_windows
-
+		
 	if (listSize (canDevicePtr_t) (&devices) > 0)
 		return listArray (canDevicePtr_t) (&devices);
 
 	return NULL;
 }
 
+// TODO(DiBacco): consider automatically selecting can device if only one is detected.
 size_t slcanSelectDevice (canDevice_t** devices, size_t deviceCount)
 {
 	char command [512];
@@ -281,7 +304,7 @@ size_t slcanSelectDevice (canDevice_t** devices, size_t deviceCount)
 		printf ("Which SLCAN Device would you like to use?\n");
 		for (size_t deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
 		{
-			printf (" %zu). %s\n", deviceIndex + 1, canGetDeviceName(devices [deviceIndex]));
+			printf (" %zu). %s\n", deviceIndex + 1, canGetDeviceName (devices [deviceIndex]));
 		}
 
 		fgets (command, sizeof (command), stdin);
