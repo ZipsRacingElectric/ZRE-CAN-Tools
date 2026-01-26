@@ -1,3 +1,7 @@
+// For asprintf. Note this must be the first include in this file.
+#define _GNU_SOURCE
+#include <stdio.h>
+
 // Header
 #include "mdf_can_bus_logging.h"
 
@@ -11,8 +15,6 @@
 #include <sys/types.h>
 
 // C Standard Library
-#define _GNU_SOURCE // For asprintf
-#include <stdio.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <string.h>
