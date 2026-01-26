@@ -50,7 +50,7 @@ static int getErrorCode (int code)
 	// Translate SerialCAN-specific codes into common ones.
 
 	if (code == ERRNO_MISSING)
-		return ERRNO_CAN_DEVICE_MISSING_DEVICE;
+		return ENOENT;
 
 	if (code == ERRNO_PERM)
 		return EPERM;
