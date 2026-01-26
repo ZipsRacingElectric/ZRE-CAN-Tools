@@ -5,6 +5,10 @@
 #include "can_database/can_database_stdio.h"
 #include "zre_math.h"
 
+// C Standard Library
+#define _GNU_SOURCE // For asprintf
+#include <stdio.h>
+
 static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
 	(void) area;

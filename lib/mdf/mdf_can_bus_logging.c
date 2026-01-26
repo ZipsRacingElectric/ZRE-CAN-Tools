@@ -11,6 +11,8 @@
 #include <sys/types.h>
 
 // C Standard Library
+#define _GNU_SOURCE // For asprintf
+#include <stdio.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <string.h>
