@@ -13,6 +13,14 @@
 // GTK
 #include <gtk/gtk.h>
 
+// Macros ---------------------------------------------------------------------------------------------------------------------
+
+/// @brief Forward-compatibility macro. The @c GTK_ALIGN_BASELINE_CENTER enum value replaced the @c GTK_ALIGN_BASELINE value
+/// in GTK 4.12 without providing backwards-compatibility, so we do so here.
+#if GTK_MINOR_VERSION < 12
+#define GTK_ALIGN_BASELINE_CENTER GTK_ALIGN_BASELINE
+#endif
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 /**
