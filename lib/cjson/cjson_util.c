@@ -5,9 +5,6 @@
 #include "debug.h"
 #include "error_codes.h"
 
-// POSIX
-#include <wordexp.h>
-
 // C Standard Library
 #include <errno.h>
 #include <stdlib.h>
@@ -40,25 +37,61 @@ cJSON* jsonLoad (const char* path)
 
 cJSON* jsonLoadPath (const char* path)
 {
-	// Expand the path using shell environment varibles
-	wordexp_t pathWord;
-	if (wordexp (path, &pathWord, WRDE_NOCMD | WRDE_UNDEF) != 0)
-		return NULL;
+	size_t varPosition = strcspn (path, "$");
+	size_t pathLength = strlen (path);
 
-	// Validate at least 1 word was expanded. Technically only 1 should be expanded, however we'll be generous here and allow
-	// more.
-	if (pathWord.we_wordc == 0)
+	// Check for variables to expand. If none, use default path behavior.
+	if (varPosition == pathLength)
+		return jsonLoad (path);
+
+	// Ignore the '$' character in the variable length
+	++varPosition;
+
+	// Calculate the length of the variable name
+	size_t varLength = 0;
+	while (varPosition + varLength != pathLength)
 	{
-		errno = EINVAL;
+		char c = path [varPosition + varLength];
+		if (c == '$' || c == '/' || c == ' ')
+			break;
+		++varLength;
+	}
+
+	// Copy the variable name into a buffer
+	char* var = malloc (varLength + 1);
+	if (var == NULL)
+		return NULL;
+	strncpy (var, path + varPosition, varLength);
+	var [varLength] = '\0';
+
+	// Get the value of the environment variable
+	char* value = getenv (var);
+	if (value == NULL)
+	{
+		free (var);
+		return NULL;
+	}
+	size_t valueLength = strlen (value);
+
+	// Create a buffer for the expanded string
+	size_t bufferLength = pathLength - varLength - 1 + valueLength;
+	char* buffer = malloc (bufferLength + 1);
+	if (buffer == NULL)
+	{
+		free (var);
 		return NULL;
 	}
 
-	// Try to load the JSON. We don't need to check success here, as the user of this function should be doing so.
-	cJSON* json = jsonLoad (pathWord.we_wordv [0]);
+	// Populate the buffer
+	strncpy (buffer, path, varPosition);
+	strncpy (buffer + varPosition - 1, value, valueLength);
+	buffer [bufferLength] = '\0';
 
-	// Free the allocate memory.
-	wordfree (&pathWord);
+	// Load the JSON using the expanded path
+	cJSON* json = jsonLoad (buffer);
 
+	// Free the buffer and return
+	free (buffer);
 	return json;
 }
 
