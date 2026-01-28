@@ -12,7 +12,7 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 	cairo_fill (cr);
 
 	cairo_set_font_size (cr, term->config.fontSize);
-	cairo_select_font_face (cr, "Monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+	cairo_select_font_face (cr, "Consolas", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 	gdk_cairo_set_source_rgba (cr, &term->config.fontColor);
 
 	float fontSpacing = term->config.fontSize + term->config.fontSpacing;
