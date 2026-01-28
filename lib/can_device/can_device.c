@@ -77,7 +77,22 @@ canDevice_t* canInit (char* deviceName)
 
 	// Handle SLCAN device
 	if (slcanNameDomain (deviceName))
+	// {
+	// 	if (slcanWildcard (deviceName))
+	// 	{
+	// 		size_t deviceCount;
+	// 		canDevice_t** devices = slcanEnumerate (baudrate, &deviceCount);
+	// 		if (devices == NULL)
+	// 			return NULL;
+
+	// 		size_t index = slcanSelectDevice (devices, deviceCount);
+
+	// 		// REVIEW(Barach): Dealloc remainder
+	// 		return devices [index];
+	// 	}
+
 		return slcanInit(deviceName, baudrate);
+	// }
 
 	// Unknown device
 	errno = ERRNO_CAN_DEVICE_UNKNOWN_NAME;
