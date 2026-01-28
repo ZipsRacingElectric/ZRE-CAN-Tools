@@ -22,10 +22,15 @@ cJSON* jsonLoad (const char* path)
 	// Open the file
 	FILE* file = fopen (path, "r");
 	if (file == NULL)
+	{
+		debugPrintf ("Failed to open JSON file '%s'.\n", path);
 		return NULL;
+	}
 
 	// Read the JSON from the file
 	cJSON* json = jsonRead (file);
+	if (json == NULL)
+		debugPrintf ("Failed to read JSON file '%s'.\n", path);
 
 	// Close the file, preserving errno
 	int code = errno;
@@ -37,61 +42,59 @@ cJSON* jsonLoad (const char* path)
 
 cJSON* jsonLoadPath (const char* path)
 {
-	size_t varPosition = strcspn (path, "$");
-	size_t pathLength = strlen (path);
+	size_t variablePosition = strcspn (path, "$");
+	size_t originalPathLength = strlen (path);
 
-	// Check for variables to expand. If none, use default path behavior.
-	if (varPosition == pathLength)
+	// Check for a variable to expand. If none, use default path behavior.
+	if (variablePosition == originalPathLength)
 		return jsonLoad (path);
 
-	// Ignore the '$' character in the variable length
-	++varPosition;
-
 	// Calculate the length of the variable name
-	size_t varLength = 0;
-	while (varPosition + varLength != pathLength)
+	size_t variableLength = 1;
+	while (variablePosition + variableLength != originalPathLength)
 	{
-		char c = path [varPosition + varLength];
+		char c = path [variablePosition + variableLength];
 		if (c == '$' || c == '/' || c == ' ')
 			break;
-		++varLength;
+		++variableLength;
 	}
 
-	// Copy the variable name into a buffer
-	char* var = malloc (varLength + 1);
-	if (var == NULL)
+	// Copy the variable name into a buffer (+1 for terminator, -1 to exclude '$')
+	char* variable = malloc (variableLength);
+	if (variable == NULL)
 		return NULL;
-	strncpy (var, path + varPosition, varLength);
-	var [varLength] = '\0';
+	strncpy (variable, path + variablePosition + 1, variableLength - 1);
+	variable [variableLength - 1] = '\0';
 
 	// Get the value of the environment variable
-	char* value = getenv (var);
-	if (value == NULL)
-	{
-		free (var);
-		return NULL;
-	}
-	size_t valueLength = strlen (value);
+	size_t valueLength = 0;
+	char* value = getenv (variable);
+	if (value != NULL)
+		valueLength = strlen (value);
 
 	// Create a buffer for the expanded string
-	size_t bufferLength = pathLength - varLength - 1 + valueLength;
-	char* buffer = malloc (bufferLength + 1);
-	if (buffer == NULL)
+	size_t extendedPathLength = originalPathLength - variableLength + valueLength;
+	char* extendedPath = malloc (extendedPathLength + 1);
+	if (extendedPath == NULL)
 	{
-		free (var);
+		free (variable);
 		return NULL;
 	}
 
-	// Populate the buffer
-	strncpy (buffer, path, varPosition);
-	strncpy (buffer + varPosition - 1, value, valueLength);
-	buffer [bufferLength] = '\0';
+	// Populate the extended path
+	memcpy (extendedPath, path, variablePosition);
+	memcpy (extendedPath + variablePosition, value, valueLength);
+	memcpy (extendedPath + variablePosition + valueLength, path + variablePosition + variableLength, originalPathLength - variablePosition - variableLength);
+	extendedPath [extendedPathLength] = '\0';
+
+	debugPrintf ("Substituting environment variable '%s' with '%s' yields '%s'.\n", variable, value, extendedPath);
 
 	// Load the JSON using the expanded path
-	cJSON* json = jsonLoad (buffer);
+	cJSON* json = jsonLoad (extendedPath);
 
 	// Free the buffer and return
-	free (buffer);
+	free (variable);
+	free (extendedPath);
 	return json;
 }
 
