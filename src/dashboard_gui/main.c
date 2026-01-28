@@ -1,18 +1,20 @@
 // Includes
-#include "debug.h"
-#include "page_autox.h"
+#include "page_stack.h"
+#include "cjson/cjson_util.h"
 #include "options.h"
+#include "debug.h"
 
 // GTK
 #include <gtk/gtk.h>
 
 static void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: dashboard-gui <Options> <Application Name> <Device Name> <DBC File Path>\n");
+	fprintf (stream, "Usage: dashboard-gui <Options> <Config JSON> <Device Name> <DBC File Path>\n");
 }
 
 static void fprintHelp (FILE* stream)
 {
+	// TODO(Barach)
 	fprintf (stream, "dashboard-gui\n\n");
 	fprintUsage (stream);
 	fprintf (stream, "\n");
@@ -22,12 +24,13 @@ typedef struct
 {
 	const char* applicationTitle;
 	const char* applicationId;
+	cJSON* config;
 	canDatabase_t* database;
 } activateArg_t;
 
-static gboolean updateLoop (pageAutox_t* page)
+static gboolean updateLoop (pageStack_t* stack)
 {
-	pageAutoxUpdate (page);
+	pageStackUpdate (stack);
 
 	// Continue calling this function
 	return TRUE;
@@ -76,20 +79,64 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	gtk_window_set_title (GTK_WINDOW (window), arg->applicationTitle);
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
 
-	pageAutox_t* page = malloc (sizeof (pageAutox_t));
-	pageAutoxInit (page, arg->database);
-	gtk_window_set_child (GTK_WINDOW (window), PAGE_AUTOX_TO_WIDGET (page));
+	pageStack_t* stack = pageStackInit ();
+	gtk_window_set_child (GTK_WINDOW (window), PAGE_STACK_TO_WIDGET (stack));
+
+	pageStyle_t* style = pageStyleLoad (jsonGetObjectV2 (arg->config, "baseStyle"), NULL);
+
+	cJSON* pageConfigs = jsonGetObjectV2 (arg->config, "pages");
+	if (pageConfigs == NULL)
+	{
+		errorPrintf ("Failed to load pages");
+		gtk_window_destroy (GTK_WINDOW (window));
+		return;
+	}
+
+	size_t pageCount = cJSON_GetArraySize (pageConfigs);
+	page_t** pages = malloc (sizeof (page_t*) * pageCount);
+	if (pages == NULL)
+		return;
+
+	for (size_t index = 0; index < pageCount; ++index)
+	{
+		cJSON* pageConfig = cJSON_GetArrayItem (pageConfigs, index);
+		pages [index] = pageLoad (pageConfig, arg->database, style);
+		if (pages [index] == NULL)
+			continue;
+
+		pageStackAppend (stack, pages [index]);
+	}
+
+	for (size_t index = 0; index < pageCount; ++index)
+	{
+		if (pages [index] == NULL)
+			continue;
+
+		for (size_t buttonIndex = 0; buttonIndex < pageCount; ++buttonIndex)
+		{
+			if (pages [buttonIndex] != NULL)
+			{
+				if (index != buttonIndex)
+					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), pageStackSelectCallback, pages [buttonIndex], false, style);
+				else
+					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), NULL, NULL, true, style);
+			}
+			else
+			{
+				pageAppendButton (pages [index], "", NULL, NULL, false, style);
+			}
+		}
+	}
 
 	GtkEventController* controller = gtk_event_controller_key_new ();
-
-  	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);
+	g_signal_connect_object (controller, "key-pressed", G_CALLBACK (eventKeyPress), window, G_CONNECT_SWAPPED);
 	gtk_widget_add_controller (window, controller);
 
 	gtk_window_present (GTK_WINDOW (window));
 
 	// Create the event loop timer
 	guint* timeout = malloc (sizeof (guint));
-	*timeout = g_timeout_add (1, G_SOURCE_FUNC (updateLoop), page);
+	*timeout = g_timeout_add (40, G_SOURCE_FUNC (updateLoop), stack);
 
 	// Bind the destroy signal to a handler
 	g_signal_connect (GTK_WINDOW (window), "destroy", G_CALLBACK (gtkDestroyHandler), timeout);
@@ -97,13 +144,13 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 
 static char* getApplicationTitle (const char* applicationName)
 {
-	size_t length = snprintf (NULL, 0, "dashboard - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) + 1;
+	size_t length = snprintf (NULL, 0, "dashboard-gui - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) + 1;
 
 	char* title = malloc (length);
 	if (title == NULL)
 		return NULL;
 
-	if (snprintf (title, length, "dashboard - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) < 0)
+	if (snprintf (title, length, "dashboard-gui - %s - %s", applicationName, ZRE_CANTOOLS_VERSION_FULL) < 0)
 		return NULL;
 
 	return title;
@@ -112,13 +159,13 @@ static char* getApplicationTitle (const char* applicationName)
 static char* getApplicationId (const char* applicationName)
 {
 	const char* APPLICATION_DOMAIN = "org.zre";
-	size_t length = snprintf (NULL, 0, "%s.dashboard-%s", APPLICATION_DOMAIN, applicationName) + 1;
+	size_t length = snprintf (NULL, 0, "%s.dashboard-gui-%s", APPLICATION_DOMAIN, applicationName) + 1;
 
 	char* id = malloc (length);
 	if (id == NULL)
 		return NULL;
 
-	if (snprintf (id, length, "%s.dashboard-%s", APPLICATION_DOMAIN, applicationName) < 0)
+	if (snprintf (id, length, "%s.dashboard-gui-%s", APPLICATION_DOMAIN, applicationName) < 0)
 		return NULL;
 
 	return id;
@@ -156,6 +203,12 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
+	// Load the config file
+	char* configPath = argv [argc - 3];
+	cJSON* config = jsonLoad (configPath);
+	if (config == NULL)
+		return errorPrintf ("Failed to load config JSON '%s'", configPath);
+
 	// Initialize the CAN device
 	char* deviceName = argv [argc - 2];
 	canDevice_t* device = canInit (deviceName);
@@ -166,10 +219,13 @@ int main (int argc, char** argv)
 	canDatabase_t database;
 	char* dbcPath = argv [argc - 1];
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
-		return errorPrintf ("Failed to initialize CAN database");
+		return errorPrintf ("Failed to initialize CAN database '%s'", dbcPath);
 
 	// Create application ID from application name
-	char* applicationName = argv [argc - 3];
+	char* applicationName;
+	if (jsonGetString (config, "name", &applicationName) != 0)
+		return errorPrintf ("Failed to load application name");
+
 	char* applicationTitle = getApplicationTitle (applicationName);
 	if (applicationTitle == NULL)
 		return errorPrintf ("Failed to create application title");
@@ -179,12 +235,13 @@ int main (int argc, char** argv)
 		return errorPrintf ("Failed to create application name");
 
 	debugPrintf ("Application ID: '%s'\n", applicationId);
-	debugPrintf ("Application Title '%s'\n", applicationTitle);
+	debugPrintf ("Application Title: '%s'\n", applicationTitle);
 
 	activateArg_t arg =
 	{
 		.applicationTitle	= applicationTitle,
 		.applicationId		= applicationId,
+		.config				= config,
 		.database			= &database
 	};
 

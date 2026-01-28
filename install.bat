@@ -21,6 +21,8 @@ call :createMenuShortcut glory-can-charger
 call :createMenuShortcut glory-can-vehicle
 call :createMenuShortcut glory-vcu-vehicle
 call :createMenuShortcut glory-drs-vehicle
+call :createMenuShortcut glory-dashboard-vehicle
+call :createMenuShortcut glory-dashboard-charger
 goto :eof
 
 :: Function for creating a shortcut

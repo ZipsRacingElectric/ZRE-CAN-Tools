@@ -22,16 +22,79 @@ cJSON* jsonLoad (const char* path)
 	// Open the file
 	FILE* file = fopen (path, "r");
 	if (file == NULL)
+	{
+		debugPrintf ("Failed to open JSON file '%s'.\n", path);
 		return NULL;
+	}
 
 	// Read the JSON from the file
 	cJSON* json = jsonRead (file);
+	if (json == NULL)
+		debugPrintf ("Failed to read JSON file '%s'.\n", path);
 
 	// Close the file, preserving errno
 	int code = errno;
 	fclose (file);
 	errno = code;
 
+	return json;
+}
+
+cJSON* jsonLoadPath (const char* path)
+{
+	size_t variablePosition = strcspn (path, "$");
+	size_t originalPathLength = strlen (path);
+
+	// Check for a variable to expand. If none, use default path behavior.
+	if (variablePosition == originalPathLength)
+		return jsonLoad (path);
+
+	// Calculate the length of the variable name
+	size_t variableLength = 1;
+	while (variablePosition + variableLength != originalPathLength)
+	{
+		char c = path [variablePosition + variableLength];
+		if (c == '$' || c == '/' || c == ' ')
+			break;
+		++variableLength;
+	}
+
+	// Copy the variable name into a buffer (+1 for terminator, -1 to exclude '$')
+	char* variable = malloc (variableLength);
+	if (variable == NULL)
+		return NULL;
+	strncpy (variable, path + variablePosition + 1, variableLength - 1);
+	variable [variableLength - 1] = '\0';
+
+	// Get the value of the environment variable
+	size_t valueLength = 0;
+	char* value = getenv (variable);
+	if (value != NULL)
+		valueLength = strlen (value);
+
+	// Create a buffer for the expanded string
+	size_t extendedPathLength = originalPathLength - variableLength + valueLength;
+	char* extendedPath = malloc (extendedPathLength + 1);
+	if (extendedPath == NULL)
+	{
+		free (variable);
+		return NULL;
+	}
+
+	// Populate the extended path
+	memcpy (extendedPath, path, variablePosition);
+	memcpy (extendedPath + variablePosition, value, valueLength);
+	memcpy (extendedPath + variablePosition + valueLength, path + variablePosition + variableLength, originalPathLength - variablePosition - variableLength);
+	extendedPath [extendedPathLength] = '\0';
+
+	debugPrintf ("Substituting environment variable '%s' with '%s' yields '%s'.\n", variable, value, extendedPath);
+
+	// Load the JSON using the expanded path
+	cJSON* json = jsonLoad (extendedPath);
+
+	// Free the buffer and return
+	free (variable);
+	free (extendedPath);
 	return json;
 }
 
@@ -81,6 +144,7 @@ cJSON* jsonRead (FILE* stream)
 		else if (c == '}')
 			--bracketCount;
 	}
+	*head = '\0';
 
 	// Parse the JSON data
 	cJSON* json = cJSON_Parse (buffer);
@@ -101,6 +165,19 @@ int jsonGetObject (cJSON* json, const char* key, cJSON** value)
 
 	*value = item;
 	return 0;
+}
+
+cJSON* jsonGetObjectV2 (cJSON* json, const char* key)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return NULL;
+	}
+
+	return item;
 }
 
 int jsonGetString (cJSON* json, const char* key, char** value)
@@ -129,6 +206,33 @@ int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value)
 
 	*value = strtol (cJSON_GetStringValue (item), NULL, 0);
 	return 0;
+}
+
+int jsonGetBool (cJSON* json, const char* key, bool* value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
+	}
+
+	char* str = cJSON_GetStringValue (item);
+	if (strcmp (str, "true") == 0)
+	{
+		*value = true;
+		return 0;
+	}
+
+	if (strcmp (str, "false") == 0)
+	{
+		*value = false;
+		return 0;
+	}
+
+	debugPrintf ("Invalid value in boolean JSON '%s'\n", str);
+	return ERRNO_CJSON_PARSE_FAIL;
 }
 
 int jsonGetFloat (cJSON* json, const char* key, float* value)

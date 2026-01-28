@@ -1,0 +1,39 @@
+// Header
+#include "can_widget.h"
+
+// Includes
+#include "can_label_float.h"
+#include "can_label_bool.h"
+#include "can_indicator.h"
+#include "cjson/cjson_util.h"
+#include "debug.h"
+
+canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
+{
+	// TODO(Barach): Same as pageLoad
+
+	if (config == NULL)
+		return NULL;
+
+	char* widgetType;
+	if (jsonGetString (config, "type", &widgetType) != 0)
+	{
+		debugPrintf ("Warning, CAN widget is missing type.\n");
+		return NULL;
+	}
+
+	canWidget_t* widget = canLabelFloatLoad (database, config);
+	if (widget != NULL)
+		return widget;
+
+	widget = canLabelBoolLoad (database, config);
+	if (widget != NULL)
+		return widget;
+
+	widget = canIndicatorLoad (database, config);
+	if (widget != NULL)
+		return widget;
+
+	debugPrintf ("Warning, failed to create CAN widget of type '%s'.\n", widgetType);
+	return NULL;
+}

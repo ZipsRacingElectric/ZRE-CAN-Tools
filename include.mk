@@ -78,13 +78,19 @@ LIB_GTK_LIBFLAGS := $(shell pkg-config --libs gtk4)
 # File Paths ------------------------------------------------------------------
 
 ifeq ($(OS_TYPE),linux)
-	ABS_ROOT_DIR := $(shell realpath $(ROOT_DIR))
+# 'realpath' gets the absolute path of the root directory, 'sed' escapes all spaces. 
+	ABS_ROOT_DIR_SAFE := $(shell realpath $(ROOT_DIR) | sed 's/ /\\ /g')
 else
-	ABS_ROOT_DIR := $(shell cygpath -w $(shell realpath $(ROOT_DIR)))
+# 'realpath' gets the absolute path of the root directory, 'cygpath' converts this into a Windows path.
+# First 'sed' escapes all '\' characters, second 'sed' escapes all spaces.
+	ABS_ROOT_DIR_SAFE := $(shell cygpath -w $(shell realpath $(ROOT_DIR)) | sed 's/\\/\\\\/g' | sed 's/ /\\ /g')
 endif
 
 ifeq ($(OS_TYPE),linux)
-	GCC_BIN := $(shell which gcc)
+# 'which gcc' gets the absolute path of the gcc binary, 'sed' escapes all spaces.
+	GCC_BIN_SAFE := $(shell which gcc | sed 's/ /\\ /g')
 else
-	GCC_BIN := $(shell cygpath -w $(shell which gcc))
+# 'which gcc' gets the absolute path of the gcc binary, 'cygpath' converts this into a Windows path.
+# First 'sed' escapes all '\' characters, second 'sed' escapes all spaces.
+	GCC_BIN_SAFE := $(shell cygpath -w $(shell which gcc) | sed 's/\\/\\\\/g' | sed 's/ /\\ /g')
 endif

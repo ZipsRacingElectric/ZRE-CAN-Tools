@@ -9,6 +9,51 @@
 	"minTemperature":		"-10",
 	"maxTemperature":		"60",
 	"maxLtcTemperature":	"80",
+	"faults":
+	[
+		{
+			"name":			"ISOSPI FAULT",
+			"signal":		"BMS_ISOSPI_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"SELF TEST FAULT",
+			"signal":		"BMS_SELF_TEST_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"SENSE-LINE FAULT",
+			"signal":		"BMS_SENSE_LINE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"UNDERVOLTAGE FAULT",
+			"signal":		"BMS_UNDERVOLTAGE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"OVERVOLTAGE FAULT",
+			"signal":		"BMS_OVERVOLTAGE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"UNDERTEMPERATURE FAULT",
+			"signal":		"BMS_UNDERTEMPERATURE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"OVERTEMPERATURE FAULT",
+			"signal":		"BMS_OVERTEMPERATURE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		}
+	],
 	"variables":
 	[
 		{
@@ -171,7 +216,37 @@
 			"address":	"0x0068",
 			"name":		"LTC_TEMPERATURE_MAX",
 			"type":		"float",
-			"comment":	"The die temperature at which an LTC is not allowed to exceed, in Celsius."
+			"comment":	"The die temperature which an LTC is not allowed to exceed, in Celsius."
+		},
+		{
+			"address":	"0x006C",
+			"name":		"POWER_ROLLING_AVERAGE_COUNT",
+			"type":		"uint16_t",
+			"comment":	"The number of samples to include the rolling average for instantaneous power delivery."
+		},
+		{
+			"address":	"0x0070",
+			"name":		"CELL_VOLTAGE_MIN",
+			"type":		"float",
+			"comment":	"The minimum allowable cell voltage, any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x0074",
+			"name":		"CELL_VOLTAGE_MAX",
+			"type":		"float",
+			"comment":	"The maximum allowable cell voltage, any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0078",
+			"name":		"CELL_VOLTAGE_FAULT_THRESHOLD",
+			"type":		"uint16_t",
+			"comment":	"The maximum number of faulted cell voltage samples until a cell voltage fault is thrown."
+		},
+		{
+			"address":	"0x007A",
+			"name":		"TEMPERATURE_FAULT_THRESHOLD",
+			"type":		"uint16_t",
+			"comment":	"The maximum number of faulted temperature samples until a temperature fault is thrown."
 		},
 		{
 			"address":	"0x1000",

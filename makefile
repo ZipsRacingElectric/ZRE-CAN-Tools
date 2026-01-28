@@ -132,14 +132,14 @@ CLANGD_CFLAGS := $(CFLAGS) $(LIB_SERIAL_CAN_CFLAGS) $(LIB_GTK_CFLAGS)		\
 $(CLANGD_FILE):
 	mkdir -p ./.vscode/
 	rm -f $(CLANGD_FILE)
-	printf "[\n"																				>> $(CLANGD_FILE)
-	printf "\t{\n"																				>> $(CLANGD_FILE)
-	printf "\t\t\"directory\": \"%q\",\n" "$(ABS_ROOT_DIR)"										>> $(CLANGD_FILE)
-	printf "\t\t\"command\": \"gcc "															>> $(CLANGD_FILE)
-	printf "%s,\n" "$(shell printf "%s" "$(CLANGD_CFLAGS)" | sed 's/"/\\\\\\\\\\\\\\\"/g')\""	>> $(CLANGD_FILE)
-	printf "\t\t\"file\": \"*.c\"\n"															>> $(CLANGD_FILE)
-	printf "\t}\n"																				>> $(CLANGD_FILE)
-	printf "]\n"																				>> $(CLANGD_FILE)
+	printf "[\n"																					>> $(CLANGD_FILE)
+	printf "\t{\n"																					>> $(CLANGD_FILE)
+	printf "\t\t\"directory\": \"%s\",\n" '$(ABS_ROOT_DIR_SAFE)'									>> $(CLANGD_FILE)
+	printf "\t\t\"command\": \"gcc "																>> $(CLANGD_FILE)
+	printf "%s,\n" "$(shell printf "%s" "$(CLANGD_CFLAGS)" | sed 's/"/\\\\\\\\\\\\\\\"/g')\""		>> $(CLANGD_FILE)
+	printf "\t\t\"file\": \"*.c\"\n"																>> $(CLANGD_FILE)
+	printf "\t}\n"																					>> $(CLANGD_FILE)
+	printf "]\n"																					>> $(CLANGD_FILE)
 
 # This generates the settings.json vscode file. Like above, this is pretty bad.
 # Only thing that needs to be generated is the gcc binary, as that is different
@@ -156,6 +156,6 @@ $(VSCODE_SETTINGS):
 	printf "\t\t\"--background-index\",\n"							>> $(VSCODE_SETTINGS)
 	printf "\t\t\"--compile-commands-dir=./.vscode/\",\n"			>> $(VSCODE_SETTINGS)
 	printf "\t\t\"-header-insertion=never\",\n"						>> $(VSCODE_SETTINGS)
-	printf "\t\t\"--query-driver=%q\"\n" "$(GCC_BIN)"				>> $(VSCODE_SETTINGS)
+	printf "\t\t\"--query-driver=%s\"\n" '$(GCC_BIN_SAFE)'			>> $(VSCODE_SETTINGS)
 	printf "\t]\n"													>> $(VSCODE_SETTINGS)
 	printf "}\n"													>> $(VSCODE_SETTINGS)

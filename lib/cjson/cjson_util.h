@@ -15,6 +15,7 @@
 #include "cjson.h"
 
 // C Standard Library
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -22,15 +23,21 @@
 
 cJSON* jsonLoad (const char* path);
 
+cJSON* jsonLoadPath (const char* path);
+
 cJSON* jsonRead (FILE* stream);
 
 int jsonGetObject (cJSON* json, const char* key, cJSON** object);
+
+cJSON* jsonGetObjectV2 (cJSON* json, const char* key);
 
 int jsonGetString (cJSON* json, const char* key, char** value);
 
 int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value);
 
 int jsonGetUint32_t (cJSON* json, const char* key, uint32_t* value);
+
+int jsonGetBool (cJSON* json, const char* key, bool* value);
 
 int jsonGetFloat (cJSON* json, const char* key, float* value);
 

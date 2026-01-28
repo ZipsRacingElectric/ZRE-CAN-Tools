@@ -1,9 +1,14 @@
+// For asprintf. Note this must be the first include in this file.
+#define _GNU_SOURCE
+#include <stdio.h>
+
 // Header
 #include "mdf_can_bus_logging.h"
 
 // Includes
 #include "debug.h"
 #include "mdf_writer.h"
+#include "misc_port.h"
 
 // POSIX
 #include <dirent.h>
@@ -1075,7 +1080,7 @@ static int createDestinationDirectory (const char* parentDirectory, uint32_t ses
 
 	// Attempt to create the directory, if it fails (not due to already existing), return failure.
 	debugPrintf ("Creating destination directory '%s'.\n", path);
-	if (mkdir (path, S_IRWXU | S_IRGRP | S_IROTH) != 0 && errno != EEXIST)
+	if (mkdirPort (path) != 0 && errno != EEXIST)
 		return errno;
 
 	// Free the path string

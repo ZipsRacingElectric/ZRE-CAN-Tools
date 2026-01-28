@@ -16,6 +16,7 @@
 // Includes
 #include "can_database/can_database.h"
 #include "cjson/cjson.h"
+#include "fault_signal.h"
 
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
@@ -108,6 +109,15 @@ typedef struct
 	ssize_t packVoltageIndex;
 	/// @brief Global index of the pack current signal.
 	ssize_t packCurrentIndex;
+	/// @brief Global indices of the logical (gapless) temperatures.
+	ssize_t* logicalTemperatureIndices;
+	/// @brief Number of elements in @c logicalTemperatureIndices .
+	size_t logicalTemperatureCount;
+
+	/// @brief Array of fault conditions;
+	faultSignal_t* faults;
+	/// @brief Number of elements in @c faults .
+	size_t faultCount;
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -136,6 +146,14 @@ canDatabaseSignalState_t bmsGetPackVoltage (bms_t* bms, float* voltage);
  * @return The state of the signal. Note that @c current is only written if the return is @c CAN_DATABASE_VALID .
  */
 canDatabaseSignalState_t bmsGetPackCurrent (bms_t* bms, float* current);
+
+/**
+ * @brief Gets the pack power consumption of the BMS.
+ * @param bms The BMS to use.
+ * @param power Buffer to write the power into.
+ * @return The state of the signal. Note that @c power is only written if the return is @c CAN_DATABASE_VALID .
+ */
+canDatabaseSignalState_t bmsGetPackPower (bms_t* bms, float* power);
 
 /**
  * @brief Gets a cell voltage from the BMS.
@@ -172,6 +190,27 @@ canDatabaseSignalState_t bmsGetSenseLineTemperature (bms_t* bms, size_t index, f
  * @return The state of the signal. Note that @c open is only written if the return is @c CAN_DATABASE_VALID .
  */
 canDatabaseSignalState_t bmsGetSenseLineOpen (bms_t* bms, size_t index, bool* open);
+
+/**
+ * @brief Gets a logical temperature from the BMS. Logical temperatures are a "gapless" version of the sense line temperatures,
+ * that is, no missing signals are present in this.
+ * @param bms The BMS to use.
+ * @param index The global index of the logical temperature to get.
+ * @param temperature Buffer to write the temperature into.
+ * @return The state of the signal. Note that @c temperature is only written if the return is @c CAN_DATABASE_VALID .
+ */
+canDatabaseSignalState_t bmsGetLogicalTemperature (bms_t* bms, size_t index, float* temperature);
+
+/**
+ * @brief Gets the number of logical temperatures in the BMS. Logical temperatures are a "gapless" version of the sense line
+ * temperatures, that is, no missing signals are present in this.
+ * @param bms The BMS to use.
+ * @return The number of elements in the array.
+ */
+static inline size_t bmsGetLogicalTemperatureCount (bms_t* bms)
+{
+	return bms->logicalTemperatureCount;
+}
 
 /**
  * @brief Gets the state of an LTC from the BMS.
@@ -219,6 +258,16 @@ bool bmsGetCellDeltaStats (bms_t* bms, float* max, float* avg);
  * @return True if the statistics were written, false otherwise.
  */
 bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
+
+/**
+ * @brief Gets a user-friendly string describing the fault condition of the BMS.
+ * @param bms The BMS to use.
+ * @return The fault string.
+ */
+static inline char* bmsGetFaultState (bms_t* bms)
+{
+	return faultSignalsCheck (bms->database, bms->faults, bms->faultCount);
+}
 
 /**
  * @brief Deallocates the memory used by a BMS.

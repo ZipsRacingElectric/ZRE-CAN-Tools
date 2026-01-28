@@ -15,22 +15,56 @@ void gtkLabelSetFont (GtkLabel* label, const char* pangoFontDescriptor)
 	gtk_label_set_attributes (label, list);
 }
 
-void gtkLabelSetColor (GtkLabel* label, const char* color)
+void gtkTryLabelSetFont (GtkWidget* widget, const char* pangoFontDescriptor)
+{
+	if (GTK_IS_LABEL (widget))
+		gtkLabelSetFont (GTK_LABEL (widget), pangoFontDescriptor);
+}
+
+void gtkLabelSetColor (GtkLabel* label, const GdkRGBA* color)
 {
 	// Get the label's pango attributes, create a new list if none exist.
 	PangoAttrList* list = gtk_label_get_attributes (label);
 	if (list == NULL)
 		list = pango_attr_list_new ();
 
-	PangoColor pangoColor;
-	guint16 alpha;
-	if (!pango_color_parse_with_alpha(&pangoColor, &alpha, color))
-		pangoColor = (PangoColor) { 0, 0, 0 };
-
-	PangoAttribute* attr = pango_attr_foreground_new (pangoColor.red, pangoColor.green, pangoColor.blue);
+	PangoAttribute* attr = pango_attr_foreground_new (color->red * 65536.0f, color->green * 65536.0f, color->blue * 65536.0f);
 	pango_attr_list_insert (list, attr);
 
-	// TODO(Barach): Does alpha ever vary?
 	gtk_label_set_attributes (label, list);
-	gtk_widget_set_opacity (GTK_WIDGET (label), alpha / 65535.0f);
+	gtk_widget_set_opacity (GTK_WIDGET (label), color->alpha);
+}
+
+void gtkTryLabelSetColor (GtkWidget* widget, const GdkRGBA* color)
+{
+	if (GTK_IS_LABEL (widget))
+		gtkLabelSetColor (GTK_LABEL (widget), color);
+}
+
+void gtkTryLabelSetXAlign (GtkWidget* widget, float xalign)
+{
+	if (GTK_IS_LABEL (widget))
+		gtk_label_set_xalign (GTK_LABEL (widget), xalign);
+}
+
+void gtkTryLabelSetYAlign (GtkWidget* widget, float yalign)
+{
+	if (GTK_IS_LABEL (widget))
+		gtk_label_set_yalign (GTK_LABEL (widget), yalign);
+}
+
+GdkRGBA gdkHexToColor (const char* color)
+{
+	PangoColor pangoColor;
+	guint16 pangoAlpha;
+	if (!pango_color_parse_with_alpha(&pangoColor, &pangoAlpha, color))
+		pangoColor = (PangoColor) { 0, 0, 0 };
+
+	return (GdkRGBA)
+	{
+		.red	= pangoColor.red	/ 65536.0f,
+		.green	= pangoColor.green	/ 65536.0f,
+		.blue	= pangoColor.blue	/ 65536.0f,
+		.alpha	= pangoAlpha		/ 65536.0f
+	};
 }

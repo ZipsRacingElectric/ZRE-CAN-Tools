@@ -4,8 +4,8 @@
 # system path.
 SCRIPT=/etc/profile.d/zre_cantools.sh
 
-# Escape any special characters in the directory's path
-SAFE_DIR=$(printf %q "$PWD")
+# Escape any spaces or special characters in the directory's path
+SAFE_DIR=$(echo "$PWD" | sed 's/[]\/$*.^[]/\\&/g' | sed 's/ /\\&/g')
 
 # Delete the script if it already exists
 rm -f $SCRIPT

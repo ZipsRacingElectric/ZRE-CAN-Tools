@@ -99,6 +99,11 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	if (listInit (ssize_t) (&usedSignals, 512) != 0)
 		return errno;
 
+	// Create a list for the logical temperature indices.
+	list_t (ssize_t) logicalTemperatureIndices;
+	if (listInit (ssize_t) (&logicalTemperatureIndices, 64) != 0)
+		return errno;
+
 	bms->cellVoltageIndices = malloc (sizeof (ssize_t) * bms->cellCount);
 	if (bms->cellVoltageIndices == NULL)
 		return errno;
@@ -158,6 +163,13 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		bms->senseLineTemperatureIndices [index] = canDatabaseFindSignal (database, senseLineTemperatureName);
 		if (listAppend (ssize_t) (&usedSignals, bms->senseLineTemperatureIndices [index]) != 0)
 			return errno;
+
+		// If the temperature exists, add it to the logical indices.
+		if (bms->senseLineTemperatureIndices [index] > 0)
+		{
+			if (listAppend (ssize_t) (&logicalTemperatureIndices, bms->senseLineTemperatureIndices [index]) != 0)
+				return errno;
+		}
 
 		// Get the sense line open global index
 		// - All sense line status signals are required, fail if one is missing.
@@ -273,6 +285,26 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	// Deallocate the usedSignals list, as we are done with it.
 	listDealloc (ssize_t) (&usedSignals);
 
+	// Convert the logical temperature indices list into an array.
+	bms->logicalTemperatureIndices = listDestroy (ssize_t) (&logicalTemperatureIndices, &bms->logicalTemperatureCount);
+	if (bms->logicalTemperatureIndices == NULL)
+		return errno;
+
+	// Load the BMS's fault signals
+	cJSON* faults;
+	if (jsonGetObject (config, "faults", &faults) == 0)
+	{
+		bms->faults = faultSignalsLoad (faults, &bms->faultCount, database);
+		if (bms->faults == NULL)
+			return errno;
+	}
+	else
+	{
+		debugPrintf ("Warning: BMS config file is missing 'faults' array.\n");
+		bms->faults = NULL;
+		bms->faultCount = 0;
+	}
+
 	return 0;
 }
 
@@ -284,6 +316,23 @@ canDatabaseSignalState_t bmsGetPackVoltage (bms_t* bms, float* voltage)
 canDatabaseSignalState_t bmsGetPackCurrent (bms_t* bms, float* current)
 {
 	return canDatabaseGetFloat (bms->database, bms->packCurrentIndex, current);
+}
+
+canDatabaseSignalState_t bmsGetPackPower (bms_t* bms, float* power)
+{
+	float voltage;
+	canDatabaseSignalState_t voltageState = bmsGetPackVoltage (bms, &voltage);
+	float current;
+	canDatabaseSignalState_t currentState = bmsGetPackCurrent (bms, &current);
+
+	if (voltageState == CAN_DATABASE_MISSING || currentState == CAN_DATABASE_MISSING)
+		return CAN_DATABASE_MISSING;
+
+	if (voltageState == CAN_DATABASE_TIMEOUT || currentState == CAN_DATABASE_TIMEOUT)
+		return CAN_DATABASE_TIMEOUT;
+
+	*power = voltage * current;
+	return CAN_DATABASE_VALID;
 }
 
 canDatabaseSignalState_t bmsGetCellVoltage (bms_t* bms, size_t index, float* voltage)
@@ -304,6 +353,11 @@ canDatabaseSignalState_t bmsGetSenseLineTemperature (bms_t* bms, size_t index, f
 canDatabaseSignalState_t bmsGetSenseLineOpen (bms_t* bms, size_t index, bool* open)
 {
 	return canDatabaseGetBool (bms->database, bms->senseLinesOpenIndices [index], open);
+}
+
+canDatabaseSignalState_t bmsGetLogicalTemperature (bms_t* bms, size_t index, float* temperature)
+{
+	return canDatabaseGetFloat (bms->database, bms->logicalTemperatureIndices [index], temperature);
 }
 
 bmsLtcState_t bmsGetLtcState (bms_t* bms, size_t index)
@@ -483,6 +537,7 @@ void bmsDealloc (bms_t* bms)
 {
 	// TODO(Barach): Init doesn't deallocate correctly on failure.
 	// Deallocate all dynamically allocated memory.
+	free (bms->faults);
 	free (bms->statusSignalIndices);
 	free (bms->ltcTemperatureIndices);
 	free (bms->ltcSelfTestFaultIndices);
