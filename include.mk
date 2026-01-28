@@ -8,6 +8,7 @@ OBJ_BIN_DIR	:= $(BIN_DIR)/obj
 
 CONFIG_DIR	:= $(ROOT_DIR)/config
 DOC_DIR		:= $(ROOT_DIR)/doc
+FONT_DIR	:= $(ROOT_DIR)/font
 
 # Library Definitions ---------------------------------------------------------
 

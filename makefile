@@ -108,9 +108,10 @@ release: bin
 	cp $(UNINSTALLER) $(RELEASE_DIR)/
 	chmod +x $(RELEASE_DIR)/$(UNINSTALLER)
 
-	# Documentation
+	# Documentation and fonts
 	cp -r $(DOC_DIR) $(RELEASE_DIR)/
 	cp $(RELEASE_README) $(RELEASE_DIR)/readme.txt
+	cp -r $(FONT_DIR) $(RELEASE_DIR)/
 
 # VSCode Directory ------------------------------------------------------------
 
