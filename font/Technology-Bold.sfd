@@ -1,7 +1,7 @@
 SplineFontDB: 3.2
-FontName: Technology-Monospace-Bold
-FullName: Technology-Monospace Bold
-FamilyName: Technology-Monospace
+FontName: Technology-Bold
+FullName: Technology Bold
+FamilyName: Technology
 Weight: Bold
 Copyright: Copyright (c) 2018 by Vladimir Nikolic. All rights reserved.
 Version: 1.000
@@ -22,7 +22,7 @@ OS2Version: 3
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 0
 CreationTime: 1545133596
-ModificationTime: 1768156187
+ModificationTime: 1769550338
 PfmFamily: 81
 TTFWeight: 700
 TTFWidth: 5

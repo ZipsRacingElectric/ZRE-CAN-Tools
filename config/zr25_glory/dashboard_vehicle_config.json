@@ -44,8 +44,8 @@
 				"dataLoggerTitleFont":					"Futura Std Bold Condensed 36px",
 				"dataLoggerStatFont":					"ITC Avant Garde Gothic CE Book 22px",
 				"centerPanelTitleFont":					"ITC Avant Garde Gothic CE Book 22px",
-				"centerPanelLabelFont":					"Technology-Monospace Bold 0px",
-				"centerPanelStatFont":					"Technology-Monospace Bold 150px",
+				"centerPanelLabelFont":					"Technology Bold 0px",
+				"centerPanelStatFont":					"Technology Bold 150px",
 				"sidePanelTitleFont":					"Futura Std Bold Condensed 26px",
 				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px",
 				"faultIndicatorFont":					"Futura Std Bold Condensed 32px"
@@ -196,8 +196,8 @@
 				"dataLoggerTitleFont":					"Futura Std Bold Condensed 36px",
 				"dataLoggerStatFont":					"ITC Avant Garde Gothic CE Book 22px",
 				"centerPanelTitleFont":					"ITC Avant Garde Gothic CE Book 22px",
-				"centerPanelLabelFont":					"Technology-Monospace Bold 28px",
-				"centerPanelStatFont":					"Technology-Monospace Bold 50px",
+				"centerPanelLabelFont":					"Technology Bold 28px",
+				"centerPanelStatFont":					"Technology Bold 50px",
 				"sidePanelTitleFont":					"Futura Std Bold Condensed 26px",
 				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px",
 				"faultIndicatorFont":					"Futura Std Bold Condensed 32px"
