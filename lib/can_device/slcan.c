@@ -175,19 +175,17 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 
 canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 {
-	// REVIEW(Barach): Should initialize deviceCount
 	*deviceCount = 0;
 
-	// REVIEW(Barach): Not an issue, but much faster to init capacity to something like 8.
 	// Dynamic list stores enumerated can devices 
-	listInit (canDevicePtr_t) (&devices, 1);
+	listInit (canDevicePtr_t) (&devices, 8);
 
 	# ifdef ZRE_CANTOOLS_OS_linux
 		const char* dev = "/dev";
 		struct dirent* entry;
 		DIR* directory = opendir (dev);
 		
-		// Review(Barach): Should probably print a list of the potential devices to verbose output.
+		debugPrintf ("\nPotential Devices:\n");
 
 		// Traverses the /dev directory
 		while ((entry = readdir (directory)))
@@ -198,15 +196,19 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 			}
 			char* device = entry->d_name;
 
+			printf ("- %s\n", device);
+
 			// Checks if device is of type ttyACM
 			if (strstr (device, "ttyACM"))
 			{
 				// Prepend the device path to the device name
 				char* devicePath = "/dev/";
-				// REVIEW(Barach): Unchecked malloc
+
 				char* x = malloc (strlen(devicePath) + strlen(device) + 1);
-				strcpy (x, devicePath);
-				strcat (x, device);
+				if (x) {
+					strcpy (x, devicePath);
+					strcat (x, device);
+				}
 
 				// Attempts to create slcan device
 				canDevice_t* slcanDevice = slcanInit (x, baudrate);
@@ -223,6 +225,8 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 				free (x);
 			}
 		}
+
+		debugPrintf("\n");
 
 		// Memory internal to the opendir() function is deallocated using the closedir() function
 		closedir (directory);
@@ -288,38 +292,8 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 	if (listSize (canDevicePtr_t) (&devices) > 0)
 		return listArray (canDevicePtr_t) (&devices);
 
-	// REVIEW(Barach): Should set errno on failure
 	errno = ERRNO_CAN_DEVICE_MISSING_DEVICE;
 	return NULL;
-}
-
-// REVIEW(Barach): I'd move this into canDevice, as there's nothing inherently specific to SLCAN here (if we change the prompt).
-// TODO(DiBacco): consider automatically selecting can device if only one is detected.
-size_t slcanSelectDevice (canDevice_t** devices, size_t deviceCount)
-{
-	char command [512];
-
-	while (true)
-	{
-		printf ("\n");
-		printf ("Which SLCAN Device would you like to use?\n");
-		for (size_t deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
-		{
-			// REVIEW(Barach): 0-based index (even on the user side) is preferred unless there is strong incentive not to.
-			// REVIEW(Barach): zu doesn't work on Windows (or debian, can't rememeber which). %lu and (unsigned long) cast are preferred.
-			printf (" %zu). %s\n", deviceIndex + 1, canGetDeviceName (devices [deviceIndex]));
-		}
-
-		fgets (command, sizeof (command), stdin);
-		command [strcspn (command, "\r\n")] = '\0';
-
-		size_t x = (size_t) strtol (command, NULL, 0);
-		if (0 < x && x <= deviceCount)
-		{
-			printf ("\n");
-			return x -1;
-		}	
-	}
 }
 
 void slcanDealloc (void* device)

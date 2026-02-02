@@ -59,14 +59,6 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate);
 canDevice_t** slcanEnumerate (canBaudrate_t baudate, size_t* deviceCount);
 
 /**
- * @brief Selects the index of an SLCAN device from a list of SLCAN devices via a command prompt. 
- * @param devices A list of SLCAN devices.
- * @param deviceCount The number of SLCAN devices.
- * @return The selected SLCAN device's index within the list.
- */
-size_t slcanSelectDevice (canDevice_t** devices, size_t deviceCount); 
-
-/**
  * @brief De-allocates the memory owned by an SLCAN device.
  * @param device The device to de-allocate.
  */

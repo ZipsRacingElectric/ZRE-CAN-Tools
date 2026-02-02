@@ -77,22 +77,28 @@ canDevice_t* canInit (char* deviceName)
 
 	// Handle SLCAN device
 	if (slcanNameDomain (deviceName))
-	// {
-	// 	if (slcanWildcard (deviceName))
-	// 	{
-	// 		size_t deviceCount;
-	// 		canDevice_t** devices = slcanEnumerate (baudrate, &deviceCount);
-	// 		if (devices == NULL)
-	// 			return NULL;
+	{
+		if (slcanWildcard (deviceName))
+		{
+	 		size_t deviceCount;
+	 		canDevice_t** devices = slcanEnumerate (baudrate, &deviceCount);
+	 		if (devices == NULL)
+	 			return NULL;
 
-	// 		size_t index = slcanSelectDevice (devices, deviceCount);
+	 		size_t index = canSelectDevice (devices, deviceCount);
 
-	// 		// REVIEW(Barach): Dealloc remainder
-	// 		return devices [index];
-	// 	}
+			// Deallocate unused slcan devices
+			for (size_t i = 0; i < deviceCount; ++i) 
+			{
+				if (i != index)
+					slcanDealloc(devices[i]);
+			}
+
+	 		return devices [index];
+	 	}
 
 		return slcanInit(deviceName, baudrate);
-	// }
+	 }
 
 	// Unknown device
 	errno = ERRNO_CAN_DEVICE_UNKNOWN_NAME;
@@ -134,35 +140,28 @@ char* canGetBusErrorName (int code)
 	return "UNSPECIFIED ERROR";
 }
 
-// REVIEW(Barach): Temporarily removed until finalized.
-// canDevice_t* enumerateDevice (char* baudRate)
-// {
-// 	char* deviceNames [5];
-// 	size_t deviceCount = 0;
+// TODO(DiBacco): consider automatically selecting can device if only one is detected.
+size_t canSelectDevice (canDevice_t** devices, size_t deviceCount)
+{
+	char command [512];
 
-// 	if (slcanenumerateDevice (deviceNames, &deviceCount, "1000000") == 0)
-// 	{
-// 		char name [128];
-// 		canDevice_t* device;
+	while (true)
+	{
+		printf ("\n");
+		printf ("Which SLCAN Device would you like to use?\n");
+		for (size_t deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
+		{
+			printf (" %lu). %s\n", deviceIndex, canGetDeviceName (devices [deviceIndex]));
+		}
 
-// 		for (int i = 0; i < deviceCount; ++i)
-// 		{
-// 			device = canInit (deviceNames[i]);
+		fgets (command, sizeof (command), stdin);
+		command [strcspn (command, "\r\n")] = '\0';
 
-// 			if (device == NULL)
-// 			{
-// 				continue;
-// 			}
-
-// 			return device;
-// 		}
-// 	}
-// 	else
-// 	{
-// 		// Indicates that the program failed to locate a CAN device
-// 		errno = ERRNO_CAN_DEVICE_MISSING_DEVICE;
-// 	}
-
-// 	// Indicates that a CAN device could not be created
-// 	return NULL;
-// }
+		size_t x = (size_t) strtol (command, NULL, 0);
+		if (0 <= x && x <= deviceCount)
+		{
+			printf ("\n");
+			return x;
+		}	
+	}
+}

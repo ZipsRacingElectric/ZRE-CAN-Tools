@@ -225,4 +225,13 @@ bool canCheckBusError (int code);
  */
 char* canGetBusErrorName (int code);
 
+/**
+ * @brief Selects the index of an SLCAN device from a list of SLCAN devices via a command prompt. 
+ * @param devices A list of SLCAN devices.
+ * @param deviceCount The number of SLCAN devices.
+ * @return The selected SLCAN device's index within the list.
+ */
+size_t canSelectDevice (canDevice_t** devices, size_t deviceCount); 
+
+
 #endif // CAN_DEVICE_H
