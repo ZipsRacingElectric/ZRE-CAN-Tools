@@ -234,6 +234,9 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 	# endif // ZRE_CANTOOLS_OS_linux
 
 	# ifdef ZRE_CANTOOLS_OS_windows
+	
+		debugPrintf ("\nPotential Devices:\n");
+		
 		for (int i = 1; i <= 255; i++) {
 			
 			// Sets the size of the device name
@@ -260,6 +263,8 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
     	        0,
     	        NULL
     	    );
+			
+			debugPrintf ("- %s\n", device);
 
 			// Checks that there is a device occupying the COM port.
     	    if (handle != INVALID_HANDLE_VALUE) {
@@ -283,7 +288,8 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 		free (device);
 
     	}
-		
+
+		debugPrintf ("\n");
 
 	# endif // ZRE_CANTOOLS_OS_windows
 	
