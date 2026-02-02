@@ -230,53 +230,56 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 	# endif // ZRE_CANTOOLS_OS_linux
 
 	# ifdef ZRE_CANTOOLS_OS_windows
-		LPSTR device;
-		char buffer [32768];
-		DWORD bufferSize = 32768;
-		QueryDosDeviceA (NULL, buffer, bufferSize);
-		
-		size_t counter = 0;
-		debugPrintf ("QueryDosDeviceA() => \n");
+		for (int i = 1; i <= 255; i++) {
+			
+			// Sets the size of the device name
+			int n = strlen ("COM");
+			if (i > 9) n += 2;
+			else if (i > 99) n += 3;
+			else n += 1;
 
-		// List the verbose content of the buffer
-		for (int i = 0; i < 32768; ++i)
-		{
-			if (buffer[i] == '\0')
-			{
-				++counter;
-				debugPrintf ("\n");
-				continue;
+			// Allocates memory for the size of the device name
+			char* device = malloc (n + 1);
+
+			// Creates the device name on successful memory allocation.
+			if (device) {
+    			sprintf (device, "COM%d", i);
 			}
 
-			// Indicates Double-Null Character
-			if (counter > 1) 
-			{
-				break;
-			}
-			counter = 0;
+			// Creates a handle that can be used to access the device connected to the COM port.
+    	    HANDLE handle = CreateFileA (
+    	        device,
+    	        GENERIC_READ | GENERIC_WRITE,
+    	        0,  
+    	        NULL,
+    	        OPEN_EXISTING,
+    	        0,
+    	        NULL
+    	    );
 
-			debugPrintf ("%c", buffer[i]);
-		}
+			// Checks that there is a device occupying the COM port.
+    	    if (handle != INVALID_HANDLE_VALUE) {
 
-		device = buffer;
-		while (*device)
-		{
-			// Checks if device is of type COM
-			if (strstr (device, "COM") && strlen (device) <= 5)
-			{
-				// Attempts to create slcan device
+				// Invalidates the object handle.
+				CloseHandle (handle);
+
+				// Attempts to create SLCAN device
 				canDevice_t* slcanDevice = slcanInit (device, baudrate);
-				if (slcanDevice == NULL) 
+				if (slcanDevice == NULL)
+				{
+					errorPrintf ("Failed to Create Can Device");
 					continue;
-
-				// Appends slcan device to the list of enumerated slcan devices
+				}
+				
+				// Appends slcan device to the list of enumerated slcan devices 
 				listAppend (canDevicePtr_t) (&devices, slcanDevice);
-				++(*deviceCount);
-			}
+				++(*deviceCount);        	
+    	    }
 
-			// Points pointer at the next device
-			device += strlen (device) + 1;
-		}
+		free (device);
+
+    	}
+		
 
 	# endif // ZRE_CANTOOLS_OS_windows
 	
