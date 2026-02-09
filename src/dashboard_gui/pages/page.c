@@ -7,11 +7,10 @@
 #include "page_can_bus.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
+#include "debug.h"
 
 page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 {
-	// TODO(Barach): Type checking should be done here so we can distinguish errors.
-
 	char* pageType;
 	if (jsonGetString (config, "type", &pageType) != 0)
 	{
@@ -19,22 +18,46 @@ page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 		return NULL;
 	}
 
-	page_t* page = pageDriveLoad (config, database, style);
-	if (page != NULL)
-		return page;
+	if (strcmp (pageType, "pageDrive_t") == 0)
+	{
+		page_t* page = pageDriveLoad (config, database, style);
+		if (page == NULL)
+		{
+			errorPrintf ("Failed to load page of type 'pageDrive_t'");
+			return NULL;
+		}
 
-	page = pageBmsLoad (config, database, style);
-	if (page != NULL)
 		return page;
+	}
 
-	page = pageCanBusLoad (config, database, style);
-	if (page != NULL)
+	if (strcmp (pageType, "pageBms_t") == 0)
+	{
+		page_t* page = pageBmsLoad (config, database, style);
+		if (page == NULL)
+		{
+			errorPrintf ("Failed to load page of type 'pageBms_t'");
+			return NULL;
+		}
+
 		return page;
+	}
+
+	if (strcmp (pageType, "pageCanBus_t") == 0)
+	{
+		page_t* page = pageCanBusLoad (config, database, style);
+		if (page == NULL)
+		{
+			errorPrintf ("Failed to load page of type 'pageCanBus_t'");
+			return NULL;
+		}
+
+		return page;
+	}
 
 	if (strcmp (pageType, "null") == 0)
 		return NULL;
 
-	fprintf (stderr, "Failed to load page of type '%s'.\n", pageType);
+	fprintf (stderr, "Failed to load page of unknown type '%s'.\n", pageType);
 
 	return NULL;
 }

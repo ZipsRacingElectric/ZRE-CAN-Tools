@@ -10,8 +10,6 @@
 
 canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 {
-	// TODO(Barach): Same as pageLoad
-
 	if (config == NULL)
 		return NULL;
 
@@ -22,18 +20,45 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 		return NULL;
 	}
 
-	canWidget_t* widget = canLabelFloatLoad (database, config);
-	if (widget != NULL)
-		return widget;
+	if (strcmp (widgetType, "canLabelFloat_t") == 0)
+	{
+		canWidget_t* widget = canLabelFloatLoad (database, config);
+		if (widget == NULL)
+		{
+			errorPrintf ("Failed to load widget of type 'canLabelFloat_t'");
+			return widget;
+		}
 
-	widget = canLabelBoolLoad (database, config);
-	if (widget != NULL)
 		return widget;
+	}
 
-	widget = canIndicatorLoad (database, config);
-	if (widget != NULL)
+	if (strcmp (widgetType, "canLabelBool_t") == 0)
+	{
+		canWidget_t* widget = canLabelBoolLoad (database, config);
+		if (widget == NULL)
+		{
+			errorPrintf ("Failed to load widget of type 'canLabelBool_t'");
+			return NULL;
+		}
+
 		return widget;
+	}
 
-	debugPrintf ("Warning, failed to create CAN widget of type '%s'.\n", widgetType);
+	if (strcmp (widgetType, "canIndicator_t") == 0)
+	{
+		canWidget_t* widget = canIndicatorLoad (database, config);
+		if (widget == NULL)
+		{
+			errorPrintf ("Failed to load widget of type 'canIndicator_t'");
+			return NULL;
+		}
+
+		return widget;
+	}
+
+	if (strcmp (widgetType, "null") == 0)
+		return NULL;
+
+	fprintf (stderr, "Failed to load widget of unknown type '%s'.\n", widgetType);
 	return NULL;
 }

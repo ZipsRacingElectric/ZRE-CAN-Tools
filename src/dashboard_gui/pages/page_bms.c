@@ -249,13 +249,6 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 	if (config == NULL)
 		return NULL;
 
-	char* pageType;
-	if (jsonGetString (config, "type", &pageType) != 0)
-		return NULL;
-
-	if (strcmp (pageType, "pageBms_t") != 0)
-		return NULL;
-
 	char* pageName;
 	if (jsonGetString (config, "name", &pageName) != 0)
 		return NULL;

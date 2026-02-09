@@ -128,13 +128,6 @@ canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* co
 
 canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config)
 {
-	char* widgetType;
-	if (jsonGetString (config, "type", &widgetType) != 0)
-		return NULL;
-
-	if (strcmp (widgetType, "canIndicator_t") != 0)
-		return NULL;
-
 	char* signalName;
 	if (jsonGetString (config, "signalName", &signalName) != 0)
 		return NULL;

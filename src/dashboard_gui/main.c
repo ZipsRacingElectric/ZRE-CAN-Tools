@@ -1,11 +1,25 @@
+// Dashboard GUI --------------------------------------------------------------------------------------------------------------
+//
+// Author: Cole Barach
+// Date Created: 2025.12.22
+//
+// Description: For application description, see help page. For help with the GTK library, see:
+//   doc/gtk_introduction.md
+
+// Includes -------------------------------------------------------------------------------------------------------------------
+
 // Includes
 #include "page_stack.h"
 #include "cjson/cjson_util.h"
+#include "can_database/can_database_stdio.h"
+#include "can_device/can_device_stdio.h"
 #include "options.h"
 #include "debug.h"
 
 // GTK
 #include <gtk/gtk.h>
+
+// Functions ------------------------------------------------------------------------------------------------------------------
 
 static void fprintUsage (FILE* stream)
 {
@@ -14,10 +28,21 @@ static void fprintUsage (FILE* stream)
 
 static void fprintHelp (FILE* stream)
 {
-	// TODO(Barach)
-	fprintf (stream, "dashboard-gui\n\n");
+	fprintf (stream, ""
+		"dashboard-gui - Graphical user interface for the dashboard of Zips Racing's\n"
+		"                vehicles.\n\n");
+
+
 	fprintUsage (stream);
-	fprintf (stream, "\n");
+
+	fprintf (stream, "\n"
+		"Parameters:\n"
+		"\n"
+		"    <Config JSON>         - The dashboard's configuration file. This defines the\n"
+		"                            pages and style of the GUI.\n\n");
+
+	fprintCanDeviceNameHelp (stream, "    ");
+	fprintCanDbcFileHelp (stream, "    ");
 }
 
 typedef struct

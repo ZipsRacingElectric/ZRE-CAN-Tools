@@ -137,13 +137,6 @@ page_t* pageCanBusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	if (config == NULL)
 		return NULL;
 
-	char* pageType;
-	if (jsonGetString (config, "type", &pageType) != 0)
-		return NULL;
-
-	if (strcmp (pageType, "pageCanBus_t") != 0)
-		return NULL;
-
 	char* pageName;
 	if (jsonGetString (config, "name", &pageName) != 0)
 		return NULL;

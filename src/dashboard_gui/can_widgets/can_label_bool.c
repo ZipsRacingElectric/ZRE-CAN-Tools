@@ -92,13 +92,6 @@ canWidget_t* canLabelBoolInit (canDatabase_t* database, canLabelBoolConfig_t* co
 
 canWidget_t* canLabelBoolLoad (canDatabase_t* database, cJSON* config)
 {
-	char* widgetType;
-	if (jsonGetString (config, "type", &widgetType) != 0)
-		return NULL;
-
-	if (strcmp (widgetType, "canLabelBool_t") != 0)
-		return NULL;
-
 	char* signalName;
 	if (jsonGetString (config, "signalName", &signalName) != 0)
 		return NULL;
