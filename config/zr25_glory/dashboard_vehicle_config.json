@@ -335,7 +335,12 @@
 			}
 		},
 		{
-			"type":										"null"
+			"type":										"pageStatus_t",
+			"name":										"STAT.",
+			"style":
+			{
+
+			}
 		},
 		{
 			"type":										"pageBms_t",

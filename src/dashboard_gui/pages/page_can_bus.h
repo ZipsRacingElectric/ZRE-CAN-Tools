@@ -6,7 +6,7 @@
 // Author: Cole Barach
 // Date Created: 2026.01.06
 //
-// Description: TODO(Barach)
+// Description: Page detailing all information in a CAN database. Used for debugging.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 

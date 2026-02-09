@@ -5,6 +5,8 @@
 #include "page_drive.h"
 #include "page_bms.h"
 #include "page_can_bus.h"
+#include "page_status.h"
+#include "page_template.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
@@ -48,6 +50,30 @@ page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 		if (page == NULL)
 		{
 			errorPrintf ("Failed to load page of type 'pageCanBus_t'");
+			return NULL;
+		}
+
+		return page;
+	}
+
+	if (strcmp (pageType, "pageStatus_t") == 0)
+	{
+		page_t* page = pageStatusLoad (config, database, style);
+		if (page == NULL)
+		{
+			errorPrintf ("Failed to load page of type 'pageStatus_t'");
+			return NULL;
+		}
+
+		return page;
+	}
+
+	if (strcmp (pageType, "pageTemplate_t") == 0)
+	{
+		page_t* page = pageTemplateLoad (config, database, style);
+		if (page == NULL)
+		{
+			errorPrintf ("Failed to load page of type 'pageTemplate_t'");
 			return NULL;
 		}
 

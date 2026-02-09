@@ -10,6 +10,8 @@ SRC :=	main.c										\
 		pages/page_drive.c							\
 		pages/page_bms.c							\
 		pages/page_can_bus.c						\
+		pages/page_status.c							\
+		pages/page_template.c						\
 		can_widgets/can_widget.c					\
 		can_widgets/can_indicator.c					\
 		can_widgets/can_label_bool.c				\

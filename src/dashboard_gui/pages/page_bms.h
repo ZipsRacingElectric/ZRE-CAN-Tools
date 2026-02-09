@@ -6,7 +6,7 @@
 // Author: Cole Barach
 // Date Created: 2025.12.29
 //
-// Description: TODO(Barach)
+// Description: Page displaying detailed information about a battery management system.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -58,18 +58,6 @@ typedef struct
 	bmsBarGraph_t voltages;
 	bmsBarGraph_t temperatures;
 	bmsBarGraph_t ltcTemperatures;
-	// bmsFaultLabel_t faultLabel;
-	// canLabelFloatStatic_t voltageLabel;
-	// canLabelFloatStatic_t currentLabel;
-	// canLabelFloatStatic_t powerLabel;
-	// canLabelFloatStatic_t minCellLabel;
-	// canLabelFloatStatic_t maxCellLabel;
-	// canLabelFloatStatic_t avgCellLabel;
-	// canLabelFloatStatic_t minTempLabel;
-	// canLabelFloatStatic_t maxTempLabel;
-	// canLabelFloatStatic_t avgTempLabel;
-	// canLabelFloatStatic_t maxDeltaLabel;
-	// canLabelFloatStatic_t avgDeltaLabel;
 } pageBms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

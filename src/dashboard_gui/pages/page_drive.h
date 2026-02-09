@@ -6,7 +6,7 @@
 // Author: Cole Barach
 // Date Created: 2025.12.16
 //
-// Description: TODO(Barach)
+// Description: Page intended to be used while driving the vehicle.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -20,8 +20,6 @@
 #include <gtk/gtk.h>
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
-
-// TODO(Barach): Polymorphism docs
 
 typedef struct
 {
