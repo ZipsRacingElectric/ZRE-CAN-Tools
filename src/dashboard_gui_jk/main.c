@@ -113,13 +113,13 @@ int main (int argc, char** argv)
 
 	canDevice_t* device = canInit(argv [2]); 
 	if (device == NULL){
-		fprintf (stderr , "Invalid Device Name, %s \n" , errorMessage(errno));
+		fprintf (stderr , "Invalid Device Name, %s \n" , errorCodeToMessage(errno));
 		return errno;
 	}
 
 	if (canDatabaseInit(&database, device, argv [3]) != 0){ 
 		//argv [3] = DBC File Path
-		fprintf (stderr , "Invalid DBC File Path, %s \n" , errorMessage(errno));
+		fprintf (stderr , "Invalid DBC File Path, %s \n" , errorCodeToMessage(errno));
 		return errno;
 	}	
 
