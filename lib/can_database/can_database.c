@@ -4,7 +4,7 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_dbc_v2.h"
+#include "can_dbc.h"
 #include "debug.h"
 #include "error_codes.h"
 

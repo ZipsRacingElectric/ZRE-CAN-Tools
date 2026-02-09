@@ -8,11 +8,6 @@
 //
 // Description: A group of functions relating to CAN DBC files.
 //
-// TODO(Barach):
-// - This is a pretty poor implementation, error handling is a big issue. A better approach would be to read lines in all at
-//   once then parse them.
-// - This should accept a string input, rather than a file.
-//
 // References:
 // - http://mcu.so/Microcontroller/Automotive/dbc-file-format-documentation_compress.pdf
 // - https://www.csselectronics.com/pages/can-dbc-file-database-intro
@@ -26,24 +21,41 @@
 // C Standard Library
 #include <stdlib.h>
 
-// Constants ------------------------------------------------------------------------------------------------------------------
-
-/// @brief The maximum length of a line in a CAN DBC file, in bytes.
-#define CAN_DBC_LINE_LENGTH_MAX 4096
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 /**
- * @brief Parses the specified CAN database file.
- * @param path The relative/absolute path of the DBC file.
- * @param messages The array to populate with the database's messages.
- * @param messageCount Input, should contain the size of the @c messages array. Output written to contain the number of
- * populated messages.
- * @param signals The array of populate with the database's signals.
- * @param signalCount Input, should contain the size of the @c signals array. Output written to contain the number of populated
- * signals.
+ * @brief Loads the contents of a CAN DBC file into a set of parallel arrays.
+ * @param dbcFile The path of the DBC file to load.
+ * @param messages Buffer to write the address of the message array into.
+ * @param messageCount Buffer to write the size of the message array into.
+ * @param signals Buffer to write the address of the signal array into.
+ * @param signalCount Buffer to write the size of the signal array into.
  * @return 0 if successful, the error code otherwise.
  */
-int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount, canSignal_t* signals, size_t* signalCount);
+int canDbcLoad (char* dbcFile, canMessage_t** messages, size_t* messageCount,
+	canSignal_t** signals, size_t* signalCount);
+
+/**
+ * @brief Loads an array of CAN DBC files into a set of parallel arrays.
+ * @param dbcFiles The array of pathes of each DBC file to load.
+ * @param dbcCount The number of elements in @c dbcFiles .
+ * @param messages Buffer to write the address of the message array into.
+ * @param messageCount Buffer to write the size of the message array into.
+ * @param signals Buffer to write the address of the signal array into.
+ * @param signalCount Buffer to write the size of the signal array into.
+ * @param dbcMessageIndices User-allocated array containing the index of the start of each DBC file. Must be of
+ * size @c dbcCount .
+ * @return 0 if successful, the error code otherwise.
+ */
+int canDbcsLoad (char** dbcFiles, size_t dbcCount, canMessage_t** messages, size_t* messageCount,
+	canSignal_t** signals, size_t* signalCount, size_t* dbcMessageIndices);
+
+/**
+ * @brief Deallocates the arrays created by either @c canDbcLoad or @c canDbcsLoad .
+ * @param messages The array of messages.
+ * @param messageCount The size of the message array.
+ * @param signals The array of signals.
+ */
+void canDbcsDealloc (canMessage_t* messages, size_t messageCount, canSignal_t* signals);
 
 #endif // CAN_DBC_H

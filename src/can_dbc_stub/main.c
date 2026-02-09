@@ -1,5 +1,5 @@
 #include "can_device/can_device_stdio.h"
-#include "can_database/can_dbc_v2.h"
+#include "can_database/can_dbc.h"
 #include "debug.h"
 
 int main (int argc, char** argv)
@@ -42,7 +42,8 @@ int main (int argc, char** argv)
 				"        Bit position: %u\n"
 				"        Scale factor: %f\n"
 				"        Offset: %f\n"
-				, signal->name, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset);
+				"        Endianness: %u\n"
+				, signal->name, signal->bitLength, signal->bitPosition, signal->scaleFactor, signal->offset, signal->endianness);
 		}
 	}
 
