@@ -3,8 +3,10 @@
 // Author: Cole Barach
 // Date Created: 2025.12.22
 //
-// Description: For application description, see help page. For help with the GTK library, see:
-//   doc/gtk_introduction.md
+// Description:
+// - For application description, see help page.
+// - For technical documentation, see doc/dashboard_gui.md.
+// - For help with the GTK library, see doc/gtk_introduction.md.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 

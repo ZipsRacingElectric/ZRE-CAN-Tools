@@ -8,8 +8,6 @@
 //
 // Description: Base polymorphic object for a single page of a GUI. A page is a single screen being rendered at a given time.
 
-// TODO(Barach): Docs
-
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
