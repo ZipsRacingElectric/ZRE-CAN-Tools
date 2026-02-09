@@ -235,7 +235,7 @@ int parseSignal (list_t (canSignal_t)* signals, canMessage_t* message, char* lin
 	// Parse the signedness
 	if (endiannessSignedness [1] != '+' && endiannessSignedness [1] != '-')
 		return handleInvalid (dbcFile, lineNumber, "signal signedness", endiannessSignedness);
-	signal->signedness = endiannessSignedness [0] == '-';
+	signal->signedness = endiannessSignedness [1] == '-';
 
 	char* offset = stringSplit (scaleFactor, " :@|,()[]", true);
 	if (offset == NULL)
