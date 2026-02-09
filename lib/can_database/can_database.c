@@ -4,7 +4,7 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_dbc.h"
+#include "can_dbc_v2.h"
 #include "debug.h"
 #include "error_codes.h"
 
@@ -31,15 +31,26 @@ void* canDatabaseRxThreadEntrypoint (void* arg);
 
 void canDatabaseCheckTimeouts (canDatabase_t* database);
 
-int canDatabaseInit (canDatabase_t* database, canDevice_t* device, const char* dbcPath)
+int canDatabaseInit (canDatabase_t* database, canDevice_t* device, char* dbcPath)
 {
 	database->device = device;
 
 	// Parse the DBC file.
-	database->messageCount	= CAN_DATABASE_MESSAGE_COUNT_MAX;
-	database->signalCount	= CAN_DATABASE_SIGNAL_COUNT_MAX;
+	if (canDbcLoad (dbcPath, &database->messages, &database->messageCount, &database->signals, &database->signalCount) != 0)
+		return errno;
 
-	if (dbcFileParse (dbcPath, database->messages, &database->messageCount, database->signals, &database->signalCount) != 0)
+	// Allocate memory
+
+	database->signalValues = malloc (sizeof (float) * database->signalCount);
+	if (database->signalValues == NULL)
+		return errno;
+
+	database->messagesValid = malloc (sizeof (bool) * database->messageCount);
+	if (database->messagesValid == NULL)
+		return errno;
+
+	database->messageDeadlines = malloc (sizeof (struct timeval) * database->messageCount);
+	if (database->messageDeadlines == NULL)
 		return errno;
 
 	// Set the RX timeout (required for RX thread)
@@ -73,17 +84,10 @@ void canDatabaseDealloc (canDatabase_t* database)
 	debugPrintf ("CAN database RX thread terminated gracefully.\n");
 
 	// Deallocate all dynamically allocated memory.
-	for (size_t messageIndex = 0; messageIndex < database->messageCount; ++messageIndex)
-	{
-		canMessage_t* message = &database->messages [messageIndex];
-		for (size_t signalIndex = 0; signalIndex < message->signalCount; ++signalIndex)
-		{
-			canSignal_t* signal = &message->signals [signalIndex];
-			free (signal->name);
-			free (signal->unit);
-		}
-		free (message->name);
-	}
+	free (database->signalValues);
+	free (database->messagesValid);
+	free (database->messageDeadlines);
+	canDbcsDealloc (database->messages, database->messageCount, database->signals);
 }
 
 ssize_t canDatabaseFindSignal (canDatabase_t* database, const char* name)

@@ -76,7 +76,7 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 		{
 			if (*messageCount == maxMessages)
 			{
-				errno = ERRNO_CAN_DBC_MESSAGE_COUNT;
+				errno = EINVAL;
 				return errno;
 			}
 
@@ -130,7 +130,7 @@ int dbcFileParse (const char* path, canMessage_t* messages, size_t* messageCount
 
 			if(*signalCount == maxSignals)
 			{
-				errno = ERRNO_CAN_DBC_SIGNAL_COUNT;
+				errno = EINVAL;
 				return errno;
 			}
 
