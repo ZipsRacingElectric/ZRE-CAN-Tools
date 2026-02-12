@@ -78,4 +78,39 @@ The `style` field is a page-specific configuration on how to stylize the page. A
 
 ### CAN Widgets
 
-TODO(Barach)...
+Every page of the GUI is made up of widgets. As most information displayed on the dashboard is sourced from the vehicle's CAN bus(ses), it is convenient to have a set of widgets specialized for such. This is the purpose of the family of CAN widgets.
+
+Functionally a CAN widget is just a normal GTK widget that has a specialized `update` function. The `update` function is responsible for fetching any required information from the application's `canDatabase_t` and updating the visual component of the widget based on this.
+
+The dashboard's CAN widgets are polymorphic, meaning they all 'look the same' to users. The appeal of this is that CAN widgets can be loaded in from configurations in the same way GUI pages are.
+
+In the configuration of a page, a certain fields may be expect a CAN widget's configuration as the datatype. Inside this configuration, same as with the page configurations, the `type` field indicates the C datatype of the CAN widget to be instanced. This type indicates how the rest of the configuration is to be interpreted.
+
+For example (inside of a page configuration):
+```
+{
+	// This page has an array of CAN widgets it renders in a specific location.
+	// The configs are specified as elements of this array.
+	"widgets":
+	[
+		// This is the configuration of the first CAN widget.
+		{
+			// The datatype of the CAN widget. Here we are instancing a canLabelFloat_t.
+			"type": "canLabelFloat_t",
+
+			// Widget-specific configuration starts here...
+
+			// Name of the CAN database signal to bind to.
+			"signalName": "SPEED",
+
+			// The format string to use for valid data.
+			"formatValue": "%02.0f",
+
+			// The format string to use for invalid data.
+			"formatInvalid": "%s"
+		},
+
+		// Other widget configurations here...
+	]
+}
+```
