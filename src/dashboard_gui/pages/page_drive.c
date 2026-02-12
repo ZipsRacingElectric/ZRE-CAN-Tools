@@ -603,6 +603,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_overlay_set_measure_overlay (GTK_OVERLAY (page->vmt.widget), GTK_WIDGET (page->grid), true);
 
 	// BSE bar
+	// TODO(Barach): Generalize
 	page->bse = canProgressBarInit (database, &(canProgressBarConfig_t)
 	{
 		.barConfig	=
@@ -673,6 +674,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_widget_set_margin_start (GTK_WIDGET (page->faultPanel), 40);
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->faultPanel), 3, 0, 2, 1);
 
+	// TODO(Barach): Faults need generalized.
 	page->vcuFault = canIndicatorInit (database, &(canIndicatorConfig_t)
 	{
 		.signalName		= "VCU_FAULT",
