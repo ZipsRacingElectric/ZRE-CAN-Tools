@@ -8,7 +8,7 @@ At its core, the dashboard GUI is simply a set of "pages" to render to the user.
 
 ### The Configuration File
 
-In order to be more flexible, the layout of the GUI is loaded in from a configuration file. This configuration system is what allows a single application to act as the dashboard for *any* of Zips Racing's vehicles. The application's configuration, like most in this project, is based on JSON files. A template configuration file is provided below. Note the comments (denoted by "//") are not part of the file and must be removed to make the file valid.
+In order to be more flexible, the layout of the GUI is loaded in from a configuration file. This configuration system is what allows a single application to act as the dashboard for *any* of Zips Racing's vehicles. The application's configuration, like most in this project, is based on JSON files. A template configuration file is provided below.
 
 ```
 {
@@ -66,6 +66,8 @@ In order to be more flexible, the layout of the GUI is loaded in from a configur
 }
 ```
 
+**Note the comments (denoted by "//") are not part of the file and must be removed to make the file valid.**
+
 ### Pages
 
 Each page represents a specific "view" of the application. Like the application itself, pages are loaded in via a configuration.
@@ -114,3 +116,5 @@ For example (inside of a page configuration):
 	]
 }
 ```
+
+**Note the comments (denoted by "//") are not part of the file and must be removed to make the file valid.**
