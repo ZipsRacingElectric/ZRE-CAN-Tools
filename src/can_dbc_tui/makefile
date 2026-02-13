@@ -13,6 +13,7 @@ LIB :=						\
 	$(LIB_COMMON)
 
 # Linking against curses, so include its flags
+CFLAGS += $(LIB_CURSES_CFLAGS)
 LIBFLAGS += $(LIB_CURSES_LIBFLAGS)
 
 $(BIN): $(SRC) $(LIB)

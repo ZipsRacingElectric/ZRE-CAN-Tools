@@ -70,7 +70,8 @@ LIBFLAGS := -lm
 LIB_SERIAL_CAN_CFLAGS := -I $(BIN_DIR)/include
 
 # Flags for using the Curses library
-LIB_CURSES_LIBFLAGS := -lncursesw
+LIB_CURSES_CFLAGS := $(shell pkg-config --cflags ncurses)
+LIB_CURSES_LIBFLAGS := $(shell pkg-config --libs ncurses)
 
 # Flags for using the GTK library
 LIB_GTK_CFLAGS := $(shell pkg-config --cflags gtk4)
