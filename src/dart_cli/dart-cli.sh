@@ -32,8 +32,10 @@ while [ "$OPTION" != "q" ]; do
 
 	elif [ "$OPTION" == "c" ]; then
 
-		printf "\nCopying Logs...\n\n"
-		scp $SSH_OPTIONS -r $SSH_REMOTE:/home/zre/mdf/ $ZRE_CANTOOLS_LOGGING_DIR
+		export DEST_DIR=$ZRE_CANTOOLS_LOGGING_DIR/dart_$(date +%Y.%m.%d)
+		printf "%s" "\nCopying Logs to '$DEST_DIR'...\n\n"
+		mkdir -p "$DEST_DIR"
+		scp $SSH_OPTIONS -r $SSH_REMOTE:/home/zre/mdf/ "$DEST_DIR"
 		printf "\nDone.\n\n"
 
 	elif [ "$OPTION" == "x" ]; then
