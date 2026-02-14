@@ -167,9 +167,9 @@
 		},
 		{
 			"address":	"0x0060",
-			"name":		"SAS_SAMPLE_OFFSET",
+			"name":		"SAS_SAMPLE_ZERO",
 			"type":		"uint16_t",
-			"comment":	"The sample of the steering angle sensor at the zero position, minus 2048."
+			"comment":	"The sample of the steering angle sensor at the zero position."
 		},
 		{
 			"address":	"0x0062",
@@ -390,7 +390,7 @@
 			"name":		"SAS_SAMPLE",
 			"type":		"uint16_t",
 			"mode":		"read_only",
-			"comment":	"The raw sample of the SAS. Note the offset is applied."
+			"comment":	"The raw sample of the SAS."
 		},
 		{
 			"address":	"0x100A",
