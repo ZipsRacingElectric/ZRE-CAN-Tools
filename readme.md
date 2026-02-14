@@ -59,6 +59,7 @@ For all applications, use `-h` to display the help page. For example: `can-dev-c
 Install all of the following dependencies, if not already installed:
 - `libncurses-dev` (Debian) or `ncurses` (Arch) - NCurses development library with wide character support.
 - `libgtk-4-dev` (Debian) or `gtk4` (Arch) - GTK 4 development library.
+- `ssh` (Debian) or `openssh` (Arch) - OpenSSH Client.
 
 ### For Windows
 
