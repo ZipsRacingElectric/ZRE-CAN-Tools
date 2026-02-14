@@ -1,7 +1,19 @@
+echo off
 setlocal
 
-:: Set the CANTOOLS directory environment variable
+:: Check OpenSSH is installed
+where /q ssh
+IF ERRORLEVEL 1 (
+	echo OpenSSH is not installed. Please follow the steps provided in "doc/installing_openssh.pdf" to install, then re-run this installer.
+	exit /B
+)
+
+:: Set the ZRE-CAN-Tools directory environment variable
 setx ZRE_CANTOOLS_DIR "%~dp0%
+
+:: Create and set the logging directory environment variable
+setx ZRE_CANTOOLS_LOGGING_DIR "%userprofile%\Documents\ZRE"
+mkdir "%userprofile%\Documents\ZRE"
 
 :: Start menu directory for shortcuts
 set "FOLDER=%APPDATA%\Microsoft\Windows\Start Menu\Programs\ZRE"
@@ -23,9 +35,13 @@ call :createMenuShortcut glory-vcu-vehicle
 call :createMenuShortcut glory-drs-vehicle
 call :createMenuShortcut glory-dashboard-vehicle
 call :createMenuShortcut glory-dashboard-charger
-goto :eof
+goto :complete
 
 :: Function for creating a shortcut
 :createMenuShortcut
+echo Creating Shortcut %1...
 powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%/%~1.lnk');$s.TargetPath='conhost';$s.Arguments='%~dp0bin\%~1.bat';$s.Save()"
 goto :eof
+
+:complete
+echo Installation Completed.
