@@ -70,8 +70,12 @@ LIBFLAGS := -lm
 LIB_SERIAL_CAN_CFLAGS := -I $(BIN_DIR)/include
 
 # Flags for using the Curses library
-LIB_CURSES_CFLAGS := $(shell pkg-config --cflags ncurses)
-LIB_CURSES_LIBFLAGS := $(shell pkg-config --libs ncurses)
+ifeq ($(OS),Windows_NT)
+	LIB_CURSES_LIBFLAGS := -lncursesw
+else
+	LIB_CURSES_CFLAGS := $(shell pkg-config --cflags ncurses)
+	LIB_CURSES_LIBFLAGS := $(shell pkg-config --libs ncurses)
+endif
 
 # Flags for using the GTK library
 LIB_GTK_CFLAGS := $(shell pkg-config --cflags gtk4)
@@ -80,7 +84,7 @@ LIB_GTK_LIBFLAGS := $(shell pkg-config --libs gtk4)
 # File Paths ------------------------------------------------------------------
 
 ifeq ($(OS_TYPE),linux)
-# 'realpath' gets the absolute path of the root directory, 'sed' escapes all spaces. 
+# 'realpath' gets the absolute path of the root directory, 'sed' escapes all spaces.
 	ABS_ROOT_DIR_SAFE := $(shell realpath $(ROOT_DIR) | sed 's/ /\\ /g')
 else
 # 'realpath' gets the absolute path of the root directory, 'cygpath' converts this into a Windows path.
