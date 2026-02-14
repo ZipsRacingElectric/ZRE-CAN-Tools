@@ -26,6 +26,9 @@
 #include <signal.h>
 #include <stdlib.h>
 
+// TODO(Barach)
+#include <sys/vfs.h>
+
 // Globals --------------------------------------------------------------------------------------------------------------------
 
 bool logging = true;
@@ -259,6 +262,15 @@ int loadConfiguration (mdfCanBusLogConfig_t* config, const char* directory, cons
 	if (jsonGetString (configJson, "serialNumber", &serialNumber) != 0)
 		return errno;
 
+	// Get the total size and remaining space in the destination filesystem.
+	struct statfs statfsBuffer;
+	if (statfs (directory, &statfsBuffer) != 0)
+	{
+		int code = errno;
+		debugPrintf ("Failed to stat destination directory '%s' filesystem: %s.\n", directory, errorCodeToMessage (code));
+		return code;
+	}
+
 	*config = (mdfCanBusLogConfig_t)
 	{
 		.directory			= directory,
@@ -271,8 +283,8 @@ int loadConfiguration (mdfCanBusLogConfig_t* config, const char* directory, cons
 		.serialNumber		= serialNumber,
 		.channel1Baudrate	= canGetBaudrate (channel1),
 		.channel2Baudrate	= channel2 == NULL ? 0 : canGetBaudrate (channel2),
-		.storageSize		= 0,
-		.storageRemaining	= 0,
+		.storageSize		= statfsBuffer.f_blocks * statfsBuffer.f_bsize,
+		.storageRemaining	= statfsBuffer.f_bavail * statfsBuffer.f_bsize,
 		.sessionNumber		= mdfCanBusLogFindSessionNumber (directory)
 	};
 	return 0;
