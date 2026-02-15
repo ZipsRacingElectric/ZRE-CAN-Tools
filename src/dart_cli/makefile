@@ -1,16 +1,18 @@
 ROOT_DIR := ../..
 include $(ROOT_DIR)/include.mk
 
-SH	:= $(wildcard *.sh)
-BIN	:= $(patsubst %.sh, $(BIN_DIR)/%, $(SH))
-EXT := .sh
+BIN := $(BIN_DIR)/dart-cli
+SRC := main.c
 
-all: $(BIN)
+# Note libraries must be in reverse order of dependencies, that is a dependency
+# must be placed after its dependents.
+LIB :=						\
+	$(LIB_COMMON)
 
-$(BIN_DIR)/%: %$(EXT)
+$(BIN): $(SRC) $(LIB)
 	mkdir -p $(BIN_DIR)
-	cp $< $@
-	chmod a+x $@
+	gcc $^ $(CFLAGS) -o $@ $(LIBFLAGS)
+
 	cp -r keys $(BIN_DIR)/
 	chmod 600 $(BIN_DIR)/keys/id_rsa
 	chmod 644 $(BIN_DIR)/keys/id_rsa.pub
