@@ -8,16 +8,27 @@
 #include "misc_port.h"
 
 // C Standard Library
+#include <errno.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
+
+enum
+{
+	MODE_INTERACTIVE,
+	MODE_SSH,
+	MODE_SCP
+} mode = MODE_INTERACTIVE;
 
 void fprintUsage (FILE* stream)
 {
 	fprintf (stream, ""
 		"Usage:\n"
-		"    dart-cli <Options> <User>@<IP Address> <Private RSA Key File> <Remote Directory> <Local Directory>.\n");
+		"    dart-cli <Options> <Private RSA Key File> <User>@<IP Address> <Remote Directory> <Local Directory>.\n"
+		"    dart-cli <Options> --ssh <Private RSA Key File> <SSH Args>.\n"
+		"    dart-cli <Options> --scp <Private RSA Key File> <SCP Args>.\n");
 }
 
 void fprintHelp (FILE* stream)
@@ -49,8 +60,76 @@ void fprintHelp (FILE* stream)
 		"                             ZRE_CANTOOLS_LOGGING_DIR environment variable.\n"
 		"\n");
 
-	fprintf (stream, "Options:\n\n");
+	fprintf (stream, ""
+		"Options:\n"
+		"\n"
+		"    --ssh                 - SSH mode. All arguments after the RSA key are passed\n"
+		"                            directly to SSH.\n"
+		"\n"
+		"    --scp                 - SCP mode. All arguments after the RSA key are passed\n"
+		"                            directly to SCP.\n"
+		"\n");
+
 	fprintOptionHelp (stream, "    ");
+}
+
+void handleSshOption (char* option, char* value)
+{
+	(void) option;
+	(void) value;
+
+	debugPrintf ("Running in SSH mode.\n");
+	mode = MODE_SSH;
+}
+
+void handleScpOption (char* option, char* value)
+{
+	(void) option;
+	(void) value;
+
+	debugPrintf ("Running in SCP mode.\n");
+	mode = MODE_SCP;
+}
+
+char* concetenateCommand (char* command, char* options, char** argv, int argc)
+{
+	size_t bufferSize = strlen (command) + 1 + strlen (options);
+	for (int index = 0; index < argc; ++index)
+		bufferSize += strlen (argv [index]) + 1;
+	++bufferSize;
+
+	char* buffer = malloc (bufferSize);
+	if (buffer == NULL)
+		return NULL;
+
+	char* bufferHead = buffer;
+
+	int count = snprintf (bufferHead, bufferSize, "%s %s", command, options);
+	if (count < 0 || (size_t) count >= bufferSize)
+	{
+		errno = EINVAL;
+		free (buffer);
+		return NULL;
+	}
+
+	bufferHead += count;
+	bufferSize -= count;
+
+	for (int index = 0; index < argc; ++index)
+	{
+		count = snprintf (bufferHead, bufferSize, " %s", argv [index]);
+		if (count < 0 || (size_t) count >= bufferSize)
+		{
+			errno = EINVAL;
+			free (buffer);
+			return NULL;
+		}
+
+		bufferHead += count;
+		bufferSize -= count;
+	}
+
+	return buffer;
 }
 
 int main (int argc, char** argv)
@@ -62,34 +141,20 @@ int main (int argc, char** argv)
 		.chars			= NULL,
 		.charHandlers	= NULL,
 		.charCount		= 0,
-		.stringHandlers	= NULL,
-		.strings		= NULL,
-		.stringCount	= 0
+		.stringHandlers	= (optionStringCallback_t* []) { &handleSshOption, &handleScpOption },
+		.strings		= (char* []) { "ssh", "scp" },
+		.stringCount	= 2
 	}) != 0)
 		return errorPrintf ("Failed to handle options");
 
-	// Validate args.
-	if (argc < 4)
+	// Validate arg 0
+	if (argc < 1)
 	{
 		fprintUsage (stderr);
 		return -1;
 	}
 
-	// Parse args.
-	char* remote = argv [0];
-	char* keyPath = argv [1];
-	char* remoteDirectory = argv [2];
-	char* localDirectory = argv [3];
-
-	// Allocate destination directory
-	time_t timeCurrent = time (NULL);
-	struct tm timeLocal;
-	localtime_r (&timeCurrent, &timeLocal);
-	char* destinationDirectory;
-	if (asprintf (&destinationDirectory, "%s/dart_%02i.%02i.%02i", localDirectory, timeLocal.tm_year + 1900, timeLocal.tm_mon + 1, timeLocal.tm_mday) < 0)
-		return errorPrintf ("Failed to allocate destination directory buffer");
-
-	debugPrintf ("Using destination directory '%s'...\n", destinationDirectory);
+	char* keyPath = argv [0];
 
 	// Allocate SSH options
 	char* sshOptions;
@@ -102,6 +167,65 @@ int main (int argc, char** argv)
 		errorPrintf ("Failed to allocate SSH option buffer");
 
 	debugPrintf ("Using SSH options '%s'...\n", sshOptions);
+
+	// SSH Mode ---------------------------------------------------------------------------------------------------------------
+
+	if (mode == MODE_SSH)
+	{
+		argc -= 1;
+		argv += 1;
+
+		char* command = concetenateCommand ("ssh", sshOptions, argv, argc);
+		if (command == NULL)
+			errorPrintf ("Failed to allocate command buffer");
+
+		debugPrintf ("Executing command '%s'...\n", command);
+		int code = system (command);
+		free (command);
+
+		return code;
+	}
+
+	// SCP Mode ---------------------------------------------------------------------------------------------------------------
+
+	if (mode == MODE_SCP)
+	{
+		argc -= 1;
+		argv += 1;
+
+		char* command = concetenateCommand ("scp", sshOptions, argv, argc);
+		if (command == NULL)
+			errorPrintf ("Failed to allocate command buffer");
+
+		debugPrintf ("Executing command '%s'...\n", command);
+		int code = system (command);
+		free (command);
+
+		return code;
+	}
+
+	// Interactive Mode -------------------------------------------------------------------------------------------------------
+
+	// Validate remaining args.
+	if (argc < 4)
+	{
+		fprintUsage (stderr);
+		return -1;
+	}
+
+	char* remote = argv [1];
+	char* remoteDirectory = argv [2];
+	char* localDirectory = argv [3];
+
+	// Allocate destination directory
+	time_t timeCurrent = time (NULL);
+	struct tm timeLocal;
+	localtime_r (&timeCurrent, &timeLocal);
+	char* destinationDirectory;
+	if (asprintf (&destinationDirectory, "%s/dart_%02i.%02i.%02i", localDirectory, timeLocal.tm_year + 1900, timeLocal.tm_mon + 1, timeLocal.tm_mday) < 0)
+		return errorPrintf ("Failed to allocate destination directory buffer");
+
+	debugPrintf ("Using destination directory '%s'...\n", destinationDirectory);
 
 	// Allocate commands
 
