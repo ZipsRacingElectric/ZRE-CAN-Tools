@@ -26,9 +26,9 @@ void fprintUsage (FILE* stream)
 {
 	fprintf (stream, ""
 		"Usage:\n"
-		"    dart-cli <Options> <Private RSA Key File> <User>@<IP Address> <Remote Directory> <Local Directory>.\n"
-		"    dart-cli <Options> --ssh <Private RSA Key File> <SSH Args>.\n"
-		"    dart-cli <Options> --scp <Private RSA Key File> <SCP Args>.\n");
+		"    dart-cli <Options>\n"
+		"    dart-cli <Options> --ssh <SSH Args>.\n"
+		"    dart-cli <Options> --scp <SCP Args>.\n");
 }
 
 void fprintHelp (FILE* stream)
@@ -39,35 +39,11 @@ void fprintHelp (FILE* stream)
 
 	fprintUsage (stream);
 
-	fprintf (stream, "\n"
-		"Parameters:\n"
-		"\n"
-		"    <User>                 - The user to login to the DART as. Typically 'zre'.\n"
-		"\n"
-		"    <IP Address>           - The IP address of the DART. Typically\n"
-		"                             '192.168.0.1'.\n"
-		"\n"
-		"    <Private RSA Key File> - The path of the private RSA key to use to use for\n"
-		"                             authentication with. Found in the source directory\n"
-		"                             of this application.\n"
-		"\n"
-		"    <Remote Directory>     - The directory in the DART's filesystem to search\n"
-		"                             for logging sessions in. Typically\n"
-		"                             '/home/zre/mdf'\n"
-		"\n"
-		"    <Local Directory>      - The local directory to store copied logging\n"
-		"                             sessions into. Typically defined in the\n"
-		"                             ZRE_CANTOOLS_LOGGING_DIR environment variable.\n"
-		"\n");
-
 	fprintf (stream, ""
 		"Options:\n"
 		"\n"
-		"    --ssh                 - SSH mode. All arguments after the RSA key are passed\n"
-		"                            directly to SSH.\n"
-		"\n"
-		"    --scp                 - SCP mode. All arguments after the RSA key are passed\n"
-		"                            directly to SCP.\n"
+		"    --ssh                 - SSH mode. All arguments are passed directly to SSH.\n"
+		"    --scp                 - SCP mode. All arguments are passed directly to SCP.\n"
 		"\n");
 
 	fprintOptionHelp (stream, "    ");
@@ -147,23 +123,29 @@ int main (int argc, char** argv)
 	}) != 0)
 		return errorPrintf ("Failed to handle options");
 
-	// Validate arg 0
-	if (argc < 1)
+	char* zreCantoolsDir = getenv ("ZRE_CANTOOLS_DIR");
+	if (zreCantoolsDir == NULL)
 	{
-		fprintUsage (stderr);
+		fprintf (stderr, "Failed to get ZRE_CANTOOLS_DIR environment variable.\n");
 		return -1;
 	}
 
-	char* keyPath = argv [0];
+	char* remote = "zre@192.168.0.1";
+
+	char* remoteDirectory = "/home/zre/mdf";
+
+	char* localDirectory = getenv ("ZRE_CANTOOLS_LOGGING_DIR");
+	if (localDirectory == NULL)
+		fprintf (stderr, "Failed to get ZRE_CANTOOLS_LOGGING_DIR environment variable.\n");
 
 	// Allocate SSH options
 	char* sshOptions;
 	if (asprintf (&sshOptions, ""
-		"-i %s "
+		"-i %s/bin/keys/id_rsa "
 		"-o StrictHostKeyChecking=no "
 		"-o UserKnownHostsFile=/dev/null "
 		"-o LogLevel=ERROR "
-		"-o ConnectTimeout=4", keyPath) < 0)
+		"-o ConnectTimeout=4", zreCantoolsDir) < 0)
 		errorPrintf ("Failed to allocate SSH option buffer");
 
 	debugPrintf ("Using SSH options '%s'...\n", sshOptions);
@@ -172,9 +154,6 @@ int main (int argc, char** argv)
 
 	if (mode == MODE_SSH)
 	{
-		argc -= 1;
-		argv += 1;
-
 		char* command = concetenateCommand ("ssh", sshOptions, argv, argc);
 		if (command == NULL)
 			errorPrintf ("Failed to allocate command buffer");
@@ -190,9 +169,6 @@ int main (int argc, char** argv)
 
 	if (mode == MODE_SCP)
 	{
-		argc -= 1;
-		argv += 1;
-
 		char* command = concetenateCommand ("scp", sshOptions, argv, argc);
 		if (command == NULL)
 			errorPrintf ("Failed to allocate command buffer");
@@ -205,17 +181,6 @@ int main (int argc, char** argv)
 	}
 
 	// Interactive Mode -------------------------------------------------------------------------------------------------------
-
-	// Validate remaining args.
-	if (argc < 4)
-	{
-		fprintUsage (stderr);
-		return -1;
-	}
-
-	char* remote = argv [1];
-	char* remoteDirectory = argv [2];
-	char* localDirectory = argv [3];
 
 	// Allocate destination directory
 	time_t timeCurrent = time (NULL);
