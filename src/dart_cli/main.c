@@ -232,7 +232,7 @@ int main (int argc, char** argv)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* journalCommand;
-	if (asprintf (&journalCommand, "ssh %s %s \"journalctl -u init_system_jk\"", sshOptions, remote) < 0)
+	if (asprintf (&journalCommand, "ssh %s %s \"journalctl -u init_system\"", sshOptions, remote) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	// Main loop
