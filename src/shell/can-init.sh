@@ -79,7 +79,7 @@ elif [[ $2 == can* ]] || [[ $2 == vcan* ]]; then
 	# Bring up the device using the specified baudrate
 	$IP_CMD link set up $2 $IP_ARGS || exit $?
 
-	echo $2
+	echo $2@$1
 	exit 0
 fi
 
