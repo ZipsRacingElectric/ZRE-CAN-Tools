@@ -144,9 +144,9 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
-	char* remote = "zre@192.168.0.1";
+	char* remote = "root@192.168.0.1";
 
-	char* remoteDirectory = "/home/zre/mdf";
+	char* remoteDirectory = "/root/mdf";
 
 	char* localDirectory = getenv ("ZRE_CANTOOLS_LOGGING_DIR");
 	if (localDirectory == NULL)
@@ -224,7 +224,7 @@ int main (int argc, char** argv)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* deleteCommand;
-	if (asprintf (&deleteCommand, "ssh %s %s \"rm -r %s/*\"", sshOptions, remote, remoteDirectory) < 0)
+	if (asprintf (&deleteCommand, "ssh %s %s \"rm -r %s/* && systemctl restart init_system\"", sshOptions, remote, remoteDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* sshInteractiveCommand;
