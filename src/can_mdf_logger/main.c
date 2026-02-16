@@ -296,8 +296,8 @@ int loadConfiguration (mdfCanBusLogConfig_t* config, const char* directory, cons
 		.serialNumber		= serialNumber,
 		.channel1Baudrate	= canGetBaudrate (channel1),
 		.channel2Baudrate	= channel2 == NULL ? 0 : canGetBaudrate (channel2),
-		.storageSize		= ,
-		.storageRemaining	= ,
+		.storageSize		= storageTotal,
+		.storageRemaining	= storageAvail,
 		.sessionNumber		= mdfCanBusLogFindSessionNumber (directory)
 	};
 	return 0;
