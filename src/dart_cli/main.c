@@ -27,8 +27,9 @@ void fprintUsage (FILE* stream)
 	fprintf (stream, ""
 		"Usage:\n"
 		"    dart-cli <Options>\n"
-		"    dart-cli <Options> --ssh <SSH Args>.\n"
-		"    dart-cli <Options> --scp <SCP Args>.\n");
+		"    dart-cli <Options> --ssh -- <SSH Args>.\n"
+		"    dart-cli <Options> --scp -- <SCP Args>.\n"
+		"\n");
 }
 
 void fprintHelp (FILE* stream)
@@ -47,6 +48,19 @@ void fprintHelp (FILE* stream)
 		"\n");
 
 	fprintOptionHelp (stream, "    ");
+
+	fprintf (stream, "\n"
+		"Examples:\n"
+		"\n"
+		"    Run in interactive mode. User is prompted for what to do:\n"
+		"        dart-cli\n"
+		"\n"
+		"    Open an interactive SSH connection to the DART:\n"
+		"        dart-cli --ssh -- zre@192.168.0.1\n"
+		"\n"
+		"    Copy a local file to a remote directory:\n"
+		"        dart-cli --scp -- ./temp.txt zre@192.168.0.1:/home/zre/\n"
+		"\n");
 }
 
 void handleSshOption (char* option, char* value)
