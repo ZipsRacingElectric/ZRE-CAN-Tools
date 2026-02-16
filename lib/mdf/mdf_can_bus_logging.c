@@ -1186,6 +1186,9 @@ static int createSplit (mdfCanBusLog_t* log, uint32_t splitNumber)
 
 static void closeSplit (mdfCanBusLog_t* log)
 {
+	// Attempt to synchronize any pending I/O operations. This is to prevent data loss in the DART project.
+	fsyncPort (log->mdf);
+
 	free (log->splitName);
 	fclose (log->mdf);
 }
@@ -1434,8 +1437,11 @@ int mdfCanBusLogWriteErrorFrame (mdfCanBusLog_t* log, canFrame_t* frame, uint8_t
 	return 0;
 }
 
-int mdfCanBusLogClose (mdfCanBusLog_t *log)
+int mdfCanBusLogClose (mdfCanBusLog_t* log)
 {
+	// Attempt to synchronize any pending I/O operations. This is to prevent data loss in the DART project.
+	fsyncPort (log->mdf);
+
 	if (fclose (log->mdf) != 0)
 		return errno;
 
