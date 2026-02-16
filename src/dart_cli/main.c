@@ -49,7 +49,7 @@ void fprintHelp (FILE* stream)
 
 	fprintOptionHelp (stream, "    ");
 
-	fprintf (stream, "\n"
+	fprintf (stream, ""
 		"Examples:\n"
 		"\n"
 		"    Run in interactive mode. User is prompted for what to do:\n"

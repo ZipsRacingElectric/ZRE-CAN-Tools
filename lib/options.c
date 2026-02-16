@@ -212,8 +212,8 @@ int fprintOptionHelp (FILE* stream, char* indent)
 		"%s-h, --help            - Help, prints this page.\n"
 		"%s--verbose             - Verbose debugging, prints more detailed information\n"
 		"%s                        to standard output.\n"
-		"%s-v, --version         - Version, prints the application version.\n\n"
+		"%s-v, --version         - Version, prints the application version.\n"
 		"%s--                    - Stop parsing options. All arguments after this are\n"
-		"%s                        parsed as arguments, not options.\n",
+		"%s                        parsed as arguments, not options.\n\n",
 		indent, indent, indent, indent, indent, indent);
 }
