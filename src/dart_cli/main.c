@@ -198,10 +198,9 @@ int main (int argc, char** argv)
 
 	// Allocate destination directory
 	time_t timeCurrent = time (NULL);
-	struct tm timeLocal;
-	localtime_r (&timeCurrent, &timeLocal);
+	struct tm* timeLocal = localtime (&timeCurrent);
 	char* destinationDirectory;
-	if (asprintf (&destinationDirectory, "%s/dart_%02i.%02i.%02i", localDirectory, timeLocal.tm_year + 1900, timeLocal.tm_mon + 1, timeLocal.tm_mday) < 0)
+	if (asprintf (&destinationDirectory, "%s/dart_%02i.%02i.%02i", localDirectory, timeLocal->tm_year + 1900, timeLocal->tm_mon + 1, timeLocal->tm_mday) < 0)
 		return errorPrintf ("Failed to allocate destination directory buffer");
 
 	debugPrintf ("Using destination directory '%s'...\n", destinationDirectory);
