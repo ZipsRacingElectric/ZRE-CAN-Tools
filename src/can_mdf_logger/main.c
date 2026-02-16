@@ -26,8 +26,9 @@
 #include <signal.h>
 #include <stdlib.h>
 
-// TODO(Barach)
+#ifdef ZRE_CANTOOLS_OS_linux
 #include <sys/vfs.h>
+#endif // ZRE_CANTOOLS_OS_linux
 
 // Globals --------------------------------------------------------------------------------------------------------------------
 
@@ -262,6 +263,8 @@ int loadConfiguration (mdfCanBusLogConfig_t* config, const char* directory, cons
 	if (jsonGetString (configJson, "serialNumber", &serialNumber) != 0)
 		return errno;
 
+	#ifdef ZRE_CANTOOLS_OS_linux
+
 	// Get the total size and remaining space in the destination filesystem.
 	struct statfs statfsBuffer;
 	if (statfs (directory, &statfsBuffer) != 0)
@@ -270,6 +273,16 @@ int loadConfiguration (mdfCanBusLogConfig_t* config, const char* directory, cons
 		debugPrintf ("Failed to stat destination directory '%s' filesystem: %s.\n", directory, errorCodeToMessage (code));
 		return code;
 	}
+
+	size_t storageTotal = statfsBuffer.f_blocks * statfsBuffer.f_bsize;
+	size_t storageAvail = statfsBuffer.f_bavail * statfsBuffer.f_bsize;
+
+	#else // ZRE_CANTOOLS_OS_linux
+
+	size_t storageTotal = 0;
+	size_t storageAvail = 0;
+
+	#endif // ZRE_CANTOOLS_OS_linux
 
 	*config = (mdfCanBusLogConfig_t)
 	{
@@ -283,8 +296,8 @@ int loadConfiguration (mdfCanBusLogConfig_t* config, const char* directory, cons
 		.serialNumber		= serialNumber,
 		.channel1Baudrate	= canGetBaudrate (channel1),
 		.channel2Baudrate	= channel2 == NULL ? 0 : canGetBaudrate (channel2),
-		.storageSize		= statfsBuffer.f_blocks * statfsBuffer.f_bsize,
-		.storageRemaining	= statfsBuffer.f_bavail * statfsBuffer.f_bsize,
+		.storageSize		= ,
+		.storageRemaining	= ,
 		.sessionNumber		= mdfCanBusLogFindSessionNumber (directory)
 	};
 	return 0;
