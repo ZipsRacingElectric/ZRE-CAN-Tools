@@ -25,16 +25,14 @@ mkdir "%FOLDER%"
 :: Create batch script shortcuts
 call :createMenuShortcut cross-bms
 call :createMenuShortcut cross-can
-call :createMenuShortcut glory-bms-eeprom-charger
-call :createMenuShortcut glory-bms-eeprom-vehicle
-call :createMenuShortcut glory-bms-view-charger
-call :createMenuShortcut glory-bms-view-vehicle
+call :createMenuShortcut glory-bms-charger
+call :createMenuShortcut glory-bms-vehicle
 call :createMenuShortcut glory-can-charger
 call :createMenuShortcut glory-can-vehicle
-call :createMenuShortcut glory-vcu-vehicle
-call :createMenuShortcut glory-drs-vehicle
-call :createMenuShortcut glory-dashboard-vehicle
 call :createMenuShortcut glory-dashboard-charger
+call :createMenuShortcut glory-dashboard-vehicle
+call :createMenuShortcut glory-drs-vehicle
+call :createMenuShortcut glory-vcu-vehicle
 goto :complete
 
 :: Function for creating a shortcut
