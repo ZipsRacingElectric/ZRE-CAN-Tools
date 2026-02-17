@@ -5,6 +5,8 @@ setlocal
 where /q ssh
 IF ERRORLEVEL 1 (
 	echo OpenSSH is not installed. Please follow the steps provided in "doc/installing_openssh.pdf" to install, then re-run this installer.
+	echo Press enter to close...
+	pause >nul
 	exit /B
 )
 
@@ -23,6 +25,7 @@ if exist "%FOLDER%" rd /s /q "%FOLDER%"
 mkdir "%FOLDER%"
 
 :: Create batch script shortcuts
+call :createMenuShortcut dart-cli
 call :createMenuShortcut cross-bms
 call :createMenuShortcut cross-can
 call :createMenuShortcut glory-bms-charger
@@ -43,3 +46,5 @@ goto :eof
 
 :complete
 echo Installation Completed.
+echo Press enter to close...
+pause >nul
