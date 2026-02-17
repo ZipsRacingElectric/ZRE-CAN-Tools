@@ -1,3 +1,7 @@
+// For asprintf. Note this must be the first include in this file.
+#define _GNU_SOURCE
+#include <stdio.h>
+
 // Header
 #include "slcan.h"
 
@@ -17,16 +21,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef __unix__
+#ifdef ZRE_CANTOOLS_OS_linux
 #include <dirent.h>
 #else
 #include <windows.h>
 #endif
 
-// Define a list of canDevice_t pointers
+// Defines the datatype for a list of canDevice_t pointers
 typedef canDevice_t* canDevicePtr_t;
-listDefine (canDevicePtr_t); // Defines the list methods for the specific datatype 
-list_t (canDevicePtr_t) devices; // Creates an instance of a list of the specific datatype
+listDefine (canDevicePtr_t);
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -64,7 +67,8 @@ bool slcanNameDomain (const char* name)
 	return false;
 }
 
-bool slcanWildcard (const char* name) {
+bool slcanWildcard (const char* name)
+{
 	// POSIX device format
 	if (strncmp("/dev/tty*", name, strlen ("/dev/tty*")) == 0)
 		return true;
@@ -74,7 +78,7 @@ bool slcanWildcard (const char* name) {
 		return true;
 
 	return false;
-}	
+}
 
 canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 {
@@ -82,7 +86,7 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 	can_bitrate_t slcanBaudrate;
 	switch (baudrate)
 	{
-	case 1000000: 
+	case 1000000:
 		slcanBaudrate.index = CANBTR_INDEX_1M;
 		break;
 	case 800000:
@@ -175,129 +179,154 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 
 canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 {
-	*deviceCount = 0;
+	// Dynamic list stores enumerated can devices
+	list_t (canDevicePtr_t) devices;
+	if (listInit (canDevicePtr_t) (&devices, 8) != 0)
+		return NULL;
 
-	// Dynamic list stores enumerated can devices 
-	listInit (canDevicePtr_t) (&devices, 8);
+	debugPrintf ("Enumerating SLCAN devices...\n");
 
-	# ifdef ZRE_CANTOOLS_OS_linux
-		const char* dev = "/dev";
+	#ifdef ZRE_CANTOOLS_OS_linux
+
+		// Open the /dev/ directory
+		const char* devPath = "/dev";
+		DIR* devDir = opendir (devPath);
+
+		// Traverse the /dev/ directory
 		struct dirent* entry;
-		DIR* directory = opendir (dev);
-		
-		debugPrintf ("\nPotential Devices:\n");
-
-		// Traverses the /dev directory
-		while ((entry = readdir (directory)))
+		while (true)
 		{
+			// Read the next entry, exit the loop at the end
+			entry = readdir (devDir);
 			if (entry == NULL)
-			{
 				break;
-			}
-			char* device = entry->d_name;
 
-			printf ("- %s\n", device);
-
-			// Checks if device is of type ttyACM
-			if (strstr (device, "ttyACM"))
+			// Get the device name from the full path
+			char* deviceName;
+			if (asprintf (&deviceName, "%s/%s", devPath, entry->d_name) < 0)
 			{
-				// Prepend the device path to the device name
-				char* devicePath = "/dev/";
-
-				char* x = malloc (strlen(devicePath) + strlen(device) + 1);
-				if (x) {
-					strcpy (x, devicePath);
-					strcat (x, device);
-				}
-
-				// Attempts to create slcan device
-				canDevice_t* slcanDevice = slcanInit (x, baudrate);
-				if (slcanDevice == NULL)
-				{
-					debugPrintf ("Failed to initialize CAN device '%s': %s", x, errorCodeToMessage (errno));
-					errno = 0;
-					continue;
-				}
-				
-				// Appends slcan device to the list of enumerated slcan devices 
-				listAppend (canDevicePtr_t) (&devices, slcanDevice);
-				++(*deviceCount);
-				free (x);
+				listDealloc (canDevicePtr_t) (&devices);
+				return NULL;
 			}
+
+			// Ignore all non-ACM devices
+			if (strstr (deviceName, "ttyACM") == NULL)
+			{
+				free (deviceName);
+				continue;
+			}
+
+			debugPrintf ("    %s - ", deviceName);
+
+			// Attempts to create slcan device
+			canDevice_t* slcanDevice = slcanInit (deviceName, baudrate);
+			if (slcanDevice == NULL)
+			{
+				debugPrintf ("%s.\n", errorCodeToMessage (errno));
+				errno = 0;
+				free (deviceName);
+				continue;
+			}
+
+			debugPrintf ("Success.\n");
+
+			// Append the device to the list of created devices
+			listAppend (canDevicePtr_t) (&devices, slcanDevice);
+
+			// Deallocate the device name
+			free (deviceName);
 		}
 
-		debugPrintf("\n");
-
 		// Memory internal to the opendir() function is deallocated using the closedir() function
-		closedir (directory);
+		closedir (devDir);
 
-	# endif // ZRE_CANTOOLS_OS_linux
+	#else // ZRE_CANTOOLS_OS_linux
 
-	# ifdef ZRE_CANTOOLS_OS_windows
-	
-		debugPrintf ("\nPotential Devices:\n");
-		
-		for (int i = 1; i <= 255; i++) {
-			
-			// Sets the size of the device name
-			int n = strlen ("COM");
-			if (i > 9) n += 2;
-			else if (i > 99) n += 3;
-			else n += 1;
-
-			// Allocates memory for the size of the device name
-			char* device = malloc (n + 1);
-
-			// Creates the device name on successful memory allocation.
-			if (device) {
-    			sprintf (device, "COM%d", i);
+		// Iterate over every potential COM device
+		// - Note: This is not efficient, but trust me this is the most reliable option I could find. Please do not change
+		//     without considering the consequences.
+		for (int index = 1; index < 256; ++index)
+		{
+			// Allocate the device name
+			char* deviceName;
+			if (asprintf (&deviceName, "COM%i", index) < 0)
+			{
+				listDealloc (canDevicePtr_t) (&devices);
+				return NULL;
 			}
 
 			// Creates a handle that can be used to access the device connected to the COM port.
-    	    HANDLE handle = CreateFileA (
-    	        device,
+    	    HANDLE handle = CreateFileA
+			(
+    	        deviceName,
     	        GENERIC_READ | GENERIC_WRITE,
-    	        0,  
+    	        0,
     	        NULL,
     	        OPEN_EXISTING,
     	        0,
     	        NULL
     	    );
-			
-			debugPrintf ("- %s\n", device);
 
 			// Checks that there is a device occupying the COM port.
-    	    if (handle != INVALID_HANDLE_VALUE) {
+    	    if (handle == INVALID_HANDLE_VALUE)
+			{
+				free (deviceName);
+				continue;
+			}
 
-				// Invalidates the object handle.
-				CloseHandle (handle);
+			// Release the device handler.
+			CloseHandle (handle);
 
-				// Attempts to create SLCAN device
-				canDevice_t* slcanDevice = slcanInit (device, baudrate);
-				if (slcanDevice == NULL)
-				{
-					errorPrintf ("Failed to Create Can Device");
-					continue;
-				}
-				
-				// Appends slcan device to the list of enumerated slcan devices 
-				listAppend (canDevicePtr_t) (&devices, slcanDevice);
-				++(*deviceCount);        	
-    	    }
+			debugPrintf ("    %s - ", deviceName);
 
-		free (device);
+			// To narrow things down (and especially to avoid Bluetooth devices, which cause the program to hang) we strip
+			// out any devices that aren't USB devices.
 
+			char buffer [65536];
+			if (QueryDosDeviceA (deviceName, buffer, sizeof (buffer)) == 0)
+			{
+				debugPrintf ("Failed to query DOS device information.\n");
+				free (deviceName);
+				continue;
+			}
+
+			if (strstr (buffer, "USBSER") == NULL)
+			{
+				debugPrintf ("No occurance of 'CAN' in device info.\n");
+				free (deviceName);
+				continue;
+			}
+
+			// Attempt to create SLCAN device
+			canDevice_t* slcanDevice = slcanInit (deviceName, baudrate);
+			if (slcanDevice == NULL)
+			{
+				debugPrintf ("%s.\n", errorCodeToMessage (errno));
+				errno = 0;
+				free (deviceName);
+				continue;
+			}
+
+			debugPrintf ("Success.\n");
+
+			// Append the device to the list of created devices
+			listAppend (canDevicePtr_t) (&devices, slcanDevice);
+
+			// Deallocate the device name
+			free (deviceName);
     	}
 
-		debugPrintf ("\n");
+	#endif // ZRE_CANTOOLS_OS_windows
 
-	# endif // ZRE_CANTOOLS_OS_windows
-	
-	// REVIEW(Barach): Should update to listToArray
 	// Returns array of enumerated slcan devices
+	// TODO(Barach): Should update to listToArray
 	if (listSize (canDevicePtr_t) (&devices) > 0)
+	{
+		*deviceCount = listSize (canDevicePtr_t) (&devices);
 		return listArray (canDevicePtr_t) (&devices);
+	}
 
+	debugPrintf ("    No valid SLCAN devices found.\n");
 	errno = ERRNO_CAN_DEVICE_MISSING_DEVICE;
 	return NULL;
 }

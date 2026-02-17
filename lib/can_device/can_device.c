@@ -12,6 +12,45 @@
 #include <stdlib.h>
 
 /**
+ * @brief Prompts the user to select a CAN device from a list of enumerated options.
+ * @param devices The array of CAN devices to select from.
+ * @param deviceCount The number of elements in @c devices .
+ * @return The index of the selected device.
+ */
+static size_t selectDevice (canDevice_t** devices, size_t deviceCount)
+{
+	// If only one device is present, no need to prompt.
+	if (deviceCount == 1)
+		return 0;
+
+	char buffer [512];
+
+	while (true)
+	{
+		// Prompt for a device to select
+		printf ("Select a device:\n");
+		for (unsigned deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
+			printf ("  %u - %s\n", deviceIndex, canGetDeviceName (devices [deviceIndex]));
+
+		// Read the user input
+		fgets (buffer, sizeof (buffer), stdin);
+		buffer [strcspn (buffer, "\r\n")] = '\0';
+
+		// Parse as int and validate
+		char* end;
+		size_t selection = (size_t) strtol (buffer, &end, 0);
+		if (end == buffer || selection >= deviceCount)
+		{
+			// Prompt again
+			printf ("Invalid selection.\n");
+			continue;
+		}
+
+		return selection;
+	}
+}
+
+/**
  * @brief Splits a device name into the device handle and baudrate.
  * @param deviceName The provided device name. Expected form: "<Device Handle>@<Baudrate>". Modified to contain the device
  * handle on exit.
@@ -47,23 +86,6 @@ static int parseDeviceName (char* deviceName, unsigned int* baudrate)
 	return 0;
 }
 
-/*
-	DiBacco: Implementation of the Slcan Enumeration
-	canInit()
-	{
-		if (slcanNameDomain()) 
-		{
-			if (slcanWildcard())
-			{
-				dev [] = slcanEnumerate();
-				...
-				// Include functionality where the user decides which slcan device to use via command prompt
-				slcanDealloc();
-			}
-		}
-	}
-*/
-
 canDevice_t* canInit (char* deviceName)
 {
 	// Split the device name into the device handle and baudrate (if specified).
@@ -78,25 +100,34 @@ canDevice_t* canInit (char* deviceName)
 	// Handle SLCAN device
 	if (slcanNameDomain (deviceName))
 	{
+		// If a wildcard is present, use device enumeration
 		if (slcanWildcard (deviceName))
 		{
+			// Enumerate all possible devices
 	 		size_t deviceCount;
 	 		canDevice_t** devices = slcanEnumerate (baudrate, &deviceCount);
 	 		if (devices == NULL)
 	 			return NULL;
 
-	 		size_t index = canSelectDevice (devices, deviceCount);
+			// Get the user's selection
+	 		size_t index = selectDevice (devices, deviceCount);
+			canDevice_t* device = devices [index];
 
-			// Deallocate unused slcan devices
-			for (size_t i = 0; i < deviceCount; ++i) 
+			// Deallocate unused devices
+			for (size_t i = 0; i < deviceCount; ++i)
 			{
 				if (i != index)
-					slcanDealloc(devices[i]);
+					slcanDealloc (devices [i]);
 			}
 
-	 		return devices [index];
+			// Deallocate the array of devices
+			free (devices);
+
+			// Return the selected device
+	 		return device;
 	 	}
 
+		// Otherwise, use normal initialization
 		return slcanInit(deviceName, baudrate);
 	 }
 
@@ -138,30 +169,4 @@ char* canGetBusErrorName (int code)
 		return "BUS-OFF ERROR";
 
 	return "UNSPECIFIED ERROR";
-}
-
-// TODO(DiBacco): consider automatically selecting can device if only one is detected.
-size_t canSelectDevice (canDevice_t** devices, size_t deviceCount)
-{
-	char command [512];
-
-	while (true)
-	{
-		printf ("\n");
-		printf ("Which SLCAN Device would you like to use?\n");
-		for (size_t deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
-		{
-			printf (" %lu). %s\n", deviceIndex, canGetDeviceName (devices [deviceIndex]));
-		}
-
-		fgets (command, sizeof (command), stdin);
-		command [strcspn (command, "\r\n")] = '\0';
-
-		size_t x = (size_t) strtol (command, NULL, 0);
-		if (0 <= x && x <= deviceCount)
-		{
-			printf ("\n");
-			return x;
-		}	
-	}
 }
