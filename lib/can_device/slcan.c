@@ -332,15 +332,15 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 
 	#endif // ZRE_CANTOOLS_OS_windows
 
-	// Returns array of enumerated slcan devices
-	// TODO(Barach): Should update to listToArray
+	// If the list is not empty, convert it into an array and return it.
 	if (listSize (canDevicePtr_t) (&devices) > 0)
-	{
-		*deviceCount = listSize (canDevicePtr_t) (&devices);
-		return listArray (canDevicePtr_t) (&devices);
-	}
+		return listDestroy (canDevicePtr_t) (&devices, deviceCount);
 
 	debugPrintf ("    No valid SLCAN devices found.\n");
+
+	// Otherwise, deallocate the list and return an error.
+	listDealloc (canDevicePtr_t) (&devices);
+
 	errno = ERRNO_CAN_DEVICE_MISSING_DEVICE;
 	return NULL;
 }
