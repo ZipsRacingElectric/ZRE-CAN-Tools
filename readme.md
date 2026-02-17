@@ -3,26 +3,18 @@
 ZRE-CAN-Tools is the application layer of Zips Racing's electrical systems. This project is a combination of libraries and applications that aim to simplify the interaction with firmware written by Zips Racing.
 
 ## Usage
-### ZR25 Shell Scripts
+
+### Shell Scripts
+
 A set of shell scripts are provided to simplify usage of the applications.
 
- - `glory-bms-view-vehicle` - Application for monitoring the BMS of ZR25, configured for the vehicle's CAN bus.
- - `glory-bms-view-charger` - Application for monitoring the BMS of ZR25, configured for the charger's CAN bus.
- - `glory-can-vehicle` - Application for monitoring the vehicle CAN bus of ZR25.
- - `glory-can-charger` - Application for monitoring the charger CAN bus of ZR25.
- - `glory-bms-eeprom-vehicle` - Application for configuring the BMS of ZR25, configured for the vehicle's CAN bus.
- - `glory-bms-eeprom-charger` - Application for configuring the BMS of ZR25, configured for the charger's CAN bus.
- - `glory-vcu-vehicle` - Application for configuring the VCU of ZR25, configured for the vehicles's CAN bus.
- - `glory-drs-vehicle` - Application for configuring the DRS of ZR25, configured for the vehicles's CAN bus.
-
-### ZRE24 Shell Scripts
-
- - `cross-bms` - Application for monitoring the BMS of ZRE24.
- - `cross-can` - Application for monitoring the CAN bus of ZRE24.
+See [doc/readme_release.txt](doc/readme_release.txt) for documentation on the shell scripts.
 
 ### Applications
 
 For all applications, use `-h` to display the help page. For example: `can-dev-cli -h`.
+
+`dart-cli` - Command-line application for interacting with Zips Racing's "DART" data acquisition system. See [doc/dart_user_manual.pdf](doc/dart_user_manual.pdf) for more details.
 
 `can-dev-cli` - Command-line application for controlling a CAN adapter. This program exposes 'raw' access to a CAN bus, that is, the user can directly transmit and receive CAN frames.
 
