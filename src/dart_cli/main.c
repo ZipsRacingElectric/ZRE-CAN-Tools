@@ -223,6 +223,11 @@ int main (int argc, char** argv)
 	if (asprintf (&copyCommand, "scp %s -r %s:%s \"%s\"", sshOptions, remote, remoteDirectory, destinationDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
+	// TODO(Barach): Needs to expand environment variable
+	char* copyDbcCommand;
+	if (asprintf (&copyDbcCommand, "scp %s %s:/root/zre_cantools/config/zr25_glory/can_vehicle.dbc %s", sshOptions, remote, destinationDirectory) < 0)
+		return errorPrintf ("Failed to allocate command buffer");
+
 	char* deleteCommand;
 	if (asprintf (&deleteCommand, "ssh %s %s \"rm -r %s/* && systemctl restart init_system\"", sshOptions, remote, remoteDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
@@ -275,6 +280,7 @@ int main (int argc, char** argv)
 			printf ("\nCopying Logs to '%s'...\n\n", destinationDirectory);
 			mkdirPort (destinationDirectory);
 			system (copyCommand);
+			system (copyDbcCommand);
 			printf ("\nDone.\n\n");
 			break;
 
