@@ -37,6 +37,7 @@ bool socketCanNameDomain (const char* name);
 /**
  * @brief Initializes a SocketCAN device.
  * @param name The name (handler) of the device.
+ * @param baudrate The baudrate of the device.
  * @return The initialized device if successful, @c NULL otherwise.
  */
 canDevice_t* socketCanInit (const char* name, canBaudrate_t baudrate);
