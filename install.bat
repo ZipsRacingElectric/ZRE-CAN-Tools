@@ -25,17 +25,16 @@ if exist "%FOLDER%" rd /s /q "%FOLDER%"
 mkdir "%FOLDER%"
 
 :: Create batch script shortcuts
+
 call :createMenuShortcut dart-cli
-call :createMenuShortcut cross-bms
-call :createMenuShortcut cross-can
-call :createMenuShortcut glory-bms-charger
-call :createMenuShortcut glory-bms-vehicle
-call :createMenuShortcut glory-can-charger
-call :createMenuShortcut glory-can-vehicle
-call :createMenuShortcut glory-dashboard-charger
-call :createMenuShortcut glory-dashboard-vehicle
-call :createMenuShortcut glory-drs-vehicle
-call :createMenuShortcut glory-vcu-vehicle
+
+call :createMenuShortcut zre24-can
+call :createMenuShortcut zre24-bms
+
+call :createMenuShortcut zr25-dashboard-vehicle
+call :createMenuShortcut zr25-dashboard-charger
+call :createMenuShortcut zr25-eeprom-vehicle
+call :createMenuShortcut zr25-eeprom-charger
 goto :complete
 
 :: Function for creating a shortcut
