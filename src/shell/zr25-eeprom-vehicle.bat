@@ -8,9 +8,9 @@ setlocal enabledelayedexpansion
 mode 190, 53
 
 IF [%1] == [] (
-	"%ZRE_CANTOOLS_DIR%/bin/can-eeprom-cli.exe" "COM*@1000000" "%ZRE_CANTOOLS_DIR%/config/zr25_glory/vcu_config.json" "%ZRE_CANTOOLS_DIR%/config/zr25_glory/bms_config.json" "%ZRE_CANTOOLS_DIR%/config/zr25_glory/drs_config.json"
+	"%ZRE_CANTOOLS_DIR%/bin/can-eeprom-cli.exe" "COM*@1000000" "%ZRE_CANTOOLS_DIR%/config/zr25/vcu_config.json" "%ZRE_CANTOOLS_DIR%/config/zr25/bms_config.json" "%ZRE_CANTOOLS_DIR%/config/zr25/drs_config.json"
 ) ELSE (
-	"%ZRE_CANTOOLS_DIR%/bin/can-eeprom-cli.exe" "%1@1000000" "%ZRE_CANTOOLS_DIR%/config/zr25_glory/vcu_config.json" "%ZRE_CANTOOLS_DIR%/config/zr25_glory/bms_config.json" "%ZRE_CANTOOLS_DIR%/config/zr25_glory/drs_config.json"
+	"%ZRE_CANTOOLS_DIR%/bin/can-eeprom-cli.exe" "%1@1000000" "%ZRE_CANTOOLS_DIR%/config/zr25/vcu_config.json" "%ZRE_CANTOOLS_DIR%/config/zr25/bms_config.json" "%ZRE_CANTOOLS_DIR%/config/zr25/drs_config.json"
 )
 
 echo Press enter to close...

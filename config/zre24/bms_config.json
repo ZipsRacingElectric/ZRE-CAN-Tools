@@ -1,5 +1,5 @@
 {
-	"name":					"CROSS_BMS",
+	"name":					"BMS",
 	"segmentCount":			"5",
 	"ltcsPerSegment":		"1",
 	"cellsPerLtc":			"18",

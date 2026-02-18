@@ -223,7 +223,7 @@ int main (int argc, char** argv)
 	if (asprintf (&copyCommand, "scp %s -r %s:%s \"%s\"", sshOptions, remote, remoteDirectory, destinationDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
-	// TODO(Barach): Needs to expand environment variable
+	// TODO(Barach): Needs to expand environment variable, also update.
 	char* copyDbcCommand;
 	if (asprintf (&copyDbcCommand, "scp %s %s:/root/zre_cantools/config/zr25_glory/can_vehicle.dbc %s", sshOptions, remote, destinationDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");

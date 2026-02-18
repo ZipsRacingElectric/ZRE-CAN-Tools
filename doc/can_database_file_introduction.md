@@ -23,4 +23,4 @@ The "CAN signal preview" section of the CSS DBC editor lets you experiment with 
 ## Useful DBC Files
 All DBC files for Zips Racing's vehicles are located in the [../config](../config/) directory.
 
-For example the DBC file documenting the main CAN bus of ZR25 is located at [../config/zr25_glory/can_vehicle.dbc](../config/zr25_glory/can_vehicle.dbc)
+For example the DBC file documenting the main CAN bus of ZR25 is located at [../config/zr25/vehicle/main.dbc](../config/zr25/vehicle/main.dbc)

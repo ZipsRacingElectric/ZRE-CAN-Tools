@@ -39,10 +39,9 @@ information about how to use the DART.
 
 - ZR25 "Gloria" ---------------------------------------------------------------
 
-All the applications for ZR25 start with the prefix "glory" (for Gloria). The
-postfix of each application indicates whether it is intended for use with the
-vehicle itself (ends with "vehicle"), or the charging cart (ends with
-"charger").
+All the applications for ZR25 start with the prefix "zr25". The postfix of each
+application indicates whether it is intended for use with the vehicle itself
+(ends with "vehicle"), or the charging cart (ends with "charger").
 
  - zr25-dashboard-vehicle       - Dashboard for the vehicle.
  - zr25-dashboard-charger       - Dashboard for the charger.
@@ -53,7 +52,7 @@ vehicle itself (ends with "vehicle"), or the charging cart (ends with
 
 - ZRE24 "Christine" -----------------------------------------------------------
 
-All the applications for ZR24 start with the prefix "cross" (for Christine).
+All the applications for ZR24 start with the prefix "zre24".
 
  - zre24-bms                    - Application for monitoring the BMS.
  - zre24-can                    - Application for monitoring the CAN bus.

@@ -84,8 +84,8 @@ Use the `install` script to recreate the application shortcuts / setup environme
 ├── config                     - Application-specific configuration files.
 │   │                            These define the configurations that specific
 │   │                            vehicles or firmware use.
-│   ├── zre24_cross            - Configuration files for ZRE24, 'Christine'.
-│   └── zr25_glory             - Configuration files for ZR25, 'Gloria'.
+│   ├── zre24                  - Configuration files for ZRE24, 'Christine'.
+│   └── zr25                   - Configuration files for ZR25, 'Gloria'.
 ├── lib                        - Libraries that are dependencies of the
 │   │                            different applications. Some custom, some
 │   │                            external.
