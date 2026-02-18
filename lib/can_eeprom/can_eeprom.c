@@ -42,6 +42,15 @@ void printVariableIndex (canEepromVariable_t* variable, FILE* stream, uint16_t x
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+int canEepromLoad (canEeprom_t* eeprom, const char* path)
+{
+	cJSON* configJson = jsonLoad (path);
+	if (configJson == NULL)
+		return errno;
+
+	return canEepromInit (eeprom, configJson);
+}
+
 int canEepromInit (canEeprom_t* eeprom, cJSON* config)
 {
 	if (jsonGetString (config, "name", &eeprom->name) != 0)
