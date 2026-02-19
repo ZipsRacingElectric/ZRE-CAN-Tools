@@ -232,6 +232,10 @@ int main (int argc, char** argv)
 	if (asprintf (&deleteCommand, "ssh %s %s \"rm -r %s/* && systemctl restart init_system\"", sshOptions, remote, remoteDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
+	char* restartCommand;
+	if (asprintf (&restartCommand, "ssh %s %s \"systemctl restart init_system\"", sshOptions, remote) < 0)
+		return errorPrintf ("Failed to allocate command buffer");
+
 	char* sshInteractiveCommand;
 	if (asprintf (&sshInteractiveCommand, "ssh %s %s", sshOptions, remote) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
@@ -258,6 +262,7 @@ int main (int argc, char** argv)
 			" l - List all remote log files\n"
 			" c - Copy all logs locally\n"
 			" x - Delete all remote log files\n"
+			" r - Restart the device\n"
 			" s - Open an interactive SSH connection to the DART\n"
 			" j - Print the DART's system journal\n"
 			" t - Test connection to the DART\n"
@@ -296,6 +301,21 @@ int main (int argc, char** argv)
 
 			printf ("\nDeleting Logs...\n\n");
 			system (deleteCommand);
+			printf ("\nDone.\n\n");
+			break;
+
+		// Restart
+		case 'r':
+			printf ("\nThis may corrupt the current data log. Are you sure? [y/n]: ");
+			fscanf (stdin, "%c%*1[\n]", &selection);
+			if (selection != 'y')
+			{
+				printf ("Cancelled.\n\n");
+				break;
+			}
+
+			printf ("\nRestarting the DART...\n\n");
+			system (restartCommand);
 			printf ("\nDone.\n\n");
 			break;
 
