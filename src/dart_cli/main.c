@@ -146,7 +146,7 @@ int main (int argc, char** argv)
 
 	char* remote = "root@192.168.0.1";
 
-	char* remoteDirectory = "/root/mdf";
+	char* remoteDirectory = "/root/zre/";
 
 	char* localDirectory = getenv ("ZRE_CANTOOLS_LOGGING_DIR");
 	if (localDirectory == NULL)
@@ -225,7 +225,7 @@ int main (int argc, char** argv)
 
 	// TODO(Barach): Needs to expand environment variable, also update.
 	char* copyDbcCommand;
-	if (asprintf (&copyDbcCommand, "scp %s %s:/root/zre_cantools/config/zr25_glory/can_vehicle.dbc %s", sshOptions, remote, destinationDirectory) < 0)
+	if (asprintf (&copyDbcCommand, "scp %s %s:/root/zre_cantools/config/zr25/vehicle/main.dbc %s", sshOptions, remote, destinationDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* deleteCommand;
