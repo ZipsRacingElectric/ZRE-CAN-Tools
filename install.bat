@@ -26,21 +26,21 @@ mkdir "%FOLDER%"
 
 :: Create batch script shortcuts
 
-call :createMenuShortcut dart-cli
+call :createMenuShortcut dart-cli.exe
 
-call :createMenuShortcut zre24-can
-call :createMenuShortcut zre24-bms
+call :createMenuShortcut zre24-can.bat
+call :createMenuShortcut zre24-bms.bat
 
-call :createMenuShortcut zr25-dashboard-vehicle
-call :createMenuShortcut zr25-dashboard-charger
-call :createMenuShortcut zr25-eeprom-vehicle
-call :createMenuShortcut zr25-eeprom-charger
+call :createMenuShortcut zr25-dashboard-vehicle.bat
+call :createMenuShortcut zr25-dashboard-charger.bat
+call :createMenuShortcut zr25-eeprom-vehicle.bat
+call :createMenuShortcut zr25-eeprom-charger.bat
 goto :complete
 
 :: Function for creating a shortcut
 :createMenuShortcut
 echo Creating Shortcut %1...
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%/%~1.lnk');$s.TargetPath='conhost';$s.Arguments='%~dp0bin\%~1.bat';$s.Save()"
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%FOLDER%/%~1.lnk');$s.TargetPath='cmd.exe';$s.Arguments='/k %~dp0bin\%~1';$s.Save()"
 goto :eof
 
 :complete

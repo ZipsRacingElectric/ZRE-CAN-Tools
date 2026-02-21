@@ -9,6 +9,3 @@ IF [%1] == [] (
 ) ELSE (
 	"%ZRE_CANTOOLS_DIR%/bin/dashboard-gui.exe" "%ZRE_CANTOOLS_DIR%/config/zr25/vehicle/dashboard_gui.json" "%1@1000000" "%ZRE_CANTOOLS_DIR%/config/zr25/vehicle/main.dbc"
 )
-
-echo Press enter to close...
-pause >nul
