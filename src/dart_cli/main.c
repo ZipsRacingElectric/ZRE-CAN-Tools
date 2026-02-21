@@ -152,6 +152,10 @@ int main (int argc, char** argv)
 	if (localDirectory == NULL)
 		fprintf (stderr, "Failed to get ZRE_CANTOOLS_LOGGING_DIR environment variable.\n");
 
+	// Create the local directory if it doesn't exist.
+	mkdirPort (localDirectory);
+	debugPrintf ("Using local directory '%s'...\n", localDirectory);
+
 	// Allocate SSH options
 	char* sshOptions;
 	if (asprintf (&sshOptions, ""

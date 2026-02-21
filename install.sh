@@ -8,9 +8,6 @@ SCRIPT=/etc/profile.d/zre_cantools.sh
 SAFE_DIR=$(echo "$PWD" | sed 's/[]\$*.^[]/\\&/g' | sed 's/ /\\&/g')
 SAFE_LOG_DIR=$(echo "~/zre" | sed 's/[]\$*.^[]/\\&/g' | sed 's/ /\\&/g')
 
-# Create the ZRE_CANTOOLS_LOGGING_DIR directory if it doesn't exist.
-mkdir -p $SAFE_LOG_DIR
-
 # Delete the script if it already exists
 rm -f $SCRIPT
 
