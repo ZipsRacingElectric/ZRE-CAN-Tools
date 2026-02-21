@@ -26,6 +26,8 @@ int fsyncPort (FILE* file)
 
 	#else // ZRE_CANTOOLS_OS_linux
 
+	(void) file;
+
 	// Not aware of, nor concerned with a Windows equivalent.
 	return 0;
 
