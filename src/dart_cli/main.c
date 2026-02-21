@@ -240,6 +240,10 @@ int main (int argc, char** argv)
 	if (asprintf (&restartCommand, "ssh %s %s \"systemctl restart init_system\"", sshOptions, remote) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
+	char* modifyConfigCommand;
+	if (asprintf (&modifyConfigCommand, "ssh %s %s -t \"nano /root/init_system/init_system.env\"", sshOptions, remote) < 0)
+		return errorPrintf ("Failed to allocate command buffer");
+
 	char* sshInteractiveCommand;
 	if (asprintf (&sshInteractiveCommand, "ssh %s %s", sshOptions, remote) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
@@ -267,6 +271,7 @@ int main (int argc, char** argv)
 			" c - Copy all logs locally\n"
 			" x - Delete all remote log files\n"
 			" r - Restart the device\n"
+			" m - Modify the DART's configuration\n"
 			" s - Open an interactive SSH connection to the DART\n"
 			" j - Print the DART's system journal\n"
 			" t - Test connection to the DART\n"
@@ -319,6 +324,22 @@ int main (int argc, char** argv)
 			}
 
 			printf ("\nRestarting the DART...\n\n");
+			system (restartCommand);
+			printf ("\nDone.\n\n");
+			break;
+
+		// Modify config
+		case 'm':
+			printf ("\nAre you sure? [y/n]: ");
+			fscanf (stdin, "%c%*1[\n]", &selection);
+			if (selection != 'y')
+			{
+				printf ("Cancelled.\n\n");
+				break;
+			}
+
+			printf ("\nOpening Editor... (Ctrl+X to Exit)\n\n");
+			system (modifyConfigCommand);
 			system (restartCommand);
 			printf ("\nDone.\n\n");
 			break;
