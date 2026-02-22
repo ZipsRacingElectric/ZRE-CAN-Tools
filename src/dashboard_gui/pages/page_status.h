@@ -37,6 +37,7 @@ typedef struct
 	size_t buttonCount;
 
 	GtkGrid* vcuStatusPanel;
+	GtkGrid* bmsStatusPanel;
 
 	canWidget_t* vcuStatus;
 	canWidget_t* bmsStatus;
@@ -45,7 +46,10 @@ typedef struct
 	canWidget_t* bspdStatus;
 
 	canWidget_t** vcuStatusSignals;
+	canWidget_t** bmsStatusSignals;
+
 	size_t vcuStatusSignalsCount;
+	size_t bmsStatusSignalsCount;
 
 } pageStatus_t;
 
