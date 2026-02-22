@@ -1,0 +1,15 @@
+{
+    "THETA_MIN": "-45",
+    "THETA_MAX": "45",
+    "THETA_STEP": "0.25",
+    "THETA_B": "15",
+    "THETA_BACKOFF": "-20",
+    "THETA_OPEN": "20",
+    "THETA_CLOSED": "-20",
+    "HIGH_THRESHOLD": "60",
+    "LOW_THRESHOLD": "40",
+    "I_STALL": "0.6594",
+    "STALL_MAX_COUNT": "25",
+    "SERVO_PWM_MIN": "90",
+    "SERVO_PWM_MAX": "211"
+}
