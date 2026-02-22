@@ -1,3 +1,14 @@
+// DART-CLI -------------------------------------------------------------------------------------------------------------------
+//
+// Author: Cole Barach
+// Date Created: 2026.02.15
+//
+// Description:
+//   For usage, see help page.
+//   For SSH details, see https://github.com/ZipsRacingElectric/DART-ZR/blob/main/doc/ethernet_configuration.md
+
+// Includes -------------------------------------------------------------------------------------------------------------------
+
 // For asprintf. Note this must be the first include in this file.
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -15,12 +26,16 @@
 #include <string.h>
 #include <time.h>
 
+// Datatypes ------------------------------------------------------------------------------------------------------------------
+
 enum
 {
 	MODE_INTERACTIVE,
 	MODE_SSH,
 	MODE_SCP
 } mode = MODE_INTERACTIVE;
+
+// Functions ------------------------------------------------------------------------------------------------------------------
 
 void fprintUsage (FILE* stream)
 {
@@ -121,6 +136,8 @@ char* concetenateCommand (char* command, char* options, char** argv, int argc)
 
 	return buffer;
 }
+
+// Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
 {
@@ -236,12 +253,16 @@ int main (int argc, char** argv)
 	if (asprintf (&deleteCommand, "ssh %s %s \"rm -r %s/* && systemctl restart init_system\"", sshOptions, remote, remoteDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
+	char* reloadCommand;
+	if (asprintf (&reloadCommand, "ssh %s %s \"systemctl daemon-reload\"", sshOptions, remote) < 0)
+		return errorPrintf ("Failed to allocate command buffer");
+
 	char* restartCommand;
 	if (asprintf (&restartCommand, "ssh %s %s \"systemctl restart init_system\"", sshOptions, remote) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* modifyConfigCommand;
-	if (asprintf (&modifyConfigCommand, "ssh %s %s -t \"nano /root/init_system/init_system.env\"", sshOptions, remote) < 0)
+	if (asprintf (&modifyConfigCommand, "ssh %s %s -t \"nano /etc/systemd/system/init_system.service\"", sshOptions, remote) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* sshInteractiveCommand;
@@ -340,6 +361,7 @@ int main (int argc, char** argv)
 
 			printf ("\nOpening Editor... (Ctrl+X to Exit)\n\n");
 			system (modifyConfigCommand);
+			system (reloadCommand);
 			system (restartCommand);
 			printf ("\nDone.\n\n");
 			break;
