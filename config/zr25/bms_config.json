@@ -1,0 +1,285 @@
+{
+	"name":					"BMS",
+	"canId":				"0x752",
+	"segmentCount":			"6",
+	"ltcsPerSegment":		"2",
+	"cellsPerLtc":			"12",
+	"minCellVoltage":		"3.0",
+	"maxCellVoltage":		"4.16",
+	"minTemperature":		"-10",
+	"maxTemperature":		"60",
+	"maxLtcTemperature":	"80",
+	"faults":
+	[
+		{
+			"name":			"ISOSPI FAULT",
+			"signal":		"BMS_ISOSPI_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"SELF TEST FAULT",
+			"signal":		"BMS_SELF_TEST_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"SENSE-LINE FAULT",
+			"signal":		"BMS_SENSE_LINE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"UNDERVOLTAGE FAULT",
+			"signal":		"BMS_UNDERVOLTAGE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"OVERVOLTAGE FAULT",
+			"signal":		"BMS_OVERVOLTAGE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"UNDERTEMPERATURE FAULT",
+			"signal":		"BMS_UNDERTEMPERATURE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		},
+		{
+			"name":			"OVERTEMPERATURE FAULT",
+			"signal":		"BMS_OVERTEMPERATURE_FAULT",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		}
+	],
+	"variables":
+	[
+		{
+			"address":	"0x0000",
+			"name":		"EEPROM_STATUS",
+			"type":		"uint8_t",
+			"comment":	"The status of the BMS's EEPROM. 0 => Hardware failure, 1 => Memory invalid, 3 => Memory valid."
+		},
+		{
+			"address":	"0x0010",
+			"name":		"THERMISTORS_STEINHART_HART_A",
+			"type":		"float",
+			"comment":	"The A coefficient of the thermistors' Steinhart-Hart equation."
+		},
+		{
+			"address":	"0x0014",
+			"name":		"THERMISTORS_STEINHART_HART_B",
+			"type":		"float",
+			"comment":	"The B coefficient of the thermistors' Steinhart-Hart equation."
+		},
+		{
+			"address":	"0x0018",
+			"name":		"THERMISTORS_STEINHART_HART_C",
+			"type":		"float",
+			"comment":	"The C coefficient of the thermistors' Steinhart-Hart equation."
+		},
+		{
+			"address":	"0x001C",
+			"name":		"THERMISTORS_STEINHART_HART_D",
+			"type":		"float",
+			"comment":	"The D coefficient of the thermistors' Steinhart-Hart equation."
+		},
+		{
+			"address":	"0x0020",
+			"name":		"THERMISTORS_REFERENCE_RESISTANCE",
+			"type":		"float",
+			"comment":	"The reference resistance of the thermistors' Steinhart-Hart equation."
+		},
+		{
+			"address":	"0x0024",
+			"name":		"THERMISTORS_PULLUP_RESISTANCE",
+			"type":		"float",
+			"comment":	"The pull-up resistance of the thermistors' divider circuit."
+		},
+		{
+			"address":	"0x0028",
+			"name":		"THERMISTORS_TEMPERATURE_MIN",
+			"type":		"float",
+			"comment":	"The minimum plausible temperature of the thermistors' used to detect open-circuit faults."
+		},
+		{
+			"address":	"0x002C",
+			"name":		"THERMISTORS_TEMPERATURE_MAX",
+			"type":		"float",
+			"comment":	"The maximum plausible temperature of the thermistors' used to detect short-circuit faults."
+		},
+		{
+			"address":	"0x0030",
+			"name":		"CURRENT_SENSOR_CHANNEL_1_SENSITIVITY",
+			"type":		"float",
+			"comment":	"The sensitiviy of the current sensor's first (low-range) channel, in amps per count."
+		},
+		{
+			"address":	"0x0034",
+			"name":		"CURRENT_SENSOR_CHANNEL_1_SAMPLE_OFFSET",
+			"type":		"uint16_t",
+			"comment":	"The offset of the current sensor's first (low-range) channel, in counts."
+		},
+		{
+			"address":	"0x0036",
+			"name":		"CURRENT_SENSOR_CHANNEL_1_SAMPLE_MIN",
+			"type":		"uint16_t",
+			"comment":	"The minimum plausible sample of the current sensor's first (low-range) channel, before offset."
+		},
+		{
+			"address":	"0x0038",
+			"name":		"CURRENT_SENSOR_CHANNEL_1_SAMPLE_MAX",
+			"type":		"uint16_t",
+			"comment":	"The maximum plausible sample of the current sensor's first (low-range) channel, before offset."
+		},
+		{
+			"address":	"0x003C",
+			"name":		"CURRENT_SENSOR_CHANNEL_2_SENSITIVITY",
+			"type":		"float",
+			"comment":	"The sensitiviy of the current sensor's second (high-range) channel, in amps per count."
+		},
+		{
+			"address":	"0x0040",
+			"name":		"CURRENT_SENSOR_CHANNEL_2_SAMPLE_OFFSET",
+			"type":		"uint16_t",
+			"comment":	"The offset of the current sensor's second (high-range) channel, in counts."
+		},
+		{
+			"address":	"0x0042",
+			"name":		"CURRENT_SENSOR_CHANNEL_2_SAMPLE_MIN",
+			"type":		"uint16_t",
+			"comment":	"The minimum plausible sample of the current sensor's second (high-range) channel, before offset."
+		},
+		{
+			"address":	"0x0044",
+			"name":		"CURRENT_SENSOR_CHANNEL_2_SAMPLE_MAX",
+			"type":		"uint16_t",
+			"comment":	"The maximum plausible sample of the current sensor's second (high-range) channel, before offset."
+		},
+		{
+			"address":	"0x0048",
+			"name":		"CURRENT_SENSOR_CHANNEL_1_SATURATION_CURRENT",
+			"type":		"float",
+			"comment":	"The current at which channel 1 of the current sensor saturates (positive and negative)."
+		},
+		{
+			"address":	"0x004C",
+			"name":		"CURRENT_SENSOR_DEADZONE_CURRENT",
+			"type":		"float",
+			"comment":	"The magnitude of current below which to clamp to the output 0A."
+		},
+		{
+			"address":	"0x0050",
+			"name":		"CHARGING_VOLTAGE_LIMIT",
+			"type":		"float",
+			"comment":	"The voltage limit to set the charger to."
+		},
+		{
+			"address":	"0x0054",
+			"name":		"CHARGING_CURRENT_LIMIT",
+			"type":		"float",
+			"comment":	"The current limit to set the charger to."
+		},
+		{
+			"address":	"0x0058",
+			"name":		"CHARGING_POWER_LIMIT",
+			"type":		"float",
+			"comment":	"The power limit to apply to the charger."
+		},
+		{
+			"address":	"0x005C",
+			"name":		"CHARGING_THRESHOLD",
+			"type":		"float",
+			"comment":	"The voltage threshold at which the is accumulator considered to be fully charged."
+		},
+		{
+			"address":	"0x0060",
+			"name":		"BALANCING_ENABLED",
+			"type":		"uint8_t",
+			"comment":	"Indicates whether balancing is allowed. 0 => Off, 1 => On."
+		},
+		{
+			"address":	"0x0061",
+			"name":		"CHARGING_ENABLED",
+			"type":		"uint8_t",
+			"comment":	"Indicates whether charging is allowed. 0 => Off, 1 => On."
+		},
+		{
+			"address":	"0x0064",
+			"name":		"BALANCING_THRESHOLD",
+			"type":		"float",
+			"comment":	"The voltage threshold at which a cell is considered out of balance with the minimum cell."
+		},
+		{
+			"address":	"0x0068",
+			"name":		"LTC_TEMPERATURE_MAX",
+			"type":		"float",
+			"comment":	"The die temperature which an LTC is not allowed to exceed, in Celsius."
+		},
+		{
+			"address":	"0x006C",
+			"name":		"POWER_ROLLING_AVERAGE_COUNT",
+			"type":		"uint16_t",
+			"comment":	"The number of samples to include the rolling average for instantaneous power delivery."
+		},
+		{
+			"address":	"0x0070",
+			"name":		"CELL_VOLTAGE_MIN",
+			"type":		"float",
+			"comment":	"The minimum allowable cell voltage, any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x0074",
+			"name":		"CELL_VOLTAGE_MAX",
+			"type":		"float",
+			"comment":	"The maximum allowable cell voltage, any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0078",
+			"name":		"CELL_VOLTAGE_FAULT_THRESHOLD",
+			"type":		"uint16_t",
+			"comment":	"The maximum number of faulted cell voltage samples until a cell voltage fault is thrown."
+		},
+		{
+			"address":	"0x007A",
+			"name":		"TEMPERATURE_FAULT_THRESHOLD",
+			"type":		"uint16_t",
+			"comment":	"The maximum number of faulted temperature samples until a temperature fault is thrown."
+		},
+		{
+			"address":	"0x1000",
+			"name":		"CURRENT_SENSOR_CHANNEL_1_SAMPLE",
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the current sensor's channel 1."
+		},
+		{
+			"address":	"0x1002",
+			"name":		"CURRENT_SENSOR_CHANNEL_2_SAMPLE",
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the current sensor's channel 2."
+		},
+		{
+			"address":	"0x1000",
+			"name":		"WATCHDOG_TRIGGER",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Command for triggering the BMS's watchdog. The value written does not matter."
+		},
+		{
+			"address":	"0x1002",
+			"name":		"CELL_DISCHARGE_DISABLE",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Command for disabling a cell's discharge resistor. Written value should be the index of the cell."
+		},
+		{
+			"address":	"0x1003",
+			"name":		"CELL_DISCHARGE_ENABLE",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Command for enabling a cell's discharge resistor. Written value should be the index of the cell."
+		}
+	]
+}

@@ -35,11 +35,28 @@
 bool slcanNameDomain (const char* name);
 
 /**
+ * @brief Checks whether a SLCAN device name indicates enumeration should be performed.
+ * @param name The name to check.
+ * @return True if enumeration should be performed, false otherwise.
+ */
+bool slcanWildcard (const char* name);
+
+/**
  * @brief Initializes an SLCAN device.
  * @param name The name (handler) of the device. Note the serial port handler is OS-dependent.
+ * @param baudrate The baudrate of the device.
  * @return The initialized SLCAN device if successful, @c NULL otherwise.
  */
 canDevice_t* slcanInit (char* name, canBaudrate_t baudrate);
+
+/**
+ * @brief Enumerates and initializes all possible SLCAN devices. This returns an array of initialized SLCAN devices. The unused
+ * devices should be deallocated via @c slcanDealloc . The array of devices must also be deallocated.
+ * @param baudrate The baudrate of the device.
+ * @param deviceCount Buffer to write the number of detected devices into.
+ * @return A dynamically allocated array of SLCAN devices of size @c deviceCount if successful, @c NULL otherwise.
+ */
+canDevice_t** slcanEnumerate (canBaudrate_t baudate, size_t* deviceCount);
 
 /**
  * @brief De-allocates the memory owned by an SLCAN device.
@@ -67,15 +84,5 @@ const char* slcanGetDeviceName (void* device);
 
 /// @brief SLCAN implementation of the @c canGetDeviceType function.
 const char* slcanGetDeviceType (void);
-
-// REVIEW(Barach): Removed temporarily until implementation is finalized.
-// /**
-//  * @brief Enumerates devices connected to the user's machine.
-//  * @param deviceName Is associated each enumerated device's name.
-//  * @param deviceCount Specifies the number of elements in the list of device names.
-//  * @param baudRate Specifies the baud rate for each device.
-//  * @return 0 on success, -1 on failure.
-//  */
-// int slcanEnumerateDevice (char** deviceNames, size_t* deviceCount, char* baudRate);
 
 #endif // SERIAL_CAN_H

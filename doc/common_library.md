@@ -36,7 +36,7 @@ Both character options and string options can be followed by `=<Value>` for any 
 
 For instance, `-m=100` is a character option identifed by `m` with a value of `100`.
 
-At the beginning of each program, before validating the number of required arguments, the `handleOptions` function should be used to check for and handle all the program's options. If finer control is required, the `handleOptions` function can be used to individually handle arguments. A simple example of how to use these is provided below:
+At the beginning of each program, before validating the number of required arguments, the `handleOptions` function should be used to check for and handle all the program's options. If finer control is required, the `handleOption` function can be used to individually handle arguments. A simple example of how to use these is provided below:
 
 ```
 // At top-level scope

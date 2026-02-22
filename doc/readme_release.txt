@@ -27,26 +27,32 @@ were installed.
 On Linux, the installed applications are added to your system path. This means
 they can be run from a terminal.
 
+- DART ------------------------------------------------------------------------
+
+Zips Racing's modern vehicles are equipped with a custom dashboard and data
+logging system (referred to as the "DART"). The dart-cli application is used to
+interact with this system. See the doc/dart_user_manual.pdf file for
+information about how to use the DART.
+
+- dart-cli                      - Application for interacting with the DART of
+                                  any vehicle.
+
 - ZR25 "Gloria" ---------------------------------------------------------------
 
-All the applications for ZR25 start with the prefix "glory" (for Gloria). The
-postfix of each application indicates whether it is intended for use with the
-vehicle itself (ends with "vehicle"), or the charging cart (ends with
-"charger").
+All the applications for ZR25 start with the prefix "zr25". The postfix of each
+application indicates whether it is intended for use with the vehicle itself
+(ends with "vehicle"), or the charging cart (ends with "charger").
 
- - glory-bms-view-vehicle   - Application for monitoring the BMS (in vehicle).
- - glory-bms-view-charger   - Application for monitoring the BMS (on charging
-                              cart).
- - glory-can-vehicle        - Application for monitoring the vehicle CAN bus.
- - glory-can-charger        - Application for monitoring the charger CAN bus.
- - glory-bms-eeprom-vehicle - Application for configuring the BMS (in vehicle).
- - glory-bms-eeprom-charger - Application for configuring the BMS (on charger).
- - glory-vcu-vehicle        - Application for configuring the VCU (in vehicle).
- - glory-drs-vehicle        - Application for configuring the DRS (in vehicle).
+ - zr25-dashboard-vehicle       - Dashboard for the vehicle.
+ - zr25-dashboard-charger       - Dashboard for the charger.
+ - zr25-eeprom-vehicle          - Application for configuring the EEPROM of
+                                  devices in the vehicle.
+ - zr25-eeprom-charger          - Application for configuring the EEPROM of the
+                                  BMS on the charging cart.
 
 - ZRE24 "Christine" -----------------------------------------------------------
 
-All the applications for ZR24 start with the prefix "cross" (for Christine).
+All the applications for ZR24 start with the prefix "zre24".
 
- - cross-bms - Application for monitoring the BMS.
- - cross-can - Application for monitoring the CAN bus.
+ - zre24-bms                    - Application for monitoring the BMS.
+ - zre24-can                    - Application for monitoring the CAN bus.

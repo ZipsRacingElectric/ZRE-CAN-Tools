@@ -22,6 +22,7 @@
 
 // C Standard Library
 #include <stdbool.h>
+#include <stdlib.h>
 
 // Global Data ----------------------------------------------------------------------------------------------------------------
 
@@ -37,55 +38,47 @@ FILE* recoverStream;
 
 // Standard I/O ---------------------------------------------------------------------------------------------------------------
 
-int parseOptionProgram (const char* arg)
+void handleOptionProgram (char option, char* path)
 {
-	const char* path = arg + 1;
+	(void) option;
 
 	// If no path is specified, use stdin
-	if (path [0] == '\0')
+	if (path == NULL)
 	{
 		programStream = stdin;
 	}
 	else
 	{
-		if (path [0] == '=')
-			++path;
-
 		programStream = fopen (path, "r");
 		if (programStream == NULL)
-			return errorPrintf ("Failed to open EEPROM data file '%s'", path);
+			exit (errorPrintf ("Failed to open EEPROM data file '%s'", path));
 	}
 
 	mode = MODE_PROGRAM;
-	return 0;
 }
 
-int parseOptionRecover (const char* arg)
+void handleOptionRecover (char option, char* path)
 {
-	const char* path = arg + 1;
+	(void) option;
 
 	// If no path is specified, use stdout
-	if (path [0] == '\0')
+	if (path == NULL)
 	{
 		recoverStream = stdout;
 	}
 	else
 	{
-		if (path [0] == '=')
-			++path;
-
 		recoverStream = fopen (path, "w");
 		if (recoverStream == NULL)
-			return errorPrintf ("Failed to open EEPROM data file '%s'", path);
+			exit (errorPrintf ("Failed to open EEPROM data file '%s'", path));
 	}
 
 	mode = MODE_RECOVER;
-	return 0;
 }
 
 void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: 'can-eeprom-cli <Options> <Device Name> <EEPROM Config File>'.\n");
+	fprintf (stream, "Usage: 'can-eeprom-cli <Options> <Device Name> <EEPROM Config Files>'.\n");
 }
 
 void fprintHelp (FILE* stream)
@@ -113,6 +106,39 @@ void fprintHelp (FILE* stream)
 	fprintCanEepromDataHelp (stream, "    ");
 }
 
+canEeprom_t* promptEepromSelection (canEeprom_t* eeproms, size_t eepromCount)
+{
+	// If only one EEPROM is available, no need to prompt.
+	if (eepromCount == 1)
+		return &eeproms [0];
+
+	char buffer [512];
+
+	while (true)
+	{
+		// Prompt for a device to select
+		printf ("Select an EEPROM:\n");
+		for (unsigned eepromIndex = 0; eepromIndex < eepromCount; ++eepromIndex)
+			printf ("  %u - %s\n", eepromIndex, eeproms [eepromIndex].name);
+
+		// Read the user input
+		fgets (buffer, sizeof (buffer), stdin);
+		buffer [strcspn (buffer, "\r\n")] = '\0';
+
+		// Parse as int and validate
+		char* end;
+		size_t selection = (size_t) strtol (buffer, &end, 0);
+		if (end == buffer || selection >= eepromCount)
+		{
+			// Prompt again
+			printf ("Invalid selection.\n");
+			continue;
+		}
+
+		return &eeproms [selection];
+	}
+}
+
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
@@ -120,50 +146,28 @@ int main (int argc, char** argv)
 	// Debug initialization
 	debugInit ();
 
-	// Check standard arguments
-	for (int index = 1; index < argc; ++index)
+	// Handle program options
+	if (handleOptions (&argc, &argv, &(handleOptionsParams_t)
 	{
-		const char* option;
-		switch (handleOption (argv [index], &option, fprintHelp))
-		{
-		case OPTION_CHAR:
-			switch (option [0])
-			{
-			case MODE_PROGRAM:
-				if (parseOptionProgram (option) != 0)
-					return -1;
-				break;
-			case MODE_RECOVER:
-				if (parseOptionRecover (option) != 0)
-					return -1;
-				break;
-			default:
-				fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
-				return -1;
-			}
-			break;
-
-		case OPTION_STRING:
-			fprintf (stderr, "Unknown option '%s'.\n", argv [index]);
-			return -1;
-
-		case OPTION_QUIT:
-			return 0;
-
-		default:
-			break;
-		}
-	}
+		.fprintHelp		= fprintHelp,
+		.charHandlers	= (optionCharCallback_t* []) { handleOptionProgram, handleOptionRecover },
+		.chars			= (char []) { MODE_PROGRAM, MODE_RECOVER },
+		.charCount		= 2,
+		.stringHandlers	= NULL,
+		.strings		= NULL,
+		.stringCount	= 0
+	}) != 0)
+		return errorPrintf ("Failed to handle options");
 
 	// Validate usage
-	if (argc < 3)
+	if (argc < 2)
 	{
 		fprintUsage (stderr);
 		return -1;
 	}
 
 	// Initialize the CAN device
-	char* deviceName = argv [argc - 2];
+	char* deviceName = argv [0];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
@@ -172,16 +176,15 @@ int main (int argc, char** argv)
 	if (canSetTimeout (device, 1) != 0)
 		return errorPrintf ("Failed to set CAN device timeout");
 
-	// Load the EEPROM's configuration
-	char* configJsonPath = argv [argc - 1];
-	cJSON* configJson = jsonLoad (configJsonPath);
-	if (configJson == NULL)
-		return errorPrintf ("Failed to load EEPROM config file '%s'", configJsonPath);
+	// Load the EEPROM configurations
+	size_t eepromCount = argc - 1;
+	canEeprom_t* eeproms = malloc (sizeof (canEeprom_t) * eepromCount);
+	for (size_t index = 0; index < eepromCount; ++index)
+		if (canEepromLoad (&eeproms [index], argv [index + 1]) != 0)
+			return errorPrintf ("Failed to load CAN EEPROM '%s'", argv [index + 1]);
 
-	// Initialize the CAN EEPROM
-	canEeprom_t eeprom;
-	if (canEepromInit (&eeprom, configJson) != 0)
-		return errorPrintf ("Failed to initialize CAN EEPROM");
+	// Prompt the user to select an EEPROM
+	canEeprom_t* eeprom = promptEepromSelection (eeproms, eepromCount);
 
 	// Programming mode
 	if (mode == MODE_PROGRAM)
@@ -192,8 +195,8 @@ int main (int argc, char** argv)
 		if (dataJson == NULL)
 			return errorPrintf ("Failed to read EEPROM data file");
 
-		if (canEepromWriteJson (&eeprom, device, dataJson) != 0)
-			code = errorPrintf ("Failed to program '%s'", eeprom.name);
+		if (canEepromWriteJson (eeprom, device, dataJson) != 0)
+			code = errorPrintf ("Failed to program EEPROM data");
 
 		fclose (programStream);
 		canDealloc (device);
@@ -205,8 +208,8 @@ int main (int argc, char** argv)
 	{
 		int code = 0;
 
-		if (canEepromReadJson (&eeprom, device, recoverStream) != 0)
-			code = errorPrintf ("Failed to recover '%s'", eeprom.name);
+		if (canEepromReadJson (eeprom, device, recoverStream) != 0)
+			code = errorPrintf ("Failed to recover EEPROM data");
 
 		fclose (recoverStream);
 		canDealloc (device);
@@ -230,30 +233,30 @@ int main (int argc, char** argv)
 		switch (selection)
 		{
 		case 'w':
-			variable = canEepromPromptVariable (&eeprom, stdin, stdout);
-			canEepromPromptValue (variable, eeprom.buffer, stdin, stdout);
-			if (canEepromWriteVariable (&eeprom, device, variable, eeprom.buffer) != 0)
+			variable = canEepromPromptVariable (eeprom, stdin, stdout);
+			canEepromPromptValue (variable, eeprom->buffer, stdin, stdout);
+			if (canEepromWriteVariable (eeprom, device, variable, eeprom->buffer) != 0)
 				errorPrintf ("Failed to write to EEPROM");
 			break;
 
 		case 'r':
-			variable = canEepromPromptVariable (&eeprom, stdin, stdout);
-			if (canEepromReadVariable (&eeprom, device, variable, eeprom.buffer) != 0)
+			variable = canEepromPromptVariable (eeprom, stdin, stdout);
+			if (canEepromReadVariable (eeprom, device, variable, eeprom->buffer) != 0)
 				errorPrintf ("Failed to read variable from EEPROM");
 			else
 			{
 				printf ("Read: ");
-				canEepromPrintVariableValue (variable, eeprom.buffer, "      ", stdout);
+				canEepromPrintVariableValue (variable, eeprom->buffer, "      ", stdout);
 			}
 			break;
 
 		case 'm':
-			if (canEepromPrintMap (&eeprom, device, stdout) != 0)
+			if (canEepromPrintMap (eeprom, device, stdout) != 0)
 				errorPrintf ("Failed to print EEPROM map");
 			break;
 
 		case 'e':
-			canEepromPrintEmptyMap (&eeprom, stdout);
+			canEepromPrintEmptyMap (eeprom, stdout);
 			break;
 
 		default:

@@ -141,6 +141,15 @@ int handleOptions (int* argc, char*** argv, handleOptionsParams_t* params)
 
 		case OPTION_STRING:
 		{
+			// If the option is "--", stop parsing the args.
+			if (option [0] == '\0')
+			{
+				// Update argc/argv to the arg just after this one.
+				*argc -= optionIndex + 1;
+				*argv += optionIndex + 1;
+				return 0;
+			}
+
 			// If an equal sign is present, split at the sign and get the value after.
 			size_t splitIndex = strcspn (option, "=");
 			char* value = NULL;
@@ -181,6 +190,7 @@ int handleOptions (int* argc, char*** argv, handleOptionsParams_t* params)
 			exit (0);
 
 		case OPTION_INVALID:
+			// Update argc/argv to this arg.
 			*argc -= optionIndex;
 			*argv += optionIndex;
 			return 0;
@@ -202,6 +212,8 @@ int fprintOptionHelp (FILE* stream, char* indent)
 		"%s-h, --help            - Help, prints this page.\n"
 		"%s--verbose             - Verbose debugging, prints more detailed information\n"
 		"%s                        to standard output.\n"
-		"%s-v, --version         - Version, prints the application version.\n\n",
-		indent, indent, indent, indent);
+		"%s-v, --version         - Version, prints the application version.\n"
+		"%s--                    - Stop parsing options. All arguments after this are\n"
+		"%s                        parsed as arguments, not options.\n\n",
+		indent, indent, indent, indent, indent, indent);
 }

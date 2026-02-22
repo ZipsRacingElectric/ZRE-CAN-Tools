@@ -68,6 +68,14 @@ typedef struct
 /**
  * @brief Initializes the EEPROM by importing the structure's data from a configuration JSON.
  * @param eeprom The EEPROM to initialize.
+ * @param path The path of the configuration JSON to load the data from.
+ * @return 0 if successful, the error code otherwise.
+ */
+int canEepromLoad (canEeprom_t* eeprom, const char* path);
+
+/**
+ * @brief Initializes the EEPROM by importing the structure's data from a configuration JSON.
+ * @param eeprom The EEPROM to initialize.
  * @param config The configuration JSON to load the data from.
  * @return 0 if successful, the error code otherwise.
  */

@@ -1,0 +1,490 @@
+{
+	"name":				"VCU",
+	"canId":			"0x750",
+	"variables":
+	[
+		{
+			"address":	"0x0000",
+			"name":		"EEPROM_STATUS",
+			"type":		"uint8_t",
+			"comment":	"The status of the VCU's EEPROM. 0 => Hardware failure, 1 => Memory invalid, 3 => Memory valid."
+		},
+		{
+			"address":	"0x0010",
+			"name":		"APPS_1_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of APPS-1. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x0012",
+			"name":		"APPS_1_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample at which APPS-1 begins requesting torque."
+		},
+		{
+			"address":	"0x0014",
+			"name":		"APPS_1_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample at which APPS-1 stops requesting torque."
+		},
+		{
+			"address":	"0x0016",
+			"name":		"APPS_1_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of APPS-1. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0018",
+			"name":		"APPS_2_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of APPS-2. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x001A",
+			"name":		"APPS_2_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample at which APPS-2 begins requesting torque."
+		},
+		{
+			"address":	"0x001C",
+			"name":		"APPS_2_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample at which APPS-2 stops requesting torque."
+		},
+		{
+			"address":	"0x001E",
+			"name":		"APPS_2_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of APPS-2. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0020",
+			"name":		"BSE_F_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of BSE-F. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x0022",
+			"name":		"BSE_F_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample of the linear range of BSE-F."
+		},
+		{
+			"address":	"0x0024",
+			"name":		"BSE_F_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample of the linear range of BSE-F."
+		},
+		{
+			"address":	"0x0026",
+			"name":		"BSE_F_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of BSE-F. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0028",
+			"name":		"BSE_R_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of BSE-R. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x002A",
+			"name":		"BSE_R_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample of the linear range of BSE-R."
+		},
+		{
+			"address":	"0x002C",
+			"name":		"BSE_R_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample of the linear range of BSE-R."
+		},
+		{
+			"address":	"0x002E",
+			"name":		"BSE_R_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of BSE-R. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0030",
+			"name":		"DRIVING_TORQUE_LIMIT",
+			"type":		"float",
+			"comment":	"The cumulative driving (positive) torque limit, in Nm."
+		},
+		{
+			"address":	"0x0034",
+			"name":		"REGEN_TORQUE_LIMIT",
+			"type":		"float",
+			"comment":	"The cumulative regenerative (negative) torque limit, in Nm."
+		},
+		{
+			"address":	"0x0038",
+			"name":		"TORQUE_ALGORITHM_INDEX",
+			"type":		"uint16_t",
+			"comment":	"The index of the torque-vectoring algorithm to use. 0 => Straight-diff, 1 => Linear-steering, 2 => Linear-steering Slalom, 3 => Single-tire-fire (left), 4 => Single-tire-fire (right)."
+		},
+		{
+			"address":	"0x003C",
+			"name":		"POWER_LIMIT",
+			"type":		"float",
+			"comment":	"The cumulative power limit of the vehicle, in W."
+		},
+		{
+			"address":	"0x0040",
+			"name":		"POWER_LIMIT_PID_KP",
+			"type":		"float",
+			"comment":	"The proportional coefficient of the power limit PID, in 1/W."
+		},
+		{
+			"address":	"0x0044",
+			"name":		"POWER_LIMIT_PID_KI",
+			"type":		"float",
+			"comment":	"The integral coefficient of the power limit PID, in 1/Ws."
+		},
+		{
+			"address":	"0x0048",
+			"name":		"POWER_LIMIT_PID_KD",
+			"type":		"float",
+			"comment":	"The derivative coefficient of the power limit PID, in s/W."
+		},
+		{
+			"address":	"0x004C",
+			"name":		"POWER_LIMIT_PID_A",
+			"type":		"float",
+			"comment":	"The measurement gain of the power limit PID, in range [0, 1)"
+		},
+		{
+			"address":	"0x0050",
+			"name":		"GLV_BATTERY_SAMPLE_11V5",
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the GLV battery at 11.5V."
+		},
+		{
+			"address":	"0x0052",
+			"name":		"GLV_BATTERY_SAMPLE_14V4",
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the GLV battery at 14.4V."
+		},
+		{
+			"address":	"0x0060",
+			"name":		"SAS_SAMPLE_ZERO",
+			"type":		"uint16_t",
+			"comment":	"The sample of the steering angle sensor at the zero position."
+		},
+		{
+			"address":	"0x0062",
+			"name":		"SAS_SAMPLE_NEGATIVE",
+			"type":		"uint16_t",
+			"comment":	"The sample of the steering angle sensor at the negative-most position."
+		},
+		{
+			"address":	"0x0064",
+			"name":		"SAS_SAMPLE_POSITIVE",
+			"type":		"uint16_t",
+			"comment":	"The sample of the steering angle sensor at the positive-most position."
+		},
+		{
+			"address":	"0x0068",
+			"name":		"SAS_ANGLE_NEGATIVE",
+			"type":		"float",
+			"comment":	"The steering angle of the vehicle at the negative-most position."
+		},
+		{
+			"address":	"0x006C",
+			"name":		"SAS_ANGLE_POSITIVE",
+			"type":		"float",
+			"comment":	"The steering angle of the vehicle at the positive-most position."
+		},
+		{
+			"address":	"0x0070",
+			"name":		"SAS_DEADZONE_RANGE",
+			"type":		"float",
+			"comment":	"The range of the steering angle deadzone, centered around the zero position."
+		},
+		{
+			"address":	"0x0074",
+			"name":		"SD_DRIVING_FR_BIAS",
+			"type":		"float",
+			"comment":	"The front-to-rear bias of the straight-diff algorithm (1 => 100% rear, 0 => 100% front)."
+		},
+		{
+			"address":	"0x0078",
+			"name":		"SD_DRIVING_LR_BIAS",
+			"type":		"float",
+			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
+		},
+		{
+			"address":	"0x007C",
+			"name":		"SD_REGEN_FR_BIAS",
+			"type":		"float",
+			"comment":	"The front-to-rear bias of the straight-diff algorithm (1 => 100% rear, 0 => 100% front)."
+		},
+		{
+			"address":	"0x0080",
+			"name":		"SD_REGEN_LR_BIAS",
+			"type":		"float",
+			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
+		},
+		{
+			"address":	"0x0084",
+			"name":		"LS_MOTOR_SPEED_BIAS_BEGIN",
+			"type":		"float",
+			"comment":	"The motor speed at which the front-to-rear bias starts shifting from the beginning value."
+		},
+		{
+			"address":	"0x0088",
+			"name":		"LS_MOTOR_SPEED_BIAS_END",
+			"type":		"float",
+			"comment":	"The motor speed at which the front-to-rear bias stops shifting to the end value."
+		},
+		{
+			"address":	"0x008C",
+			"name":		"LS_FR_BIAS_BEGIN",
+			"type":		"float",
+			"comment":	"The front-to-rear bias at the beginning motor speed."
+		},
+		{
+			"address":	"0x0090",
+			"name":		"LS_FR_BIAS_END",
+			"type":		"float",
+			"comment":	"The front-to-rear bias at the ending motor speed."
+		},
+		{
+			"address":	"0x0094",
+			"name":		"LS_STEERING_ANGLE_BEGIN",
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
+		},
+		{
+			"address":	"0x0098",
+			"name":		"LS_STEERING_ANGLE_END",
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
+		},
+		{
+			"address":	"0x009C",
+			"name":		"LS_LR_BIAS_END",
+			"type":		"float",
+			"comment":	"The left-to-right bias at the ending steering angle."
+		},
+		{
+			"address":	"0x00A0",
+			"name":		"LSS_MOTOR_SPEED_BIAS_BEGIN",
+			"type":		"float",
+			"comment":	"The motor speed at which the front-to-rear bias starts shifting from the beginning value."
+		},
+		{
+			"address":	"0x00A4",
+			"name":		"LSS_MOTOR_SPEED_BIAS_END",
+			"type":		"float",
+			"comment":	"The motor speed at which the front-to-rear bias stops shifting to the end value."
+		},
+		{
+			"address":	"0x00A8",
+			"name":		"LSS_FR_BIAS_BEGIN",
+			"type":		"float",
+			"comment":	"The front-to-rear bias at the beginning motor speed."
+		},
+		{
+			"address":	"0x00AC",
+			"name":		"LSS_FR_BIAS_END",
+			"type":		"float",
+			"comment":	"The front-to-rear bias at the ending motor speed."
+		},
+		{
+			"address":	"0x00B0",
+			"name":		"LSS_STEERING_ANGLE_BEGIN",
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
+		},
+		{
+			"address":	"0x00B4",
+			"name":		"LSS_STEERING_ANGLE_END",
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
+		},
+		{
+			"address":	"0x00B8",
+			"name":		"LSS_LR_BIAS_END",
+			"type":		"float",
+			"comment":	"The left-to-right bias at the ending steering angle."
+		},
+		{
+			"address":	"0x00E0",
+			"name":		"REGEN_LIGHT_REQUEST",
+			"type":		"float",
+			"comment":	"The ratio of regen to request when a single paddle is depressed."
+		},
+		{
+			"address":	"0x00E4",
+			"name":		"REGEN_HARD_REQUEST",
+			"type":		"float",
+			"comment":	"The ratio of regen to request when both paddles are depressed."
+		},
+		{
+			"address":	"0x00E8",
+			"name":		"REGEN_DERATING_THROTTLE_START",
+			"type":		"float",
+			"comment":	"The throttle position at which regen should start to be derated."
+		},
+		{
+			"address":	"0x00EC",
+			"name":		"REGEN_DERATING_THROTTLE_END",
+			"type":		"float",
+			"comment":	"The throttle position past which no regen should be requested."
+		},
+		{
+			"address":	"0x00F0",
+			"name":		"REGEN_DERATING_SPEED_END",
+			"type":		"float",
+			"comment":	"The motor speed at which no regen should be requested."
+		},
+		{
+			"address":	"0x00F4",
+			"name":		"REGEN_DERATING_SPEED_START",
+			"type":		"float",
+			"comment":	"The motor speed at which to start derating regen requests."
+		},
+		{
+			"address":	"0x00F8",
+			"name":		"SAS_ENABLED",
+			"type":		"uint8_t",
+			"comment":	"Enables / disables the steering-angle sensor (0 => disabled, 1 => enabled)."
+		},
+		{
+			"address":	"0x00F9",
+			"name":		"SAS_ADDR",
+			"type":		"uint8_t",
+			"comment":	"The 7-bit I2C address of the steering-angle-sensor (default 0x00)."
+		},
+		{
+			"address":	"0x1000",
+			"name":		"APPS_1_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of APPS-1."
+		},
+		{
+			"address":	"0x1002",
+			"name":		"APPS_2_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of APPS-2."
+		},
+		{
+			"address":	"0x1004",
+			"name":		"BSE_F_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of BSE-F."
+		},
+		{
+			"address":	"0x1006",
+			"name":		"BSE_R_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of BSE-R."
+		},
+		{
+			"address":	"0x1008",
+			"name":		"SAS_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of the SAS."
+		},
+		{
+			"address":	"0x100A",
+			"name":		"GLV_BATTERY_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of the GLV battery ADC."
+		},
+		{
+			"address":	"0x100C",
+			"name":		"TORQUE_REQUEST_RL",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The torque to be requested of the rear-left inverter."
+		},
+		{
+			"address":	"0x1010",
+			"name":		"TORQUE_REQUEST_RR",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The torque to be requested of the rear-right inverter."
+		},
+		{
+			"address":	"0x1014",
+			"name":		"TORQUE_REQUEST_FL",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The torque to be requested of the front-left inverter."
+		},
+		{
+			"address":	"0x1018",
+			"name":		"TORQUE_REQUEST_FR",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The torque to be requested of the front-right inverter."
+		},
+		{
+			"address":	"0x1000",
+			"name":		"AMK_RESET_REQUEST",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Sends an error reset request to all of the AMK inverters."
+		},
+		{
+			"address":	"0x2000",
+			"name":		"SAS_CONFIG_REG_0",
+			"type":		"uint16_t",
+			"comment":	"The steering angle sensor's first configuration register (register address 0)."
+		},
+		{
+			"address":	"0x2002",
+			"name":		"SAS_CONFIG_REG_1",
+			"type":		"uint16_t",
+			"comment":	"The steering angle sensor's second configuration register (register address 1)."
+		},
+		{
+			"address":	"0x2004",
+			"name":		"SAS_CONFIG_REG_2",
+			"type":		"uint16_t",
+			"comment":	"The steering angle sensor's third configuration register (register address 2)."
+		},
+		{
+			"address":	"0x2006",
+			"name":		"SAS_CONFIG_REG_3",
+			"type":		"uint16_t",
+			"comment":	"The steering angle sensor's fourth configuration register (register address 3)."
+		},
+		{
+			"address":	"0x2020",
+			"name":		"SAS_RELATIVE_POS_REG",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The steering angle sensor's relative position output register (register address 32)."
+		},
+		{
+			"address":	"0x2022",
+			"name":		"SAS_ABSOLUTE_POS_REG",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The steering angle sensor's absolute position output register (register address 33)."
+		},
+		{
+			"address":	"0x2024",
+			"name":		"SAS_STATUS_REG",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The steering angle sensor's status output register (register address 34)."
+		},
+		{
+			"address":	"0x2026",
+			"name":		"SAS_TACHO_REG",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The steering angle sensor's tachometer output register (register address 35)."
+		}
+	]
+}

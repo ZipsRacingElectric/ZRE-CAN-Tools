@@ -12,6 +12,45 @@
 #include <stdlib.h>
 
 /**
+ * @brief Prompts the user to select a CAN device from a list of enumerated options.
+ * @param devices The array of CAN devices to select from.
+ * @param deviceCount The number of elements in @c devices .
+ * @return The index of the selected device.
+ */
+static size_t selectDevice (canDevice_t** devices, size_t deviceCount)
+{
+	// If only one device is present, no need to prompt.
+	if (deviceCount == 1)
+		return 0;
+
+	char buffer [512];
+
+	while (true)
+	{
+		// Prompt for a device to select
+		printf ("Select a device:\n");
+		for (unsigned deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
+			printf ("  %u - %s\n", deviceIndex, canGetDeviceName (devices [deviceIndex]));
+
+		// Read the user input
+		fgets (buffer, sizeof (buffer), stdin);
+		buffer [strcspn (buffer, "\r\n")] = '\0';
+
+		// Parse as int and validate
+		char* end;
+		size_t selection = (size_t) strtol (buffer, &end, 0);
+		if (end == buffer || selection >= deviceCount)
+		{
+			// Prompt again
+			printf ("Invalid selection.\n");
+			continue;
+		}
+
+		return selection;
+	}
+}
+
+/**
  * @brief Splits a device name into the device handle and baudrate.
  * @param deviceName The provided device name. Expected form: "<Device Handle>@<Baudrate>". Modified to contain the device
  * handle on exit.
@@ -60,7 +99,37 @@ canDevice_t* canInit (char* deviceName)
 
 	// Handle SLCAN device
 	if (slcanNameDomain (deviceName))
+	{
+		// If a wildcard is present, use device enumeration
+		if (slcanWildcard (deviceName))
+		{
+			// Enumerate all possible devices
+	 		size_t deviceCount;
+	 		canDevice_t** devices = slcanEnumerate (baudrate, &deviceCount);
+	 		if (devices == NULL)
+	 			return NULL;
+
+			// Get the user's selection
+	 		size_t index = selectDevice (devices, deviceCount);
+			canDevice_t* device = devices [index];
+
+			// Deallocate unused devices
+			for (size_t i = 0; i < deviceCount; ++i)
+			{
+				if (i != index)
+					slcanDealloc (devices [i]);
+			}
+
+			// Deallocate the array of devices
+			free (devices);
+
+			// Return the selected device
+	 		return device;
+	 	}
+
+		// Otherwise, use normal initialization
 		return slcanInit(deviceName, baudrate);
+	 }
 
 	// Unknown device
 	errno = ERRNO_CAN_DEVICE_UNKNOWN_NAME;
@@ -101,36 +170,3 @@ char* canGetBusErrorName (int code)
 
 	return "UNSPECIFIED ERROR";
 }
-
-// REVIEW(Barach): Temporarily removed until finalized.
-// canDevice_t* enumerateDevice (char* baudRate)
-// {
-// 	char* deviceNames [5];
-// 	size_t deviceCount = 0;
-
-// 	if (slcanenumerateDevice (deviceNames, &deviceCount, "1000000") == 0)
-// 	{
-// 		char name [128];
-// 		canDevice_t* device;
-
-// 		for (int i = 0; i < deviceCount; ++i)
-// 		{
-// 			device = canInit (deviceNames[i]);
-
-// 			if (device == NULL)
-// 			{
-// 				continue;
-// 			}
-
-// 			return device;
-// 		}
-// 	}
-// 	else
-// 	{
-// 		// Indicates that the program failed to locate a CAN device
-// 		errno = ERRNO_CAN_DEVICE_MISSING_DEVICE;
-// 	}
-
-// 	// Indicates that a CAN device could not be created
-// 	return NULL;
-// }

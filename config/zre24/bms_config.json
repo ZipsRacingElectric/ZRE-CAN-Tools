@@ -1,0 +1,11 @@
+{
+	"name":					"BMS",
+	"segmentCount":			"5",
+	"ltcsPerSegment":		"1",
+	"cellsPerLtc":			"18",
+	"minCellVoltage":		"2.7",
+	"maxCellVoltage":		"4.2",
+	"minTemperature":		"-10",
+	"maxTemperature":		"60",
+	"maxLtcTemperature":	"80"
+}
