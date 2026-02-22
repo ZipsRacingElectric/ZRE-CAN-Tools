@@ -14,6 +14,7 @@ SRC :=	main.c										\
 		pages/page_template.c						\
 		can_widgets/can_widget.c					\
 		can_widgets/can_indicator.c					\
+		can_widgets/can_signal_indicator.c			\
 		can_widgets/can_label_bool.c				\
 		can_widgets/can_label_float.c				\
 		can_widgets/can_progress_bar.c				\
