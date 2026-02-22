@@ -154,60 +154,35 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	gtk_grid_attach(page->vcuStatusPanel, label, 0, 0, 1, 1);
 
 	// VCU Status Signals
-	canWidget_t* APPS_1_PLAUSIBLE = canSignalIndicatorInit (database, &(canSignalIndicatorConfig_t)
-	{
-		.signalName 	= "APPS_1_PLAUSIBLE",
-		.inverted 		= true,
-		.width 			= 100,
-		.height 		= 42,
-		.faultColor 	= page->style.baseStyle->indicatorInactiveColor,
-		.noFaultColor 	= page->style.baseStyle->indicatorActiveColor,
-		.invalidColor 	= page->style.baseStyle->indicatorInactiveColor
-	});
-
-	canWidget_t* APPS_2_PLAUSIBLE = canSignalIndicatorInit (database, &(canSignalIndicatorConfig_t)
-	{
-		.signalName 	= "APPS_2_PLAUSIBLE",
-		.inverted 		= true,
-		.width 			= 100,
-		.height 		= 42,
-		.faultColor 	= page->style.baseStyle->indicatorInactiveColor,
-		.noFaultColor 	= page->style.baseStyle->indicatorActiveColor,
-		.invalidColor 	= page->style.baseStyle->indicatorInactiveColor
-	});
-
-	canWidget_t* BSE_F_PLAUSIBLE = canSignalIndicatorInit (database, &(canSignalIndicatorConfig_t)
-	{
-		.signalName 	= "BSE_F_PLAUSIBLE",
-		.inverted 		= true,
-		.width 			= 100,
-		.height 		= 42,
-		.faultColor 	= page->style.baseStyle->indicatorInactiveColor,
-		.noFaultColor 	= page->style.baseStyle->indicatorActiveColor,
-		.invalidColor 	= page->style.baseStyle->indicatorInactiveColor
-	});
-
-	canWidget_t* BSE_R_PLAUSIBLE = canSignalIndicatorInit (database, &(canSignalIndicatorConfig_t)
-	{
-		.signalName 	= "BSE_R_PLAUSIBLE",
-		.inverted 		= true,
-		.width 			= 100,
-		.height 		= 42,
-		.faultColor 	= page->style.baseStyle->indicatorInactiveColor,
-		.noFaultColor 	= page->style.baseStyle->indicatorActiveColor,
-		.invalidColor 	= page->style.baseStyle->indicatorInactiveColor
-	});
+	page->vcuStatusSignalsCount = 4;
+	char* vcuStatusSignals = {
+		"APPS_1_PLAUSIBLE",
+		"APPS_2_PLAUSIBLE",
+		"BSE_F_PLAUSIBLE",
+		"BSE_R_PLAUSIBLE"
+	};
 
 	page->vcuStatusSignals = malloc(sizeof(canWidget_t*) * 4);
-	page->vcuStatusSignals[0] = APPS_1_PLAUSIBLE;
-	page->vcuStatusSignals[1] = APPS_2_PLAUSIBLE;
-	page->vcuStatusSignals[2] = BSE_F_PLAUSIBLE;
-	page->vcuStatusSignals[3] = BSE_R_PLAUSIBLE;
 
-	page->vcuStatusSignalsCount = 4;
+	for (size_t signalIndex = 0; signalIndex < page->vcuStatusSignalsCount; ++signalIndex)
+	{
+		page->vcuStatusSignals[signalIndex] = canSignalIndicatorInit (database, &(canSignalIndicatorConfig_t)
+		{
+			.signalName 	= &vcuStatusSignals [signalIndex],
+			.inverted 		= true,
+			.width 			= 100,
+			.height 		= 42,
+			.faultColor 	= page->style.baseStyle->indicatorInactiveColor,
+			.noFaultColor 	= page->style.baseStyle->indicatorActiveColor,
+			.invalidColor 	= page->style.baseStyle->indicatorInactiveColor
+		});
+	}
 
 	// Update the VCU Status
 	updateSignal (page->vcuStatusPanel, page->vcuStatusSignals, page->vcuStatusSignalsCount);
+
+	// BMS Status
+
 
 	// Sets Button Panel
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());
