@@ -26,7 +26,7 @@
 #include <string.h>
 #include <time.h>
 
-// Datatypes ------------------------------------------------------------------------------------------------------------------
+// Globals --------------------------------------------------------------------------------------------------------------------
 
 enum
 {
@@ -35,7 +35,11 @@ enum
 	MODE_SCP
 } mode = MODE_INTERACTIVE;
 
-// Functions ------------------------------------------------------------------------------------------------------------------
+char* host			= "root@192.168.0.1";
+char* hostLogDir	= "/root/zre/";
+char* localLogDir	= NULL;
+
+// Help Page ------------------------------------------------------------------------------------------------------------------
 
 void fprintUsage (FILE* stream)
 {
@@ -60,6 +64,13 @@ void fprintHelp (FILE* stream)
 		"\n"
 		"    --ssh                 - SSH mode. All arguments are passed directly to SSH.\n"
 		"    --scp                 - SCP mode. All arguments are passed directly to SCP.\n"
+		"    --host=<User>@<IP>    - Override the default host user and IP address.\n"
+		"                            Default is \"root@192.168.0.1\".\n"
+		"    --host-log-dir=<Dir>  - Override the default host data log directory.\n"
+		"                            Default is \"/root/zre\".\n"
+		"    --local-log-dir=<Dir> - Override the default local data log directory.\n"
+		"                            Default is the value of the ZRE_CANTOOLS_LOGGING_DIR\n"
+		"                            environment variable.\n"
 		"\n");
 
 	fprintOptionHelp (stream, "    ");
@@ -78,6 +89,8 @@ void fprintHelp (FILE* stream)
 		"\n");
 }
 
+// Standard Options -----------------------------------------------------------------------------------------------------------
+
 void handleSshOption (char* option, char* value)
 {
 	(void) option;
@@ -95,6 +108,26 @@ void handleScpOption (char* option, char* value)
 	debugPrintf ("Running in SCP mode.\n");
 	mode = MODE_SCP;
 }
+
+void handleHostOption (char* option, char* value)
+{
+	(void) option;
+	host = value;
+}
+
+void handleHostLogDirOption (char* option, char* value)
+{
+	(void) option;
+	hostLogDir = value;
+}
+
+void handleLocalLogDirOption (char* option, char* value)
+{
+	(void) option;
+	localLogDir = value;
+}
+
+// Functions ------------------------------------------------------------------------------------------------------------------
 
 char* concetenateCommand (char* command, char* options, char** argv, int argc)
 {
@@ -148,30 +181,33 @@ int main (int argc, char** argv)
 		.chars			= NULL,
 		.charHandlers	= NULL,
 		.charCount		= 0,
-		.stringHandlers	= (optionStringCallback_t* []) { &handleSshOption, &handleScpOption },
-		.strings		= (char* []) { "ssh", "scp" },
-		.stringCount	= 2
+		.stringHandlers = (optionStringCallback_t* [])
+		{
+			&handleSshOption,
+			&handleScpOption,
+			&handleHostOption,
+			&handleHostLogDirOption,
+			&handleLocalLogDirOption,
+		},
+		.strings = (char* [])
+		{
+			"ssh",
+			"scp",
+			"host",
+			"host-log-dir",
+			"local-log-dir"
+		},
+		.stringCount = 5
 	}) != 0)
 		return errorPrintf ("Failed to handle options");
 
+	// Get the ZRE-CAN-Tools directory for the key file
 	char* zreCantoolsDir = getenv ("ZRE_CANTOOLS_DIR");
 	if (zreCantoolsDir == NULL)
 	{
 		fprintf (stderr, "Failed to get ZRE_CANTOOLS_DIR environment variable.\n");
 		return -1;
 	}
-
-	char* remote = "root@192.168.0.1";
-
-	char* remoteDirectory = "/root/zre/";
-
-	char* localDirectory = getenv ("ZRE_CANTOOLS_LOGGING_DIR");
-	if (localDirectory == NULL)
-		fprintf (stderr, "Failed to get ZRE_CANTOOLS_LOGGING_DIR environment variable.\n");
-
-	// Create the local directory if it doesn't exist.
-	mkdirPort (localDirectory);
-	debugPrintf ("Using local directory '%s'...\n", localDirectory);
 
 	// Allocate SSH options
 	char* sshOptions;
@@ -217,60 +253,72 @@ int main (int argc, char** argv)
 
 	// Interactive Mode -------------------------------------------------------------------------------------------------------
 
-	// Allocate destination directory
+	// If not overridden, set the default local log directory.
+	if (localLogDir == NULL)
+	{
+		localLogDir = getenv ("ZRE_CANTOOLS_LOGGING_DIR");
+		if (localLogDir == NULL)
+			fprintf (stderr, "Failed to get ZRE_CANTOOLS_LOGGING_DIR environment variable.\n");
+	}
+
+	// Create the local log directory if it doesn't exist.
+	mkdirPort (localLogDir);
+	debugPrintf ("Using local data log directory '%s'...\n", localLogDir);
+
+	// Allocate log destination directory.
 	time_t timeCurrent = time (NULL);
 	struct tm* timeLocal = localtime (&timeCurrent);
 	char* destinationDirectory;
-	if (asprintf (&destinationDirectory, "%s/dart_%02i.%02i.%02i", localDirectory, timeLocal->tm_year + 1900, timeLocal->tm_mon + 1, timeLocal->tm_mday) < 0)
+	if (asprintf (&destinationDirectory, "%s/dart_%02i.%02i.%02i", localLogDir, timeLocal->tm_year + 1900, timeLocal->tm_mon + 1, timeLocal->tm_mday) < 0)
 		return errorPrintf ("Failed to allocate destination directory buffer");
 
-	debugPrintf ("Using destination directory '%s'...\n", destinationDirectory);
+	debugPrintf ("Using local destination directory '%s'...\n", destinationDirectory);
 
 	// Allocate commands
 
 	char* testCommand;
-	if (asprintf (&testCommand, "ssh %s %s \"printf Connected.\"", sshOptions, remote) < 0)
+	if (asprintf (&testCommand, "ssh %s %s \"printf Connected.\"", sshOptions, host) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* listCommand;
-	if (asprintf (&listCommand, "ssh %s %s \"ls %s\"", sshOptions, remote, remoteDirectory) < 0)
+	if (asprintf (&listCommand, "ssh %s %s \"ls %s\"", sshOptions, host, hostLogDir) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* diskUsageCommand;
-	if (asprintf (&diskUsageCommand, "ssh %s %s \"df %s\"", sshOptions, remote, remoteDirectory) < 0)
+	if (asprintf (&diskUsageCommand, "ssh %s %s \"df %s\"", sshOptions, host, hostLogDir) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* copyCommand;
-	if (asprintf (&copyCommand, "scp %s -r %s:%s \"%s\"", sshOptions, remote, remoteDirectory, destinationDirectory) < 0)
+	if (asprintf (&copyCommand, "scp %s -r %s:%s \"%s\"", sshOptions, host, hostLogDir, destinationDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
-	// TODO(Barach): Needs to expand environment variable, also update.
+	// TODO(Barach): Needs to expand environment variable, also wildcard.
 	char* copyDbcCommand;
-	if (asprintf (&copyDbcCommand, "scp %s %s:/root/zre_cantools/config/zr25/vehicle/main.dbc %s", sshOptions, remote, destinationDirectory) < 0)
+	if (asprintf (&copyDbcCommand, "scp %s %s:/root/zre_cantools/config/zr25/vehicle/main.dbc %s", sshOptions, host, destinationDirectory) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* deleteCommand;
-	if (asprintf (&deleteCommand, "ssh %s %s \"rm -r %s/* && systemctl restart init_system\"", sshOptions, remote, remoteDirectory) < 0)
+	if (asprintf (&deleteCommand, "ssh %s %s \"rm -r %s/* && systemctl restart init_system\"", sshOptions, host, hostLogDir) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* reloadCommand;
-	if (asprintf (&reloadCommand, "ssh %s %s \"systemctl daemon-reload\"", sshOptions, remote) < 0)
+	if (asprintf (&reloadCommand, "ssh %s %s \"systemctl daemon-reload\"", sshOptions, host) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* restartCommand;
-	if (asprintf (&restartCommand, "ssh %s %s \"systemctl restart init_system\"", sshOptions, remote) < 0)
+	if (asprintf (&restartCommand, "ssh %s %s \"systemctl restart init_system\"", sshOptions, host) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* modifyConfigCommand;
-	if (asprintf (&modifyConfigCommand, "ssh %s %s -t \"nano /etc/systemd/system/init_system.service\"", sshOptions, remote) < 0)
+	if (asprintf (&modifyConfigCommand, "ssh %s %s -t \"nano /etc/systemd/system/init_system.service\"", sshOptions, host) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* sshInteractiveCommand;
-	if (asprintf (&sshInteractiveCommand, "ssh %s %s", sshOptions, remote) < 0)
+	if (asprintf (&sshInteractiveCommand, "ssh %s %s", sshOptions, host) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	char* journalCommand;
-	if (asprintf (&journalCommand, "ssh %s %s \"journalctl -u init_system\"", sshOptions, remote) < 0)
+	if (asprintf (&journalCommand, "ssh %s %s \"journalctl -u init_system\"", sshOptions, host) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
 	// Main loop
@@ -389,14 +437,19 @@ int main (int argc, char** argv)
 
 		// Quit
 		case 'q':
-			free (destinationDirectory);
 			free (sshOptions);
+			free (destinationDirectory);
 			free (testCommand);
 			free (listCommand);
 			free (diskUsageCommand);
 			free (copyCommand);
+			free (copyDbcCommand);
 			free (deleteCommand);
+			free (reloadCommand);
+			free (restartCommand);
+			free (modifyConfigCommand);
 			free (sshInteractiveCommand);
+			free (journalCommand);
 			return 0;
 		}
 	};
