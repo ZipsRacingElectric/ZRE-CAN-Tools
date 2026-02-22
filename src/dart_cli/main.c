@@ -209,6 +209,8 @@ int main (int argc, char** argv)
 		return -1;
 	}
 
+	debugPrintf ("Using host '%s'...\n", host);
+
 	// Allocate SSH options
 	char* sshOptions;
 	if (asprintf (&sshOptions, ""
