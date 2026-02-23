@@ -75,6 +75,10 @@ $(LIB_BMS):
 	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
 	make -C $(LIB_DIR)/bms
 
+$(LIB_CAN_NODE):
+	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
+	make -C $(LIB_DIR)/can_node
+
 $(LIB_MDF):
 	@MAKE_TEXT=$@; printf '\n- %s %s\n\n' $@ $$(printf -- '-%0.s' $$(seq 1 1 $$(($$(tput cols) - $${#MAKE_TEXT} - 3))))
 	make -C $(LIB_DIR)/mdf

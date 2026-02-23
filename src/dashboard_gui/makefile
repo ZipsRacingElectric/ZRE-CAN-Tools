@@ -32,6 +32,7 @@ LIBFLAGS += $(LIB_GTK_LIBFLAGS)
 LIB :=						\
 	$(LIB_CJSON)			\
 	$(LIB_BMS)				\
+	$(LIB_CAN_NODE)			\
 	$(LIB_CAN_DATABASE)		\
 	$(LIB_CAN_DEVICE)		\
 	$(LIB_SERIAL_CAN)		\

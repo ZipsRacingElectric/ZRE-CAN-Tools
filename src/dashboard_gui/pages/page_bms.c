@@ -131,7 +131,8 @@ static void update (void* pageArg)
 	if (buffer == NULL)
 		return;
 
-	if (stylizedTerminalSnprintf (page->term, &buffer, &bufferSize, "- BMS Status: %s ", bmsGetFaultState (&page->bms)) != 0)
+	char* status = faultSignalsGetString (&page->faults);
+	if (stylizedTerminalSnprintf (page->term, &buffer, &bufferSize, "- BMS Status: %s ", status) != 0)
 		return;
 
 	for (size_t index = 0; index < bufferSize - 1; ++index)
@@ -283,6 +284,12 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 	if (bmsInit (&page->bms, bmsConfig, database) != 0)
 	{
 		debugPrintf ("Warning, failed to initialize BMS interface.\n");
+		return NULL;
+	}
+
+	if (faultSignalsLoad (&page->faults, bmsConfig, database) != 0)
+	{
+		debugPrintf ("Warning, failed to load BMS fault array.\n");
 		return NULL;
 	}
 

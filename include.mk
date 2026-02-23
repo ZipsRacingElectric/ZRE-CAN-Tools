@@ -17,6 +17,7 @@ LIB_SERIAL_CAN		:= $(LIB_BIN_DIR)/libserial_can.a
 LIB_CAN_DEVICE 		:= $(LIB_BIN_DIR)/libcan_device.a
 LIB_CAN_DATABASE	:= $(LIB_BIN_DIR)/libcan_database.a
 LIB_CJSON			:= $(LIB_BIN_DIR)/libcjson.a
+LIB_CAN_NODE		:= $(LIB_BIN_DIR)/libcan_node.a
 LIB_CAN_EEPROM		:= $(LIB_BIN_DIR)/libcan_eeprom.a
 LIB_BMS				:= $(LIB_BIN_DIR)/libbms.a
 LIB_MDF				:= $(LIB_BIN_DIR)/libmdf.a
@@ -30,6 +31,7 @@ LIBS :=					\
 	$(LIB_CAN_DATABASE)	\
 	$(LIB_CJSON)		\
 	$(LIB_CAN_EEPROM)	\
+	$(LIB_CAN_NODE)		\
 	$(LIB_BMS)			\
 	$(LIB_MDF)
 

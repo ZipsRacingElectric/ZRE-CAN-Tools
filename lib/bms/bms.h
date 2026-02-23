@@ -16,7 +16,6 @@
 // Includes
 #include "can_database/can_database.h"
 #include "cjson/cjson.h"
-#include "fault_signal.h"
 
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
@@ -114,10 +113,6 @@ typedef struct
 	/// @brief Number of elements in @c logicalTemperatureIndices .
 	size_t logicalTemperatureCount;
 
-	/// @brief Array of fault conditions;
-	faultSignal_t* faults;
-	/// @brief Number of elements in @c faults .
-	size_t faultCount;
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -258,16 +253,6 @@ bool bmsGetCellDeltaStats (bms_t* bms, float* max, float* avg);
  * @return True if the statistics were written, false otherwise.
  */
 bool bmsGetTemperatureStats (bms_t* bms, float* min, float* max, float* avg);
-
-/**
- * @brief Gets a user-friendly string describing the fault condition of the BMS.
- * @param bms The BMS to use.
- * @return The fault string.
- */
-static inline char* bmsGetFaultState (bms_t* bms)
-{
-	return faultSignalsCheck (bms->database, bms->faults, bms->faultCount);
-}
 
 /**
  * @brief Deallocates the memory used by a BMS.

@@ -15,6 +15,7 @@
 #include "../bms_widgets.h"
 #include "../stylized_widgets/stylized_terminal.h"
 #include "bms/bms.h"
+#include "can_node/fault_signal.h"
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
@@ -58,6 +59,7 @@ typedef struct
 	bmsBarGraph_t voltages;
 	bmsBarGraph_t temperatures;
 	bmsBarGraph_t ltcTemperatures;
+	faultSignals_t faults;
 } pageBms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
