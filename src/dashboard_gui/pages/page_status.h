@@ -13,6 +13,7 @@
 // Includes
 #include "page.h"
 #include "can_database/can_database.h"
+#include "../can_widgets/can_label_timer.h"
 #include "cjson/cjson.h"
 
 // GTK
@@ -30,6 +31,8 @@ typedef struct
 	pageVmt_t vmt;
 
 	pageStatusStyle_t style;
+
+	canWidget_t* timer;
 
 	GtkGrid* buttonPanel;
 	size_t buttonCount;

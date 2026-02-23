@@ -2,6 +2,7 @@
 #include "page_status.h"
 
 // Includes
+#include "../can_widgets/can_label_timer.h"
 #include "../stylized_widgets/stylized_button.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
@@ -47,8 +48,6 @@ static void appendButton (void* pageArg, const char* label, pageButtonCallback_t
 static void update (void* pageArg)
 {
 	pageStatus_t* page = pageArg;
-
-	// TODO: Anything that needs rendered
 	(void) page;
 }
 
@@ -83,6 +82,13 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 
 	// TODO: Setup GUI.
 	(void) database;
+
+	page->timer = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
+		.startTime = { .tv_sec = 0, .tv_nsec = 0 },
+		.currentTime = { .tv_sec = 0, .tv_nsec = 0 }
+	});
+
+	gtk_grid_attach (GTK_GRID (page->vmt.widget), CAN_WIDGET_TO_WIDGET (page->timer), 0, 0, 1, 1);
 
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());
 	gtk_widget_set_margin_bottom (GTK_WIDGET (page->buttonPanel), 10);
