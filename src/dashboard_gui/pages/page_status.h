@@ -12,7 +12,6 @@
 
 // Includes
 #include "page.h"
-#include "../can_widgets/can_widget.h"
 #include "can_database/can_database.h"
 #include "cjson/cjson.h"
 
@@ -32,25 +31,8 @@ typedef struct
 
 	pageStatusStyle_t style;
 
-	GtkGrid* grid;
 	GtkGrid* buttonPanel;
 	size_t buttonCount;
-
-	GtkGrid* vcuStatusPanel;
-	GtkGrid* bmsStatusPanel;
-
-	canWidget_t* vcuStatus;
-	canWidget_t* bmsStatus;
-	canWidget_t* amkStatus;
-	canWidget_t* gpsStatus;
-	canWidget_t* bspdStatus;
-
-	canWidget_t** vcuStatusSignals;
-	canWidget_t** bmsStatusSignals;
-
-	size_t vcuStatusSignalsCount;
-	size_t bmsStatusSignalsCount;
-
 } pageStatus_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

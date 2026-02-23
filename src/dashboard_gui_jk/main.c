@@ -6,31 +6,16 @@
 
 canDatabase_t database; 
 
-static gboolean update_counter(GtkWidget* label[]) {
-    // Check if label array is valid
-    if (label == NULL || label[0] == NULL) {
-        g_warning("Invalid label array");
-        return FALSE;
-    }
-
-    ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
-    if (index < 0) {
-        // Handle signal not found
-        gtk_label_set_text(GTK_LABEL(label[0]), "Error");
-        return TRUE;
-    }
-
-    float value = 0.0;
-    char text[16] = "--";  // Default text
-    
-    if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID) {
-        snprintf(text, sizeof(text), "%.2f", value);  // Format with 2 decimal places
-    }
-
-    gtk_label_set_text(GTK_LABEL(label[0]), text);
+static gboolean update_counter(GtkWidget *label) {
+   
+	ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
+	float value;
+	char text[16] = "--";  // Enough space for numbers 1-30
+	if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID)
+		snprintf(text, sizeof(text), "%f", value);
+    gtk_label_set_text(GTK_LABEL(label), text);
     return TRUE; // Continue calling this function
 }
-
 
 static void print_hello (GtkWidget* widget, gpointer data)
 {
@@ -75,9 +60,8 @@ static void activate (GtkApplication* app, gpointer title)
 	GtkWidget* window;
 	GtkWidget* button;
 	GtkWidget* grid;
-	GtkWidget* brake_front_percent = NULL;
-	GtkWidget* can_label[1];
-	
+	GtkWidget* label;
+
 	/* Create a new window and set it's title*/
 	window = gtk_application_window_new (app);
 	gtk_window_set_title (GTK_WINDOW (window), title);
@@ -89,9 +73,8 @@ static void activate (GtkApplication* app, gpointer title)
 	/* Pack the container in the window */
 	gtk_window_set_child (GTK_WINDOW(window), grid);
 
-	brake_front_percent = gtk_label_new("Hello World");
-	can_label[0] = brake_front_percent;
-	gtk_grid_attach (GTK_GRID(grid), can_label[0], 0, 2, 5, 1);
+	label = gtk_label_new("Hello World");
+	gtk_grid_attach (GTK_GRID(grid), label, 0, 2, 5, 1);
 
 	button = gtk_button_new_with_label ("Button 1");
 	g_signal_connect (button, "clicked", G_CALLBACK (print_hello), NULL);
@@ -109,7 +92,7 @@ static void activate (GtkApplication* app, gpointer title)
 
 	gtk_grid_attach (GTK_GRID(grid), button, 0, 1, 2, 1);
 	
-	g_timeout_add(33, (GSourceFunc)update_counter, can_label);
+	g_timeout_add(33, (GSourceFunc)update_counter, label);
 
 	gtk_window_present (GTK_WINDOW (window));
 }
