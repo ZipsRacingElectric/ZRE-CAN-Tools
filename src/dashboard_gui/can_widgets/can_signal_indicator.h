@@ -14,9 +14,11 @@
 typedef struct
 {
 
-	// TODO: fix comment
+	// TODO: fix comments
     /// @brief The names of the CAN database signals that are associated with the ...
-	const char* signalName;
+	char** signalNames;
+
+	size_t signalNamesSize;
 
     /// @brief False for non-inverted, true for inverted.
 	bool inverted;
@@ -38,13 +40,8 @@ typedef struct
 
 } canSignalIndicatorConfig_t;
 
-/// @brief Converts a canSignalIndicator_t widget into a GTK drawing area.
-#define CAN_SIGNAL_INDICATOR_TO_DRAWING_AREA(wdgt) GTK_DRAWING_AREA (CAN_WIDGET_TO_WIDGET (wdgt))
-
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 canWidget_t* canSignalIndicatorInit (canDatabase_t* database, canSignalIndicatorConfig_t* config);
-
-bool canSignalIndicatorGetState (void* widget);
 
 #endif // CAN_SIGNAL_INDICATOR

@@ -51,6 +51,9 @@ typedef struct
 	size_t vcuStatusSignalsCount;
 	size_t bmsStatusSignalsCount;
 
+	canWidget_t* currentVcuStatusSignal;
+	canWidget_t* currentBmsStatusSignal;
+
 } pageStatus_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

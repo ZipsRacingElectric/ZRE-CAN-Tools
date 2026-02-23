@@ -5,6 +5,7 @@
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
 
+// TODO(DiBacco): implement state of the can signal indicator (if necessary).
 typedef enum {
     CAN_SIGNAL_INDICATOR_NO_FAULT,
     CAN_SIGNAL_INDICATOR_FAULT,
@@ -16,7 +17,6 @@ typedef struct
     canWidgetVmt_t vmt;
 	canSignalIndicatorConfig_t config;
 	canDatabase_t* database;
-	ssize_t index;
     canSignalIndicatorState_t state;
 
     GtkWidget* signalNameLabel;
@@ -27,36 +27,39 @@ typedef struct
 static void update (void* widget)
 {
     canSignalIndicator_t* indicator = widget;
+    canDatabase_t* database = indicator->database;
+    char** signalNames = indicator->config.signalNames;
+    size_t signalNamesSize = indicator->config.signalNamesSize;
 
-    // Get the state of the indicator
-    canSignalIndicatorState_t state;
-    float value;
-    if (canDatabaseGetFloat (indicator->database, indicator->index, &value) == CAN_DATABASE_VALID) {
-        if (indicator->config.inverted == value)
-            state = CAN_SIGNAL_INDICATOR_FAULT;
-        else
-            state = CAN_SIGNAL_INDICATOR_NO_FAULT;
-    }
-    else
-        state = CAN_SIGNAL_INDICATOR_INVALID;
+    for (size_t signalIndex = 0; signalIndex < signalNamesSize; ++signalIndex) {
 
-    // If the state has changed, then trigger a redraw
-    if (state != indicator->state)
-    {
-        indicator->state = state;
-        gtk_label_set_text (GTK_LABEL(indicator->signalValueLabel), "New Value");
+        float signalValue;
+        char* signalName = signalNames[signalIndex];
+        size_t globalIndex = canDatabaseFindSignal (database, signalName);
+
+        if (canDatabaseGetFloat (database, globalIndex, &signalValue) != 0)
+        {
+            // TODO(DiBacco): set the state of the indicator
+            char* strValue = malloc (sizeof (char*));
+            if (! strValue) return;
+
+            snprintf (strValue, sizeof (strValue), "%.2f", signalValue);
+
+            gtk_label_set_text (GTK_LABEL(indicator->signalNameLabel), signalName);
+            gtk_label_set_text (GTK_LABEL(indicator->signalValueLabel), strValue);
+
+            free (strValue);
+
+            return;
+        }
     }
+
+    gtk_label_set_text (GTK_LABEL(indicator->signalNameLabel), "No Fault");
+    gtk_label_set_text (GTK_LABEL(indicator->signalValueLabel), "-------");
 }
 
 canWidget_t* canSignalIndicatorInit (canDatabase_t* database, canSignalIndicatorConfig_t* config)
 {
-    float signalValue = 0;
-    size_t signalIndex = canDatabaseFindSignal (database, config->signalName);
-
-    if ((int) signalIndex == -1) {
-        printf ("Invalid Signal Name.\n");
-    }
-
     // Allocate memory for the object
     canSignalIndicator_t* indicator = malloc (sizeof (canSignalIndicator_t));
     if (indicator == NULL)
@@ -72,36 +75,47 @@ canWidget_t* canSignalIndicatorInit (canDatabase_t* database, canSignalIndicator
         },
         .config     = *config,
         .database   = database,
-        .index      = signalIndex,
         .state      = CAN_SIGNAL_INDICATOR_INVALID
     };
 
-    // TODO: properly set signal state
-    canDatabaseSignalState_t signalState = canDatabaseGetFloat (database, signalIndex, &signalValue);
+    gtk_grid_set_row_spacing (GTK_GRID (indicator->vmt.widget), 10);
+	gtk_grid_set_column_spacing (GTK_GRID (indicator->vmt.widget), 10);
 
-    gtk_grid_set_row_spacing(GTK_GRID (indicator->vmt.widget), 10);
-	gtk_grid_set_column_spacing(GTK_GRID (indicator->vmt.widget), 10);
+    for (size_t signalIndex = 0; signalIndex < config->signalNamesSize; ++signalIndex)
+    {
+        float signalValue = 0;
+        char* signalName = config->signalNames[signalIndex];
+        size_t globalIndex = canDatabaseFindSignal (database, signalName);
 
-    indicator->signalNameLabel = gtk_label_new (config->signalName);
+        if (canDatabaseGetFloat (database, globalIndex, &signalValue) != 0)
+        {
+            // TODO(DiBacco): set the state of the indicator
+            indicator->signalNameLabel = gtk_label_new (signalName);
+            gtk_grid_attach (GTK_GRID(indicator->vmt.widget), indicator->signalNameLabel, 0, 0, 1, 1);
+
+            char* strValue = malloc (sizeof (char*));
+            if (! strValue) return NULL;
+
+            snprintf (strValue, sizeof (strValue), "%.2f", signalValue);
+
+            indicator->signalValueLabel = gtk_label_new (strValue);
+            gtk_grid_attach (GTK_GRID(indicator->vmt.widget), indicator->signalValueLabel, 1, 0, 1, 1);
+
+	        // Update the initial value
+	        update (indicator);
+
+            free (strValue);
+
+	        // Cast into the base type
+	        return (canWidget_t*) indicator;
+        }
+    }
+
+    indicator->signalNameLabel = gtk_label_new ("No Fault");
     gtk_grid_attach (GTK_GRID(indicator->vmt.widget), indicator->signalNameLabel, 0, 0, 1, 1);
 
-    char* str = malloc (sizeof (str));
-    snprintf(str, sizeof(str), "%.2f", signalValue);
-
-    indicator->signalValueLabel = gtk_label_new (str);
+    indicator->signalValueLabel = gtk_label_new ("-------");
     gtk_grid_attach (GTK_GRID(indicator->vmt.widget), indicator->signalValueLabel, 1, 0, 1, 1);
 
-	// Update the initial value
-	update (indicator);
-
-    free (str);
-
-	// Cast into the base type
-	return (canWidget_t*) indicator;
-}
-
-bool canSignalIndicatorGetState (void* widget)
-{
-    canSignalIndicator_t* indicator = widget;
-    return indicator->state;
+    return NULL;
 }

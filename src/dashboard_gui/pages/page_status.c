@@ -20,25 +20,6 @@ static void styleLoad (pageStatusStyle_t* style, pageStyle_t* baseStyle, cJSON* 
 	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
 }
 
-// TODO: Come up with better name for function
-// Abstract: this function finds the first failed signal under the "parent signal" and aligns it next to its "parent" along with the error code.
-static void updateSignal (GtkGrid* grid, canWidget_t** signals, size_t signalCount)
-{
-	for (size_t signalIndex = 0; signalIndex < signalCount; ++signalIndex)
-	{
-		// TODO: make verbose statement
-		printf ("%zu). Signal State: %d\n", signalIndex, canSignalIndicatorGetState (signals[signalIndex]));
-
-		// TODO: remove the "|| true" statement.
-		if (canSignalIndicatorGetState (signals[signalIndex]) == false || true)
-		{
-			canWidget_t* signal = signals[signalIndex];
-			gtk_grid_attach (grid, CAN_WIDGET_TO_WIDGET (signal), 1, 0, 1, 1);
-			return;
-		}
-	}
-}
-
 static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage, pageStyle_t* style)
 {
 	pageStatus_t* page = pageArg;
@@ -70,12 +51,7 @@ static void update (void* pageArg)
 {
 	pageStatus_t* page = pageArg;
 
-	// Update the VCU Status
-	updateSignal (page->vcuStatusPanel, page->vcuStatusSignals, page->vcuStatusSignalsCount);
-
-	// Update the BMS Status
-	updateSignal (page->bmsStatusPanel, page->bmsStatusSignals, page->bmsStatusSignalsCount);
-
+	(void) page;
 }
 
 page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
@@ -126,10 +102,10 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 		.appendButton	= appendButton,
 		.widget			= gtk_overlay_new (),
 		.name			= pageName,
-		.parent			= NULL // Note: error?
+		.parent			= NULL
 	};
 
-	// TODO: Remove Signal Enumeration
+	// TODO: change output to verbose
 	printf ("Can Database Signals Enum\n");
 	for (size_t i = 0; i < database->signalCount; ++i)
 	{
@@ -148,16 +124,16 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 
 	// VCU Status Panel
 	page->vcuStatusPanel = GTK_GRID (gtk_grid_new ());
-	gtk_grid_set_row_spacing(GTK_GRID (page->vcuStatusPanel), 10);
-	gtk_grid_set_column_spacing(GTK_GRID (page->vcuStatusPanel), 10);
+	gtk_grid_set_row_spacing (GTK_GRID (page->vcuStatusPanel), 10);
+	gtk_grid_set_column_spacing (GTK_GRID (page->vcuStatusPanel), 10);
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->vcuStatusPanel), 0, 0, 2, 2);
 
 	// VCU Status Label
-	GtkWidget* label = gtk_label_new ("VCU Status:");
-	gtk_grid_attach(page->vcuStatusPanel, label, 0, 0, 1, 1);
+	GtkWidget* vcuLabel = gtk_label_new ("VCU Status:");
+	gtk_grid_attach (page->vcuStatusPanel, vcuLabel, 0, 0, 1, 1);
 
 	// VCU Status Signals
-	char* vcuStatusSignals = {
+	char* vcuStatusSignals [] = {
 		"APPS_1_PLAUSIBLE",
 		"APPS_2_PLAUSIBLE",
 		"BSE_F_PLAUSIBLE",
@@ -171,80 +147,85 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	{
 		page->vcuStatusSignals[signalIndex] = canSignalIndicatorInit (database, &(canSignalIndicatorConfig_t)
 		{
-			.signalName 	= &vcuStatusSignals [signalIndex],
-			.inverted 		= true,
-			.width 			= 100,
-			.height 		= 42,
-			.faultColor 	= page->style.baseStyle->indicatorInactiveColor,
-			.noFaultColor 	= page->style.baseStyle->indicatorActiveColor,
-			.invalidColor 	= page->style.baseStyle->indicatorInactiveColor
+			.signalNames 		= vcuStatusSignals,
+			.signalNamesSize 	= page->vcuStatusSignalsCount,
+			.inverted 			= true,
+			.width 				= 100,
+			.height 			= 42,
+			.faultColor 		= page->style.baseStyle->indicatorInactiveColor,
+			.noFaultColor 		= page->style.baseStyle->indicatorActiveColor,
+			.invalidColor 		= page->style.baseStyle->indicatorInactiveColor
 		});
 	}
 
-	// Update the VCU Status
-	updateSignal (page->vcuStatusPanel, page->vcuStatusSignals, page->vcuStatusSignalsCount);
-
 	// BMS Status Panel
 	page->bmsStatusPanel = GTK_GRID (gtk_grid_new ());
-	gtk_grid_set_row_spacing(GTK_GRID (page->bmsStatusPanel), 10);
-	gtk_grid_set_column_spacing(GTK_GRID (page->bmsStatusPanel), 10);
+	gtk_grid_set_row_spacing (GTK_GRID (page->bmsStatusPanel), 10);
+	gtk_grid_set_column_spacing (GTK_GRID (page->bmsStatusPanel), 10);
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->bmsStatusPanel), 0, 2, 2, 2);
 
+	page->currentVcuStatusSignal = page->vcuStatusSignals[0];
+	gtk_grid_attach (page->vcuStatusPanel, CAN_WIDGET_TO_WIDGET(page->currentVcuStatusSignal), 1, 0, 1, 1);
+
+	// BMS Status Label
+	GtkWidget* bmsLabel = gtk_label_new ("BMS Status:");
+	gtk_grid_attach (page->bmsStatusPanel, bmsLabel, 0, 0, 1, 1);
+
 	// BMS Status Signals
-	char* bmsStatusSignals = {
+	char* bmsStatusSignals [] = {
 		"BMS_UNDERVOLTAGE_FAULT",
 		"BMS_OVERVOLTAGE_FAULT",
 		"BMS_UNDERTEMPERATURE_FAULT",
 		"BMS_OVERTEMPERATURE_FAULT",
 		"BMS_SENSE_LINE_FAULT",
 		"BMS_ISOSPI_FAULT",
-		"BMS_SELF_TEST_FAULT,"
-		"BMS_LTC_0_ISOSPI_FAULT"
-		"BMS_LTC_1_ISOSPI_FAULT"
-		"BMS_LTC_2_ISOSPI_FAULT"
-		"BMS_LTC_3_ISOSPI_FAULT"
-		"BMS_LTC_4_ISOSPI_FAULT"
-		"BMS_LTC_5_ISOSPI_FAULT"
-		"BMS_LTC_6_ISOSPI_FAULT"
-		"BMS_LTC_7_ISOSPI_FAULT"
-		"BMS_LTC_8_ISOSPI_FAULT"
-		"BMS_LTC_9_ISOSPI_FAULT"
-		"BMS_LTC_10_ISOSPI_FAULT"
-		"BMS_LTC_11_ISOSPI_FAULT"
-		"BMS_LTC_0_SELF_TEST_FAULT"
-		"BMS_LTC_1_SELF_TEST_FAULT"
-		"BMS_LTC_2_SELF_TEST_FAULT"
-		"BMS_LTC_3_SELF_TEST_FAULT"
-		"BMS_LTC_4_SELF_TEST_FAULT"
-		"BMS_LTC_5_SELF_TEST_FAULT"
-		"BMS_LTC_6_SELF_TEST_FAULT"
-		"BMS_LTC_7_SELF_TEST_FAULT"
-		"BMS_LTC_8_SELF_TEST_FAULT"
-		"BMS_LTC_9_SELF_TEST_FAULT"
-		"BMS_LTC_10_SELF_TEST_FAULT"
+		"BMS_SELF_TEST_FAULT",
+		"BMS_LTC_0_ISOSPI_FAULT",
+		"BMS_LTC_1_ISOSPI_FAULT",
+		"BMS_LTC_2_ISOSPI_FAULT",
+		"BMS_LTC_3_ISOSPI_FAULT",
+		"BMS_LTC_4_ISOSPI_FAULT",
+		"BMS_LTC_5_ISOSPI_FAULT",
+		"BMS_LTC_6_ISOSPI_FAULT",
+		"BMS_LTC_7_ISOSPI_FAULT",
+		"BMS_LTC_8_ISOSPI_FAULT",
+		"BMS_LTC_9_ISOSPI_FAULT",
+		"BMS_LTC_10_ISOSPI_FAULT",
+		"BMS_LTC_11_ISOSPI_FAULT",
+		"BMS_LTC_0_SELF_TEST_FAULT",
+		"BMS_LTC_1_SELF_TEST_FAULT",
+		"BMS_LTC_2_SELF_TEST_FAULT",
+		"BMS_LTC_3_SELF_TEST_FAULT",
+		"BMS_LTC_4_SELF_TEST_FAULT",
+		"BMS_LTC_5_SELF_TEST_FAULT",
+		"BMS_LTC_6_SELF_TEST_FAULT",
+		"BMS_LTC_7_SELF_TEST_FAULT",
+		"BMS_LTC_8_SELF_TEST_FAULT",
+		"BMS_LTC_9_SELF_TEST_FAULT",
+		"BMS_LTC_10_SELF_TEST_FAULT",
 		"BMS_LTC_11_SELF_TEST_FAULT"
 	};
 
-	page->bmsStatusSignalsCount = sizeof(bmsStatusSignals) / sizeof(bmsStatusSignals[0]);
-	page->bmsStatusSignals = malloc(sizeof(canWidget_t*) * page->bmsStatusSignalsCount);
+	page->bmsStatusSignalsCount = sizeof (bmsStatusSignals) / sizeof (bmsStatusSignals[0]);
+	page->bmsStatusSignals = malloc (sizeof(canWidget_t*) * page->bmsStatusSignalsCount);
 
 	for (size_t signalIndex = 0; signalIndex < page->bmsStatusSignalsCount; ++signalIndex)
 	{
 		page->bmsStatusSignals[signalIndex] = canSignalIndicatorInit (database, &(canSignalIndicatorConfig_t)
 		{
-			.signalName 	= &bmsStatusSignals [signalIndex],
-			.inverted 		= true,
-			.width 			= 100,
-			.height 		= 42,
-			.faultColor 	= page->style.baseStyle->indicatorInactiveColor,
-			.noFaultColor 	= page->style.baseStyle->indicatorActiveColor,
-			.invalidColor 	= page->style.baseStyle->indicatorInactiveColor
+			.signalNames 		= bmsStatusSignals,
+			.signalNamesSize 	= page->bmsStatusSignalsCount,
+			.inverted 			= true,
+			.width 				= 100,
+			.height 			= 42,
+			.faultColor 		= page->style.baseStyle->indicatorInactiveColor,
+			.noFaultColor 		= page->style.baseStyle->indicatorActiveColor,
+			.invalidColor 		= page->style.baseStyle->indicatorInactiveColor
 		});
 	}
 
-	// Update the BMS Status
-	updateSignal (page->bmsStatusPanel, page->bmsStatusSignals, page->bmsStatusSignalsCount);
-
+	page->currentBmsStatusSignal = page->bmsStatusSignals[0];
+	gtk_grid_attach (page->bmsStatusPanel, CAN_WIDGET_TO_WIDGET (page->currentBmsStatusSignal), 1, 0, 1, 1);
 
 	// Sets Button Panel
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());
