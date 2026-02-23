@@ -96,8 +96,11 @@ Use the `install` script to recreate the application shortcuts / setup environme
 │   │                            adapters.
 │   ├── can_eeprom             - Library for interacting with a device's EEPROM
 │   │                            via CAN bus.
+│   ├── can_node               - Library for general interactings with devices
+│   │                            in a CAN bus.
 │   ├── cjson                  - Library for working with JSON files. Upstream:
 │   │                            https://github.com/DaveGamble/cJSON.
+│   ├── mdf                    - Library for working with the MDF standard.
 │   └── serial_can             - Library for interacting with SLCAN devices.
 │                                Upstream: https://github.com/mac-can/SerialCAN
 ├── makefile                   - Project-level makefile for compiling all
