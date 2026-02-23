@@ -58,13 +58,23 @@ BO_ 256 VCU_STATUS: 4 VCU
  SG_ AMK_FAULT : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 257 BMS_STATUS: 6 BMS
+ SG_ BMS_ISOSPI_FAULT : 5|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_SELF_TEST_FAULT : 6|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_SENSE_LINE_FAULT : 4|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_UNDERVOLTAGE_FAULT : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_OVERVOLTAGE_FAULT : 1|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_UNDERTEMPERATURE_FAULT : 2|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_OVERTEMPERATURE_FAULT : 3|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SENSE_LINE_FAULT : 4|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_ISOSPI_FAULT : 5|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_SELF_TEST_FAULT : 6|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_FAULT : 15|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ IMD_FAULT : 16|1@1+ (1,0) [0|0] "Bool" Vector__XXX
+ SG_ BMS_CHARGING : 7|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BMS_BALANCING : 8|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SHUTDOWN_VEHICLE_CLOSED : 9|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SHUTDOWN_IMD_CLOSED : 10|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SHUTDOWN_BMS_CLOSED : 11|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SHUTDOWN_MSD_TSMS_CLOSED : 12|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ SHUTDOWN_LOOP_BLIP : 14|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ PRECHARGE_COMPLETE : 13|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_0_ISOSPI_FAULT : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_1_ISOSPI_FAULT : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_2_ISOSPI_FAULT : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
@@ -89,14 +99,6 @@ BO_ 257 BMS_STATUS: 6 BMS
  SG_ BMS_LTC_9_SELF_TEST_FAULT : 41|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_10_SELF_TEST_FAULT : 42|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_11_SELF_TEST_FAULT : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_CHARGING : 7|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_BALANCING : 8|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SHUTDOWN_CLOSED : 9|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ PRECHARGE_COMPLETE : 10|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ SHUTDOWN_LOOP_BLIP : 11|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_RELAY_STATUS : 12|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ IMD_RELAY_STATUS : 13|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ BMS_FAULT : 14|1@1+ (1,0) [0|0] "Bool" Vector__XXX
 
 BO_ 1536 VCU_SENSOR_INPUT: 8 VCU
  SG_ APPS_1_PERCENT : 0|12@1+ (0.02442002442002442,0) [0|100] "%" Vector__XXX
