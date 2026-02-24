@@ -9,66 +9,6 @@
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
 
-const canIndicatorPoint_t FAULT_INDICATOR_POLYGON [] =
-{
-	{0.50, 0.00},
-	{0.09, 0.00},
-	{0.09, 0.02},
-	{0.18, 0.40},
-	{0.18, 0.67},
-	{0.01, 0.02},
-	{0.09, 0.02},
-	{0.09, 0.00},
-	{0.00, 0.00},
-	{0.00, 0.50},
-	{0.01, 0.45},
-	{0.15, 0.98},
-	{0.06, 0.98},
-	{0.01, 0.80},
-	{0.01, 0.45},
-	{0.00, 0.45},
-	{0.00, 1.00},
-	{0.50, 1.00},
-	{0.50, 0.98},
-	{0.18, 0.98},
-	{0.18, 0.02},
-	{0.50, 0.02},
-	{0.50, 0.06},
-	{0.50, 0.94},
-	{0.20, 0.94},
-	{0.20, 0.06},
-	{0.50, 0.06},
-
-	{0.50, 0.06},
-	{0.80, 0.06},
-	{0.80, 0.94},
-	{0.50, 0.94},
-	{0.50, 0.06},
-	{0.50, 0.02},
-	{0.82, 0.02},
-	{0.82, 0.98},
-	{0.50, 0.98},
-	{0.50, 1.00},
-	{1.00, 1.00},
-	{1.00, 0.45},
-	{0.99, 0.45},
-	{0.99, 0.80},
-	{0.94, 0.98},
-	{0.85, 0.98},
-	{0.99, 0.45},
-	{1.00, 0.50},
-	{1.00, 0.00},
-	{0.91, 0.00},
-	{0.91, 0.02},
-	{0.99, 0.02},
-	{0.82, 0.67},
-	{0.82, 0.40},
-	{0.91, 0.02},
-	{0.91, 0.00},
-	{0.50, 0.00},
-};
-const size_t FAULT_INDICATOR_POLYGON_SIZE = sizeof (FAULT_INDICATOR_POLYGON) / sizeof (canIndicatorPoint_t);
-
 static void drawHorizontalDecals (cairo_t* cr, pageDrive_t* page, float x0, float x1, float y, int count, bool direction, bool drawDark, bool drawLight, bool clip)
 {
 	float spacing = 1.0f / (count - 1.0f) * (x1 - x0);
@@ -682,11 +622,10 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= false,
 		.width			= 100,
 		.height			= 42,
-		.inactiveColor	= page->style.faultInactiveColor,
-		.activeColor	= page->style.faultActiveColor,
-		.invalidColor	= page->style.faultActiveColor,
-		.polygon		= FAULT_INDICATOR_POLYGON,
-		.polygonSize	= FAULT_INDICATOR_POLYGON_SIZE,
+		.bgInactiveColor= page->style.faultInactiveColor,
+		.bgActiveColor	= page->style.faultActiveColor,
+		.bgInvalidColor	= page->style.faultActiveColor,
+		.shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->vcuFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->vcuFault), true);
@@ -708,11 +647,10 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= false,
 		.width			= 100,
 		.height			= 42,
-		.inactiveColor	= page->style.faultInactiveColor,
-		.activeColor	= page->style.faultActiveColor,
-		.invalidColor	= page->style.faultActiveColor,
-		.polygon		= FAULT_INDICATOR_POLYGON,
-		.polygonSize	= FAULT_INDICATOR_POLYGON_SIZE,
+		.bgInactiveColor= page->style.faultInactiveColor,
+		.bgActiveColor	= page->style.faultActiveColor,
+		.bgInvalidColor	= page->style.faultActiveColor,
+		.shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->bmsFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->bmsFault), true);
@@ -732,11 +670,10 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= false,
 		.width			= 100,
 		.height			= 42,
-		.inactiveColor	= page->style.faultInactiveColor,
-		.activeColor	= page->style.faultActiveColor,
-		.invalidColor	= page->style.faultActiveColor,
-		.polygon		= FAULT_INDICATOR_POLYGON,
-		.polygonSize	= FAULT_INDICATOR_POLYGON_SIZE,
+		.bgInactiveColor= page->style.faultInactiveColor,
+		.bgActiveColor	= page->style.faultActiveColor,
+		.bgInvalidColor	= page->style.faultActiveColor,
+		.shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->amkFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->amkFault), true);
@@ -756,11 +693,10 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= true,
 		.width			= 100,
 		.height			= 42,
-		.inactiveColor	= page->style.faultInactiveColor,
-		.activeColor	= page->style.faultActiveColor,
-		.invalidColor	= page->style.faultActiveColor,
-		.polygon		= FAULT_INDICATOR_POLYGON,
-		.polygonSize	= FAULT_INDICATOR_POLYGON_SIZE,
+		.bgInactiveColor= page->style.faultInactiveColor,
+		.bgActiveColor	= page->style.faultActiveColor,
+		.bgInvalidColor	= page->style.faultActiveColor,
+		.shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->gpsFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->gpsFault), true);

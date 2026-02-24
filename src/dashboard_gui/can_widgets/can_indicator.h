@@ -10,6 +10,8 @@
 //   a threshold value. If the signal value exceeds the threshold value (greater than for non-inverted, less than for
 //   inverted), the indicator is considered active.
 
+// TODO(Barach): Comments needed
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -21,8 +23,11 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
-/// @brief Datatype representing a single point in a polygon.
-typedef float canIndicatorPoint_t [2];
+typedef enum
+{
+	CAN_INDICATOR_CIRCLE,
+	CAN_INDICATOR_RECT
+} canIndicatorShape_t;
 
 /// @brief Configuration for the @c canIndicator_t widget.
 typedef struct
@@ -42,25 +47,29 @@ typedef struct
 	/// @brief Default / minimum height of the widget.
 	int height;
 
-	/// @brief Color to draw the widget when the signal is active.
-	GdkRGBA activeColor;
+	GdkRGBA bgActiveColor;
+	GdkRGBA bgInactiveColor;
+	GdkRGBA bgInvalidColor;
 
-	/// @brief Color to draw the widget when the signal is inactive.
-	GdkRGBA inactiveColor;
+	GdkRGBA borderActiveColor;
+	GdkRGBA borderInactiveColor;
+	GdkRGBA borderInvalidColor;
 
-	/// @brief Color to draw the widget when the signal is invalid.
-	GdkRGBA invalidColor;
+	GdkRGBA fontActiveColor;
+	GdkRGBA fontInactiveColor;
+	GdkRGBA fontInvalidColor;
 
-	/// @brief Polygon (array of points) to render the indicator as. Points are drawn one after another starting from index 0.
-	/// Default polygon (size of 0) is a circle.
-	const canIndicatorPoint_t* polygon;
+	/// @brief The shape to render the indicator as.
+	canIndicatorShape_t shape;
 
-	/// @brief The number of elements in the @c polygon array.
-	size_t polygonSize;
+	/// @brief The radius of the shape's corners (if any).
+	float cornerRadius;
+
+	float borderThickness;
+
+	char* text;
+	char* font;
 } canIndicatorConfig_t;
-
-/// @brief Converts a canIndicator_t widget into a GTK drawing area.
-#define CAN_INDICATOR_TO_DRAWING_AREA(wdgt) GTK_DRAWING_AREA (CAN_WIDGET_TO_WIDGET (wdgt))
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
