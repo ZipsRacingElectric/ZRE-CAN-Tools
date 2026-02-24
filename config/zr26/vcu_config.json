@@ -1,6 +1,105 @@
 {
 	"name":				"VCU",
 	"canId":			"0x750",
+	"faults":
+	[
+		{
+			"name":			"EEPROM HW FAULT",
+			"signal":		"VCU_EEPROM_STATE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"EEPROM UNPROGRAMMED",
+			"signal":		"VCU_EEPROM_STATE",
+			"threshold":	"2.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"APPS-1 CONFIG FAULT",
+			"signal":		"APPS_1_CONFIG_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"APPS-1 SAMPLE FAULT",
+			"signal":		"APPS_1_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"APPS-2 CONFIG FAULT",
+			"signal":		"APPS_2_CONFIG_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"APPS-2 SAMPLE FAULT",
+			"signal":		"APPS_2_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"BSE-F CONFIG FAULT",
+			"signal":		"BSE_F_CONFIG_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"BSE-F SAMPLE FAULT",
+			"signal":		"BSE_F_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"BSE-R CONFIG FAULT",
+			"signal":		"BSE_R_CONFIG_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"BSE-R SAMPLE FAULT",
+			"signal":		"BSE_R_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"SAS HW FAULT",
+			"signal":		"SAS_STATE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"SAS CONFIG FAULT",
+			"signal":		"SAS_STATE",
+			"threshold":	"1.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"SAS SAMPLE FAULT",
+			"signal":		"SAS_STATE",
+			"threshold":	"2.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"PEDALS IMPLAUSIBLE",
+			"signal":		"PEDALS_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"TORQUE IMPLAUSIBLE",
+			"signal":		"TORQUE_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"TORQUE DERATING",
+			"signal":		"TORQUE_DERATING",
+			"threshold":	"0.5",
+			"inverted":		"false"
+		}
+	],
 	"variables":
 	[
 		{
