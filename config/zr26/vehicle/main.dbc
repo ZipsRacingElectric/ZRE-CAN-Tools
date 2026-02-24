@@ -74,7 +74,8 @@ BO_ 257 BMS_STATUS: 8 BMS
  SG_ SHUTDOWN_BMS_CLOSED : 13|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SHUTDOWN_MSD_TSMS_CLOSED : 14|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ SHUTDOWN_LOOP_BLIP : 15|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ PRECHARGE_COMPLETE : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ NEGATIVE_IR_ENABLED : 16|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ POSITIVE_IR_ENABLED : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_0_ISOSPI_FAULT : 32|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_1_ISOSPI_FAULT : 33|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BMS_LTC_2_ISOSPI_FAULT : 34|1@1+ (1,0) [0|1] "Bool" Vector__XXX
