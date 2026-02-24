@@ -129,4 +129,6 @@ char* faultSignalsGetString (faultSignals_t* faults)
 	case FAULT_SIGNAL_OKAY:
 		return "OKAY";
 	}
+
+	return "OKAY";
 }
