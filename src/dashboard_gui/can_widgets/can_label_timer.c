@@ -13,6 +13,7 @@ static void update (void* widget)
 	canLabelTimer_t* label = widget;
 	canDatabaseGetFloat(label->database, label->config.signalIndex, &value);
 
+	// TODO(DiBacco): change condition to value > 0.
 	if (value && !label->config.running)
 	{
 		label->config.running = true;
@@ -20,11 +21,17 @@ static void update (void* widget)
 	}
 
 	clock_gettime (CLOCK_REALTIME, &label->config.currentTime);
+	struct timespec delta = timespecSub (&label->config.currentTime, &label->config.startTime);
 
-	// char* f = malloc(sizeof (char*));
-	// sprintf(f, "%d:%d:%d");
+	char* time = malloc(sizeof (char));
+	sprintf(time, "%02ld:%02ld:%03ld",
+		delta.tv_sec / 60,
+		delta.tv_sec % 60,
+		delta.tv_nsec / 1000000
+	);
 
-	gtk_label_set_text (GTK_LABEL (CAN_WIDGET_TO_WIDGET (label)), "00:00:00");
+	gtk_label_set_text (GTK_LABEL (CAN_WIDGET_TO_WIDGET (label)), time);
+	free (time);
 }
 
 canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* config)

@@ -48,7 +48,7 @@ static void appendButton (void* pageArg, const char* label, pageButtonCallback_t
 static void update (void* pageArg)
 {
 	pageStatus_t* page = pageArg;
-	(void) page;
+	page->timer->vmt.update (page->timer);
 }
 
 page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)

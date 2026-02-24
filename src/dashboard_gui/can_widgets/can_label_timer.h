@@ -1,6 +1,7 @@
 #ifndef CAN_LABEL_TIMER_H
 #define CAN_LABEL_TIMER_H
 
+#include "time_port.h"
 #include "can_widget.h"
 #include "can_database/can_database.h"
 
