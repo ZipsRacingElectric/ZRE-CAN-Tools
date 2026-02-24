@@ -12,6 +12,7 @@
 
 // Includes
 #include "page.h"
+#include "../can_widgets/can_widget.h"
 #include "can_database/can_database.h"
 #include "cjson/cjson.h"
 
@@ -23,6 +24,9 @@
 typedef struct
 {
 	pageStyle_t* baseStyle;
+	GdkRGBA shutdownLineColor;
+	float shutdownLineThickness;
+	float shutdownLineSlope;
 } pageStatusStyle_t;
 
 typedef struct
@@ -33,6 +37,17 @@ typedef struct
 
 	GtkGrid* buttonPanel;
 	size_t buttonCount;
+
+	GtkGrid* grid;
+
+	canWidget_t** shutdownIndicators;
+	size_t shutdownIndicatorCount;
+
+	canWidget_t* positiveIr;
+	canWidget_t* negativeIr;
+
+	canWidget_t** widgets;
+	size_t widgetCount;
 } pageStatus_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
