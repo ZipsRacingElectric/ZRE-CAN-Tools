@@ -22,6 +22,7 @@ static void drawShutdownLines (GtkDrawingArea* area, cairo_t* cr, int width, int
 	pageStatus_t* page = arg;
 	(void) area;
 	(void) arg;
+	(void) height;
 
 	graphene_rect_t bounds;
 	if (page->positiveIr == NULL || !gtk_widget_compute_bounds (CAN_WIDGET_TO_WIDGET (page->positiveIr), GTK_WIDGET (area), &bounds))
