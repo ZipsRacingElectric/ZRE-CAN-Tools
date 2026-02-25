@@ -45,12 +45,19 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-// TODO(Barach): Docs
+/**
+ * @brief Loads any type of CAN widget from a JSON configuration. This function parses the "type" field of the provided JSON to
+ * determine which type of CAN widget the configuration belongs to, then loads the widget via its constructor.
+ * @param database The CAN database to bind the widget to.
+ * @param config The JSON configuration to use. The remainder of the config is parsed as the widget-specific config of the
+ * widget specified by "type".
+ * @return The created widget, if successful, @c NULL otherwise.
+ */
 canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config);
 
 /**
- * @brief Updates a CAN widget with new information.
- * @param widget The widget to update.
+ * @brief Prompts a CAN widget to update its information.
+ * @param widget The widget to update. This may be @c NULL , in which case nothing happens.
  */
 static inline void canWidgetUpdate (canWidget_t* widget)
 {
