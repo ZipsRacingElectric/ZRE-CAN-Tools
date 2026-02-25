@@ -19,6 +19,8 @@ SRC :=	main.c										\
 		can_widgets/can_label_fault.c				\
 		can_widgets/can_progress_bar.c				\
 		can_widgets/can_shutdown_loop_indicator.c	\
+		can_widgets/can_fault_popup.c				\
+		can_widgets/can_float_popup.c				\
 		can_widgets/can_widget_template.c			\
 		stylized_widgets/stylized_button.c			\
 		stylized_widgets/stylized_frame.c			\

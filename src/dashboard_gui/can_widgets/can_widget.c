@@ -7,6 +7,8 @@
 #include "can_indicator.h"
 #include "can_label_fault.h"
 #include "can_shutdown_loop_indicator.h"
+#include "can_fault_popup.h"
+#include "can_float_popup.h"
 #include "can_widget_template.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
@@ -77,6 +79,30 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 		if (widget == NULL)
 		{
 			errorPrintf ("Failed to load widget of type 'canShutdownLoopIndicator_t'");
+			return NULL;
+		}
+
+		return widget;
+	}
+
+	if (strcmp (widgetType, "canFaultPopup_t") == 0)
+	{
+		canWidget_t* widget = canFaultPopupLoad (database, config);
+		if (widget == NULL)
+		{
+			errorPrintf ("Failed to load widget of type 'canFaultPopup_t'");
+			return NULL;
+		}
+
+		return widget;
+	}
+
+	if (strcmp (widgetType, "canFloatPopup_t") == 0)
+	{
+		canWidget_t* widget = canFloatPopupLoad (database, config);
+		if (widget == NULL)
+		{
+			errorPrintf ("Failed to load widget of type 'canFloatPopup_t'");
 			return NULL;
 		}
 
