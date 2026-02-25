@@ -22,6 +22,7 @@ typedef struct
 	canIndicatorState_t state;
 	GtkWidget* drawingArea;
 	GtkLabel* label;
+	float blinkTimer;
 } canIndicator_t;
 
 static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
@@ -112,6 +113,17 @@ static void update (void* widget)
 	else
 		state = CAN_INDICATOR_INVALID;
 
+	if (indicator->config.blinkInterval > 0.0f && state == CAN_INDICATOR_ACTIVE)
+	{
+		indicator->blinkTimer += 1/30.0f;
+		if (indicator->blinkTimer < indicator->config.blinkInterval / 2.0f)
+			state = CAN_INDICATOR_ACTIVE;
+		else if (indicator->blinkTimer < indicator->config.blinkInterval)
+			state = CAN_INDICATOR_INACTIVE;
+		else
+			indicator->blinkTimer = 0.0f;
+	}
+
 	// If the state has changed, trigger a redraw
 	if (state != indicator->state)
 	{
@@ -161,6 +173,8 @@ canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* co
 
 		label = GTK_LABEL (gtk_label_new (config->text));
 		gtkLabelSetFont (label, config->font);
+		gtk_label_set_justify (label, GTK_JUSTIFY_CENTER);
+		gtkLabelSetColor (label, &config->fontActiveColor);
 
 		gtk_overlay_add_overlay (GTK_OVERLAY (baseWidget), GTK_WIDGET (label));
 		gtk_overlay_set_measure_overlay (GTK_OVERLAY (baseWidget), GTK_WIDGET (label), true);
@@ -229,9 +243,8 @@ canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config)
 	if (jsonGetString (config, "bgInvalidColor", &bgInvalidColor) != 0)
 		bgInvalidColor = bgInactiveColor;
 
-	char* borderActiveColor;
-	if (jsonGetString (config, "borderActiveColor", &borderActiveColor) != 0)
-		return NULL;
+	char* borderActiveColor = "#000000";
+	jsonGetString (config, "borderActiveColor", &borderActiveColor);
 
 	char* borderInactiveColor;
 	if (jsonGetString (config, "borderInactiveColor", &borderInactiveColor) != 0)
@@ -241,9 +254,8 @@ canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config)
 	if (jsonGetString (config, "borderInvalidColor", &borderInvalidColor) != 0)
 		borderInvalidColor = borderInactiveColor;
 
-	char* fontActiveColor;
-	if (jsonGetString (config, "fontActiveColor", &fontActiveColor) != 0)
-		return NULL;
+	char* fontActiveColor = "#000000";
+	jsonGetString (config, "fontActiveColor", &fontActiveColor);
 
 	char* fontInactiveColor;
 	if (jsonGetString (config, "fontInactiveColor", &fontInactiveColor) != 0)
@@ -258,6 +270,9 @@ canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config)
 
 	float cornerRadius = 0;
 	jsonGetFloat (config, "cornerRadius", &cornerRadius);
+
+	float blinkInterval = 0;
+	jsonGetFloat (config, "blinkInterval", &blinkInterval);
 
 	canIndicatorShape_t shape;
 	char* shapeStr;
@@ -282,7 +297,7 @@ canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config)
 	jsonGetString (config, "font", &font);
 
 	char* fontColor = "#000000";
-	jsonGetString (config, fontColor, &fontColor);
+	jsonGetString (config, "fontColor", &fontColor);
 
 	return canIndicatorInit (database, &(canIndicatorConfig_t)
 	{
@@ -304,6 +319,7 @@ canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config)
 		.cornerRadius			= cornerRadius,
 		.text					= text,
 		.font					= font,
-		.borderThickness		= borderThickness
+		.borderThickness		= borderThickness,
+		.blinkInterval			= blinkInterval
 	});
 }

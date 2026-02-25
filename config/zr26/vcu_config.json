@@ -92,12 +92,6 @@
 			"signal":		"TORQUE_PLAUSIBLE",
 			"threshold":	"0.5",
 			"inverted":		"true"
-		},
-		{
-			"name":			"TORQUE DERATING",
-			"signal":		"TORQUE_DERATING",
-			"threshold":	"0.5",
-			"inverted":		"false"
 		}
 	],
 	"variables":

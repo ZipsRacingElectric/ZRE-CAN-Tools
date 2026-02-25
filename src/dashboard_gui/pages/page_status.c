@@ -5,6 +5,7 @@
 #include "../stylized_widgets/stylized_button.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
+#include "misc_port.h"
 
 static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
@@ -145,6 +146,9 @@ static void update (void* pageArg)
 	for (size_t index = 0; index < page->shutdownIndicatorCount; ++index)
 		canWidgetUpdate (page->shutdownIndicators [index]);
 
+	for (size_t index = 0; index < page->diagramIndicatorCount; ++index)
+		canWidgetUpdate (page->diagramIndicators [index]);
+
 	canWidgetUpdate (page->positiveIr);
 	canWidgetUpdate (page->negativeIr);
 }
@@ -244,11 +248,54 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	if (page->negativeIr != NULL)
 		gtk_grid_attach (GTK_GRID (shutdownPanel), CAN_WIDGET_TO_WIDGET (page->negativeIr), page->shutdownIndicatorCount + 1, 1, 1, 1);
 
-	// GtkWidget* picture = gtk_picture_new_for_filename ("./zr26.png");
-	// gtk_picture_set_can_shrink (GTK_PICTURE (picture), false);
-	// gtk_widget_set_halign (picture, GTK_ALIGN_CENTER);
-	// gtk_widget_set_valign (picture, GTK_ALIGN_CENTER);
-	// gtk_grid_attach (GTK_GRID (page->grid), picture, 0, 8, 1, 1);
+	GtkWidget* diagram = gtk_fixed_new ();
+	gtk_widget_set_halign (diagram, GTK_ALIGN_CENTER);
+	gtk_widget_set_valign (diagram, GTK_ALIGN_CENTER);
+	gtk_widget_set_vexpand (diagram, true);
+	gtk_grid_attach (GTK_GRID (page->grid), diagram, 0, 8, 1, 1);
+
+	// TODO(Barach): Replace with image.
+	char* backgroundPath;
+	if (jsonGetString (config, "diagramBackground", &backgroundPath) != 0)
+		return NULL;
+
+	char* backgroundPathExp = expandEnv (backgroundPath);
+	if (backgroundPathExp == NULL)
+		return NULL;
+
+	GtkWidget* diagramBackground = gtk_picture_new_for_filename (backgroundPathExp);
+	gtk_picture_set_can_shrink (GTK_PICTURE (diagramBackground), false);
+	gtk_fixed_put (GTK_FIXED (diagram), diagramBackground, 0, 0);
+
+	free (backgroundPathExp);
+
+	cJSON* indicatorConfigs = jsonGetObjectV2 (config, "diagramIndicators");
+	if (indicatorConfigs == NULL)
+		return NULL;
+
+	page->diagramIndicatorCount = cJSON_GetArraySize (indicatorConfigs);
+	page->diagramIndicators = malloc (page->diagramIndicatorCount * sizeof (canWidget_t*));
+	if (page->diagramIndicators == NULL)
+		return NULL;
+
+	for (size_t index = 0; index < page->diagramIndicatorCount; ++index)
+	{
+		cJSON* indicatorConfig = cJSON_GetArrayItem (indicatorConfigs, index);
+
+		uint16_t x = 0;
+		jsonGetUint16_t (indicatorConfig, "xPosition", &x);
+
+		uint16_t y = 0;
+		jsonGetUint16_t (indicatorConfig, "yPosition", &y);
+
+		cJSON* widgetConfig = jsonGetObjectV2 (indicatorConfig, "widget");
+		page->diagramIndicators [index] = canWidgetLoad (database, widgetConfig);
+
+		if (page->diagramIndicators [index] == NULL)
+			continue;
+
+		gtk_fixed_put (GTK_FIXED (diagram), CAN_WIDGET_TO_WIDGET (page->diagramIndicators [index]), x, y);
+	}
 
 	GtkWidget* padding = gtk_grid_new ();
 	gtk_widget_set_vexpand (padding, true);

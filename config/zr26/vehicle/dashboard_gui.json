@@ -117,11 +117,12 @@
 						"signalName":					"TODO",
 						"threshold":					"0.5",
 						"inverted":						"false",
-						"width":						"26",
-						"height":						"26",
 						"activeColor":					"#FFFFFF",
 						"inactiveColor":				"#580000",
-						"invalidColor":					"#FF0000"
+						"invalidColor":					"#FF0000",
+						"shape":						"circle",
+						"width":						"26",
+						"height":						"26"
 					}
 				]
 			},
@@ -343,19 +344,7 @@
 				"shutdownLineColor":					"#665400",
 				"shutdownLineSlope":					"0.25"
 			},
-			"widgets":
-			[
-				{
-					"type":								"canLabelFault_t",
-					"configPath":						"$ZRE_CANTOOLS_DIR/config/zr26/vcu_config.json",
-					"format":							"VCU: %s"
-				},
-				{
-					"type":								"canLabelFault_t",
-					"configPath":						"$ZRE_CANTOOLS_DIR/config/zr26/bms_config.json",
-					"format":							"BMS: %s"
-				}
-			],
+			"widgets": [],
 			"shutdownIndicators":
 			[
 				{
@@ -500,7 +489,311 @@
 				"text":									"-IR",
 				"font":									"Futura Std Bold Condensed 24px",
 				"borderThickness":						"4"
-			}
+			},
+			"diagramBackground":						"$ZRE_CANTOOLS_DIR/config/zr26/wireframe.png",
+			"diagramIndicators":
+			[
+				{
+					"xPosition":						"450",
+					"yPosition":						"160",
+					"widget":
+					{
+						"type":							"canIndicator_t",
+						"signalName":					"VCU_FAULT",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"50",
+						"height":						"30",
+						"bgActiveColor":				"#ff0064",
+						"bgInactiveColor":				"#67c3ff",
+						"bgInvalidColor":				"#1e2e39",
+						"borderActiveColor":			"#AAAAAA",
+						"fontActiveColor":				"#000000",
+						"shape":						"rect",
+						"text":							"VCU",
+						"font":							"Futura Std Bold Condensed 20px",
+						"borderThickness":				"1.5",
+						"blinkInterval":				"0.7"
+					}
+				},
+				{
+					"xPosition":						"500",
+					"yPosition":						"160",
+					"widget":
+					{
+						"type":							"canIndicator_t",
+						"signalName":					"BSPD_FAULT",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"50",
+						"height":						"30",
+						"bgActiveColor":				"#ff0064",
+						"bgInactiveColor":				"#67c3ff",
+						"bgInvalidColor":				"#1e2e39",
+						"borderActiveColor":			"#AAAAAA",
+						"fontActiveColor":				"#000000",
+						"shape":						"rect",
+						"text":							"BSPD",
+						"font":							"Futura Std Bold Condensed 20px",
+						"borderThickness":				"1.5",
+						"blinkInterval":				"0.75"
+					}
+				},
+				{
+					"xPosition":						"450",
+					"yPosition":						"192",
+					"widget":
+					{
+						"type":							"canFaultPopup_t",
+						"configPath":					"$ZRE_CANTOOLS_DIR/config/zr26/vcu_config.json",
+						"format":						"%s",
+						"font":							"Consolas Bold 18px",
+						"width":						"200",
+						"height":						"0",
+						"padding":						"2",
+						"backgroundColor":				"#000000",
+						"borderColor":					"#FF0064",
+						"borderThickness":				"3",
+						"cornerRadius":					"8"
+					}
+				},
+				{
+					"xPosition":						"128",
+					"yPosition":						"110",
+					"widget":
+					{
+						"type":							"canIndicator_t",
+						"signalName":					"BMS_FAULT",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"60",
+						"height":						"75",
+						"bgActiveColor":				"#ff0064",
+						"bgInactiveColor":				"#67c3ff",
+						"bgInvalidColor":				"#1e2e39",
+						"borderActiveColor":			"#AAAAAA",
+						"fontActiveColor":				"#000000",
+						"shape":						"rect",
+						"text":							"BMS",
+						"font":							"Futura Std Bold Condensed 20px",
+						"borderThickness":				"1.5",
+						"blinkInterval":				"0.8"
+					}
+				},
+				{
+					"xPosition":						"128",
+					"yPosition":						"190",
+					"widget":
+					{
+						"type":							"canFaultPopup_t",
+						"configPath":					"$ZRE_CANTOOLS_DIR/config/zr26/bms_config.json",
+						"format":						"%s",
+						"font":							"Consolas Bold 18px",
+						"width":						"200",
+						"height":						"0",
+						"padding":						"2",
+						"backgroundColor":				"#000000",
+						"borderColor":					"#FF0064",
+						"borderThickness":				"3",
+						"cornerRadius":					"8"
+					}
+				},
+				{
+					"xPosition":						"188",
+					"yPosition":						"110",
+					"widget":
+					{
+						"type":							"canIndicator_t",
+						"signalName":					"IMD_FAULT",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"60",
+						"height":						"75",
+						"bgActiveColor":				"#ff0064",
+						"bgInactiveColor":				"#67c3ff",
+						"bgInvalidColor":				"#1e2e39",
+						"borderActiveColor":			"#AAAAAA",
+						"fontActiveColor":				"#000000",
+						"shape":						"rect",
+						"text":							"IMD",
+						"font":							"Futura Std Bold Condensed 20px",
+						"borderThickness":				"1.5",
+						"blinkInterval":				"0.85"
+					}
+				},
+				{
+					"xPosition":						"110",
+					"yPosition":						"20",
+					"widget":
+					{
+						"type":							"canIndicator_t",
+						"signalName":					"RL_DIAGNOSTIC_NUMBER",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"40",
+						"height":						"50",
+						"bgActiveColor":				"#ff0064",
+						"bgInactiveColor":				"#67c3ff",
+						"bgInvalidColor":				"#1e2e39",
+						"borderActiveColor":			"#AAAAAA",
+						"fontActiveColor":				"#000000",
+						"shape":						"rect",
+						"text":							"AMK\nRL",
+						"font":							"Futura Std Bold Condensed 18px",
+						"borderThickness":				"1.5",
+						"blinkInterval":				"0.9"
+					}
+				},
+				{
+					"xPosition":						"155",
+					"yPosition":						"20",
+					"widget":
+					{
+						"type":							"canFloatPopup_t",
+						"signalName":					"RL_DIAGNOSTIC_NUMBER",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"format":						"Error: %.0f",
+						"font":							"Consolas Bold 18px",
+						"width":						"200",
+						"height":						"0",
+						"padding":						"2",
+						"backgroundColor":				"#000000",
+						"borderColor":					"#FF0064",
+						"borderThickness":				"3",
+						"cornerRadius":					"8"
+					}
+				},
+				{
+					"xPosition":						"110",
+					"yPosition":						"230",
+					"widget":
+					{
+						"type":							"canIndicator_t",
+						"signalName":					"RR_DIAGNOSTIC_NUMBER",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"40",
+						"height":						"50",
+						"bgActiveColor":				"#ff0064",
+						"bgInactiveColor":				"#67c3ff",
+						"bgInvalidColor":				"#1e2e39",
+						"borderActiveColor":			"#AAAAAA",
+						"fontActiveColor":				"#000000",
+						"shape":						"rect",
+						"text":							"AMK\nRR",
+						"font":							"Futura Std Bold Condensed 18px",
+						"borderThickness":				"1.5",
+						"blinkInterval":				"0.95"
+					}
+				},
+				{
+					"xPosition":						"155",
+					"yPosition":						"230",
+					"widget":
+					{
+						"type":							"canFloatPopup_t",
+						"signalName":					"RR_DIAGNOSTIC_NUMBER",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"format":						"Error: %.0f",
+						"font":							"Consolas Bold 18px",
+						"width":						"200",
+						"height":						"0",
+						"padding":						"2",
+						"backgroundColor":				"#000000",
+						"borderColor":					"#FF0064",
+						"borderThickness":				"3",
+						"cornerRadius":					"8"
+					}
+				},
+				{
+					"xPosition":						"415",
+					"yPosition":						"20",
+					"widget":
+					{
+						"type":							"canIndicator_t",
+						"signalName":					"FL_DIAGNOSTIC_NUMBER",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"40",
+						"height":						"50",
+						"bgActiveColor":				"#ff0064",
+						"bgInactiveColor":				"#67c3ff",
+						"bgInvalidColor":				"#1e2e39",
+						"borderActiveColor":			"#AAAAAA",
+						"fontActiveColor":				"#000000",
+						"shape":						"rect",
+						"text":							"AMK\nFL",
+						"font":							"Futura Std Bold Condensed 18px",
+						"borderThickness":				"1.5",
+						"blinkInterval":				"1.00"
+					}
+				},
+				{
+					"xPosition":						"460",
+					"yPosition":						"20",
+					"widget":
+					{
+						"type":							"canFloatPopup_t",
+						"signalName":					"FL_DIAGNOSTIC_NUMBER",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"format":						"Error: %.0f",
+						"font":							"Consolas Bold 18px",
+						"width":						"200",
+						"height":						"0",
+						"padding":						"2",
+						"backgroundColor":				"#000000",
+						"borderColor":					"#FF0064",
+						"borderThickness":				"3",
+						"cornerRadius":					"8"
+					}
+				},
+				{
+					"xPosition":						"415",
+					"yPosition":						"230",
+					"widget":
+					{
+						"type":							"canIndicator_t",
+						"signalName":					"FR_DIAGNOSTIC_NUMBER",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"width":						"40",
+						"height":						"50",
+						"bgActiveColor":				"#ff0064",
+						"bgInactiveColor":				"#67c3ff",
+						"bgInvalidColor":				"#1e2e39",
+						"borderActiveColor":			"#AAAAAA",
+						"fontActiveColor":				"#000000",
+						"shape":						"rect",
+						"text":							"AMK\nFR",
+						"font":							"Futura Std Bold Condensed 18px",
+						"borderThickness":				"1.5",
+						"blinkInterval":				"1.05"
+					}
+				},
+				{
+					"xPosition":						"460",
+					"yPosition":						"230",
+					"widget":
+					{
+						"type":							"canFloatPopup_t",
+						"signalName":					"FR_DIAGNOSTIC_NUMBER",
+						"threshold":					"0.5",
+						"inverted":						"false",
+						"format":						"Error: %.0f",
+						"font":							"Consolas Bold 18px",
+						"width":						"200",
+						"height":						"0",
+						"padding":						"2",
+						"backgroundColor":				"#000000",
+						"borderColor":					"#FF0064",
+						"borderThickness":				"3",
+						"cornerRadius":					"8"
+					}
+				}
+			]
 		},
 		{
 			"type":										"pageBms_t",

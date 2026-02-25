@@ -22,8 +22,8 @@ static void update (void* widget)
 	canLabelFault_t* label = widget;
 
 	char* status = faultSignalsGetString (&label->config.faults);
-	char buffer [64];
-	snprintf (buffer, 64, label->config.format, status);
+	char buffer [512];
+	snprintf (buffer, 512, label->config.format, status);
 
 	gtk_label_set_text (GTK_LABEL (CAN_WIDGET_TO_WIDGET (label)), buffer);
 }

@@ -48,6 +48,9 @@ typedef struct
 
 	canWidget_t** widgets;
 	size_t widgetCount;
+
+	canWidget_t** diagramIndicators;
+	size_t diagramIndicatorCount;
 } pageStatus_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
