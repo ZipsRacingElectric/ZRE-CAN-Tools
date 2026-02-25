@@ -32,10 +32,13 @@ typedef struct
 
 	pageStatusStyle_t style;
 
+	GtkGrid* grid;
+
 	canWidget_t* timer;
 
 	GtkGrid* buttonPanel;
 	size_t buttonCount;
+
 } pageStatus_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

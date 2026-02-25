@@ -63,6 +63,7 @@ static gboolean updateLoop (pageStack_t* stack)
 	return TRUE;
 }
 
+// TODO(DiBacco): essentially copy this function for the event for the timer.
 static gboolean eventKeyPress (GtkWidget* window, guint keyValue, guint keyCode, GdkModifierType state,
 	GtkEventControllerKey* eventController)
 {

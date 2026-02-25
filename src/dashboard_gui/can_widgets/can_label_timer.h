@@ -3,6 +3,7 @@
 
 #include "time_port.h"
 #include "can_widget.h"
+#include "../pages/page.h"
 #include "can_database/can_database.h"
 
 #include "time.h"
@@ -12,8 +13,20 @@
 
 typedef struct
 {
+    pageStyle_t* baseStyle;
+
+} canLabelTimerStyle_t;
+
+typedef struct
+{
     struct timespec startTime;
     struct timespec currentTime;
+
+    int height;
+    int width;
+
+    GtkWidget* timer;
+    GtkWidget* area;
 
     size_t signalIndex;
 

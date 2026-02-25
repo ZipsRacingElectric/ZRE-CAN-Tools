@@ -114,6 +114,8 @@ static void drawHorizontalDecals (cairo_t* cr, pageDrive_t* page, float x0, floa
 	}
 }
 
+// TODO(DiBacco): ask Cole about gobejct / ask about documentation.
+
 static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
 	pageDrive_t* page = arg;
