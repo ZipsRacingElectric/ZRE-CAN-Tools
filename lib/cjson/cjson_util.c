@@ -4,6 +4,7 @@
 // Includes
 #include "debug.h"
 #include "error_codes.h"
+#include "misc_port.h"
 
 // C Standard Library
 #include <errno.h>
@@ -13,7 +14,7 @@
 // Constants ------------------------------------------------------------------------------------------------------------------
 
 /// @brief The maximum size of a json file to load, in bytes.
-#define JSON_SIZE_MAX 16384
+#define JSON_SIZE_MAX 262144
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
@@ -42,59 +43,16 @@ cJSON* jsonLoad (const char* path)
 
 cJSON* jsonLoadPath (const char* path)
 {
-	size_t variablePosition = strcspn (path, "$");
-	size_t originalPathLength = strlen (path);
-
-	// Check for a variable to expand. If none, use default path behavior.
-	if (variablePosition == originalPathLength)
-		return jsonLoad (path);
-
-	// Calculate the length of the variable name
-	size_t variableLength = 1;
-	while (variablePosition + variableLength != originalPathLength)
-	{
-		char c = path [variablePosition + variableLength];
-		if (c == '$' || c == '/' || c == ' ')
-			break;
-		++variableLength;
-	}
-
-	// Copy the variable name into a buffer (+1 for terminator, -1 to exclude '$')
-	char* variable = malloc (variableLength);
-	if (variable == NULL)
+	// Expand the environement variables
+	char* pathExp = expandEnv (path);
+	if (pathExp == NULL)
 		return NULL;
-	strncpy (variable, path + variablePosition + 1, variableLength - 1);
-	variable [variableLength - 1] = '\0';
-
-	// Get the value of the environment variable
-	size_t valueLength = 0;
-	char* value = getenv (variable);
-	if (value != NULL)
-		valueLength = strlen (value);
-
-	// Create a buffer for the expanded string
-	size_t extendedPathLength = originalPathLength - variableLength + valueLength;
-	char* extendedPath = malloc (extendedPathLength + 1);
-	if (extendedPath == NULL)
-	{
-		free (variable);
-		return NULL;
-	}
-
-	// Populate the extended path
-	memcpy (extendedPath, path, variablePosition);
-	memcpy (extendedPath + variablePosition, value, valueLength);
-	memcpy (extendedPath + variablePosition + valueLength, path + variablePosition + variableLength, originalPathLength - variablePosition - variableLength);
-	extendedPath [extendedPathLength] = '\0';
-
-	debugPrintf ("Substituting environment variable '%s' with '%s' yields '%s'.\n", variable, value, extendedPath);
 
 	// Load the JSON using the expanded path
-	cJSON* json = jsonLoad (extendedPath);
+	cJSON* json = jsonLoad (pathExp);
 
 	// Free the buffer and return
-	free (variable);
-	free (extendedPath);
+	free (pathExp);
 	return json;
 }
 
