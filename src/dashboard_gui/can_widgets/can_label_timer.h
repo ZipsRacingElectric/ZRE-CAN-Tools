@@ -38,7 +38,6 @@ typedef struct
     GdkRGBA borderColor;
     GdkRGBA fontColor;
 
-
 } canLabelTimerConfig_t;
 
 canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* config);

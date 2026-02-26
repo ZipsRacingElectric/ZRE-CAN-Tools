@@ -37,7 +37,6 @@ static void update (void* widget)
 	canLabelTimer_t* timer = widget;
 	canDatabaseGetFloat (timer->database, timer->config.signalIndex, &value);
 
-	// TODO(DiBacco): change condition to value > 0.
 	if (value && !timer->config.running)
 	{
 		timer->config.running = true;
@@ -75,12 +74,13 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 		.vmt =
 		{
 			.update = update,
-			.widget	= gtk_overlay_new (),
+			.widget	= gtk_grid_new (),
 		},
 		.config		= *config,
 		.database	= database,
 	};
 
+	timer->config.overlay = gtk_overlay_new ();
 	timer->config.timer = gtk_label_new ("00:00:000");
 
 	PangoAttrList* attrList = pango_attr_list_new ();
@@ -91,21 +91,17 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 	pango_attr_list_unref (attrList);
 
 	gtkLabelSetColor (GTK_LABEL (timer->config.timer), &timer->config.borderColor);
+	gtk_widget_set_halign(timer->config.timer, GTK_ALIGN_START);
 
 	timer->config.area = gtk_drawing_area_new ();
 
-	gtk_overlay_set_child (GTK_OVERLAY (CAN_WIDGET_TO_WIDGET (timer)), timer->config.area);
-	gtk_overlay_add_overlay (GTK_OVERLAY (CAN_WIDGET_TO_WIDGET (timer)), timer->config.timer);
+	gtk_overlay_set_child (GTK_OVERLAY (timer->config.overlay), timer->config.area);
+	gtk_overlay_add_overlay (GTK_OVERLAY (timer->config.overlay), timer->config.timer);
+	gtk_grid_attach (GTK_GRID (CAN_WIDGET_TO_WIDGET (timer)), timer->config.overlay, 0, 0, 1, 1);
 
-	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (timer), 250);
-	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (timer), 425);
-
-	// TODO(DiBacco): modify the drawing area height and width?
 	gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (timer->config.area), config->width);
 	gtk_drawing_area_set_content_height (GTK_DRAWING_AREA (timer->config.area), config->height);
 	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (timer->config.area), draw, timer, NULL);
-
-	// TODO(DiBacco): load styles in via cJson.
 
 	timer->config.running = false;
 	timer->config.signalIndex = canDatabaseFindSignal (database, "WHEEL_BUTTON_TOP_LEFT");

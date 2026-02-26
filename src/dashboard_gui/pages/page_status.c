@@ -123,13 +123,10 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 
 	page->buttonCount = 0;
 
-	// TODO: Setup GUI.
-	(void) database;
-
 	page->timer = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
 		.startTime 			= { .tv_sec = 0, .tv_nsec = 0 },
 		.currentTime 		= { .tv_sec = 0, .tv_nsec = 0 },
-		.width 				= 25,
+		.width 				= 120,
 		.height 			= 50,
 		.borderThickness 	= page->style.baseStyle->borderThickness,
 		.backgroundColor 	= page->style.baseStyle->backgroundColor,
