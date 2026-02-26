@@ -117,9 +117,10 @@
 						"signalName":					"TODO",
 						"threshold":					"0.5",
 						"inverted":						"false",
-						"activeColor":					"#FFFFFF",
-						"inactiveColor":				"#580000",
-						"invalidColor":					"#FF0000",
+						"bgActiveColor":				"#FFFFFF",
+						"bgInactiveColor":				"#580000",
+						"bgInvalidColor":				"#FF0000",
+						"borderActiveColor":			"#000000",
 						"shape":						"circle",
 						"width":						"26",
 						"height":						"26"
@@ -287,11 +288,13 @@
 						"signalName":					"TODO",
 						"threshold":					"0.5",
 						"inverted":						"false",
+						"bgActiveColor":				"#FFFFFF",
+						"bgInactiveColor":				"#580000",
+						"bgInvalidColor":				"#FF0000",
+						"borderActiveColor":			"#000000",
+						"shape":						"circle",
 						"width":						"26",
-						"height":						"26",
-						"activeColor":					"#FFFFFF",
-						"inactiveColor":				"#580000",
-						"invalidColor":					"#FF0000"
+						"height":						"26"
 					}
 				]
 			},
