@@ -127,10 +127,14 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	(void) database;
 
 	page->timer = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
-		.startTime = { .tv_sec = 0, .tv_nsec = 0 },
-		.currentTime = { .tv_sec = 0, .tv_nsec = 0 },
-		.width = 25,
-		.height = 50
+		.startTime 			= { .tv_sec = 0, .tv_nsec = 0 },
+		.currentTime 		= { .tv_sec = 0, .tv_nsec = 0 },
+		.width 				= 25,
+		.height 			= 50,
+		.borderThickness 	= page->style.baseStyle->borderThickness,
+		.backgroundColor 	= page->style.baseStyle->backgroundColor,
+		.borderColor		= page->style.baseStyle->borderColor,
+		.fontColor			= page->style.baseStyle->fontColor
 	});
 
 	gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer), 0, 0, 1, 1);

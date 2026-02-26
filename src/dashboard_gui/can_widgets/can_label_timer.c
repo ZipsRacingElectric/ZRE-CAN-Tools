@@ -14,20 +14,16 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 	(void) area;
 	(void) arg;
 
-	// TODO(DiBacco): load styles from config
-	const char* BG = "#000000";
-	GdkRGBA bg = gdkHexToColor (BG);
-	gdk_cairo_set_source_rgba (cr, &bg);
+	canLabelTimer_t* timer = arg;
 
 	// Creates the background of the timer
+	gdk_cairo_set_source_rgba (cr, &timer->config.backgroundColor);
 	cairo_rectangle (cr, 0, 0, width, height);
 	cairo_fill_preserve (cr);
 
-	// TODO(DiBacco): load styles from config
-	const char* TEXT_COLOR = "#80740c";
-	GdkRGBA boarderColor = gdkHexToColor (TEXT_COLOR);
-	cairo_set_line_width(cr, 4.0);
-    gdk_cairo_set_source_rgba (cr, &boarderColor);
+	// Creates the border of the timer
+	cairo_set_line_width(cr, timer->config.borderThickness);
+    gdk_cairo_set_source_rgba (cr, &timer->config.borderColor);
     cairo_stroke(cr);
 }
 
@@ -62,22 +58,6 @@ static void update (void* widget)
 	free (time);
 }
 
-static void styleLoad (canLabelTimerStyle_t* style, pageStyle_t* baseStyle, cJSON* config)
-{
-	*style = (canLabelTimerStyle_t)
-	{
-		.baseStyle = baseStyle
-	};
-
-	if (config == NULL)
-		return;
-
-	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
-
-	// TODO(DiBacco): after hardcoding timer, create json config for the timer widget
-
-}
-
 canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* config)
 {
     // Allocate the object
@@ -106,10 +86,7 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 	gtk_label_set_attributes (GTK_LABEL (timer->config.timer), attrList);
 	pango_attr_list_unref (attrList);
 
-	// TODO(DiBacco): load styles from config
-	const char* TEXT_COLOR = "#80740c";
-	GdkRGBA textColor = gdkHexToColor (TEXT_COLOR);
-	gtkLabelSetColor (GTK_LABEL (timer->config.timer), &textColor);
+	gtkLabelSetColor (GTK_LABEL (timer->config.timer), &timer->config.borderColor);
 
 	timer->config.area = gtk_drawing_area_new ();
 

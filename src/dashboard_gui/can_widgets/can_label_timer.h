@@ -30,9 +30,14 @@ typedef struct
     GtkWidget* timer;
     GtkWidget* area;
 
-    size_t signalIndex;
-
     bool running;
+    size_t signalIndex;
+    float borderThickness;
+
+    GdkRGBA backgroundColor;
+    GdkRGBA borderColor;
+    GdkRGBA fontColor;
+
 
 } canLabelTimerConfig_t;
 
