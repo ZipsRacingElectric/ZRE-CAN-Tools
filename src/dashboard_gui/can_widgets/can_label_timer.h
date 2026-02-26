@@ -25,11 +25,6 @@ typedef struct
     int height;
     int width;
 
-    GtkWidget* overlay;
-
-    GtkWidget* timer;
-    GtkWidget* area;
-
     bool running;
     size_t signalIndex;
     float borderThickness;

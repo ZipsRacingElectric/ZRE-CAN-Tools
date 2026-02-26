@@ -7,6 +7,9 @@ typedef struct
 	canWidgetVmt_t vmt;
 	canLabelTimerConfig_t config;
 	canDatabase_t* database;
+	GtkWidget* overlay;
+    GtkWidget* timer;
+    GtkWidget* area;
 } canLabelTimer_t;
 
 static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
@@ -30,9 +33,6 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 
 static void update (void* widget)
 {
-	// TODO(DiBacco): look into the g_signal_connect function
-	// TODO(DiBacco): consider moving widgets into the same scope as .config and .widget
-
 	float value;
 	canLabelTimer_t* timer = widget;
 	canDatabaseGetFloat (timer->database, timer->config.signalIndex, &value);
@@ -57,7 +57,7 @@ static void update (void* widget)
 		(unsigned long) (delta.tv_nsec / 1000000)
 	);
 
-	gtk_label_set_text (GTK_LABEL (timer->config.timer), time);
+	gtk_label_set_text (GTK_LABEL (timer->timer), time);
 	free (time);
 }
 
@@ -80,28 +80,28 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 		.database	= database,
 	};
 
-	timer->config.overlay = gtk_overlay_new ();
-	timer->config.timer = gtk_label_new ("00:00:000");
+	timer->overlay = gtk_overlay_new ();
+	timer->timer = gtk_label_new ("00:00:000");
 
 	PangoAttrList* attrList = pango_attr_list_new ();
 	PangoAttribute* fontSize = pango_attr_size_new (20 * PANGO_SCALE);
 	pango_attr_list_insert (attrList, fontSize);
 
-	gtk_label_set_attributes (GTK_LABEL (timer->config.timer), attrList);
+	gtk_label_set_attributes (GTK_LABEL (timer->timer), attrList);
 	pango_attr_list_unref (attrList);
 
-	gtkLabelSetColor (GTK_LABEL (timer->config.timer), &timer->config.borderColor);
-	gtk_widget_set_halign(timer->config.timer, GTK_ALIGN_START);
+	gtkLabelSetColor (GTK_LABEL (timer->timer), &timer->config.borderColor);
+	gtk_widget_set_halign(timer->timer, GTK_ALIGN_START);
 
-	timer->config.area = gtk_drawing_area_new ();
+	timer->area = gtk_drawing_area_new ();
 
-	gtk_overlay_set_child (GTK_OVERLAY (timer->config.overlay), timer->config.area);
-	gtk_overlay_add_overlay (GTK_OVERLAY (timer->config.overlay), timer->config.timer);
-	gtk_grid_attach (GTK_GRID (CAN_WIDGET_TO_WIDGET (timer)), timer->config.overlay, 0, 0, 1, 1);
+	gtk_overlay_set_child (GTK_OVERLAY (timer->overlay), timer->area);
+	gtk_overlay_add_overlay (GTK_OVERLAY (timer->overlay), timer->timer);
+	gtk_grid_attach (GTK_GRID (CAN_WIDGET_TO_WIDGET (timer)), timer->overlay, 0, 0, 1, 1);
 
-	gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (timer->config.area), config->width);
-	gtk_drawing_area_set_content_height (GTK_DRAWING_AREA (timer->config.area), config->height);
-	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (timer->config.area), draw, timer, NULL);
+	gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (timer->area), config->width);
+	gtk_drawing_area_set_content_height (GTK_DRAWING_AREA (timer->area), config->height);
+	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (timer->area), draw, timer, NULL);
 
 	timer->config.running = false;
 	timer->config.signalIndex = canDatabaseFindSignal (database, "WHEEL_BUTTON_TOP_LEFT");
