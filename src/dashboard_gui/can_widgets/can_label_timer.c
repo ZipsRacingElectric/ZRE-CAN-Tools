@@ -47,11 +47,15 @@ static void update (void* widget)
 	clock_gettime (CLOCK_REALTIME, &timer->config.currentTime);
 	struct timespec delta = timespecSub (&timer->config.currentTime, &timer->config.startTime);
 
-	char* time = malloc(sizeof (char));
-	sprintf(time, "%02ld:%02ld:%03ld",
-		delta.tv_sec / 60,
-		delta.tv_sec % 60,
-		delta.tv_nsec / 1000000
+	size_t n = strlen ("00:00:000") + 1;
+	char* time = malloc (n);
+	if (time == NULL)
+		return;
+
+	snprintf (time, n, "%02lu:%02lu:%03lu",
+		(unsigned long) (delta.tv_sec / 60),
+		(unsigned long) (delta.tv_sec % 60),
+		(unsigned long) (delta.tv_nsec / 1000000)
 	);
 
 	gtk_label_set_text (GTK_LABEL (timer->config.timer), time);
