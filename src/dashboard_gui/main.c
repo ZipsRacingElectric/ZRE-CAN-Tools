@@ -282,6 +282,10 @@ int main (int argc, char** argv)
 	free (applicationTitle);
 	free (applicationId);
 
+	// Deallocate the CAN database and device.
+	canDatabaseDealloc (&database);
+	canDealloc (device);
+
 	// Exit
 	return status;
 }
