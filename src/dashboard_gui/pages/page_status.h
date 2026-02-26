@@ -35,6 +35,7 @@ typedef struct
 	GtkGrid* grid;
 
 	canWidget_t* timer;
+	GtkGrid* timerPanel;
 
 	GtkGrid* buttonPanel;
 	size_t buttonCount;

@@ -12,6 +12,7 @@ typedef struct
 static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
 	(void) area;
+	(void) arg;
 
 	// TODO(DiBacco): load styles from config
 	const char* BG = "#000000";
@@ -19,9 +20,15 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 	gdk_cairo_set_source_rgba (cr, &bg);
 
 	// Creates the background of the timer
-	cairo_move_to (cr, 0, 0);
 	cairo_rectangle (cr, 0, 0, width, height);
-	cairo_fill (cr);
+	cairo_fill_preserve (cr);
+
+	// TODO(DiBacco): load styles from config
+	const char* TEXT_COLOR = "#80740c";
+	GdkRGBA boarderColor = gdkHexToColor (TEXT_COLOR);
+	cairo_set_line_width(cr, 4.0);
+    gdk_cairo_set_source_rgba (cr, &boarderColor);
+    cairo_stroke(cr);
 }
 
 
@@ -32,7 +39,7 @@ static void update (void* widget)
 
 	float value;
 	canLabelTimer_t* timer = widget;
-	canDatabaseGetFloat(timer->database, timer->config.signalIndex, &value);
+	canDatabaseGetFloat (timer->database, timer->config.signalIndex, &value);
 
 	// TODO(DiBacco): change condition to value > 0.
 	if (value && !timer->config.running)
@@ -100,14 +107,17 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 	pango_attr_list_unref (attrList);
 
 	// TODO(DiBacco): load styles from config
-	const char* TEXT_COLOR = "#ffffff";
-	GdkRGBA textColor = gdkHexToColor(TEXT_COLOR);
+	const char* TEXT_COLOR = "#80740c";
+	GdkRGBA textColor = gdkHexToColor (TEXT_COLOR);
 	gtkLabelSetColor (GTK_LABEL (timer->config.timer), &textColor);
 
 	timer->config.area = gtk_drawing_area_new ();
 
 	gtk_overlay_set_child (GTK_OVERLAY (CAN_WIDGET_TO_WIDGET (timer)), timer->config.area);
 	gtk_overlay_add_overlay (GTK_OVERLAY (CAN_WIDGET_TO_WIDGET (timer)), timer->config.timer);
+
+	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (timer), 250);
+	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (timer), 425);
 
 	// TODO(DiBacco): modify the drawing area height and width?
 	gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (timer->config.area), config->width);
