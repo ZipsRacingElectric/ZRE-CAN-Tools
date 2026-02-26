@@ -10,6 +10,9 @@ typedef struct
 	GtkWidget* overlay;
     GtkWidget* timer;
     GtkWidget* area;
+
+	bool running;
+	bool buttonPressed;
 } canLabelTimer_t;
 
 static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
@@ -35,30 +38,43 @@ static void update (void* widget)
 {
 	float value;
 	canLabelTimer_t* timer = widget;
-	canDatabaseGetFloat (timer->database, timer->config.signalIndex, &value);
-
-	if (value && !timer->config.running)
-	{
-		timer->config.running = true;
-		clock_gettime (CLOCK_REALTIME, &timer->config.startTime);
-	}
-
-	clock_gettime (CLOCK_REALTIME, &timer->config.currentTime);
-	struct timespec delta = timespecSub (&timer->config.currentTime, &timer->config.startTime);
-
-	size_t n = strlen ("00:00:000") + 1;
-	char* time = malloc (n);
-	if (time == NULL)
+	if (canDatabaseGetFloat (timer->database, timer->config.signalIndex, &value))
 		return;
 
-	snprintf (time, n, "%02lu:%02lu:%03lu",
-		(unsigned long) (delta.tv_sec / 60),
-		(unsigned long) (delta.tv_sec % 60),
-		(unsigned long) (delta.tv_nsec / 1000000)
-	);
+	if (value > 0.5 && !timer->buttonPressed)
+	{
+		timer->buttonPressed = true;
+		if (timer->running)
+			clock_gettime (CLOCK_REALTIME, &timer->config.startTime);
 
-	gtk_label_set_text (GTK_LABEL (timer->timer), time);
-	free (time);
+		else
+		{
+			timer->running = true;
+			clock_gettime (CLOCK_REALTIME, &timer->config.startTime);
+		}
+	}
+	else if (value < 0.5 && timer->buttonPressed)
+		timer->buttonPressed = false;
+
+	if (timer->running)
+	{
+		clock_gettime (CLOCK_REALTIME, &timer->config.currentTime);
+		struct timespec delta = timespecSub (&timer->config.currentTime, &timer->config.startTime);
+
+		size_t n = strlen ("00:00:000") + 1;
+		char* time = malloc (n);
+		if (time == NULL)
+			return;
+
+		snprintf (time, n, "%02lu:%02lu:%03lu",
+			(unsigned long) (delta.tv_sec / 60),
+			(unsigned long) (delta.tv_sec % 60),
+			(unsigned long) (delta.tv_nsec / 1000000)
+		);
+
+		gtk_label_set_text (GTK_LABEL (timer->timer), time);
+		free (time);
+	}
 }
 
 canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* config)
@@ -103,7 +119,9 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 	gtk_drawing_area_set_content_height (GTK_DRAWING_AREA (timer->area), config->height);
 	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (timer->area), draw, timer, NULL);
 
-	timer->config.running = false;
+	timer->running = false;
+	timer->buttonPressed = false;
+
 	timer->config.signalIndex = canDatabaseFindSignal (database, "WHEEL_BUTTON_TOP_LEFT");
 
     // Update initial value

@@ -25,8 +25,8 @@ typedef struct
     int height;
     int width;
 
-    bool running;
     size_t signalIndex;
+
     float borderThickness;
 
     GdkRGBA backgroundColor;
