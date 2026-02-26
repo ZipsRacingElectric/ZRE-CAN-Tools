@@ -1,6 +1,6 @@
 {
 	"name":					"BMS",
-	"canId":				"0x752",
+	"canId":				"0x012",
 	"segmentCount":			"5",
 	"ltcsPerSegment":		"2",
 	"cellsPerLtc":			"12",
@@ -11,6 +11,18 @@
 	"maxLtcTemperature":	"80",
 	"faults":
 	[
+		{
+			"name":			"EEPROM HW FAULT",
+			"signal":		"BMS_EEPROM_STATE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"EEPROM UNPROGRAMMED",
+			"signal":		"BMS_EEPROM_STATE",
+			"threshold":	"2.5",
+			"inverted":		"true"
+		},
 		{
 			"name":			"ISOSPI FAULT",
 			"signal":		"BMS_ISOSPI_FAULT",
