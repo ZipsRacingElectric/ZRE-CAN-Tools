@@ -3,7 +3,7 @@
 	"canId":				"0x012",
 	"segmentCount":			"5",
 	"ltcsPerSegment":		"2",
-	"cellsPerLtc":			"12",
+	"cellsPerLtc":			"14",
 	"minCellVoltage":		"3.0",
 	"maxCellVoltage":		"4.16",
 	"minTemperature":		"-10",
