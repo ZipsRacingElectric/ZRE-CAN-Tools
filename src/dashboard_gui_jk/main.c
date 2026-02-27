@@ -70,48 +70,57 @@ static void quit (GtkWidget* widget, gpointer data)
         g_print ("Quit!\n");
 }
 
-static void activate (GtkApplication* app, gpointer title)
-{
-        GtkWidget* window;
-        GtkWidget* button;
-        GtkWidget* grid;
-        GtkWidget* brake_front_percent = NULL;
-        GtkWidget* can_label[1];
+static void set_window_css(GtkWidget *window) {
+    GtkCssProvider *css_provider = gtk_css_provider_new();
 
-        /* Create a new window and set it's title*/
-        window = gtk_application_window_new (app);
-        gtk_window_set_title (GTK_WINDOW (window), title);
-        gtk_window_fullscreen (GTK_WINDOW(window));
+    gtk_css_provider_load_from_data(css_provider,
+        "window { "
+        "  background: linear-gradient(90deg, #e4a089, #67a56f); "
+        "}", -1);
+    gtk_style_context_add_provider_for_display( gtk_widget_get_display(window), GTK_STYLE_PROVIDER(css_provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(css_provider);
+}
+static void activate(GtkApplication* app, gpointer title) {
+    GtkWidget* window;
+    GtkWidget* button;
+    GtkWidget* grid;
+    GtkWidget* brake_front_percent = NULL;
+    GtkWidget* can_label[1];
 
-        /* Contruct the Container that will hold buttons */
-        grid = gtk_grid_new ();
+    /* Create a new window and set its title */
+    window = gtk_application_window_new(app);
+    gtk_window_set_title(GTK_WINDOW(window), title);
+    gtk_window_fullscreen(GTK_WINDOW(window));
 
-        /* Pack the container in the window */
-        gtk_window_set_child (GTK_WINDOW(window), grid);
+    // Apply CSS to set a gradient background from red to green
+    set_window_css(window);
 
-        brake_front_percent = gtk_label_new("Hello World");
-        can_label[0] = brake_front_percent;
-        gtk_grid_attach (GTK_GRID(grid), can_label[0], 0, 2, 5, 1);
+    /* Construct the Container that will hold buttons */
+    grid = gtk_grid_new();
 
-        button = gtk_button_new_with_label ("Button 1");
-        g_signal_connect (button, "clicked", G_CALLBACK (print_hello), NULL);
+    /* Pack the container in the window */
+    gtk_window_set_child(GTK_WINDOW(window), grid);
 
-        gtk_grid_attach (GTK_GRID(grid), button, 0, 0, 1, 1);
+    brake_front_percent = gtk_label_new("Hello World");
+    can_label[0] = brake_front_percent;
+    gtk_grid_attach(GTK_GRID(grid), can_label[0], 0, 2, 5, 1);
 
-        button = gtk_button_new_with_label ("Unfullscreen");
-        g_signal_connect (button, "clicked", G_CALLBACK (winscreen), window);
+    button = gtk_button_new_with_label("Button 1");
+    g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
+    gtk_grid_attach(GTK_GRID(grid), button, 0, 0, 1, 1);
 
-        gtk_grid_attach (GTK_GRID(grid), button, 1, 0, 1, 1);
+    button = gtk_button_new_with_label("Unfullscreen");
+    g_signal_connect(button, "clicked", G_CALLBACK(winscreen), window);
+    gtk_grid_attach(GTK_GRID(grid), button, 1, 0, 1, 1);
 
-        button = gtk_button_new_with_label ("Quit");
-        g_signal_connect (button, "clicked", G_CALLBACK (quit), NULL);
-        g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_window_destroy), window);
+    button = gtk_button_new_with_label("Quit");
+    g_signal_connect(button, "clicked", G_CALLBACK(quit), NULL);
+    g_signal_connect_swapped(button, "clicked", G_CALLBACK(gtk_window_destroy), window);
+    gtk_grid_attach(GTK_GRID(grid), button, 0, 1, 2, 1);
 
-        gtk_grid_attach (GTK_GRID(grid), button, 0, 1, 2, 1);
+    g_timeout_add(33, (GSourceFunc)update_counter, can_label);
 
-        g_timeout_add(33, (GSourceFunc)update_counter, can_label);
-
-        gtk_window_present (GTK_WINDOW (window));
+    gtk_window_present(GTK_WINDOW(window));
 }
 
 int main (int argc, char** argv)
