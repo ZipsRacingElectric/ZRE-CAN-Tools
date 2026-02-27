@@ -21,9 +21,6 @@ typedef struct
 	// Internal widgets
 	stylizedFrame_t* frame;
 	GtkLabel* label;
-
-	// Last state
-	bool active;
 } canFloatPopup_t;
 
 static void update (void* widget)
@@ -37,11 +34,6 @@ static void update (void* widget)
 		active = (value >= popup->config.threshold) != popup->config.inverted;
 	else
 		active = false;
-
-	// Ignore if nothing has changed
-	if (active == popup->active)
-		return;
-	popup->active = active;
 
 	// Enable / disable the popup based on whether active
 	gtk_widget_set_visible (CAN_WIDGET_TO_WIDGET (popup), active);
@@ -76,8 +68,7 @@ canWidget_t* canFloatPopupInit (canDatabase_t* database, canFloatPopupConfig_t* 
 		.database	= database,
 		.index		= canDatabaseFindSignal (database, config->signalName),
 		.frame		= stylizedFrameInit (&config->frameConfig),
-		.label		= GTK_LABEL (gtk_label_new ("")),
-		.active		= false
+		.label		= GTK_LABEL (gtk_label_new (""))
 	};
 
 	// Set the base widget

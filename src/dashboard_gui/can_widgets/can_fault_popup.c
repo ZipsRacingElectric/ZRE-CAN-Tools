@@ -23,6 +23,7 @@ typedef struct
 
 	// Last fault state
 	bool faulted;
+	size_t index;
 } canFaultPopup_t;
 
 static void update (void* widget)
@@ -34,9 +35,10 @@ static void update (void* widget)
 	bool faulted = faultSignalsGetIndex (&popup->config.faults, &index) == FAULT_SIGNAL_FAULTED;
 
 	// Ignore if nothing has changed
-	if (faulted == popup->faulted)
+	if (faulted == popup->faulted && index == popup->index)
 		return;
 	popup->faulted = faulted;
+	popup->index = index;
 
 	// Enable / disable the popup based on whether a fault is present
 	gtk_widget_set_visible (CAN_WIDGET_TO_WIDGET (popup), faulted);
@@ -72,7 +74,8 @@ canWidget_t* canFaultPopupInit (canDatabase_t* database, canFaultPopupConfig_t* 
 		.database	= database,
 		.frame		= stylizedFrameInit (&config->frameConfig),
 		.label		= GTK_LABEL (gtk_label_new ("")),
-		.faulted	= false
+		.faulted	= false,
+		.index		= -1
 	};
 
 	// Set the base widget
