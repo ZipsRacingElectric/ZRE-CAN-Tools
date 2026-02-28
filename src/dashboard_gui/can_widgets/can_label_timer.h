@@ -11,6 +11,13 @@
 // GTK
 #include <gtk/gtk.h>
 
+typedef enum
+{
+	CURRENT_TIME,
+	LAST_TIME,
+	BEST_TIME
+} canLabelTimerMode_t;
+
 typedef struct
 {
     pageStyle_t* baseStyle;
@@ -32,6 +39,8 @@ typedef struct
     GdkRGBA backgroundColor;
     GdkRGBA borderColor;
     GdkRGBA fontColor;
+
+    canLabelTimerMode_t mode;
 
 } canLabelTimerConfig_t;
 

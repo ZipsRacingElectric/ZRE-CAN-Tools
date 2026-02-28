@@ -82,9 +82,10 @@ static void update (void* pageArg)
 {
 	pageStatus_t* page = pageArg;
 
-	canWidgetUpdate (page->timer);
+	canWidgetUpdate (page->timer1);
+	canWidgetUpdate (page->timer2);
+	canWidgetUpdate (page->timer3);
 }
-
 
 page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 {
@@ -123,7 +124,7 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 
 	page->buttonCount = 0;
 
-	page->timer = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
+	page->timer1 = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
 		.startTime 			= { .tv_sec = 0, .tv_nsec = 0 },
 		.currentTime 		= { .tv_sec = 0, .tv_nsec = 0 },
 		.width 				= 120,
@@ -131,16 +132,45 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 		.borderThickness 	= page->style.baseStyle->borderThickness,
 		.backgroundColor 	= page->style.baseStyle->backgroundColor,
 		.borderColor		= page->style.baseStyle->borderColor,
-		.fontColor			= page->style.baseStyle->fontColor
+		.fontColor			= page->style.baseStyle->fontColor,
+		.mode 				= 0
 	});
 
-	gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer), 0, 0, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer1), 0, 0, 1, 1);
+
+	page->timer2 = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
+		.startTime 			= { .tv_sec = 0, .tv_nsec = 0 },
+		.currentTime 		= { .tv_sec = 0, .tv_nsec = 0 },
+		.width 				= 120,
+		.height 			= 50,
+		.borderThickness 	= page->style.baseStyle->borderThickness,
+		.backgroundColor 	= page->style.baseStyle->backgroundColor,
+		.borderColor		= page->style.baseStyle->borderColor,
+		.fontColor			= page->style.baseStyle->fontColor,
+		.mode 				= 1
+	});
+
+	gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer2), 0, 1, 1, 1);
+
+	page->timer3 = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
+		.startTime 			= { .tv_sec = 0, .tv_nsec = 0 },
+		.currentTime 		= { .tv_sec = 0, .tv_nsec = 0 },
+		.width 				= 120,
+		.height 			= 50,
+		.borderThickness 	= page->style.baseStyle->borderThickness,
+		.backgroundColor 	= page->style.baseStyle->backgroundColor,
+		.borderColor		= page->style.baseStyle->borderColor,
+		.fontColor			= page->style.baseStyle->fontColor,
+		.mode 				= 2
+	});
+
+	gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer3), 0, 2, 1, 1);
 
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());
 	gtk_widget_set_margin_bottom (GTK_WIDGET (page->buttonPanel), 10);
 	gtk_widget_set_margin_start (GTK_WIDGET (page->buttonPanel), 100);
 	gtk_widget_set_margin_end (GTK_WIDGET (page->buttonPanel), 20);
-	gtk_grid_attach (GTK_GRID (page->grid), GTK_WIDGET (page->buttonPanel), 0, 1, 1, 1);
+	gtk_grid_attach (GTK_GRID (page->grid), GTK_WIDGET (page->buttonPanel), 0, 3, 1, 1);
 
 	// Return the created page (cast to the base type).
 	return (page_t*) page;

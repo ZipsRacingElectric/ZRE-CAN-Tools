@@ -1,6 +1,7 @@
 #include "can_label_timer.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
+#include "debug.h"
 
 typedef struct
 {
@@ -13,6 +14,10 @@ typedef struct
 
 	bool running;
 	bool buttonPressed;
+
+	struct timespec lastTime;
+	struct timespec bestTime;
+
 } canLabelTimer_t;
 
 static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
@@ -33,47 +38,102 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
     cairo_stroke(cr);
 }
 
-
 static void update (void* widget)
 {
 	float value;
 	canLabelTimer_t* timer = widget;
 	if (canDatabaseGetFloat (timer->database, timer->config.signalIndex, &value))
-		return;
+		errorPrintf (errorCodeToMessage (errno));
 
 	if (value > 0.5 && !timer->buttonPressed)
 	{
-		timer->buttonPressed = true;
 		if (timer->running)
-			clock_gettime (CLOCK_REALTIME, &timer->config.startTime);
+		{
+			clock_gettime (CLOCK_REALTIME, &timer->config.currentTime);
+	 		struct timespec delta = timespecSub (&timer->config.currentTime, &timer->config.startTime);
 
+			size_t n = strlen ("00:00:000") + 1;
+				char* time = malloc (n);
+				if (time == NULL)
+					return;
+
+			if (timer->config.mode == LAST_TIME)
+			{
+				timer->lastTime.tv_sec = delta.tv_sec;
+				timer->lastTime.tv_nsec = delta.tv_nsec;
+
+				snprintf (time, n, "%02lu:%02lu:%03lu",
+					(unsigned long) (timer->lastTime.tv_sec / 60),
+					(unsigned long) (timer->lastTime.tv_sec % 60),
+					(unsigned long) (timer->lastTime.tv_nsec / 1000000)
+				);
+
+				gtk_label_set_text (GTK_LABEL (timer->timer), time);
+			}
+			else if (timer->config.mode == BEST_TIME)
+			{
+				if (timer->bestTime.tv_nsec == 0 && timer->bestTime.tv_sec == 0) {
+					timer->bestTime.tv_sec = delta.tv_sec;
+					timer->bestTime.tv_nsec = delta.tv_nsec;
+				}
+				else
+				{
+					if (delta.tv_sec <= timer->bestTime.tv_sec && delta.tv_nsec <= timer->bestTime.tv_nsec)
+					{
+						timer->bestTime.tv_sec = delta.tv_sec;
+						timer->bestTime.tv_nsec = delta.tv_nsec;
+					}
+				}
+
+				snprintf (time, n, "%02lu:%02lu:%03lu",
+					(unsigned long) (timer->bestTime.tv_sec / 60),
+					(unsigned long) (timer->bestTime.tv_sec % 60),
+					(unsigned long) (timer->bestTime.tv_nsec / 1000000)
+				);
+
+				gtk_label_set_text (GTK_LABEL (timer->timer), time);
+			}
+
+			free (time);
+			timer->buttonPressed = true;
+			clock_gettime (CLOCK_REALTIME, &timer->config.startTime);
+		}
 		else
 		{
 			timer->running = true;
+			timer->buttonPressed = true;
 			clock_gettime (CLOCK_REALTIME, &timer->config.startTime);
 		}
 	}
-	else if (value < 0.5 && timer->buttonPressed)
+
+	if (value < 0.5 && timer->buttonPressed)
+	{
 		timer->buttonPressed = false;
+	}
 
 	if (timer->running)
 	{
-		clock_gettime (CLOCK_REALTIME, &timer->config.currentTime);
-		struct timespec delta = timespecSub (&timer->config.currentTime, &timer->config.startTime);
+		if (timer->config.mode == CURRENT_TIME)
+		{
 
-		size_t n = strlen ("00:00:000") + 1;
-		char* time = malloc (n);
-		if (time == NULL)
-			return;
+			clock_gettime (CLOCK_REALTIME, &timer->config.currentTime);
+			struct timespec delta = timespecSub (&timer->config.currentTime, &timer->config.startTime);
 
-		snprintf (time, n, "%02lu:%02lu:%03lu",
-			(unsigned long) (delta.tv_sec / 60),
-			(unsigned long) (delta.tv_sec % 60),
-			(unsigned long) (delta.tv_nsec / 1000000)
-		);
+			size_t n = strlen ("00:00:000") + 1;
+			char* time = malloc (n);
+			if (time == NULL)
+				return;
 
-		gtk_label_set_text (GTK_LABEL (timer->timer), time);
-		free (time);
+			snprintf (time, n, "%02lu:%02lu:%03lu",
+				(unsigned long) (delta.tv_sec / 60),
+				(unsigned long) (delta.tv_sec % 60),
+				(unsigned long) (delta.tv_nsec / 1000000)
+			);
+
+			gtk_label_set_text (GTK_LABEL (timer->timer), time);
+
+			free (time);
+		}
 	}
 }
 
@@ -95,6 +155,12 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 		.config		= *config,
 		.database	= database,
 	};
+
+	timer->lastTime.tv_nsec = 0;
+	timer->lastTime.tv_sec = 0;
+
+	timer->bestTime.tv_nsec = 0;
+	timer->bestTime.tv_sec = 0;
 
 	timer->overlay = gtk_overlay_new ();
 	timer->timer = gtk_label_new ("00:00:000");
