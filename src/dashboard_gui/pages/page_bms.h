@@ -12,7 +12,7 @@
 
 // Includes
 #include "page.h"
-#include "../bms_widgets.h"
+#include "../stylized_widgets/stylized_bar_graph.h"
 #include "../stylized_widgets/stylized_terminal.h"
 #include "bms/bms.h"
 #include "can_node/fault_signal.h"
@@ -27,19 +27,22 @@ typedef struct
 
 	char* cellVoltageGraphTitleFont;
 	GdkRGBA cellVoltageGraphTitleColor;
-	GdkRGBA cellVoltageGraphBarColor;
+	GdkRGBA cellVoltageGraphValidBarColor;
+	GdkRGBA cellVoltageGraphInvalidBarColor;
 	GdkRGBA cellVoltageGraphTickColor;
 	GdkRGBA cellVoltageGraphAxisColor;
 
 	char* senseLineTemperatureGraphTitleFont;
 	GdkRGBA senseLineTemperatureGraphTitleColor;
-	GdkRGBA senseLineTemperatureGraphBarColor;
+	GdkRGBA senseLineTemperatureGraphValidBarColor;
+	GdkRGBA senseLineTemperatureGraphInvalidBarColor;
 	GdkRGBA senseLineTemperatureGraphTickColor;
 	GdkRGBA senseLineTemperatureGraphAxisColor;
 
 	char* ltcTemperatureGraphTitleFont;
 	GdkRGBA ltcTemperatureGraphTitleColor;
-	GdkRGBA ltcTemperatureGraphBarColor;
+	GdkRGBA ltcTemperatureGraphValidBarColor;
+	GdkRGBA ltcTemperatureGraphInvalidBarColor;
 	GdkRGBA ltcTemperatureGraphTickColor;
 	GdkRGBA ltcTemperatureGraphAxisColor;
 } pageBmsStyle_t;
@@ -56,9 +59,9 @@ typedef struct
 	stylizedTerminal_t* term;
 
 	bms_t bms;
-	bmsBarGraph_t voltages;
-	bmsBarGraph_t temperatures;
-	bmsBarGraph_t ltcTemperatures;
+	stylizedBarGraph_t voltages;
+	stylizedBarGraph_t temperatures;
+	stylizedBarGraph_t ltcTemperatures;
 	faultSignals_t faults;
 } pageBms_t;
 

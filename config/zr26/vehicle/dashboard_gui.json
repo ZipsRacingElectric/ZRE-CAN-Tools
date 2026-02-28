@@ -813,7 +813,8 @@
 
 				"cellVoltageGraphTitleFont":			"ITC Avant Garde Gothic CE Book 18px",
 				"cellVoltageGraphTitleColor":			"#00AAFF",
-				"cellVoltageGraphBarColor":				"#00AAFF",
+				"cellVoltageGraphValidBarColor":		"#00AAFF",
+				"cellVoltageGraphInvalidBarColor":		"#FF00AA",
 				"cellVoltageGraphTickColor":			"#00AAFF",
 				"cellVoltageGraphAxisColor":			"#00AAFF",
 

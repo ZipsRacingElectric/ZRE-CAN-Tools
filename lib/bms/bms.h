@@ -327,4 +327,40 @@ static inline canDatabaseSignalState_t bmsGetStatusValue (bms_t* bms, size_t ind
  */
 size_t bmsSnprintSenseLineIndex (bms_t* bms, size_t index, char* str, size_t n);
 
+/**
+ * @brief Gets the index of the LO (negative) sense-line of a cell.
+ * @param bms The BMS to use.
+ * @param cellIndex The global index of the cell.
+ * @return The global index of the sense line.
+ */
+static inline size_t bmsGetCellLoSenseLineIndex (bms_t* bms, size_t cellIndex)
+{
+	size_t ltcIndex = cellIndex / bms->cellsPerLtc;
+	size_t cellLtcIndex = cellIndex % bms->cellsPerLtc;
+	return cellLtcIndex + ltcIndex * bms->senseLinesPerLtc;
+}
+
+/**
+ * @brief Gets the index of the HI (positive) sense-line of a cell.
+ * @param bms The BMS to use.
+ * @param cellIndex The global index of the cell.
+ * @return The global index of the sense line.
+ */
+static inline size_t bmsGetCellHiSenseLineIndex (bms_t* bms, size_t cellIndex)
+{
+	return bmsGetCellLoSenseLineIndex (bms, cellIndex) + 1;
+}
+
+// TODO(Barach): Doesn't work.
+/**
+ * @brief Gets the global index of a sense line from a logical temperature index.
+ * @param bms The BMS to use.
+ * @param index The logical temperature index.
+ * @return The global sense line index.
+ */
+static inline ssize_t bmsGetLogicalTemperatureIndex (bms_t* bms, size_t index)
+{
+	return bms->logicalTemperatureIndices [index];
+}
+
 #endif // BMS_H

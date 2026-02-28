@@ -4,7 +4,6 @@ include $(ROOT_DIR)/include.mk
 BIN := $(BIN_DIR)/dashboard-gui
 SRC :=	main.c										\
 		gtk_util.c									\
-		bms_widgets.c								\
 		page_stack.c								\
 		pages/page.c								\
 		pages/page_drive.c							\
@@ -22,10 +21,13 @@ SRC :=	main.c										\
 		can_widgets/can_fault_popup.c				\
 		can_widgets/can_float_popup.c				\
 		can_widgets/can_widget_template.c			\
+		stylized_widgets/stylized_bar_graph.c		\
 		stylized_widgets/stylized_button.c			\
 		stylized_widgets/stylized_frame.c			\
 		stylized_widgets/stylized_progress_bar.c	\
-		stylized_widgets/stylized_terminal.c
+		stylized_widgets/stylized_terminal.c		\
+		bms_widgets/cell_voltage_bar_graph.c		\
+		bms_widgets/sense_line_temperature_graph.c
 
 # Compiling and linking against GTK, so include its flags
 CFLAGS += $(LIB_GTK_CFLAGS)
