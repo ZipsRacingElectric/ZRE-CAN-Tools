@@ -124,47 +124,29 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 
 	page->buttonCount = 0;
 
-	page->timer1 = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
-		.startTime 			= { .tv_sec = 0, .tv_nsec = 0 },
-		.currentTime 		= { .tv_sec = 0, .tv_nsec = 0 },
-		.width 				= 120,
-		.height 			= 50,
-		.borderThickness 	= page->style.baseStyle->borderThickness,
-		.backgroundColor 	= page->style.baseStyle->backgroundColor,
-		.borderColor		= page->style.baseStyle->borderColor,
-		.fontColor			= page->style.baseStyle->fontColor,
-		.mode 				= 0
-	});
+	page->timer1 = canWidgetLoad (database, jsonGetObjectV2 (config, "timer"));
+	if (page->timer1 != NULL)
+	{
+		// TODO(DiBacco): find better method that doesn't involve improper object conversion
+		setMode (page->timer1, "current");
+		gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer1), 0, 0, 1, 1);
+	}
 
-	gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer1), 0, 0, 1, 1);
+	page->timer2 = canWidgetLoad (database, jsonGetObjectV2 (config, "timer"));
+	if (page->timer2 != NULL)
+	{
+		// TODO(DiBacco): find better method that doesn't involve improper object conversion
+		setMode (page->timer2, "best");
+		gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer2), 0, 1, 1, 1);
+	}
 
-	page->timer2 = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
-		.startTime 			= { .tv_sec = 0, .tv_nsec = 0 },
-		.currentTime 		= { .tv_sec = 0, .tv_nsec = 0 },
-		.width 				= 120,
-		.height 			= 50,
-		.borderThickness 	= page->style.baseStyle->borderThickness,
-		.backgroundColor 	= page->style.baseStyle->backgroundColor,
-		.borderColor		= page->style.baseStyle->borderColor,
-		.fontColor			= page->style.baseStyle->fontColor,
-		.mode 				= 1
-	});
-
-	gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer2), 0, 1, 1, 1);
-
-	page->timer3 = canLabelTimerInit (database, &(canLabelTimerConfig_t) {
-		.startTime 			= { .tv_sec = 0, .tv_nsec = 0 },
-		.currentTime 		= { .tv_sec = 0, .tv_nsec = 0 },
-		.width 				= 120,
-		.height 			= 50,
-		.borderThickness 	= page->style.baseStyle->borderThickness,
-		.backgroundColor 	= page->style.baseStyle->backgroundColor,
-		.borderColor		= page->style.baseStyle->borderColor,
-		.fontColor			= page->style.baseStyle->fontColor,
-		.mode 				= 2
-	});
-
-	gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer3), 0, 2, 1, 1);
+	page->timer3 = canWidgetLoad (database, jsonGetObjectV2 (config, "timer"));
+	if (page->timer3 != NULL)
+	{
+		// TODO(DiBacco): find better method that doesn't involve improper object conversion
+		setMode (page->timer3, "best");
+		gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer3), 0, 2, 1, 1);
+	}
 
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());
 	gtk_widget_set_margin_bottom (GTK_WIDGET (page->buttonPanel), 10);

@@ -3,6 +3,7 @@
 
 // Includes
 #include "can_label_float.h"
+#include "can_label_timer.h"
 #include "can_label_bool.h"
 #include "can_indicator.h"
 #include "cjson/cjson_util.h"
@@ -50,6 +51,18 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 		if (widget == NULL)
 		{
 			errorPrintf ("Failed to load widget of type 'canIndicator_t'");
+			return NULL;
+		}
+
+		return widget;
+	}
+
+	if (strcmp (widgetType, "canLabelTimer_t") == 0)
+	{
+		canWidget_t* widget = canLabelTimerLoad (database, config);
+		if (widget == NULL)
+		{
+			errorPrintf ("Failed to load widget of type 'canLabelTimer_t'");
 			return NULL;
 		}
 

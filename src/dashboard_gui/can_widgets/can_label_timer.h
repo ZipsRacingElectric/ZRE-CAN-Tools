@@ -40,10 +40,31 @@ typedef struct
     GdkRGBA borderColor;
     GdkRGBA fontColor;
 
-    canLabelTimerMode_t mode;
-
 } canLabelTimerConfig_t;
 
+typedef struct
+{
+	canWidgetVmt_t vmt;
+	canLabelTimerConfig_t config;
+	canDatabase_t* database;
+	GtkWidget* overlay;
+    GtkWidget* timer;
+    GtkWidget* area;
+
+	bool running;
+	bool buttonPressed;
+
+	struct timespec lastTime;
+	struct timespec bestTime;
+
+    canLabelTimerMode_t mode;
+
+} canLabelTimer_t;
+
 canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* config);
+
+canWidget_t* canLabelTimerLoad (canDatabase_t* database, cJSON* config);
+
+void setMode (canLabelTimer_t* timer, char* mode);
 
 #endif // CAN_LABEL_TIMER_H

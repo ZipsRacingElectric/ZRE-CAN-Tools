@@ -3,23 +3,6 @@
 #include "cjson/cjson_util.h"
 #include "debug.h"
 
-typedef struct
-{
-	canWidgetVmt_t vmt;
-	canLabelTimerConfig_t config;
-	canDatabase_t* database;
-	GtkWidget* overlay;
-    GtkWidget* timer;
-    GtkWidget* area;
-
-	bool running;
-	bool buttonPressed;
-
-	struct timespec lastTime;
-	struct timespec bestTime;
-
-} canLabelTimer_t;
-
 static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
 	(void) area;
@@ -40,10 +23,10 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 
 static void update (void* widget)
 {
-	float value;
+	float value = 0;
 	canLabelTimer_t* timer = widget;
 	if (canDatabaseGetFloat (timer->database, timer->config.signalIndex, &value))
-		errorPrintf (errorCodeToMessage (errno));
+		debugPrintf (errorCodeToMessage (errno));
 
 	if (value > 0.5 && !timer->buttonPressed)
 	{
@@ -57,7 +40,7 @@ static void update (void* widget)
 				if (time == NULL)
 					return;
 
-			if (timer->config.mode == LAST_TIME)
+			if (timer->mode == LAST_TIME)
 			{
 				timer->lastTime.tv_sec = delta.tv_sec;
 				timer->lastTime.tv_nsec = delta.tv_nsec;
@@ -70,7 +53,7 @@ static void update (void* widget)
 
 				gtk_label_set_text (GTK_LABEL (timer->timer), time);
 			}
-			else if (timer->config.mode == BEST_TIME)
+			else if (timer->mode == BEST_TIME)
 			{
 				if (timer->bestTime.tv_nsec == 0 && timer->bestTime.tv_sec == 0) {
 					timer->bestTime.tv_sec = delta.tv_sec;
@@ -113,7 +96,7 @@ static void update (void* widget)
 
 	if (timer->running)
 	{
-		if (timer->config.mode == CURRENT_TIME)
+		if (timer->mode == CURRENT_TIME)
 		{
 
 			clock_gettime (CLOCK_REALTIME, &timer->config.currentTime);
@@ -162,6 +145,16 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 	timer->bestTime.tv_nsec = 0;
 	timer->bestTime.tv_sec = 0;
 
+	// TODO(DiBacco): move to timer_t
+	timer->config.currentTime.tv_sec = 0;
+	timer->config.currentTime.tv_nsec = 0;
+
+	timer->config.startTime.tv_sec = 0;
+	timer->config.startTime.tv_nsec = 0;
+
+	// TODO(DiBacco): set mode via page_status
+	timer->mode = 0;
+
 	timer->overlay = gtk_overlay_new ();
 	timer->timer = gtk_label_new ("00:00:000");
 
@@ -196,3 +189,55 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 	// Cast into the base type
 	return (canWidget_t*) timer;
 }
+
+canWidget_t* canLabelTimerLoad (canDatabase_t* database, cJSON* config)
+{
+	uint16_t width;
+	if (jsonGetUint16_t (config, "width", &width) != 0)
+		return NULL;
+
+	uint16_t height;
+	if (jsonGetUint16_t (config, "height", &height) != 0)
+		return NULL;
+
+	char* backgroundColor;
+	if (jsonGetString (config, "backgroundColor", &backgroundColor) != 0)
+		return NULL;
+
+	float boarderThickness;
+	if (jsonGetFloat (config, "boarderThickness", &boarderThickness) != 0)
+		return NULL;
+
+	char* borderColor;
+	if (jsonGetString (config, "borderColor", &borderColor) != 0)
+		return NULL;
+
+	char* fontColor;
+	if (jsonGetString (config, "fontColor", &fontColor) != 0)
+		return NULL;
+
+	return canLabelTimerInit(database, &(canLabelTimerConfig_t)
+	{
+		.width  			= width,
+		.height 			= height,
+		.backgroundColor 	= gdkHexToColor (backgroundColor),
+		.borderColor 		= gdkHexToColor (borderColor),
+		.fontColor 			= gdkHexToColor (fontColor),
+		.borderThickness 	= boarderThickness
+	});
+}
+
+void setMode (canLabelTimer_t* timer, char* mode)
+{
+	if (strcmp (mode, "current") == 0)
+        timer->mode = CURRENT_TIME;
+
+	else if (strcmp (mode, "last") == 0)
+        timer->mode = LAST_TIME;
+
+	else if (strcmp (mode, "best") == 0)
+        timer->mode = BEST_TIME;
+
+	else printf ("Failed to set mode of unkown type: %s\n", mode);
+}
+

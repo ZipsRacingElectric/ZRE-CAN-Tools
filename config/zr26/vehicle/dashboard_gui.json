@@ -340,6 +340,16 @@
 			"style":
 			{
 
+			},
+			"timer":
+			{
+				"type": 								"canLabelTimer_t",
+				"width":								"120",
+				"height":								"50",
+				"backgroundColor":						"#000000",
+				"boarderThickness":						"1.5",
+				"borderColor":							"#D3792C",
+				"fontColor": 							"#F4931E"
 			}
 		},
 		{
