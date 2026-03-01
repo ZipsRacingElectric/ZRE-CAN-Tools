@@ -32,8 +32,8 @@ static void update (void* widget)
 	{
 		if (timer->running)
 		{
-			clock_gettime (CLOCK_REALTIME, &timer->config.currentTime);
-	 		struct timespec delta = timespecSub (&timer->config.currentTime, &timer->config.startTime);
+			clock_gettime (CLOCK_REALTIME, &timer->currentTime);
+	 		struct timespec delta = timespecSub (&timer->currentTime, &timer->startTime);
 
 			size_t n = strlen ("00:00:000") + 1;
 				char* time = malloc (n);
@@ -79,13 +79,13 @@ static void update (void* widget)
 
 			free (time);
 			timer->buttonPressed = true;
-			clock_gettime (CLOCK_REALTIME, &timer->config.startTime);
+			clock_gettime (CLOCK_REALTIME, &timer->startTime);
 		}
 		else
 		{
 			timer->running = true;
 			timer->buttonPressed = true;
-			clock_gettime (CLOCK_REALTIME, &timer->config.startTime);
+			clock_gettime (CLOCK_REALTIME, &timer->startTime);
 		}
 	}
 
@@ -99,8 +99,8 @@ static void update (void* widget)
 		if (timer->mode == CURRENT_TIME)
 		{
 
-			clock_gettime (CLOCK_REALTIME, &timer->config.currentTime);
-			struct timespec delta = timespecSub (&timer->config.currentTime, &timer->config.startTime);
+			clock_gettime (CLOCK_REALTIME, &timer->currentTime);
+			struct timespec delta = timespecSub (&timer->currentTime, &timer->startTime);
 
 			size_t n = strlen ("00:00:000") + 1;
 			char* time = malloc (n);
@@ -139,25 +139,23 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 		.database	= database,
 	};
 
+	// Timer Initialization
+	timer->currentTime.tv_sec = 0;
+	timer->currentTime.tv_nsec = 0;
+
+	timer->startTime.tv_sec = 0;
+	timer->startTime.tv_nsec = 0;
+
 	timer->lastTime.tv_nsec = 0;
 	timer->lastTime.tv_sec = 0;
 
 	timer->bestTime.tv_nsec = 0;
 	timer->bestTime.tv_sec = 0;
 
-	// TODO(DiBacco): move to timer_t
-	timer->config.currentTime.tv_sec = 0;
-	timer->config.currentTime.tv_nsec = 0;
-
-	timer->config.startTime.tv_sec = 0;
-	timer->config.startTime.tv_nsec = 0;
-
-	// TODO(DiBacco): set mode via page_status
-	timer->mode = 0;
-
 	timer->overlay = gtk_overlay_new ();
 	timer->timer = gtk_label_new ("00:00:000");
 
+	// TODO(DiBacco): change font size configuration to work via gtk_utils method and with the page's font size specification
 	PangoAttrList* attrList = pango_attr_list_new ();
 	PangoAttribute* fontSize = pango_attr_size_new (20 * PANGO_SCALE);
 	pango_attr_list_insert (attrList, fontSize);

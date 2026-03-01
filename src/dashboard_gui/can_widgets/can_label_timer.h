@@ -26,9 +26,6 @@ typedef struct
 
 typedef struct
 {
-    struct timespec startTime;
-    struct timespec currentTime;
-
     int height;
     int width;
 
@@ -53,6 +50,9 @@ typedef struct
 
 	bool running;
 	bool buttonPressed;
+
+    struct timespec startTime;
+    struct timespec currentTime;
 
 	struct timespec lastTime;
 	struct timespec bestTime;
