@@ -82,9 +82,10 @@ static void update (void* pageArg)
 {
 	pageStatus_t* page = pageArg;
 
-	canWidgetUpdate (page->timer1);
-	canWidgetUpdate (page->timer2);
-	canWidgetUpdate (page->timer3);
+	for (size_t timerIndex = 0; timerIndex < page->size; ++timerIndex)
+	{
+		canWidgetUpdate (page->timers[timerIndex]);
+	}
 }
 
 page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
@@ -124,28 +125,21 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 
 	page->buttonCount = 0;
 
-	page->timer1 = canWidgetLoad (database, jsonGetObjectV2 (config, "timer"));
-	if (page->timer1 != NULL)
-	{
-		// TODO(DiBacco): find better method that doesn't involve improper object conversion
-		setMode (page->timer1, "current");
-		gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer1), 0, 0, 1, 1);
-	}
+	page->size = 3;
+	page->timers = malloc (sizeof(canLabelTimer_t) * page->size);
+	if (page->timers == NULL)
+		return NULL;
 
-	page->timer2 = canWidgetLoad (database, jsonGetObjectV2 (config, "timer"));
-	if (page->timer2 != NULL)
-	{
-		// TODO(DiBacco): find better method that doesn't involve improper object conversion
-		setMode (page->timer2, "best");
-		gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer2), 0, 1, 1, 1);
-	}
+	char* modes [] = {"current", "best", "last"};
 
-	page->timer3 = canWidgetLoad (database, jsonGetObjectV2 (config, "timer"));
-	if (page->timer3 != NULL)
+	for (size_t timerIndex = 0; timerIndex < page->size; ++timerIndex)
 	{
-		// TODO(DiBacco): find better method that doesn't involve improper object conversion
-		setMode (page->timer3, "best");
-		gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timer3), 0, 2, 1, 1);
+		page->timers[timerIndex] = canWidgetLoad (database, jsonGetObjectV2 (config, "timer"));
+		if (page->timers[timerIndex] != NULL)
+		{
+			setMode (page->timers[timerIndex], modes[timerIndex]);
+			gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timers[timerIndex]), 0, timerIndex, 1, 1);
+		}
 	}
 
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());

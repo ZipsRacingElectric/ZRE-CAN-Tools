@@ -227,8 +227,10 @@ canWidget_t* canLabelTimerLoad (canDatabase_t* database, cJSON* config)
 	});
 }
 
-void setMode (canLabelTimer_t* timer, char* mode)
+void setMode (void* widget, char* mode)
 {
+	canLabelTimer_t* timer = widget;
+
 	if (strcmp (mode, "current") == 0)
         timer->mode = CURRENT_TIME;
 
@@ -238,6 +240,6 @@ void setMode (canLabelTimer_t* timer, char* mode)
 	else if (strcmp (mode, "best") == 0)
         timer->mode = BEST_TIME;
 
-	else printf ("Failed to set mode of unkown type: %s\n", mode);
+	else debugPrintf ("Failed to set mode of unkown type: %s\n", mode);
 }
 

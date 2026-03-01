@@ -65,6 +65,6 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 
 canWidget_t* canLabelTimerLoad (canDatabase_t* database, cJSON* config);
 
-void setMode (canLabelTimer_t* timer, char* mode);
+void setMode (void* widget, char* mode);
 
 #endif // CAN_LABEL_TIMER_H
