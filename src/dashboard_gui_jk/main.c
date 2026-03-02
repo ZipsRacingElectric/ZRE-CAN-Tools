@@ -6,8 +6,9 @@
 
 canDatabase_t database;
 
-static gboolean update_counter(GtkWidget* label[]) {
-    // Check if label array is valid
+static gboolean update_counter(GtkLabel* label[]) {
+	g_print("Label address: %p\n", label[0]);
+	// Check if label array is valid
     if (label == NULL || label[0] == NULL) {
         g_warning("Invalid label array");
         return FALSE;
@@ -26,8 +27,9 @@ static gboolean update_counter(GtkWidget* label[]) {
     if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID) {
         snprintf(text, sizeof(text), "%.2f", value);  // Format with 2 decimal places
     }
-
-    gtk_label_set_text(GTK_LABEL(label[0]), text);
+	GtkLabel* label_p = label[0];
+	g_print("Setting Label");
+    gtk_label_set_text(label_p, "Word");
     return TRUE; // Continue calling this function
 }
 
@@ -86,20 +88,33 @@ static void activate(GtkApplication* app, gpointer title) {
     GtkWidget* grid;
     GtkWidget* brake_front_percent = NULL;
     GtkWidget* can_label[1];
+	GtkWidget* speed;
 
     /* Create a new window and set its title */
     window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), title);
-    gtk_window_fullscreen(GTK_WINDOW(window));
+	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
+    //gtk_window_fullscreen(GTK_WINDOW(window));
 
     // Apply CSS to set a gradient background from red to green
     set_window_css(window);
 
     /* Construct the Container that will hold buttons */
     grid = gtk_grid_new();
+	speed = gtk_label_new("Speed");
 
     /* Pack the container in the window */
     gtk_window_set_child(GTK_WINDOW(window), grid);
+
+	/* Speed Grid Setup */
+	gtk_widget_set_valign(grid, GTK_ALIGN_CENTER);
+	gtk_widget_set_halign(grid, GTK_ALIGN_CENTER);	
+	//gtk_widget_set_margin_start(speed_grid,100);
+	//gtk_grid_attach(GTK_GRID(speed_grid), speed, 0 , 0 , 4 , 4);
+
+
+	gtk_grid_set_row_spacing(GTK_GRID(grid), 10);
+	gtk_grid_set_column_spacing(GTK_GRID(grid), 10);
 
     brake_front_percent = gtk_label_new("Hello World");
     can_label[0] = brake_front_percent;
@@ -118,7 +133,8 @@ static void activate(GtkApplication* app, gpointer title) {
     g_signal_connect_swapped(button, "clicked", G_CALLBACK(gtk_window_destroy), window);
     gtk_grid_attach(GTK_GRID(grid), button, 0, 1, 2, 1);
 
-    g_timeout_add(33, (GSourceFunc)update_counter, can_label);
+    //g_print("Label address: %p\n", can_label[0]);
+	//g_timeout_add(33, (GSourceFunc)update_counter, can_label[0]);
 
     gtk_window_present(GTK_WINDOW(window));
 }
@@ -126,12 +142,11 @@ static void activate(GtkApplication* app, gpointer title) {
 int main (int argc, char** argv)
 {
 
-        GtkApplication* app;
         int status;
 
         if (argc != 4)
         {
-                fprintf (stderr, "Invalid usage: dashboard <Application Name> <Device Name> <DBC File Path>");
+                fprintf (stderr, "Invalid usage: dashboard <Application Name> <Device Name> <DBC File Path> \n");
                 return -1;
         }
 
@@ -156,7 +171,7 @@ int main (int argc, char** argv)
         char* applicationId = malloc (applicationIdSize);
         snprintf (applicationId, applicationIdSize, "%s.%s", APPLICATION_DOMAIN, applicationName);
 
-        app = gtk_application_new (applicationId, G_APPLICATION_DEFAULT_FLAGS);
+        GtkApplication* app = gtk_application_new (applicationId, 0);
         g_signal_connect (app, "activate", G_CALLBACK (activate), applicationName);
         status = g_application_run (G_APPLICATION (app), argc - 3, argv);
         g_object_unref (app);
