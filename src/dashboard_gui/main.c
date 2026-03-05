@@ -21,6 +21,10 @@
 // GTK
 #include <gtk/gtk.h>
 
+// Globals --------------------------------------------------------------------------------------------------------------------
+
+bool fullscreen = false;
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 static void fprintUsage (FILE* stream)
@@ -45,6 +49,18 @@ static void fprintHelp (FILE* stream)
 
 	fprintCanDeviceNameHelp (stream, "    ");
 	fprintCanDbcFileHelp (stream, "    ");
+
+	fprintf (stream, ""
+		"Options:\n\n"
+		"    --fullscreen          - Start the application in fullscreen mode.\n\n");
+	fprintOptionHelp (stream, "    ");
+}
+
+static void handleOptionFullscreen (char* option, char* value)
+{
+	(void) option;
+	(void) value;
+	fullscreen = true;
 }
 
 typedef struct
@@ -105,6 +121,10 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	GtkWidget* window = gtk_application_window_new (app);
 	gtk_window_set_title (GTK_WINDOW (window), arg->applicationTitle);
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
+
+	// If defaulting to fullscreen, set it.
+	if (fullscreen)
+		gtk_window_fullscreen (GTK_WINDOW (window));
 
 	pageStack_t* stack = pageStackInit ();
 	gtk_window_set_child (GTK_WINDOW (window), PAGE_STACK_TO_WIDGET (stack));
@@ -202,49 +222,54 @@ int main (int argc, char** argv)
 {
 	// TODO(Barach): Instancing multiple apps is weird? Consider passing args into app name?
 
+	// The argc and argv to pass GTK (just the application name).
+	char** gtkArgv = argv;
+	int gtkArgc = 1;
+
 	// Debug initialization
 	debugInit ();
 
 	// Check standard arguments
-	for (int index = 1; index < argc; ++index)
+	if (handleOptions (&argc, &argv, &(handleOptionsParams_t)
 	{
-		switch (handleOption (argv [index], NULL, fprintHelp))
+		.fprintHelp		= fprintHelp,
+		.charHandlers	= NULL,
+		.chars			= NULL,
+		.charCount		= 0,
+		.stringHandlers	= (optionStringCallback_t* [])
 		{
-		case OPTION_CHAR:
-		case OPTION_STRING:
-			fprintf (stderr, "Unknown argument '%s'.\n", argv [index]);
-			return -1;
-
-		case OPTION_QUIT:
-			return 0;
-
-		default:
-			break;
-		}
-	}
+			handleOptionFullscreen
+		},
+		.strings		= (char* [])
+		{
+			"fullscreen"
+		},
+		.stringCount	= 1
+	}) != 0)
+		return errorPrintf ("Failed to handle options");
 
 	// Validate usage
-	if (argc < 4)
+	if (argc < 3)
 	{
 		fprintUsage (stderr);
 		return -1;
 	}
 
 	// Load the config file
-	char* configPath = argv [argc - 3];
+	char* configPath = argv [0];
 	cJSON* config = jsonLoad (configPath);
 	if (config == NULL)
 		return errorPrintf ("Failed to load config JSON '%s'", configPath);
 
 	// Initialize the CAN device
-	char* deviceName = argv [argc - 2];
+	char* deviceName = argv [1];
 	canDevice_t* device = canInit (deviceName);
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 
 	// Initialize the CAN database
 	canDatabase_t database;
-	char* dbcPath = argv [argc - 1];
+	char* dbcPath = argv [2];
 	if (canDatabaseInit (&database, device, dbcPath) != 0)
 		return errorPrintf ("Failed to initialize CAN database '%s'", dbcPath);
 
@@ -275,7 +300,7 @@ int main (int argc, char** argv)
 	// Create the GTK application bound to the activation signal
 	GtkApplication* app = gtk_application_new (applicationId, G_APPLICATION_DEFAULT_FLAGS);
 	g_signal_connect (app, "activate", G_CALLBACK (gtkActivate), &arg);
-	int status = g_application_run (G_APPLICATION (app), 1, argv);
+	int status = g_application_run (G_APPLICATION (app), gtkArgc, gtkArgv);
 	g_object_unref (app);
 
 	// Deallocate the application ID.
