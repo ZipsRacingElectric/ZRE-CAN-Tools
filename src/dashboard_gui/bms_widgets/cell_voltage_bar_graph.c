@@ -40,25 +40,16 @@ void bmsCellVoltageBarGraphDrawForeground (stylizedBarGraph_t* graph, cairo_t* c
 
 		if (index % (bms->cellsPerLtc * bms->ltcsPerSegment) == 0)
 		{
-			// cairo_move_to (cr, x, 0);
-			// cairo_line_to (cr, x, 10);
-
 			cairo_move_to (cr, x, context->yAxisPosition + 8);
 			cairo_line_to (cr, x, context->yAxisPosition - 8);
 		}
 		else if (index % bms->cellsPerLtc == 0)
 		{
-			// cairo_move_to (cr, x, 0);
-			// cairo_line_to (cr, x, 5);
-
 			cairo_move_to (cr, x, context->yAxisPosition + 4);
 			cairo_line_to (cr, x, context->yAxisPosition - 4);
 		}
 		else
 		{
-			// cairo_move_to (cr, x, 0);
-			// cairo_line_to (cr, x, 2.5);
-
 			cairo_move_to (cr, x, context->yAxisPosition + 2);
 			cairo_line_to (cr, x, context->yAxisPosition - 2);
 		}

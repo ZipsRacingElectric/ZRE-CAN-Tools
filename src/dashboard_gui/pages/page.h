@@ -11,6 +11,7 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
+#include "../can_widgets/can_widget.h"
 #include "can_database/can_database.h"
 #include "cjson/cjson.h"
 
@@ -23,6 +24,7 @@ typedef struct pageStack pageStack_t;
 
 typedef struct
 {
+	canWidgetStyle_t widgetStyle;
 	GdkRGBA backgroundColor;
 	GdkRGBA fontColor;
 	GdkRGBA borderColor;
@@ -62,6 +64,7 @@ typedef struct
 
 page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
 
+// TODO(Barach): Needs work
 pageStyle_t* pageStyleLoad (cJSON* config, pageStyle_t* parent);
 
 static inline void pageUpdate (page_t* page)

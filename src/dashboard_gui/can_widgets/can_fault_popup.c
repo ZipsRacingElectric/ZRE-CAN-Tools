@@ -2,6 +2,7 @@
 #include "can_fault_popup.h"
 
 // Includes
+#include "can_widget.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
 
@@ -72,7 +73,7 @@ canWidget_t* canFaultPopupInit (canDatabase_t* database, canFaultPopupConfig_t* 
 		},
 		.config		= *config,
 		.database	= database,
-		.frame		= stylizedFrameInit (&config->frameConfig),
+		.frame		= stylizedFrameInit (&config->style.frameConfig),
 		.label		= GTK_LABEL (gtk_label_new ("")),
 		.faulted	= false,
 		.index		= -1
@@ -90,12 +91,14 @@ canWidget_t* canFaultPopupInit (canDatabase_t* database, canFaultPopupConfig_t* 
 	stylizedFrameSetChild (popup->frame, GTK_WIDGET (popup->label));
 
 	// Set the font color
-	gtkLabelSetColor (popup->label, &popup->config.frameConfig.borderColor);
-	int margin = config->padding + config->frameConfig.borderThickness;
+	gtkLabelSetColor (popup->label, &popup->config.style.frameConfig.borderColor);
+	int margin = config->style.padding + config->style.frameConfig.borderThickness;
 	gtk_widget_set_margin_bottom (GTK_WIDGET (popup->label), margin);
 	gtk_widget_set_margin_top (GTK_WIDGET (popup->label), margin);
 	gtk_widget_set_margin_start (GTK_WIDGET (popup->label), margin);
 	gtk_widget_set_margin_end (GTK_WIDGET (popup->label), margin);
+	if (config->style.font != NULL)
+		gtkLabelSetFont (popup->label, popup->config.style.font);
 
 	// Update initial value
 	update (popup);
@@ -104,7 +107,7 @@ canWidget_t* canFaultPopupInit (canDatabase_t* database, canFaultPopupConfig_t* 
 	return (canWidget_t*) popup;
 }
 
-canWidget_t* canFaultPopupLoad (canDatabase_t* database, cJSON* config)
+canWidget_t* canFaultPopupLoad (canDatabase_t* database, cJSON* config, canFaultPopupStyle_t* parentStyle)
 {
 	canFaultPopupConfig_t widgetConfig;
 
@@ -122,37 +125,50 @@ canWidget_t* canFaultPopupLoad (canDatabase_t* database, cJSON* config)
 	if (faultSignalsLoad (&widgetConfig.faults, nodeConfig, database) != 0)
 		return NULL;
 
-	// Get the format string
 	if (jsonGetString (config, "format", &widgetConfig.format) != 0)
 		return NULL;
 
-	if (jsonGetString (config, "font", &widgetConfig.font) != 0)
-		return NULL;
+	jsonGetInt (config, "width", &widgetConfig.width);
+	jsonGetInt (config, "height", &widgetConfig.height);
 
-	uint16_t width = 0;
-	if (jsonGetUint16_t (config, "width", &width) == 0)
-		widgetConfig.width = width;
-
-	uint16_t height = 0;
-	if (jsonGetUint16_t (config, "height", &height) == 0)
-		widgetConfig.height = height;
-
-	uint16_t padding = 0;
-	if (jsonGetUint16_t (config, "padding", &padding) == 0)
-		widgetConfig.padding = padding;
-
-	char* color;
-	if (jsonGetString (config, "backgroundColor", &color) != 0)
-		return NULL;
-	widgetConfig.frameConfig.backgroundColor = gdkHexToColor (color);
-
-	if (jsonGetString (config, "borderColor", &color) != 0)
-		return NULL;
-	widgetConfig.frameConfig.borderColor = gdkHexToColor (color);
-
-	jsonGetFloat (config, "borderThickness", &widgetConfig.frameConfig.borderThickness);
-
-	jsonGetFloat (config, "cornerRadius", &widgetConfig.frameConfig.cornerRadius);
+	cJSON* style = jsonGetObjectV2 (config, "style");
+	canFaultPopupLoadStyle (style, &widgetConfig.style, parentStyle);
 
 	return canFaultPopupInit (database, &widgetConfig);
+}
+
+void canFaultPopupLoadStyle (cJSON* config, canFaultPopupStyle_t* style, canFaultPopupStyle_t* parent)
+{
+	if (parent != NULL)
+		*style = *parent;
+	else
+	{
+		*style = (canFaultPopupStyle_t)
+		{
+			.frameConfig =
+			{
+				.backgroundColor	= gdkHexToColor ("#000000"),
+				.borderColor		= gdkHexToColor ("#FFFFFF"),
+				.borderThickness	= 1.5f,
+				.cornerRadius		= 0
+			},
+			.font					= NULL,
+			.padding				= 0,
+		};
+	}
+
+	if (config == NULL)
+		return;
+
+	char* color;
+
+	if (jsonGetString (config, "backgroundColor", &color) == 0)
+		style->frameConfig.backgroundColor = gdkHexToColor (color);
+	if (jsonGetString (config, "borderColor", &color) == 0)
+		style->frameConfig.borderColor = gdkHexToColor (color);
+
+	jsonGetFloat (config, "borderThickness", &style->frameConfig.borderThickness);
+	jsonGetFloat (config, "cornerRadius", &style->frameConfig.cornerRadius);
+	jsonGetString (config, "font", &style->font);
+	jsonGetInt (config, "padding", &style->padding);
 }

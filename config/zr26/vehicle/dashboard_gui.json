@@ -13,6 +13,7 @@
 	},
 	"pages":
 	[
+
 		{
 			"type":										"pageDrive_t",
 			"name":										"AUTO-X",
@@ -167,6 +168,9 @@
 				]
 			}
 		},
+
+
+
 		{
 			"type":										"pageDrive_t",
 			"name":										"ENDR.",
@@ -338,11 +342,63 @@
 				]
 			}
 		},
+
+
+
 		{
 			"type":										"pageStatus_t",
 			"name":										"STAT.",
 			"style":
 			{
+				"baseStyle":
+				{
+					"widgetStyle":
+					{
+						"canIndicator":
+						{
+							"font":						"Futura Std Bold Condensed 20px",
+							"bgActiveColor":			"#FF0064",
+							"bgInactiveColor":			"#67C3FF",
+							"bgInvalidColor":			"#1E2E39",
+							"borderActiveColor":		"#AAAAAA",
+							"borderInactiveColor":		"#AAAAAA",
+							"borderInvalidColor":		"#AAAAAA",
+							"fontActiveColor":			"#000000",
+							"fontInactiveColor":		"#000000",
+							"fontInvalidColor":			"#000000",
+							"borderThickness":			"1.5"
+						},
+						"canShutdownLoopIndicator":
+						{
+							"textPosition":				"4",
+							"fontSize":					"12",
+							"socketSize":				"8",
+							"socketDepth":				"14",
+							"plugThickness":			"20",
+							"lineThickness":			"3",
+							"peakHeight":				"30",
+							"openPosition":				"20",
+							"closedPosition":			"50",
+							"socketLength":				"90",
+							"lineColor":				"#665400",
+							"plugColor":				"#9E8100",
+							"textColor":				"#000000",
+							"borderColor":				"#F6CA00",
+							"borderThickness":			"1.5",
+							"animationTime":			"0.05",
+							"animationDelay":			"0"
+						},
+						"canFaultPopup":
+						{
+							"font":						"Consolas Bold 12px",
+							"padding":					"2",
+							"backgroundColor":			"#000000",
+							"borderColor":				"#FF0064",
+							"borderThickness":			"3",
+							"cornerRadius":				"8"
+						}
+					}
+				},
 				"shutdownLineThickness":				"3",
 				"shutdownLineColor":					"#665400",
 				"shutdownLineSlope":					"0.25"
@@ -352,107 +408,51 @@
 			[
 				{
 					"type":								"canShutdownLoopIndicator_t",
-					"signal":							"SHUTDOWN_VEHICLE_CLOSED",
+					"signalName":						"SHUTDOWN_VEHICLE_CLOSED",
 					"threshold":						"0.5",
-					"inverted":							"false",
 					"text":								"Vehicle",
 					"width":							"170",
 					"height":							"70",
-					"socketSize":						"8",
-					"socketDepth":						"14",
-					"plugThickness":					"20",
-					"lineThickness":					"3",
-					"peakHeight":						"30",
-					"openPosition":						"20",
-					"closedPosition":					"50",
-					"plugLength":						"90",
-					"lineColor":						"#665400",
-					"plugColor":						"#9e8100",
-					"textColor":						"#000000",
-					"borderColor":						"#f6ca00",
-					"borderThickness":					"1.5",
-					"fontSize":							"12",
-					"textOffset":						"4",
-					"animationTime":					"0.05",
-					"animationDelay":					"0"
+					"style":
+					{
+						"animationDelay":				"0"
+					}
 				},
 				{
 					"type":								"canShutdownLoopIndicator_t",
-					"signal":							"SHUTDOWN_IMD_CLOSED",
+					"signalName":						"SHUTDOWN_IMD_CLOSED",
 					"threshold":						"0.5",
-					"inverted":							"false",
 					"text":								"IMD Relay",
 					"width":							"170",
 					"height":							"70",
-					"socketSize":						"8",
-					"socketDepth":						"14",
-					"plugThickness":					"20",
-					"lineThickness":					"3",
-					"peakHeight":						"30",
-					"openPosition":						"20",
-					"closedPosition":					"50",
-					"plugLength":						"90",
-					"lineColor":						"#665400",
-					"plugColor":						"#9e8100",
-					"textColor":						"#000000",
-					"borderColor":						"#f6ca00",
-					"borderThickness":					"1.5",
-					"fontSize":							"12",
-					"textOffset":						"4",
-					"animationTime":					"0.05",
-					"animationDelay":					"0.05"
+					"style":
+					{
+						"animationDelay":				"0.05"
+					}
 				},
 				{
 					"type":								"canShutdownLoopIndicator_t",
-					"signal":							"SHUTDOWN_BMS_CLOSED",
+					"signalName":						"SHUTDOWN_BMS_CLOSED",
 					"threshold":						"0.5",
-					"inverted":							"false",
 					"text":								"BMS Relay",
 					"width":							"170",
 					"height":							"70",
-					"socketSize":						"8",
-					"socketDepth":						"14",
-					"plugThickness":					"20",
-					"lineThickness":					"3",
-					"peakHeight":						"30",
-					"openPosition":						"20",
-					"closedPosition":					"50",
-					"plugLength":						"90",
-					"lineColor":						"#665400",
-					"plugColor":						"#9e8100",
-					"textColor":						"#000000",
-					"borderColor":						"#f6ca00",
-					"borderThickness":					"1.5",
-					"fontSize":							"12",
-					"textOffset":						"4",
-					"animationTime":					"0.05",
-					"animationDelay":					"0.1"
+					"style":
+					{
+						"animationDelay":				"0.1"
+					}
 				},
 				{
 					"type":								"canShutdownLoopIndicator_t",
-					"signal":							"SHUTDOWN_MSD_TSMS_CLOSED",
+					"signalName":						"SHUTDOWN_MSD_TSMS_CLOSED",
 					"threshold":						"0.5",
-					"inverted":							"false",
 					"text":								"MSD/TSMS",
 					"width":							"170",
 					"height":							"70",
-					"socketSize":						"8",
-					"socketDepth":						"14",
-					"plugThickness":					"20",
-					"lineThickness":					"3",
-					"peakHeight":						"30",
-					"openPosition":						"20",
-					"closedPosition":					"50",
-					"plugLength":						"90",
-					"lineColor":						"#665400",
-					"plugColor":						"#9e8100",
-					"textColor":						"#000000",
-					"borderColor":						"#f6ca00",
-					"borderThickness":					"1.5",
-					"fontSize":							"12",
-					"textOffset":						"4",
-					"animationTime":					"0.05",
-					"animationDelay":					"0.15"
+					"style":
+					{
+						"animationDelay":				"0.15"
+					}
 				}
 			],
 			"positiveIr":
@@ -460,38 +460,50 @@
 				"type":									"canIndicator_t",
 				"signalName":							"POSITIVE_IR_ENABLED",
 				"threshold":							"0.5",
-				"inverted":								"false",
 				"width":								"70",
 				"height":								"36",
-				"bgActiveColor":						"#000000",
-				"borderActiveColor":					"#00FFAA",
-				"borderInactiveColor":					"#005636",
-				"fontActiveColor":						"#00FFAA",
-				"fontInactiveColor":					"#005636",
 				"shape":								"rect",
-				"cornerRadius":							"8",
 				"text":									"+IR",
-				"font":									"Futura Std Bold Condensed 24px",
-				"borderThickness":						"4"
+				"style":
+				{
+					"font":								"Futura Std Bold Condensed 24px",
+					"cornerRadius":						"8",
+					"borderThickness":					"4",
+					"bgActiveColor":					"#000000",
+					"bgInactiveColor":					"#000000",
+					"bgInvalidColor":					"#000000",
+					"borderActiveColor":				"#00FFAA",
+					"borderInactiveColor":				"#005636",
+					"borderInvalidColor":				"#005636",
+					"fontActiveColor":					"#00FFAA",
+					"fontInactiveColor":				"#005636",
+					"fontInvalidColor":					"#005636"
+				}
 			},
 			"negativeIr":
 			{
 				"type":									"canIndicator_t",
 				"signalName":							"NEGATIVE_IR_ENABLED",
 				"threshold":							"0.5",
-				"inverted":								"false",
 				"width":								"70",
 				"height":								"36",
-				"bgActiveColor":						"#000000",
-				"borderActiveColor":					"#00FFAA",
-				"borderInactiveColor":					"#005636",
-				"fontActiveColor":						"#00FFAA",
-				"fontInactiveColor":					"#005636",
 				"shape":								"rect",
-				"cornerRadius":							"8",
 				"text":									"-IR",
-				"font":									"Futura Std Bold Condensed 24px",
-				"borderThickness":						"4"
+				"style":
+				{
+					"font":								"Futura Std Bold Condensed 24px",
+					"cornerRadius":						"8",
+					"borderThickness":					"4",
+					"bgActiveColor":					"#000000",
+					"bgInactiveColor":					"#000000",
+					"bgInvalidColor":					"#000000",
+					"borderActiveColor":				"#00FFAA",
+					"borderInactiveColor":				"#005636",
+					"borderInvalidColor":				"#005636",
+					"fontActiveColor":					"#00FFAA",
+					"fontInactiveColor":				"#005636",
+					"fontInvalidColor":					"#005636"
+				}
 			},
 			"diagramBackground":						"$ZRE_CANTOOLS_DIR/config/zr26/wireframe.png",
 			"diagramIndicators":
@@ -504,19 +516,14 @@
 						"type":							"canIndicator_t",
 						"signalName":					"VCU_FAULT",
 						"threshold":					"0.5",
-						"inverted":						"false",
 						"width":						"50",
 						"height":						"30",
-						"bgActiveColor":				"#ff0064",
-						"bgInactiveColor":				"#67c3ff",
-						"bgInvalidColor":				"#1e2e39",
-						"borderActiveColor":			"#AAAAAA",
-						"fontActiveColor":				"#000000",
 						"shape":						"rect",
 						"text":							"VCU",
-						"font":							"Futura Std Bold Condensed 20px",
-						"borderThickness":				"1.5",
-						"blinkInterval":				"0.7"
+						"style":
+						{
+							"blinkInterval":			"0.7"
+						}
 					}
 				},
 				{
@@ -527,19 +534,14 @@
 						"type":							"canIndicator_t",
 						"signalName":					"BSPD_FAULT",
 						"threshold":					"0.5",
-						"inverted":						"false",
 						"width":						"50",
 						"height":						"30",
-						"bgActiveColor":				"#ff0064",
-						"bgInactiveColor":				"#67c3ff",
-						"bgInvalidColor":				"#1e2e39",
-						"borderActiveColor":			"#AAAAAA",
-						"fontActiveColor":				"#000000",
 						"shape":						"rect",
 						"text":							"BSPD",
-						"font":							"Futura Std Bold Condensed 20px",
-						"borderThickness":				"1.5",
-						"blinkInterval":				"0.75"
+						"style":
+						{
+							"blinkInterval":			"0.75"
+						}
 					}
 				},
 				{
@@ -550,14 +552,8 @@
 						"type":							"canFaultPopup_t",
 						"configPath":					"$ZRE_CANTOOLS_DIR/config/zr26/vcu_config.json",
 						"format":						"%s",
-						"font":							"Consolas Bold 18px",
 						"width":						"200",
-						"height":						"0",
-						"padding":						"2",
-						"backgroundColor":				"#000000",
-						"borderColor":					"#FF0064",
-						"borderThickness":				"3",
-						"cornerRadius":					"8"
+						"height":						"0"
 					}
 				},
 				{
@@ -568,19 +564,14 @@
 						"type":							"canIndicator_t",
 						"signalName":					"BMS_FAULT",
 						"threshold":					"0.5",
-						"inverted":						"false",
 						"width":						"60",
 						"height":						"75",
-						"bgActiveColor":				"#ff0064",
-						"bgInactiveColor":				"#67c3ff",
-						"bgInvalidColor":				"#1e2e39",
-						"borderActiveColor":			"#AAAAAA",
-						"fontActiveColor":				"#000000",
 						"shape":						"rect",
 						"text":							"BMS",
-						"font":							"Futura Std Bold Condensed 20px",
-						"borderThickness":				"1.5",
-						"blinkInterval":				"0.8"
+						"style":
+						{
+							"blinkInterval":			"0.8"
+						}
 					}
 				},
 				{
@@ -591,14 +582,8 @@
 						"type":							"canFaultPopup_t",
 						"configPath":					"$ZRE_CANTOOLS_DIR/config/zr26/bms_config.json",
 						"format":						"%s",
-						"font":							"Consolas Bold 18px",
 						"width":						"200",
-						"height":						"0",
-						"padding":						"2",
-						"backgroundColor":				"#000000",
-						"borderColor":					"#FF0064",
-						"borderThickness":				"3",
-						"cornerRadius":					"8"
+						"height":						"0"
 					}
 				},
 				{
@@ -609,19 +594,14 @@
 						"type":							"canIndicator_t",
 						"signalName":					"IMD_FAULT",
 						"threshold":					"0.5",
-						"inverted":						"false",
 						"width":						"60",
 						"height":						"75",
-						"bgActiveColor":				"#ff0064",
-						"bgInactiveColor":				"#67c3ff",
-						"bgInvalidColor":				"#1e2e39",
-						"borderActiveColor":			"#AAAAAA",
-						"fontActiveColor":				"#000000",
 						"shape":						"rect",
 						"text":							"IMD",
-						"font":							"Futura Std Bold Condensed 20px",
-						"borderThickness":				"1.5",
-						"blinkInterval":				"0.85"
+						"style":
+						{
+							"blinkInterval":			"0.85"
+						}
 					}
 				},
 				{
@@ -632,19 +612,14 @@
 						"type":							"canIndicator_t",
 						"signalName":					"RL_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
-						"inverted":						"false",
 						"width":						"40",
 						"height":						"50",
-						"bgActiveColor":				"#ff0064",
-						"bgInactiveColor":				"#67c3ff",
-						"bgInvalidColor":				"#1e2e39",
-						"borderActiveColor":			"#AAAAAA",
-						"fontActiveColor":				"#000000",
 						"shape":						"rect",
 						"text":							"AMK\nRL",
-						"font":							"Futura Std Bold Condensed 18px",
-						"borderThickness":				"1.5",
-						"blinkInterval":				"0.9"
+						"style":
+						{
+							"blinkInterval":			"0.9"
+						}
 					}
 				},
 				{
@@ -656,7 +631,7 @@
 						"signalName":					"RL_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
-						"format":						"Error: %.0f",
+						"format":						"ERROR: %.0f",
 						"font":							"Consolas Bold 18px",
 						"width":						"200",
 						"height":						"0",
@@ -678,16 +653,12 @@
 						"inverted":						"false",
 						"width":						"40",
 						"height":						"50",
-						"bgActiveColor":				"#ff0064",
-						"bgInactiveColor":				"#67c3ff",
-						"bgInvalidColor":				"#1e2e39",
-						"borderActiveColor":			"#AAAAAA",
-						"fontActiveColor":				"#000000",
 						"shape":						"rect",
 						"text":							"AMK\nRR",
-						"font":							"Futura Std Bold Condensed 18px",
-						"borderThickness":				"1.5",
-						"blinkInterval":				"0.95"
+						"style":
+						{
+							"blinkInterval":			"0.95"
+						}
 					}
 				},
 				{
@@ -699,7 +670,7 @@
 						"signalName":					"RR_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
-						"format":						"Error: %.0f",
+						"format":						"ERROR: %.0f",
 						"font":							"Consolas Bold 18px",
 						"width":						"200",
 						"height":						"0",
@@ -721,16 +692,12 @@
 						"inverted":						"false",
 						"width":						"40",
 						"height":						"50",
-						"bgActiveColor":				"#ff0064",
-						"bgInactiveColor":				"#67c3ff",
-						"bgInvalidColor":				"#1e2e39",
-						"borderActiveColor":			"#AAAAAA",
-						"fontActiveColor":				"#000000",
 						"shape":						"rect",
 						"text":							"AMK\nFL",
-						"font":							"Futura Std Bold Condensed 18px",
-						"borderThickness":				"1.5",
-						"blinkInterval":				"1.00"
+						"style":
+						{
+							"blinkInterval":			"1.05"
+						}
 					}
 				},
 				{
@@ -742,7 +709,7 @@
 						"signalName":					"FL_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
-						"format":						"Error: %.0f",
+						"format":						"ERROR: %.0f",
 						"font":							"Consolas Bold 18px",
 						"width":						"200",
 						"height":						"0",
@@ -764,16 +731,12 @@
 						"inverted":						"false",
 						"width":						"40",
 						"height":						"50",
-						"bgActiveColor":				"#ff0064",
-						"bgInactiveColor":				"#67c3ff",
-						"bgInvalidColor":				"#1e2e39",
-						"borderActiveColor":			"#AAAAAA",
-						"fontActiveColor":				"#000000",
 						"shape":						"rect",
 						"text":							"AMK\nFR",
-						"font":							"Futura Std Bold Condensed 18px",
-						"borderThickness":				"1.5",
-						"blinkInterval":				"1.05"
+						"style":
+						{
+							"blinkInterval":			"1.1"
+						}
 					}
 				},
 				{
@@ -785,7 +748,7 @@
 						"signalName":					"FR_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
-						"format":						"Error: %.0f",
+						"format":						"ERROR: %.0f",
 						"font":							"Consolas Bold 18px",
 						"width":						"200",
 						"height":						"0",
@@ -798,6 +761,9 @@
 				}
 			]
 		},
+
+
+
 		{
 			"type":										"pageBms_t",
 			"name":										"BMS",
@@ -831,6 +797,9 @@
 				"ltcTemperatureGraphAxisColor":			"#00FFAA"
 			}
 		},
+
+
+
 		{
 			"type":										"pageCanBus_t",
 			"name":										"CAN",
@@ -844,5 +813,6 @@
 				"terminalBackgroundColor":				"#001012"
 			}
 		}
+
 	]
 }

@@ -131,5 +131,9 @@ pageStyle_t* pageStyleLoad (cJSON* config, pageStyle_t* parent)
 
 	jsonGetString (config, "buttonFont", &style->buttonFont);
 
+	// TODO(Barach): HOW TO DO
+	cJSON* widgetStyle = jsonGetObjectV2 (config, "widgetStyle");
+	canWidgetLoadStyle (&style->widgetStyle, widgetStyle, &parent->widgetStyle);
+
 	return style;
 }

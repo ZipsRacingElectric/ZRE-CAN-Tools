@@ -12,13 +12,23 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_database/can_database.h"
-#include "cjson/cjson.h"
+#include "can_indicator.h"
+#include "can_shutdown_loop_indicator.h"
+#include "can_widget_internal.h"
+#include "can_fault_popup.h"
 
 // GTK
 #include <gtk/gtk.h>
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
+
+/// @brief Object representing the base style any CAN widget can inherit from.
+typedef struct
+{
+	canIndicatorStyle_t canIndicator;
+	canShutdownLoopIndicatorStyle_t canShutdownLoopIndicator;
+	canFaultPopupStyle_t canFaultPopup;
+} canWidgetStyle_t;
 
 /**
  * @brief Virtual method table entry for implementations of the @c canWidgetUpdate function.
@@ -34,11 +44,11 @@ typedef struct
 } canWidgetVmt_t;
 
 /// @brief Base polymorphic object for all CAN database widgets.
-typedef struct
+struct canWidget
 {
 	/// @brief The object's virtual method table. Must be the first element in derived structures.
 	canWidgetVmt_t vmt;
-} canWidget_t;
+};
 
 /// @brief Converts a CAN widget into a GTK widget.
 #define CAN_WIDGET_TO_WIDGET(wdgt) ((wdgt)->vmt.widget)
@@ -53,7 +63,7 @@ typedef struct
  * widget specified by "type".
  * @return The created widget, if successful, @c NULL otherwise.
  */
-canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config);
+canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetStyle_t* style);
 
 /**
  * @brief Prompts a CAN widget to update its information.
@@ -65,5 +75,13 @@ static inline void canWidgetUpdate (canWidget_t* widget)
 	if (widget != NULL)
 		widget->vmt.update (widget);
 }
+
+/**
+ * @brief Loads a base CAN widget style from a JSON configuration.
+ * @param style The style to load into.
+ * @param config The JSON config to use.
+ * @param parent The base CAN widget style to inherit from.
+ */
+void canWidgetLoadStyle (canWidgetStyle_t* style, cJSON* config, canWidgetStyle_t* parent);
 
 #endif // CAN_WIDGET_H

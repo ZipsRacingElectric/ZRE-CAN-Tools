@@ -202,7 +202,7 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	for (size_t index = 0; index < page->widgetCount; ++index)
 	{
 		cJSON* widgetConfig = cJSON_GetArrayItem (widgetConfigs, index);
-		page->widgets [index] = canWidgetLoad (database, widgetConfig);
+		page->widgets [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
 		if (page->widgets [index] == NULL)
 			continue;
 
@@ -225,7 +225,7 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	for (size_t index = 0; index < page->shutdownIndicatorCount; ++index)
 	{
 		cJSON* widgetConfig = cJSON_GetArrayItem (shutdownConfigs, index);
-		page->shutdownIndicators [index] = canWidgetLoad (database, widgetConfig);
+		page->shutdownIndicators [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
 		if (page->shutdownIndicators [index] == NULL)
 			continue;
 
@@ -239,12 +239,12 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	gtk_grid_attach (GTK_GRID (shutdownPanel), shutdownLines, page->shutdownIndicatorCount, 0, 1, 2);
 
 	cJSON* positiveIr = jsonGetObjectV2 (config, "positiveIr");
-	page->positiveIr = canWidgetLoad (database, positiveIr);
+	page->positiveIr = canWidgetLoad (database, positiveIr, &page->style.baseStyle->widgetStyle);
 	if (page->positiveIr != NULL)
 		gtk_grid_attach (GTK_GRID (shutdownPanel), CAN_WIDGET_TO_WIDGET (page->positiveIr), page->shutdownIndicatorCount + 1, 0, 1, 1);
 
 	cJSON* negativeIr = jsonGetObjectV2 (config, "negativeIr");
-	page->negativeIr = canWidgetLoad (database, negativeIr);
+	page->negativeIr = canWidgetLoad (database, negativeIr, &page->style.baseStyle->widgetStyle);
 	if (page->negativeIr != NULL)
 		gtk_grid_attach (GTK_GRID (shutdownPanel), CAN_WIDGET_TO_WIDGET (page->negativeIr), page->shutdownIndicatorCount + 1, 1, 1, 1);
 
@@ -289,7 +289,7 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 		jsonGetUint16_t (indicatorConfig, "yPosition", &y);
 
 		cJSON* widgetConfig = jsonGetObjectV2 (indicatorConfig, "widget");
-		page->diagramIndicators [index] = canWidgetLoad (database, widgetConfig);
+		page->diagramIndicators [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
 
 		if (page->diagramIndicators [index] == NULL)
 			continue;

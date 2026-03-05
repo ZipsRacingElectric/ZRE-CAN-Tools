@@ -13,7 +13,7 @@
 #include "cjson/cjson_util.h"
 #include "debug.h"
 
-canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
+canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetStyle_t* style)
 {
 	if (config == NULL)
 		return NULL;
@@ -51,7 +51,7 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 
 	if (strcmp (widgetType, "canIndicator_t") == 0)
 	{
-		canWidget_t* widget = canIndicatorLoad (database, config);
+		canWidget_t* widget = canIndicatorLoad (database, config, &style->canIndicator);
 		if (widget == NULL)
 		{
 			errorPrintf ("Failed to load widget of type 'canIndicator_t'");
@@ -75,7 +75,7 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 
 	if (strcmp (widgetType, "canShutdownLoopIndicator_t") == 0)
 	{
-		canWidget_t* widget = canShutdownLoopIndicatorLoad (database, config);
+		canWidget_t* widget = canShutdownLoopIndicatorLoad (database, config, &style->canShutdownLoopIndicator);
 		if (widget == NULL)
 		{
 			errorPrintf ("Failed to load widget of type 'canShutdownLoopIndicator_t'");
@@ -87,7 +87,7 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 
 	if (strcmp (widgetType, "canFaultPopup_t") == 0)
 	{
-		canWidget_t* widget = canFaultPopupLoad (database, config);
+		canWidget_t* widget = canFaultPopupLoad (database, config, &style->canFaultPopup);
 		if (widget == NULL)
 		{
 			errorPrintf ("Failed to load widget of type 'canFaultPopup_t'");
@@ -126,4 +126,20 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config)
 
 	fprintf (stderr, "Failed to load widget of unknown type '%s'.\n", widgetType);
 	return NULL;
+}
+
+#define STRINGIFY(str) #str
+#define CONCETENATE(a, b) a ## b
+
+#define LOAD_STYLE_STATEMENTS(type)																		\
+	styleConfig = config != NULL ? jsonGetObjectV2 (config, STRINGIFY (type)) : NULL;					\
+	CONCETENATE (type, LoadStyle) (styleConfig, &style->type, parent != NULL ? &parent->type : NULL);
+
+void canWidgetLoadStyle (canWidgetStyle_t* style, cJSON* config, canWidgetStyle_t* parent)
+{
+	cJSON* styleConfig;
+
+	LOAD_STYLE_STATEMENTS (canIndicator);
+	LOAD_STYLE_STATEMENTS (canShutdownLoopIndicator);
+	LOAD_STYLE_STATEMENTS (canFaultPopup);
 }

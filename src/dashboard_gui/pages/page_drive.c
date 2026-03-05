@@ -366,7 +366,7 @@ static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* da
 	{
 		cJSON* widgetConfig = cJSON_GetArrayItem (widgetConfigs, index);
 
-		page->centerPanelWidgets [index] = canWidgetLoad (database, widgetConfig);
+		page->centerPanelWidgets [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
 		if (page->centerPanelWidgets [index] != NULL)
 		{
 			GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->centerPanelWidgets [index]);
@@ -442,7 +442,7 @@ static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* data
 	{
 		cJSON* widgetConfig = cJSON_GetArrayItem (widgetConfigs, index);
 
-		(*widgets) [index] = canWidgetLoad (database, widgetConfig);
+		(*widgets) [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
 		if ((*widgets) [index] != NULL)
 		{
 			GtkWidget* widget = CAN_WIDGET_TO_WIDGET ((*widgets) [index]);
@@ -573,7 +573,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_widget_set_valign (GTK_WIDGET (page->dataLoggerPanel), GTK_ALIGN_FILL);
 	gtk_widget_set_margin_top (GTK_WIDGET (page->dataLoggerPanel), 20);
 
-	page->dataLoggerTitle = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerTitle"));
+	page->dataLoggerTitle = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerTitle"), &page->style.baseStyle->widgetStyle);
 	if (page->dataLoggerTitle != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerTitle);
@@ -585,7 +585,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		gtk_grid_attach (page->dataLoggerPanel, widget, 0, 0, 1, 1);
 	}
 
-	page->dataLoggerStat = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerStat"));
+	page->dataLoggerStat = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerStat"), &page->style.baseStyle->widgetStyle);
 	if (page->dataLoggerStat != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerStat);
@@ -622,9 +622,9 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= false,
 		.width			= 100,
 		.height			= 42,
-		.bgInactiveColor= page->style.faultInactiveColor,
-		.bgActiveColor	= page->style.faultActiveColor,
-		.bgInvalidColor	= page->style.faultActiveColor,
+		// .bgInactiveColor= page->style.faultInactiveColor,
+		// .bgActiveColor	= page->style.faultActiveColor,
+		// .bgInvalidColor	= page->style.faultActiveColor,
 		.shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->vcuFault), GTK_ALIGN_FILL);
@@ -647,9 +647,9 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= false,
 		.width			= 100,
 		.height			= 42,
-		.bgInactiveColor= page->style.faultInactiveColor,
-		.bgActiveColor	= page->style.faultActiveColor,
-		.bgInvalidColor	= page->style.faultActiveColor,
+		// .bgInactiveColor= page->style.faultInactiveColor,
+		// .bgActiveColor	= page->style.faultActiveColor,
+		// .bgInvalidColor	= page->style.faultActiveColor,
 		.shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->bmsFault), GTK_ALIGN_FILL);
@@ -670,9 +670,9 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= false,
 		.width			= 100,
 		.height			= 42,
-		.bgInactiveColor= page->style.faultInactiveColor,
-		.bgActiveColor	= page->style.faultActiveColor,
-		.bgInvalidColor	= page->style.faultActiveColor,
+		// .bgInactiveColor= page->style.faultInactiveColor,
+		// .bgActiveColor	= page->style.faultActiveColor,
+		// .bgInvalidColor	= page->style.faultActiveColor,
 		.shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->amkFault), GTK_ALIGN_FILL);
@@ -693,9 +693,9 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= true,
 		.width			= 100,
 		.height			= 42,
-		.bgInactiveColor= page->style.faultInactiveColor,
-		.bgActiveColor	= page->style.faultActiveColor,
-		.bgInvalidColor	= page->style.faultActiveColor,
+		// .bgInactiveColor= page->style.faultInactiveColor,
+		// .bgActiveColor	= page->style.faultActiveColor,
+		// .bgInvalidColor	= page->style.faultActiveColor,
 		.shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->gpsFault), GTK_ALIGN_FILL);

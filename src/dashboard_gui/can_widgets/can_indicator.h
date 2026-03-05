@@ -13,13 +13,56 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_widget.h"
+#include "can_widget_internal.h"
 #include "can_database/can_database.h"
+#include "cjson/cjson.h"
 
 // GTK
 #include <gtk/gtk.h>
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
+
+typedef struct
+{
+	/// @brief The font to use for the displayed text.
+	char* font;
+
+	/// @brief The color of the background when active. Default black.
+	GdkRGBA bgActiveColor;
+
+	/// @brief The color of the background when inactive. Default black.
+	GdkRGBA bgInactiveColor;
+
+	/// @brief The color of the background when invalid. Default black.
+	GdkRGBA bgInvalidColor;
+
+	/// @brief The color of the border when active. Default white.
+	GdkRGBA borderActiveColor;
+
+	/// @brief The color of the border when inactive. Default white.
+	GdkRGBA borderInactiveColor;
+
+	/// @brief The color of the border when invalid. Default white.
+	GdkRGBA borderInvalidColor;
+
+	/// @brief The color of the font when active. Default white.
+	GdkRGBA fontActiveColor;
+
+	/// @brief The color of the font when inactive. Default white.
+	GdkRGBA fontInactiveColor;
+
+	/// @brief The color of the font when invalid. Default white.
+	GdkRGBA fontInvalidColor;
+
+	/// @brief The radius of the shape's corners (if any), in pixels. Default 0.
+	float cornerRadius;
+
+	/// @brief The thickness of the shape's border, in pixels. Default 0.
+	float borderThickness;
+
+	/// @brief The amount of time, in seconds, of the interval to blink at. Use 0 for no blinking. Default 0.
+	float blinkInterval;
+} canIndicatorStyle_t;
 
 typedef enum
 {
@@ -33,65 +76,29 @@ typedef enum
 /// @brief Configuration for the @c canIndicator_t widget.
 typedef struct
 {
-	/// @brief The name of the CAN database signal to bind to.
-	const char* signalName;
+	/// @brief The name of the CAN database signal to bind to. Required.
+	char* signalName;
 
-	/// @brief The threshold to compare the signal against.
+	/// @brief The threshold to compare the signal against. Required.
 	float threshold;
 
-	/// @brief False => active if signal > threshold. True active if signal < threshold.
+	/// @brief False => active if signal > threshold. True active if signal < threshold. Default false.
 	bool inverted;
 
-	/// @brief The text to display on the indicator, if any.
+	/// @brief The text to display on the indicator, if any. Default none.
 	char* text;
 
-	/// @brief The font to use for the displayed text, if any.
-	char* font;
-
-	/// @brief The color of the background when active.
-	GdkRGBA bgActiveColor;
-
-	/// @brief The color of the background when inactive.
-	GdkRGBA bgInactiveColor;
-
-	/// @brief The color of the background when invalid.
-	GdkRGBA bgInvalidColor;
-
-	/// @brief The color of the border when active.
-	GdkRGBA borderActiveColor;
-
-	/// @brief The color of the border when inactive.
-	GdkRGBA borderInactiveColor;
-
-	/// @brief The color of the border when invalid.
-	GdkRGBA borderInvalidColor;
-
-	/// @brief The color of the font when active.
-	GdkRGBA fontActiveColor;
-
-	/// @brief The color of the font when inactive.
-	GdkRGBA fontInactiveColor;
-
-	/// @brief The color of the font when invalid.
-	GdkRGBA fontInvalidColor;
-
-	/// @brief The shape to render the indicator as.
+	/// @brief The shape to render the indicator as. Required.
 	canIndicatorShape_t shape;
 
-	/// @brief Default / minimum width of the widget.
+	/// @brief Default / minimum width of the widget. Default 0.
 	int width;
 
-	/// @brief Default / minimum height of the widget.
+	/// @brief Default / minimum height of the widget. Default 0.
 	int height;
 
-	/// @brief The radius of the shape's corners (if any).
-	float cornerRadius;
-
-	/// @brief The thickness of the border, if any.
-	float borderThickness;
-
-	/// @brief The amount of time, in seconds, of the interval to blink at. Use 0 for no blinking.
-	float blinkInterval;
+	/// @brief The style of the widget.
+	canIndicatorStyle_t style;
 } canIndicatorConfig_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -99,8 +106,7 @@ typedef struct
 /**
  * @brief Creates and initializes a CAN indicator.
  * @param database The CAN database to bind to.
- * @param config The configuration to use. Note a copy is made, so temporary pointers are acceptable, however the @c polygon
- * array is not copied deeply, so it must match the lifetime of this widget.
+ * @param config The configuration to use. Note a copy is made, so temporary pointers are acceptable.
  * @return The created widget, if successful, @c NULL otherwise.
  */
 canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* config);
@@ -109,8 +115,17 @@ canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* co
  * @brief Creates and initializes a CAN indicator widget from a JSON configuration.
  * @param database The CAN database to bind to.
  * @param config The JSON configuration to load from.
+ * @param parentStyle The parent style to inherit from, or @c NULL .
  * @return The created widget, if successful, @c NULL otherwise.
  */
-canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config);
+canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config, canIndicatorStyle_t* parentStyle);
+
+/**
+ * @brief Loads a CAN indicator widget's style from a JSON configuration.
+ * @param config JSON configuration to use.
+ * @param style The style to load into.
+ * @param parent The parent style to inherit from, or @c NULL .
+ */
+void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndicatorStyle_t* parent);
 
 #endif // CAN_WIDGETS_H

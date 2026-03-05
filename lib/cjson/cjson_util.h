@@ -9,6 +9,9 @@
 // Description: Set of utility functions for working with the cJSON library. Do not confuse this as part of this library, it is
 //   merely a small extension to cleanup code working with the actual library.
 
+// TODO(Barach): Documentation and cleanup
+// - Ints don't validate success.
+
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
@@ -32,6 +35,10 @@ int jsonGetObject (cJSON* json, const char* key, cJSON** object);
 cJSON* jsonGetObjectV2 (cJSON* json, const char* key);
 
 int jsonGetString (cJSON* json, const char* key, char** value);
+
+int jsonGetInt (cJSON* json, const char* key, int* value);
+
+int jsonGetUnsigned (cJSON* json, const char* key, unsigned* value);
 
 int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value);
 
