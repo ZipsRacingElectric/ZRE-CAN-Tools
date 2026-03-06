@@ -34,7 +34,7 @@ static gboolean update_counter(GtkLabel* label[]) {
 }
 
 
-static void print_hello (GtkWidget* widget, gpointer data)
+/* static void print_hello (GtkWidget* widget, gpointer data)
 {
         (void) widget;
         (void) data;
@@ -46,7 +46,7 @@ static void print_hello (GtkWidget* widget, gpointer data)
 }
 static void winscreen (GtkWidget* widget, GtkWindow* window)
 {
-        //**Default is Fullscreen**//
+        //Default is Fullscreen
 
         //Set Window Unfullscreen
         if (gtk_window_is_fullscreen (GTK_WINDOW(window)) == true)
@@ -70,7 +70,7 @@ static void quit (GtkWidget* widget, gpointer data)
         (void) widget;
         (void) data;
         g_print ("Quit!\n");
-}
+}*/
 
 static void set_window_css(GtkWidget *window) {
     GtkCssProvider *css_provider = gtk_css_provider_new();
@@ -84,54 +84,59 @@ static void set_window_css(GtkWidget *window) {
 }
 static void activate(GtkApplication* app, gpointer title) {
     GtkWidget* window;
-    GtkWidget* button;
     GtkWidget* grid;
-    GtkWidget* brake_front_percent = NULL;
-    GtkWidget* can_label[1];
-	GtkWidget* speed;
+	GtkWidget* page_sl_box;
+	GtkWidget* info_box;
+    GtkWidget* speed;
+	GtkWidget* data_logger;
+	GtkWidget* speed_btn;
+	GtkWidget* lap_btn;
+	GtkWidget* endr_btn;
+	GtkWidget* bms_btn;
+
 
     /* Create a new window and set its title */
     window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), title);
-	gtk_window_set_default_size (GTK_WINDOW (window), 800, 480);
-    //gtk_window_fullscreen(GTK_WINDOW(window));
+    gtk_window_set_default_size(GTK_WINDOW(window), 800, 480);
 
-    // Apply CSS to set a gradient background from red to green
+    // Apply CSS to set a gradient background
     set_window_css(window);
 
-    /* Construct the Container that will hold buttons */
+	// Setup Grid
     grid = gtk_grid_new();
-	speed = gtk_label_new("Speed");
-
-    /* Pack the container in the window */
+    
     gtk_window_set_child(GTK_WINDOW(window), grid);
 
-	/* Speed Grid Setup */
-	gtk_widget_set_valign(grid, GTK_ALIGN_CENTER);
-	gtk_widget_set_halign(grid, GTK_ALIGN_CENTER);	
-	//gtk_widget_set_margin_start(speed_grid,100);
-	//gtk_grid_attach(GTK_GRID(speed_grid), speed, 0 , 0 , 4 , 4);
-
-
+    gtk_widget_set_halign(grid, GTK_ALIGN_CENTER);  
+    gtk_widget_set_valign(grid, GTK_ALIGN_CENTER);  
+	
 	gtk_grid_set_row_spacing(GTK_GRID(grid), 10);
-	gtk_grid_set_column_spacing(GTK_GRID(grid), 10);
+    gtk_grid_set_column_spacing(GTK_GRID(grid), 10);
 
-    brake_front_percent = gtk_label_new("Hello World");
-    can_label[0] = brake_front_percent;
-    gtk_grid_attach(GTK_GRID(grid), can_label[0], 0, 2, 5, 1);
+	speed = gtk_label_new("42");
+	gtk_grid_attach(GTK_GRID(grid), speed, 0, 0, 1, 1); 
 
-    button = gtk_button_new_with_label("Button 1");
-    g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
-    gtk_grid_attach(GTK_GRID(grid), button, 0, 0, 1, 1);
+	gtk_widget_set_halign(speed, GTK_ALIGN_CENTER);  
+    gtk_widget_set_valign(speed, GTK_ALIGN_CENTER);  
+	
 
-    button = gtk_button_new_with_label("Unfullscreen");
-    g_signal_connect(button, "clicked", G_CALLBACK(winscreen), window);
-    gtk_grid_attach(GTK_GRID(grid), button, 1, 0, 1, 1);
+	data_logger = gtk_label_new("Logger");
+	gtk_grid_attach(GTK_GRID(grid), data_logger, -1, -1, 1, 1);
 
-    button = gtk_button_new_with_label("Quit");
-    g_signal_connect(button, "clicked", G_CALLBACK(quit), NULL);
-    g_signal_connect_swapped(button, "clicked", G_CALLBACK(gtk_window_destroy), window);
-    gtk_grid_attach(GTK_GRID(grid), button, 0, 1, 2, 1);
+	page_sl_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+	gtk_grid_attach(GTK_GRID(grid), page_sl_box, -1, 5, 4, 1);
+	gtk_box_set_homogeneous(GTK_BOX(page_sl_box), TRUE);
+
+	speed_btn = gtk_button_new_with_label ("Speed");
+	lap_btn = gtk_button_new_with_label ("LAP");
+	endr_btn = gtk_button_new_with_label ("ENDR");
+	bms_btn = gtk_button_new_with_label ("BMS");
+
+	gtk_box_append (GTK_BOX (page_sl_box), speed_btn);
+  	gtk_box_append (GTK_BOX (page_sl_box), lap_btn);
+	gtk_box_append (GTK_BOX (page_sl_box), endr_btn);
+  	gtk_box_append (GTK_BOX (page_sl_box), bms_btn);
 
     //g_print("Label address: %p\n", can_label[0]);
 	//g_timeout_add(33, (GSourceFunc)update_counter, can_label[0]);
