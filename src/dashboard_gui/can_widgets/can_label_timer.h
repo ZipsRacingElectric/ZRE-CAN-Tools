@@ -31,6 +31,9 @@ typedef struct
 
     size_t signalIndex;
 
+	// REVIEW(Barach): For now the stylization is probably fine, but we'll likely want to simplify in favor of using the page's
+	//   style. Don't worry about this until we start overhauling most CAN widget styles, just wanted to put the note here now.
+
     float borderThickness;
 
     GdkRGBA backgroundColor;
@@ -65,6 +68,8 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 
 canWidget_t* canLabelTimerLoad (canDatabase_t* database, cJSON* config);
 
+// REVIEW(Barach): Either this should have the same prefix as the other functions ("canLabelTimerSetMode") or it should be
+//   made static and not included in the header. Static is probably best, as this string should come from the config JSON.
 void setMode (void* widget, char* mode);
 
 #endif // CAN_LABEL_TIMER_H

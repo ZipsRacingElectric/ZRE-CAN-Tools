@@ -25,16 +25,31 @@ static void update (void* widget)
 {
 	float value = 0;
 	canLabelTimer_t* timer = widget;
+
+	// REVIEW(Barach): canDatabaseGetFloat is one of the few functions that doesn't write to errno on failure, instead the
+	//   return value indicates why it failed. In general, this only fails if a signal is timed out, in which case the timer
+	//   should display "--:--:---" instead of writing to the debug stream. See return value enum docs for how to check.
+
 	if (canDatabaseGetFloat (timer->database, timer->config.signalIndex, &value))
 		debugPrintf (errorCodeToMessage (errno));
 
+	// REVIEW(Barach): Eventually we'll want this 0.5 pulled out into a "threshold" value and an "inverted" option added. Can use:
+	//
+	// if ((value >= threshold) != inverted)
+	//
+	// to check if the button is pressed.
+	//
 	if (value > 0.5 && !timer->buttonPressed)
 	{
 		if (timer->running)
 		{
+			// REVIEW(Barach): I'd replace this with CLOCK_MONOTONIC, as realtime clock is subject to resynchronizations (can
+			//   go backwards).
 			clock_gettime (CLOCK_REALTIME, &timer->currentTime);
 	 		struct timespec delta = timespecSub (&timer->currentTime, &timer->startTime);
 
+			// REVIEW(Barach): Memory allocation can be pretty slow, I'd replace this with either a statically allocated buffer
+			//   (in the structure) or one that is allocated during initialization.
 			size_t n = strlen ("00:00:000") + 1;
 				char* time = malloc (n);
 				if (time == NULL)
@@ -45,6 +60,11 @@ static void update (void* widget)
 				timer->lastTime.tv_sec = delta.tv_sec;
 				timer->lastTime.tv_nsec = delta.tv_nsec;
 
+				// REVIEW(Barach): Nothing wrong with this, but I'd probably pull this out into a function just to clean things
+				//   up. Ex:
+				//
+				//     void setText (canLabelTimer_t* timer, struct timespec* timestamp)
+				//
 				snprintf (time, n, "%02lu:%02lu:%03lu",
 					(unsigned long) (timer->lastTime.tv_sec / 60),
 					(unsigned long) (timer->lastTime.tv_sec % 60),
@@ -61,6 +81,13 @@ static void update (void* widget)
 				}
 				else
 				{
+					// REVIEW(Barach): This comparison isn't correct. Timespec A is only less than timespec B if:
+					//   A.tv_sec < B.tv_sec || (A.tv_sec == B.tv_sec && A.tv_nsec < B.tv_nsec)
+					//
+					//   You can use the timespecCompare macro to do this:
+					//
+					//     timespecCompare(a, b, <) // for A < B.
+					//
 					if (delta.tv_sec <= timer->bestTime.tv_sec && delta.tv_nsec <= timer->bestTime.tv_nsec)
 					{
 						timer->bestTime.tv_sec = delta.tv_sec;
@@ -89,6 +116,7 @@ static void update (void* widget)
 		}
 	}
 
+	// REVIEW(Barach): Same threshold/inverted as above.
 	if (value < 0.5 && timer->buttonPressed)
 	{
 		timer->buttonPressed = false;
@@ -152,6 +180,7 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 	timer->bestTime.tv_nsec = 0;
 	timer->bestTime.tv_sec = 0;
 
+	// REVIEW(Barach): In general, '--' is used to indicate a timeout, so I'd default to "--:--:---"
 	timer->overlay = gtk_overlay_new ();
 	timer->timer = gtk_label_new ("00:00:000");
 
@@ -190,6 +219,8 @@ canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* 
 
 canWidget_t* canLabelTimerLoad (canDatabase_t* database, cJSON* config)
 {
+	// REVIEW(Barach): The timer's mode should be loaded in from the config file.
+
 	uint16_t width;
 	if (jsonGetUint16_t (config, "width", &width) != 0)
 		return NULL;
@@ -238,6 +269,6 @@ void setMode (void* widget, char* mode)
 	else if (strcmp (mode, "best") == 0)
         timer->mode = BEST_TIME;
 
-	else debugPrintf ("Failed to set mode of unkown type: %s\n", mode);
+	else debugPrintf ("Failed to set mode of unknown type: %s\n", mode);
 }
 
