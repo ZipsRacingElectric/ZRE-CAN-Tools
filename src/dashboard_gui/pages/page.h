@@ -78,6 +78,10 @@ typedef struct
 
 #define PAGE_TO_WIDGET(page) ((page)->vmt.widget)
 
+#define PAGE_STYLE(page)			((page)->style)
+#define PAGE_BASE_STYLE(page)		((page)->style.baseStyle)
+#define PAGE_WIDGET_STYLE(page)		(&(page)->style.baseStyle->widgetStyle)
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);

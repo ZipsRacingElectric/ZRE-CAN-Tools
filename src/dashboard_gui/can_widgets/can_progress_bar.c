@@ -2,6 +2,9 @@
 #include "can_progress_bar.h"
 
 // Includes
+#include "../gtk_util.h"
+#include "cjson/cjson_util.h"
+#include "debug.h"
 #include "zre_math.h"
 
 typedef struct
@@ -45,7 +48,7 @@ canWidget_t* canProgressBarInit (canDatabase_t* database, canProgressBarConfig_t
 			.widget	= NULL
 		},
 		.config		= *config,
-		.bar		= stylizedProgressBarInit (&config->barConfig),
+		.bar		= stylizedProgressBarInit (&config->style.barConfig),
 		.database	= database,
 		.index		= canDatabaseFindSignal (database, config->signalName)
 	};
@@ -58,4 +61,81 @@ canWidget_t* canProgressBarInit (canDatabase_t* database, canProgressBarConfig_t
 
 	// Cast into the base type
 	return (canWidget_t*) bar;
+}
+
+canWidget_t* canProgressBarLoad (canDatabase_t* database, cJSON* config, canProgressBarStyle_t* parentStyle)
+{
+	canProgressBarConfig_t widgetConfig;
+
+	// Load config fields. Exit early is required field is not specified.
+
+	if (jsonGetString (config, "signalName", &widgetConfig.signalName) != 0)
+		return NULL;
+
+	if (jsonGetFloat (config, "min", &widgetConfig.min) != 0)
+		return NULL;
+
+	if (jsonGetFloat (config, "max", &widgetConfig.max) != 0)
+		return NULL;
+
+	cJSON* styleConfig = jsonGetObjectV2 (config, "style");
+	canProgressBarLoadStyle (styleConfig, &widgetConfig.style, parentStyle);
+
+	return canProgressBarInit (database, &widgetConfig);
+}
+
+void canProgressBarLoadStyle (cJSON* config, canProgressBarStyle_t* style, canProgressBarStyle_t* parent)
+{
+	if (parent != NULL)
+		// If a parent is specified, inherit everything.
+		*style = *parent;
+	else
+	{
+		// If no parent is specified, use default values.
+		*style = (canProgressBarStyle_t)
+		{
+			.barConfig =
+			{
+				.width				= 100,
+				.height				= 10,
+				.borderThickness	= 1.5f,
+				.orientation		= GTK_ORIENTATION_HORIZONTAL,
+				.inverted			= false,
+				.backgroundColor	= gdkHexToColor ("#000000"),
+				.fillColor			= gdkHexToColor ("#FFFFFF"),
+				.borderColor		= gdkHexToColor ("#FFFFFF")
+			}
+		};
+	}
+
+	// If no config was provided, use what we have.
+	if (config == NULL)
+		return;
+
+	// Load style fields, if specified.
+
+	jsonGetInt (config, "width", &style->barConfig.width);
+	jsonGetInt (config, "height", &style->barConfig.height);
+	jsonGetFloat (config, "borderThickness", &style->barConfig.borderThickness);
+
+	char* orientationStr;
+	if (jsonGetString (config, "orientation", &orientationStr) == 0)
+	{
+		if (strcmp (orientationStr, "horizontal") == 0)
+			style->barConfig.orientation = GTK_ORIENTATION_HORIZONTAL;
+		else if (strcmp (orientationStr, "vertical") == 0)
+			style->barConfig.orientation = GTK_ORIENTATION_VERTICAL;
+		else
+			debugPrintf ("Invalid CAN progress bar orientation '%s'.\n", orientationStr);
+	}
+
+	jsonGetBool (config, "inverted", &style->barConfig.inverted);
+
+	char* color;
+	if (jsonGetString (config, "backgroundColor", &color) == 0)
+		style->barConfig.backgroundColor = gdkHexToColor (color);
+	if (jsonGetString (config, "fillColor", &color) == 0)
+		style->barConfig.fillColor = gdkHexToColor (color);
+	if (jsonGetString (config, "borderColor", &color) == 0)
+		style->barConfig.borderColor = gdkHexToColor (color);
 }

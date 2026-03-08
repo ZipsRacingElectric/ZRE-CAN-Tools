@@ -25,9 +25,6 @@ typedef struct
 {
 	pageStyle_t* baseStyle;
 
-	GdkRGBA appsColor;
-	GdkRGBA bseColor;
-
 	GdkRGBA decalTickColorLight;
 	GdkRGBA decalTickColorDark;
 	float decalUpperTickSpacing;
@@ -37,9 +34,6 @@ typedef struct
 	float decalHeight;
 	float decalThickness;
 	float decalWidth;
-
-	GdkRGBA faultActiveColor;
-	GdkRGBA faultInactiveColor;
 
 	GdkRGBA gradientStartColor;
 	float gradientStartPosition;
@@ -85,8 +79,8 @@ typedef struct
 	canWidget_t** faultIndicators;
 	size_t faultIndicatorCount;
 
-	canWidget_t* bse;
-	canWidget_t* apps;
+	canWidget_t* leftProgressBar;
+	canWidget_t* rightProgressBar;
 	canWidget_t* dataLoggerTitle;
 	canWidget_t* dataLoggerStat;
 } pageDrive_t;

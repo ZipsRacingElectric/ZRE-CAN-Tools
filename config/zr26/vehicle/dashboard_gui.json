@@ -34,12 +34,17 @@
 							"fontInvalidColor":			"#000000",
 							"fontInactiveColor":		"#000000",
 							"borderThickness":			"0"
+						},
+						"canProgressBar":
+						{
+							"width":					"10",
+							"borderThickness":			"1.5",
+							"orientation":				"vertical",
+							"inverted":					"false",
+							"backgroundColor":			"#000000"
 						}
 					}
 				},
-
-				"appsColor":							"#51BC58",
-				"bseColor":								"#FF0000",
 
 				"decalTickColorLight":					"#51BC58",
 				"decalTickColorDark":					"#000000",
@@ -50,9 +55,6 @@
 				"decalHeight":							"6.0",
 				"decalThickness":						"2.0",
 				"decalWidth":							"6.0",
-
-				"faultActiveColor":						"#FF0000",
-				"faultInactiveColor":					"#580000",
 
 				"gradientStartColor":					"#B63D24",
 				"gradientStartPosition":				"0.0",
@@ -216,7 +218,31 @@
 					"threshold":						"0.5",
 					"height":							"42"
 				}
-			]
+			],
+			"leftProgressBar":
+			{
+				"type":									"canProgressBar",
+				"signalName":							"BSE_FRONT_PERCENT",
+				"min":									"0",
+				"max":									"100",
+				"style":
+				{
+					"fillColor":						"#FF0000",
+					"borderColor":						"#000000"
+				}
+			},
+			"rightProgressBar":
+			{
+				"type":									"canProgressBar",
+				"signalName":							"APPS_1_PERCENT",
+				"min":									"0",
+				"max":									"100",
+				"style":
+				{
+					"fillColor":						"#51BC58",
+					"borderColor":						"#51BC58"
+				}
+			}
 		},
 
 
@@ -241,12 +267,17 @@
 							"fontInvalidColor":			"#000000",
 							"fontInactiveColor":		"#000000",
 							"borderThickness":			"0"
+						},
+						"canProgressBar":
+						{
+							"width":					"10",
+							"borderThickness":			"1.5",
+							"orientation":				"vertical",
+							"inverted":					"false",
+							"backgroundColor":			"#000000"
 						}
 					}
 				},
-
-				"appsColor":							"#51BC58",
-				"bseColor":								"#FF0000",
 
 				"decalTickColorLight":					"#51BC58",
 				"decalTickColorDark":					"#000000",
@@ -257,9 +288,6 @@
 				"decalHeight":							"6.0",
 				"decalThickness":						"2.0",
 				"decalWidth":							"6.0",
-
-				"faultActiveColor":						"#FF0000",
-				"faultInactiveColor":					"#580000",
 
 				"gradientStartColor":					"#B63D24",
 				"gradientStartPosition":				"0.0",
@@ -440,7 +468,31 @@
 					"threshold":						"0.5",
 					"height":							"42"
 				}
-			]
+			],
+			"leftProgressBar":
+			{
+				"type":									"canProgressBar",
+				"signalName":							"BSE_FRONT_PERCENT",
+				"min":									"0",
+				"max":									"100",
+				"style":
+				{
+					"fillColor":						"#FF0000",
+					"borderColor":						"#000000"
+				}
+			},
+			"rightProgressBar":
+			{
+				"type":									"canProgressBar",
+				"signalName":							"APPS_1_PERCENT",
+				"min":									"0",
+				"max":									"100",
+				"style":
+				{
+					"fillColor":						"#51BC58",
+					"borderColor":						"#51BC58"
+				}
+			}
 		},
 
 

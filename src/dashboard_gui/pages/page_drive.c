@@ -123,7 +123,7 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	float x5 = bounds.origin.x;
 	float y5 = y4;
 
-	if (!gtk_widget_compute_bounds (CAN_WIDGET_TO_WIDGET (page->bse), GTK_WIDGET (area), &bounds))
+	if (page->leftProgressBar == NULL || !gtk_widget_compute_bounds (CAN_WIDGET_TO_WIDGET (page->leftProgressBar), GTK_WIDGET (area), &bounds))
 		bounds = *graphene_rect_zero ();
 
 	float x6 = bounds.origin.x + bounds.size.width + 30;
@@ -275,11 +275,6 @@ static void styleLoad (pageDriveStyle_t* style, pageStyle_t* baseStyle, cJSON* c
 	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
 
 	char* color;
-	if (jsonGetString (config, "appsColor", &color) == 0)
-		style->appsColor = gdkHexToColor (color);
-	if (jsonGetString (config, "bseColor", &color) == 0)
-		style->bseColor = gdkHexToColor (color);
-
 	if (jsonGetString (config, "decalTickColorLight", &color) == 0)
 		style->decalTickColorLight = gdkHexToColor (color);
 	if (jsonGetString (config, "decalTickColorDark", &color) == 0)
@@ -291,11 +286,6 @@ static void styleLoad (pageDriveStyle_t* style, pageStyle_t* baseStyle, cJSON* c
 	jsonGetFloat (config, "decalHeight", &style->decalHeight);
 	jsonGetFloat (config, "decalThickness", &style->decalThickness);
 	jsonGetFloat (config, "decalWidth", &style->decalWidth);
-
-	if (jsonGetString (config, "faultActiveColor", &color) == 0)
-		style->faultActiveColor = gdkHexToColor (color);
-	if (jsonGetString (config, "faultInactiveColor", &color) == 0)
-		style->faultInactiveColor = gdkHexToColor (color);
 
 	if (jsonGetString (config, "gradientStartColor", &color) == 0)
 		style->gradientStartColor = gdkHexToColor (color);
@@ -318,23 +308,30 @@ static void styleLoad (pageDriveStyle_t* style, pageStyle_t* baseStyle, cJSON* c
 
 static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* database)
 {
+	// Check a config was specified for the panel
+
 	page->centerPanelWidgets = NULL;
 	page->centerPanelWidgetCount = 0;
-
 	if (config == NULL)
 		return;
+
+	// Load the title
 
 	char* title;
 	if (jsonGetString (config, "title", &title) == 0)
 		gtk_label_set_text (GTK_LABEL (page->centerPanelTitle), title);
 
-	cJSON* labelConfigs = jsonGetObjectV2 (config, "labels");
-	if (labelConfigs == NULL)
-		return;
+	// Create the top padding
 
 	GtkWidget* padding = gtk_grid_new ();
 	gtk_widget_set_vexpand (padding, true);
 	gtk_grid_attach (GTK_GRID (page->centerPanel), padding, 0, 0, 2, 1);
+
+	// Load the labels
+
+	cJSON* labelConfigs = jsonGetObjectV2 (config, "labels");
+	if (labelConfigs == NULL)
+		return;
 
 	size_t labelConfigCount = cJSON_GetArraySize (labelConfigs);
 	for (size_t index = 0; index < labelConfigCount; ++index)
@@ -351,36 +348,34 @@ static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* da
 		gtk_grid_attach (GTK_GRID (page->centerPanel), label, 0, index + 1, 1, 1);
 	}
 
-	cJSON* widgetConfigs = jsonGetObjectV2 (config, "widgets");
-	if (widgetConfigs == NULL)
-		return;
+	// Load the CAN widgets
 
-	size_t widgetConfigCount = cJSON_GetArraySize (widgetConfigs);
-	page->centerPanelWidgets = malloc (sizeof (canWidget_t*) * widgetConfigCount);
+	page->centerPanelWidgets = canWidgetLoadArray (database, jsonGetObjectV2 (config, "widgets"), PAGE_WIDGET_STYLE (page), &page->centerPanelWidgetCount);
 	if (page->centerPanelWidgets == NULL)
 		return;
 
-	page->centerPanelWidgetCount = widgetConfigCount;
-	for (size_t index = 0; index < widgetConfigCount; ++index)
+	for (size_t index = 0; index < page->centerPanelWidgetCount; ++index)
 	{
-		cJSON* widgetConfig = cJSON_GetArrayItem (widgetConfigs, index);
+		if (page->centerPanelWidgets [index] == NULL)
+			continue;
 
-		page->centerPanelWidgets [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
-		if (page->centerPanelWidgets [index] != NULL)
-		{
-			GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->centerPanelWidgets [index]);
-			gtkTryLabelSetFont (widget, page->style.centerPanelStatFont);
-			gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
-			if (labelConfigCount == 0)
-				gtk_widget_set_halign (widget, GTK_ALIGN_CENTER);
-			else
-				gtk_widget_set_halign (widget, GTK_ALIGN_END);
-			gtk_widget_set_hexpand (widget, true);
-			gtk_widget_set_valign (widget, GTK_ALIGN_BASELINE_CENTER);
-			gtk_widget_set_margin_end (widget, 3);
-			gtk_grid_attach (GTK_GRID (page->centerPanel), widget, 1, index + 1, 1, 1);
-		}
+		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->centerPanelWidgets [index]);
+
+		gtkTryLabelSetFont (widget, page->style.centerPanelStatFont);
+		gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
+
+		if (labelConfigCount == 0)
+			gtk_widget_set_halign (widget, GTK_ALIGN_CENTER);
+		else
+			gtk_widget_set_halign (widget, GTK_ALIGN_END);
+
+		gtk_widget_set_hexpand (widget, true);
+		gtk_widget_set_valign (widget, GTK_ALIGN_BASELINE_CENTER);
+		gtk_widget_set_margin_end (widget, 3);
+		gtk_grid_attach (GTK_GRID (page->centerPanel), widget, 1, index + 1, 1, 1);
 	}
+
+	// Create the bottom padding
 
 	padding = gtk_grid_new ();
 	gtk_widget_set_vexpand (padding, true);
@@ -389,15 +384,20 @@ static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* da
 
 static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* database, GtkWidget** sidePanel, canWidget_t*** widgets, size_t* widgetCount)
 {
+	// Check a config was specified for the panel
+
 	*widgets = NULL;
 	*widgetCount = 0;
-
 	if (config == NULL)
 		return;
 
-	uint16_t width = 0;
-	jsonGetUint16_t (config, "width", &width);
+	// Set the panel's width
+
+	int width = 0;
+	jsonGetInt (config, "width", &width);
 	gtk_widget_set_size_request (*sidePanel, width, 0);
+
+	// Create the panel's title
 
 	char* title = "";
 	jsonGetString (config, "title", &title);
@@ -408,6 +408,8 @@ static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* data
 	gtk_widget_set_size_request (label, width, 0);
 	gtk_widget_set_margin_top (label, 3);
 	gtk_grid_attach (GTK_GRID (*sidePanel), label, 0, 0, 2, 1);
+
+	// Load the labels
 
 	cJSON* labelConfigs = jsonGetObjectV2 (config, "labels");
 	if (labelConfigs == NULL)
@@ -427,30 +429,23 @@ static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* data
 		gtk_grid_attach (GTK_GRID (*sidePanel), label, 0, index + 1, 1, 1);
 	}
 
-	cJSON* widgetConfigs = jsonGetObjectV2 (config, "widgets");
-	if (widgetConfigs == NULL)
-		return;
+	// Load the CAN widgets
 
-	size_t widgetConfigCount = cJSON_GetArraySize (widgetConfigs);
-	*widgets = malloc (sizeof (canWidget_t*) * widgetConfigCount);
+	*widgets = canWidgetLoadArray (database, jsonGetObjectV2 (config, "widgets"), PAGE_WIDGET_STYLE (page), widgetCount);
 	if (*widgets == NULL)
 		return;
 
-	*widgetCount = widgetConfigCount;
-	for (size_t index = 0; index < widgetConfigCount; ++index)
+	for (size_t index = 0; index < *widgetCount; ++index)
 	{
-		cJSON* widgetConfig = cJSON_GetArrayItem (widgetConfigs, index);
+		if ((*widgets) [index] == NULL)
+			continue;
 
-		(*widgets) [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
-		if ((*widgets) [index] != NULL)
-		{
-			GtkWidget* widget = CAN_WIDGET_TO_WIDGET ((*widgets) [index]);
-			gtkTryLabelSetFont (widget, page->style.sidePanelStatFont);
-			gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
-			gtk_widget_set_halign (widget, GTK_ALIGN_END);
-			gtk_widget_set_margin_end (widget, 3);
-			gtk_grid_attach (GTK_GRID (*sidePanel), widget, 1, index + 1, 1, 1);
-		}
+		GtkWidget* widget = CAN_WIDGET_TO_WIDGET ((*widgets) [index]);
+		gtkTryLabelSetFont (widget, page->style.sidePanelStatFont);
+		gtkTryLabelSetColor (widget, &page->style.baseStyle->fontColor);
+		gtk_widget_set_halign (widget, GTK_ALIGN_END);
+		gtk_widget_set_margin_end (widget, 3);
+		gtk_grid_attach (GTK_GRID (*sidePanel), widget, 1, index + 1, 1, 1);
 	}
 }
 
@@ -484,22 +479,14 @@ static void update (void* pageArg)
 {
 	pageDrive_t* page = pageArg;
 
-	canWidgetUpdate (page->bse);
-	canWidgetUpdate (page->apps);
+	canWidgetUpdate (page->leftProgressBar);
+	canWidgetUpdate (page->rightProgressBar);
 	canWidgetUpdate (page->dataLoggerTitle);
 	canWidgetUpdate (page->dataLoggerStat);
-
-	for (size_t index = 0; index < page->centerPanelWidgetCount; ++index)
-		canWidgetUpdate (page->centerPanelWidgets [index]);
-
-	for (size_t index = 0; index < page->leftPanelWidgetCount; ++index)
-		canWidgetUpdate (page->leftPanelWidgets [index]);
-
-	for (size_t index = 0; index < page->rightPanelWidgetCount; ++index)
-		canWidgetUpdate (page->rightPanelWidgets [index]);
-
-	for (size_t index = 0; index < page->faultIndicatorCount; ++index)
-		canWidgetUpdate (page->faultIndicators [index]);
+	canWidgetUpdateArray (page->centerPanelWidgets, page->centerPanelWidgetCount);
+	canWidgetUpdateArray (page->leftPanelWidgets, page->leftPanelWidgetCount);
+	canWidgetUpdateArray (page->rightPanelWidgets, page->rightPanelWidgetCount);
+	canWidgetUpdateArray (page->faultIndicators, page->faultIndicatorCount);
 }
 
 page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
@@ -541,31 +528,20 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_overlay_add_overlay (GTK_OVERLAY (page->vmt.widget), GTK_WIDGET (page->grid));
 	gtk_overlay_set_measure_overlay (GTK_OVERLAY (page->vmt.widget), GTK_WIDGET (page->grid), true);
 
-	// BSE bar
-	// TODO(Barach): Generalize
-	page->bse = canProgressBarInit (database, &(canProgressBarConfig_t)
+	// Load the left progress bar
+
+	cJSON* leftProgressBarConfig = jsonGetObjectV2 (config, "leftProgressBar");
+	page->leftProgressBar = canWidgetLoad (database, leftProgressBarConfig, PAGE_WIDGET_STYLE (page));
+	if (page->leftProgressBar != NULL)
 	{
-		.barConfig	=
-		{
-			.width				= 10,
-			.height				= 0,
-			.borderThickness	= page->style.baseStyle->borderThickness,
-			.orientation		= GTK_ORIENTATION_VERTICAL,
-			.inverted			= false,
-			.backgroundColor	= page->style.baseStyle->backgroundColor,
-			.borderColor		= page->style.baseStyle->backgroundColor,
-			.fillColor			= page->style.bseColor
-		},
-		.signalName 			= "BSE_FRONT_PERCENT",
-		.min					= 0,
-		.max					= 100
-	});
-	gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->bse), 2);
-	gtk_widget_set_margin_bottom (CAN_WIDGET_TO_WIDGET (page->bse), 2);
-	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->bse), 2);
-	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->bse), 8);
-	gtk_widget_set_vexpand (CAN_WIDGET_TO_WIDGET (page->bse), true);
-	gtk_grid_attach (page->grid, CAN_WIDGET_TO_WIDGET (page->bse), 0, 0, 1, 5);
+		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->leftProgressBar);
+		gtk_widget_set_margin_top (widget, 2);
+		gtk_widget_set_margin_bottom (widget, 2);
+		gtk_widget_set_margin_start (widget, 2);
+		gtk_widget_set_margin_end (widget, 8);
+		gtk_widget_set_vexpand (widget, true);
+		gtk_grid_attach (page->grid, widget, 0, 0, 1, 5);
+	}
 
 	page->dataLoggerPanel = GTK_GRID (gtk_grid_new ());
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->dataLoggerPanel), 1, 0, 2, 2);
@@ -613,31 +589,29 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_widget_set_margin_start (GTK_WIDGET (page->faultPanel), 40);
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->faultPanel), 3, 0, 2, 1);
 
-	cJSON* faultIndicatorConfigs = jsonGetObjectV2 (config, "faultIndicators");
-	if (faultIndicatorConfigs == NULL)
-		return NULL;
+	// Load the fault indicators
 
-	page->faultIndicatorCount = cJSON_GetArraySize (faultIndicatorConfigs);
-	page->faultIndicators = malloc (sizeof (canWidget_t*) * page->faultIndicatorCount);
+	page->faultIndicators = canWidgetLoadArray (database, jsonGetObjectV2 (config, "faultIndicators"),
+		&page->style.baseStyle->widgetStyle, &page->faultIndicatorCount);
 	if (page->faultIndicators == NULL)
 		return NULL;
 
 	for (size_t index = 0; index < page->faultIndicatorCount; ++index)
 	{
-		cJSON* indicatorConfig = cJSON_GetArrayItem (faultIndicatorConfigs, index);
-
-		page->faultIndicators [index] = canWidgetLoad (database, indicatorConfig, &page->style.baseStyle->widgetStyle);
 		if (page->faultIndicators [index] == NULL)
 			continue;
 
-		gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), GTK_ALIGN_FILL);
-		gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), true);
-		gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), 5);
-		gtk_widget_set_margin_bottom (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), 5);
-		gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), 4);
-		gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), 4);
-		gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), index, 0, 1, 1);
+		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]);
+		gtk_widget_set_halign (widget, GTK_ALIGN_FILL);
+		gtk_widget_set_hexpand (widget, true);
+		gtk_widget_set_margin_top (widget, 5);
+		gtk_widget_set_margin_bottom (widget, 5);
+		gtk_widget_set_margin_start (widget, 4);
+		gtk_widget_set_margin_end (widget, 4);
+		gtk_grid_attach (page->faultPanel, widget, index, 0, 1, 1);
 	}
+
+	// Load the center panel
 
 	page->centerPanelTitle = gtk_label_new ("");
 	gtkLabelSetFont (GTK_LABEL (page->centerPanelTitle), page->style.centerPanelTitleFont);
@@ -665,30 +639,20 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_widget_set_margin_top (GTK_WIDGET (page->buttonPanel), 40);
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->buttonPanel), 2, 3, 3, 1);
 
-	// TODO(Barach):
-	page->apps = canProgressBarInit (database, &(canProgressBarConfig_t)
+	// Load the right progress bar
+
+	cJSON* rightProgressBarConfig = jsonGetObjectV2 (config, "rightProgressBar");
+	page->rightProgressBar = canWidgetLoad (database, rightProgressBarConfig, PAGE_WIDGET_STYLE (page));
+	if (page->rightProgressBar != NULL)
 	{
-		.barConfig	=
-		{
-			.width				= 10,
-			.height				= 0,
-			.borderThickness	= page->style.baseStyle->borderThickness,
-			.orientation		= GTK_ORIENTATION_VERTICAL,
-			.inverted			= false,
-			.backgroundColor	= page->style.baseStyle->backgroundColor,
-			.borderColor		= page->style.appsColor,
-			.fillColor			= page->style.appsColor
-		},
-		.signalName 			= "APPS_1_PERCENT",
-		.min					= 0,
-		.max					= 100
-	});
-	gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->apps), 2);
-	gtk_widget_set_margin_bottom (CAN_WIDGET_TO_WIDGET (page->apps), 2);
-	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->apps), 5);
-	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->apps), 5);
-	gtk_widget_set_vexpand (CAN_WIDGET_TO_WIDGET (page->apps), true);
-	gtk_grid_attach (page->grid, CAN_WIDGET_TO_WIDGET (page->apps), 5, 0, 1, 5);
+		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->rightProgressBar);
+		gtk_widget_set_margin_top (widget, 2);
+		gtk_widget_set_margin_bottom (widget, 2);
+		gtk_widget_set_margin_start (widget, 5);
+		gtk_widget_set_margin_end (widget, 5);
+		gtk_widget_set_vexpand (widget, true);
+		gtk_grid_attach (page->grid, widget, 5, 0, 1, 5);
+	}
 
 	// Return the created page (cast to the base type).
 	return (page_t*) page;

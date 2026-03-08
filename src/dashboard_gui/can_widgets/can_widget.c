@@ -42,6 +42,7 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 	}
 
 	LOAD_WIDGET_STATEMENTS (canIndicator);
+	LOAD_WIDGET_STATEMENTS (canProgressBar);
 
 	if (strcmp (widgetType, "canLabelFloat_t") == 0)
 	{
@@ -134,6 +135,32 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 	return NULL;
 }
 
+canWidget_t** canWidgetLoadArray (canDatabase_t* database, cJSON* config, canWidgetStyle_t* style, size_t* count)
+{
+	// Check the config is a valid array
+	if (config == NULL || !cJSON_IsArray (config))
+	{
+		errno = EINVAL;
+		*count = 0;
+		return NULL;
+	}
+
+	// Get the size of the config array and allocate the widget array.
+	*count = cJSON_GetArraySize (config);
+	canWidget_t** widgetArray = malloc (sizeof (canWidget_t*) * *count);
+	if (widgetArray == NULL)
+		return NULL;
+
+	// Load each individual widget.
+	for (size_t index = 0; index < *count; ++index)
+	{
+		cJSON* widgetConfig = cJSON_GetArrayItem (config, index);
+		widgetArray [index] = canWidgetLoad (database, widgetConfig, style);
+	}
+
+	return widgetArray;
+}
+
 #define LOAD_STYLE_STATEMENTS(type)																							\
 	styleConfig = config != NULL ? jsonGetObjectV2 (config, STRINGIFY (type)) : NULL;										\
 	CONCETENATE (type, LoadStyle) (styleConfig, &style->type, parent != NULL ? &parent->type : NULL);
@@ -142,7 +169,8 @@ void canWidgetLoadStyle (canWidgetStyle_t* style, cJSON* config, canWidgetStyle_
 {
 	cJSON* styleConfig;
 
-	LOAD_STYLE_STATEMENTS (canIndicator);
-	LOAD_STYLE_STATEMENTS (canShutdownLoopIndicator);
 	LOAD_STYLE_STATEMENTS (canFaultPopup);
+	LOAD_STYLE_STATEMENTS (canIndicator);
+	LOAD_STYLE_STATEMENTS (canProgressBar);
+	LOAD_STYLE_STATEMENTS (canShutdownLoopIndicator);
 }
