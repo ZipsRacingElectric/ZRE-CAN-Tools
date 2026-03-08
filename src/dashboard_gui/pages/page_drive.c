@@ -314,7 +314,6 @@ static void styleLoad (pageDriveStyle_t* style, pageStyle_t* baseStyle, cJSON* c
 	jsonGetString (config, "centerPanelStatFont", &style->centerPanelStatFont);
 	jsonGetString (config, "sidePanelTitleFont", &style->sidePanelTitleFont);
 	jsonGetString (config, "sidePanelStatFont", &style->sidePanelStatFont);
-	jsonGetString (config, "faultIndicatorFont", &style->faultIndicatorFont);
 }
 
 static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* database)
@@ -489,10 +488,6 @@ static void update (void* pageArg)
 	canWidgetUpdate (page->apps);
 	canWidgetUpdate (page->dataLoggerTitle);
 	canWidgetUpdate (page->dataLoggerStat);
-	canWidgetUpdate (page->vcuFault);
-	canWidgetUpdate (page->bmsFault);
-	canWidgetUpdate (page->amkFault);
-	canWidgetUpdate (page->gpsFault);
 
 	for (size_t index = 0; index < page->centerPanelWidgetCount; ++index)
 		canWidgetUpdate (page->centerPanelWidgets [index]);
@@ -502,6 +497,9 @@ static void update (void* pageArg)
 
 	for (size_t index = 0; index < page->rightPanelWidgetCount; ++index)
 		canWidgetUpdate (page->rightPanelWidgets [index]);
+
+	for (size_t index = 0; index < page->faultIndicatorCount; ++index)
+		canWidgetUpdate (page->faultIndicators [index]);
 }
 
 page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
@@ -615,105 +613,31 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_widget_set_margin_start (GTK_WIDGET (page->faultPanel), 40);
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->faultPanel), 3, 0, 2, 1);
 
-	// TODO(Barach): Faults need generalized.
-	page->vcuFault = canIndicatorInit (database, &(canIndicatorConfig_t)
+	cJSON* faultIndicatorConfigs = jsonGetObjectV2 (config, "faultIndicators");
+	if (faultIndicatorConfigs == NULL)
+		return NULL;
+
+	page->faultIndicatorCount = cJSON_GetArraySize (faultIndicatorConfigs);
+	page->faultIndicators = malloc (sizeof (canWidget_t*) * page->faultIndicatorCount);
+	if (page->faultIndicators == NULL)
+		return NULL;
+
+	for (size_t index = 0; index < page->faultIndicatorCount; ++index)
 	{
-		.signalName		= "VCU_FAULT",
-		.threshold		= 0.5f,
-		.inverted		= false,
-		.width			= 100,
-		.height			= 42,
-		// TODO(Barach):
-		// .bgInactiveColor= page->style.faultInactiveColor,
-		// .bgActiveColor	= page->style.faultActiveColor,
-		// .bgInvalidColor	= page->style.faultActiveColor,
-		// .shape			= CAN_INDICATOR_RECT
-	});
-	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->vcuFault), GTK_ALIGN_FILL);
-	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->vcuFault), true);
-	gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->vcuFault), 5);
-	gtk_widget_set_margin_bottom (CAN_WIDGET_TO_WIDGET (page->vcuFault), 5);
-	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->vcuFault), 4);
-	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->vcuFault), 4);
-	gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->vcuFault), 0, 0, 1, 1);
+		cJSON* indicatorConfig = cJSON_GetArrayItem (faultIndicatorConfigs, index);
 
-	GtkWidget* label = gtk_label_new ("VCU");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.faultIndicatorFont);
-	gtkLabelSetColor (GTK_LABEL (label), &style->backgroundColor);
-	gtk_grid_attach (page->faultPanel, label, 0, 0, 1, 1);
+		page->faultIndicators [index] = canWidgetLoad (database, indicatorConfig, &page->style.baseStyle->widgetStyle);
+		if (page->faultIndicators [index] == NULL)
+			continue;
 
-	page->bmsFault = canIndicatorInit (database, &(canIndicatorConfig_t)
-	{
-		.signalName		= "BMS_FAULT",
-		.threshold		= 0.5f,
-		.inverted		= false,
-		.width			= 100,
-		.height			= 42,
-		// TODO(Barach):
-		// .bgInactiveColor= page->style.faultInactiveColor,
-		// .bgActiveColor	= page->style.faultActiveColor,
-		// .bgInvalidColor	= page->style.faultActiveColor,
-		// .shape			= CAN_INDICATOR_RECT
-	});
-	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->bmsFault), GTK_ALIGN_FILL);
-	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->bmsFault), true);
-	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->bmsFault), 4);
-	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->bmsFault), 4);
-	gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->bmsFault), 1, 0, 1, 1);
-
-	label = gtk_label_new ("BMS");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.faultIndicatorFont);
-	gtkLabelSetColor (GTK_LABEL (label), &style->backgroundColor);
-	gtk_grid_attach (page->faultPanel, label, 1, 0, 1, 1);
-
-	page->amkFault = canIndicatorInit (database, &(canIndicatorConfig_t)
-	{
-		.signalName		= "AMK_FAULT",
-		.threshold		= 0.5f,
-		.inverted		= false,
-		.width			= 100,
-		.height			= 42,
-		.style			= page->style.baseStyle->widgetStyle.canIndicator
-		// TODO(Barach):
-		// .bgInactiveColor= page->style.faultInactiveColor,
-		// .bgActiveColor	= page->style.faultActiveColor,
-		// .bgInvalidColor	= page->style.faultActiveColor,
-		// .shape			= CAN_INDICATOR_RECT
-	});
-	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->amkFault), GTK_ALIGN_FILL);
-	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->amkFault), true);
-	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->amkFault), 4);
-	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->amkFault), 4);
-	gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->amkFault), 2, 0, 1, 1);
-
-	label = gtk_label_new ("AMK");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.faultIndicatorFont);
-	gtkLabelSetColor (GTK_LABEL (label), &style->backgroundColor);
-	gtk_grid_attach (page->faultPanel, label, 2, 0, 1, 1);
-
-	page->gpsFault = canIndicatorInit (database, &(canIndicatorConfig_t)
-	{
-		.signalName		= "GPS_STATUS",
-		.threshold		= 2.5f,
-		.inverted		= true,
-		.width			= 100,
-		.height			= 42,
-		// TODO(Barach):
-		// .bgInactiveColor= page->style.faultInactiveColor,
-		// .bgActiveColor	= page->style.faultActiveColor,
-		// .bgInvalidColor	= page->style.faultActiveColor,
-		// .shape			= CAN_INDICATOR_RECT
-	});
-	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->gpsFault), GTK_ALIGN_FILL);
-	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->gpsFault), true);
-	gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->gpsFault), 4);
-	gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->gpsFault), 4);
-	gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->gpsFault), 3, 0, 1, 1);
-
-	label = gtk_label_new ("GPS");
-	gtkLabelSetFont (GTK_LABEL (label), page->style.faultIndicatorFont);
-	gtkLabelSetColor (GTK_LABEL (label), &style->backgroundColor);
-	gtk_grid_attach (page->faultPanel, label, 3, 0, 1, 1);
+		gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), GTK_ALIGN_FILL);
+		gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), true);
+		gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), 5);
+		gtk_widget_set_margin_bottom (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), 5);
+		gtk_widget_set_margin_start (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), 4);
+		gtk_widget_set_margin_end (CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), 4);
+		gtk_grid_attach (page->faultPanel, CAN_WIDGET_TO_WIDGET (page->faultIndicators [index]), index, 0, 1, 1);
+	}
 
 	page->centerPanelTitle = gtk_label_new ("");
 	gtkLabelSetFont (GTK_LABEL (page->centerPanelTitle), page->style.centerPanelTitleFont);

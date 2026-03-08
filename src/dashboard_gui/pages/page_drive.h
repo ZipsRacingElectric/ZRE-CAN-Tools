@@ -55,7 +55,6 @@ typedef struct
 	char* centerPanelStatFont;
 	char* sidePanelTitleFont;
 	char* sidePanelStatFont;
-	char* faultIndicatorFont;
 } pageDriveStyle_t;
 
 typedef struct
@@ -83,14 +82,13 @@ typedef struct
 	canWidget_t** centerPanelWidgets;
 	size_t centerPanelWidgetCount;
 
+	canWidget_t** faultIndicators;
+	size_t faultIndicatorCount;
+
 	canWidget_t* bse;
 	canWidget_t* apps;
 	canWidget_t* dataLoggerTitle;
 	canWidget_t* dataLoggerStat;
-	canWidget_t* vcuFault;
-	canWidget_t* bmsFault;
-	canWidget_t* amkFault;
-	canWidget_t* gpsFault;
 } pageDrive_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

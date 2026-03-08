@@ -166,6 +166,10 @@ canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* co
 	{
 		// If no text, the widget is just the drawing area
 		baseWidget = drawingArea;
+
+		// For some reason, drawing area appears to stretch to fit area by default. Disable this so it defaults to the minimum size.
+		gtk_widget_set_halign (drawingArea, GTK_ALIGN_CENTER);
+		gtk_widget_set_valign (drawingArea, GTK_ALIGN_CENTER);
 	}
 	else
 	{
@@ -180,6 +184,11 @@ canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* co
 		gtkLabelSetColor (label, &config->style.fontActiveColor);
 		if (config->style.font != NULL)
 			gtkLabelSetFont (label, config->style.font);
+
+		gtk_widget_set_margin_top (GTK_WIDGET (label), config->style.padding);
+		gtk_widget_set_margin_bottom (GTK_WIDGET (label), config->style.padding);
+		gtk_widget_set_margin_start (GTK_WIDGET (label), config->style.padding);
+		gtk_widget_set_margin_end (GTK_WIDGET (label), config->style.padding);
 
 		gtk_overlay_add_overlay (GTK_OVERLAY (baseWidget), GTK_WIDGET (label));
 		gtk_overlay_set_measure_overlay (GTK_OVERLAY (baseWidget), GTK_WIDGET (label), true);
@@ -204,10 +213,6 @@ canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* co
 	gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (drawingArea), config->width);
 	gtk_drawing_area_set_content_height (GTK_DRAWING_AREA (drawingArea), config->height);
 	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (drawingArea), draw, indicator, NULL);
-
-	// For some reason, drawing area appears to stretch to fit area by default. Disable this so it defaults to the minimum size.
-	gtk_widget_set_halign (drawingArea, GTK_ALIGN_CENTER);
-	gtk_widget_set_valign (drawingArea, GTK_ALIGN_CENTER);
 
 	// Update initial value
 	update (indicator);
@@ -265,6 +270,7 @@ void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndica
 			.fontActiveColor		= gdkHexToColor ("#FFFFFF"),
 			.fontInactiveColor		= gdkHexToColor ("#FFFFFF"),
 			.fontInvalidColor		= gdkHexToColor ("#FFFFFF"),
+			.padding				= 0,
 			.cornerRadius			= 0,
 			.borderThickness		= 1.5,
 			.blinkInterval			= 0,
@@ -310,6 +316,7 @@ void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndica
 	if (jsonGetString (config, "fontInvalidColor", &color) == 0)
 		style->fontInvalidColor = gdkHexToColor (color);
 
+	jsonGetInt (config, "padding", &style->padding);
 	jsonGetFloat (config, "cornerRadius", &style->cornerRadius);
 	jsonGetFloat (config, "borderThickness", &style->borderThickness);
 	jsonGetFloat (config, "blinkInterval", &style->blinkInterval);

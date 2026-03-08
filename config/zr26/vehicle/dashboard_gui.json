@@ -19,6 +19,25 @@
 			"name":										"AUTO-X",
 			"style":
 			{
+				"baseStyle":
+				{
+					"widgetStyle":
+					{
+						"canIndicator":
+						{
+							"font":						"Futura Std Bold Condensed 32px",
+							"shape":					"rect",
+							"bgActiveColor":			"#FF0000",
+							"bgInvalidColor":			"#FF0000",
+							"bgInactiveColor":			"#580000",
+							"fontActiveColor":			"#000000",
+							"fontInvalidColor":			"#000000",
+							"fontInactiveColor":		"#000000",
+							"borderThickness":			"0"
+						}
+					}
+				},
+
 				"appsColor":							"#51BC58",
 				"bseColor":								"#FF0000",
 
@@ -48,8 +67,7 @@
 				"centerPanelLabelFont":					"Technology Bold 0px",
 				"centerPanelStatFont":					"Technology Bold 150px",
 				"sidePanelTitleFont":					"Futura Std Bold Condensed 26px",
-				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px",
-				"faultIndicatorFont":					"Futura Std Bold Condensed 32px"
+				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px"
 			},
 			"dataLoggerTitle":
 			{
@@ -117,13 +135,15 @@
 						"type":							"canIndicator",
 						"signalName":					"TODO",
 						"threshold":					"0.5",
-						"inverted":						"false",
-						"bgActiveColor":				"#FFFFFF",
-						"bgInactiveColor":				"#580000",
-						"bgInvalidColor":				"#FF0000",
-						"borderActiveColor":			"#000000",
 						"width":						"26",
-						"height":						"26"
+						"height":						"26",
+						"style":
+						{
+							"shape":					"circle",
+							"bgActiveColor":			"#FFFFFF",
+							"bgInactiveColor":			"#580000",
+							"bgInvalidColor":			"#FF0000"
+						}
 					}
 				]
 			},
@@ -165,7 +185,38 @@
 						"formatInvalid":				"%s %s"
 					}
 				]
-			}
+			},
+			"faultIndicators":
+			[
+				{
+					"type":								"canIndicator",
+					"text":								"VCU",
+					"signalName":						"VCU_FAULT",
+					"threshold":						"0.5",
+					"height":							"42"
+				},
+				{
+					"type":								"canIndicator",
+					"text":								"BMS",
+					"signalName":						"BMS_FAULT",
+					"threshold":						"0.5",
+					"height":							"42"
+				},
+				{
+					"type":								"canIndicator",
+					"text":								"AMK",
+					"signalName":						"AMK_FAULT",
+					"threshold":						"0.5",
+					"height":							"42"
+				},
+				{
+					"type":								"canIndicator",
+					"text":								"GPS",
+					"signalName":						"GPS_FAULT",
+					"threshold":						"0.5",
+					"height":							"42"
+				}
+			]
 		},
 
 
@@ -175,6 +226,25 @@
 			"name":										"ENDR.",
 			"style":
 			{
+				"baseStyle":
+				{
+					"widgetStyle":
+					{
+						"canIndicator":
+						{
+							"font":						"Futura Std Bold Condensed 32px",
+							"shape":					"rect",
+							"bgActiveColor":			"#FF0000",
+							"bgInvalidColor":			"#FF0000",
+							"bgInactiveColor":			"#580000",
+							"fontActiveColor":			"#000000",
+							"fontInvalidColor":			"#000000",
+							"fontInactiveColor":		"#000000",
+							"borderThickness":			"0"
+						}
+					}
+				},
+
 				"appsColor":							"#51BC58",
 				"bseColor":								"#FF0000",
 
@@ -204,8 +274,7 @@
 				"centerPanelLabelFont":					"Technology Bold 28px",
 				"centerPanelStatFont":					"Technology Bold 50px",
 				"sidePanelTitleFont":					"Futura Std Bold Condensed 26px",
-				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px",
-				"faultIndicatorFont":					"Futura Std Bold Condensed 32px"
+				"sidePanelStatFont":					"ITC Avant Garde Gothic CE Book 26px"
 			},
 			"dataLoggerTitle":
 			{
@@ -226,7 +295,7 @@
 			},
 			"centerPanel":
 			{
-				"title":								"Accumulator:",
+				"title":								"Tractive Battery:",
 				"labels":
 				[
 					"Volt.V:",
@@ -290,13 +359,15 @@
 						"type":							"canIndicator",
 						"signalName":					"TODO",
 						"threshold":					"0.5",
-						"inverted":						"false",
-						"bgActiveColor":				"#FFFFFF",
-						"bgInactiveColor":				"#580000",
-						"bgInvalidColor":				"#FF0000",
-						"borderActiveColor":			"#000000",
 						"width":						"26",
-						"height":						"26"
+						"height":						"26",
+						"style":
+						{
+							"shape":					"circle",
+							"bgActiveColor":			"#FFFFFF",
+							"bgInactiveColor":			"#580000",
+							"bgInvalidColor":			"#FF0000"
+						}
 					}
 				]
 			},
@@ -338,7 +409,38 @@
 						"formatInvalid":				"%s %s"
 					}
 				]
-			}
+			},
+			"faultIndicators":
+			[
+				{
+					"type":								"canIndicator",
+					"text":								"VCU",
+					"signalName":						"VCU_FAULT",
+					"threshold":						"0.5",
+					"height":							"42"
+				},
+				{
+					"type":								"canIndicator",
+					"text":								"BMS",
+					"signalName":						"BMS_FAULT",
+					"threshold":						"0.5",
+					"height":							"42"
+				},
+				{
+					"type":								"canIndicator",
+					"text":								"AMK",
+					"signalName":						"AMK_FAULT",
+					"threshold":						"0.5",
+					"height":							"42"
+				},
+				{
+					"type":								"canIndicator",
+					"text":								"GPS",
+					"signalName":						"GPS_FAULT",
+					"threshold":						"0.5",
+					"height":							"42"
+				}
+			]
 		},
 
 

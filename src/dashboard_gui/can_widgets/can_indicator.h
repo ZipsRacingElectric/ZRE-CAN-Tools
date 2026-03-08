@@ -66,6 +66,9 @@ typedef struct
 	/// @brief The color of the font when invalid. Default white.
 	GdkRGBA fontInvalidColor;
 
+	/// @brief The amount of padding to use for the text (if any), in pixels. Default 0.
+	int padding;
+
 	/// @brief The radius of the shape's corners (if any), in pixels. Default 0.
 	float cornerRadius;
 
