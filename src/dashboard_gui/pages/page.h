@@ -24,14 +24,32 @@ typedef struct pageStack pageStack_t;
 
 typedef struct
 {
+	/// @brief The style to use for the page's CAN widgets. Default inherits from parent's style, or the widget-specific
+	/// defaults if none.
 	canWidgetStyle_t widgetStyle;
+
+	/// @brief The color of the page's background, default black.
 	GdkRGBA backgroundColor;
+
+	/// @brief The color of the page's labels, default white.
 	GdkRGBA fontColor;
+
+	/// @brief The color of the page's borders, default white.
 	GdkRGBA borderColor;
+
+	/// @brief The thickness of the page's borders, in pixels. Default 1.5.
 	float borderThickness;
-	GdkRGBA indicatorActiveColor;
-	GdkRGBA indicatorInactiveColor;
+
+	/// @brief The color of the page's button's indicator, when active. Default red.
+	GdkRGBA buttonActiveColor;
+
+	/// @brief The color of the page's button's indicator, when inactive. Default dark red.
+	GdkRGBA buttonInactiveColor;
+
+	/// @brief The height of the page's buttons, in pixels. Default 80.
 	int buttonHeight;
+
+	/// @brief The font of the button's text. Default is GTK's default font.
 	char* buttonFont;
 } pageStyle_t;
 

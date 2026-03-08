@@ -98,42 +98,45 @@ pageStyle_t* pageStyleLoad (cJSON* config, pageStyle_t* parent)
 	if (parent != NULL)
 		*style = *parent;
 	else
-		*style = (pageStyle_t) {0};
+	{
+		*style = (pageStyle_t)
+		{
+			.backgroundColor		= gdkHexToColor ("#000000"),
+			.fontColor				= gdkHexToColor ("#FFFFFF"),
+			.borderColor			= gdkHexToColor ("#FFFFFF"),
+			.borderThickness		= 1.5f,
+			.buttonActiveColor		= gdkHexToColor ("#FF0000"),
+			.buttonInactiveColor	= gdkHexToColor ("#AA0000"),
+			.buttonHeight			= 80,
+			.buttonFont				= NULL
+		};
+	}
 
+	// Load the CAN widget style, using defaults if no configuration is available.
+	cJSON* widgetStyle = config != NULL ? jsonGetObjectV2 (config, "widgetStyle") : NULL;
+	canWidgetLoadStyle (&style->widgetStyle, widgetStyle, parent != NULL ? &parent->widgetStyle : NULL);
+
+	// If no configuration is available, exit.
 	if (config == NULL)
 		return style;
 
-	char* backgroundColor;
-	if (jsonGetString (config, "backgroundColor", &backgroundColor) == 0)
-		style->backgroundColor = gdkHexToColor (backgroundColor);
-
-	char* fontColor;
-	if (jsonGetString (config, "fontColor", &fontColor) == 0)
-		style->fontColor = gdkHexToColor (fontColor);
-
-	char* borderColor;
-	if (jsonGetString (config, "borderColor", &borderColor) == 0)
-		style->borderColor = gdkHexToColor (borderColor);
+	char* color;
+	if (jsonGetString (config, "backgroundColor", &color) == 0)
+		style->backgroundColor = gdkHexToColor (color);
+	if (jsonGetString (config, "fontColor", &color) == 0)
+		style->fontColor = gdkHexToColor (color);
+	if (jsonGetString (config, "borderColor", &color) == 0)
+		style->borderColor = gdkHexToColor (color);
 
 	jsonGetFloat (config, "borderThickness", &style->borderThickness);
 
-	char* indicatorActiveColor;
-	if (jsonGetString (config, "indicatorActiveColor", &indicatorActiveColor) == 0)
-		style->indicatorActiveColor = gdkHexToColor (indicatorActiveColor);
+	if (jsonGetString (config, "buttonActiveColor", &color) == 0)
+		style->buttonActiveColor = gdkHexToColor (color);
+	if (jsonGetString (config, "buttonInactiveColor", &color) == 0)
+		style->buttonInactiveColor = gdkHexToColor (color);
 
-	char* indicatorInactiveColor;
-	if (jsonGetString (config, "indicatorInactiveColor", &indicatorInactiveColor) == 0)
-		style->indicatorInactiveColor = gdkHexToColor (indicatorInactiveColor);
-
-	uint16_t buttonHeight;
-	if (jsonGetUint16_t (config, "buttonHeight", &buttonHeight) == 0)
-		style->buttonHeight = buttonHeight;
-
+	jsonGetInt (config, "buttonHeight", &style->buttonHeight);
 	jsonGetString (config, "buttonFont", &style->buttonFont);
-
-	// TODO(Barach): HOW TO DO
-	cJSON* widgetStyle = jsonGetObjectV2 (config, "widgetStyle");
-	canWidgetLoadStyle (&style->widgetStyle, widgetStyle, &parent->widgetStyle);
 
 	return style;
 }

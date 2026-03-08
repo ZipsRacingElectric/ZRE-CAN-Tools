@@ -24,11 +24,11 @@
 
 typedef enum
 {
-	/// @brief Indicator is a circle.
-	CAN_INDICATOR_CIRCLE,
-
 	/// @brief Indicator is a rectange.
-	CAN_INDICATOR_RECT
+	CAN_INDICATOR_RECT,
+
+	/// @brief Indicator is a circle.
+	CAN_INDICATOR_CIRCLE
 } canIndicatorShape_t;
 
 typedef struct
@@ -36,7 +36,7 @@ typedef struct
 	/// @brief The font to use for the displayed text.
 	char* font;
 
-	/// @brief The shape to render the indicator as. Required.
+	/// @brief The shape to render the indicator as. Default rectangle.
 	canIndicatorShape_t shape;
 
 	/// @brief The color of the background when active. Default black.
@@ -69,7 +69,7 @@ typedef struct
 	/// @brief The radius of the shape's corners (if any), in pixels. Default 0.
 	float cornerRadius;
 
-	/// @brief The thickness of the shape's border, in pixels. Default 0.
+	/// @brief The thickness of the shape's border, in pixels. Default 1.5.
 	float borderThickness;
 
 	/// @brief The amount of time, in seconds, of the interval to blink at. Use 0 for no blinking. Default 0.

@@ -33,9 +33,10 @@ static void appendButton (void* pageArg, const char* label, pageButtonCallback_t
 		.borderColor		= style->borderColor,
 		.selectedColor		= style->fontColor,
 		.indicatorColor		= currentPage ?
-			page->style.baseStyle->indicatorActiveColor : page->style.baseStyle->indicatorInactiveColor
+			page->style.baseStyle->buttonActiveColor : page->style.baseStyle->buttonInactiveColor
 	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), style->buttonFont);
+	if (style->buttonFont != NULL)
+		gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), style->buttonFont);
 	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (button), 8);
 	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (button), 4);
 	gtk_widget_set_margin_end (STYLIZED_BUTTON_TO_WIDGET (button), 4);

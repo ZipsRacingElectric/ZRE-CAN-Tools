@@ -6,8 +6,8 @@
 		"fontColor":									"#F4931E",
 		"borderColor":									"#D3792C",
 		"borderThickness":								"1.5",
-		"indicatorActiveColor":							"#FF0000",
-		"indicatorInactiveColor":						"#580000",
+		"buttonActiveColor":							"#FF0000",
+		"buttonInactiveColor":							"#580000",
 		"buttonHeight":									"80",
 		"buttonFont":									"Futura Std Bold Condensed 34px"
 	},

@@ -255,6 +255,7 @@ void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndica
 		*style = (canIndicatorStyle_t)
 		{
 			.font					= NULL,
+			.shape					= CAN_INDICATOR_RECT,
 			.bgActiveColor			= gdkHexToColor ("#000000"),
 			.bgInactiveColor		= gdkHexToColor ("#000000"),
 			.bgInvalidColor			= gdkHexToColor ("#000000"),
@@ -265,8 +266,8 @@ void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndica
 			.fontInactiveColor		= gdkHexToColor ("#FFFFFF"),
 			.fontInvalidColor		= gdkHexToColor ("#FFFFFF"),
 			.cornerRadius			= 0,
-			.borderThickness		= 0,
-			.blinkInterval			= 0
+			.borderThickness		= 1.5,
+			.blinkInterval			= 0,
 		};
 	}
 
