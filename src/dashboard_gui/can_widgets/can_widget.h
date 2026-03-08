@@ -22,8 +22,12 @@
 #include "can_fault_popup.h"
 #include "can_float_popup.h"
 #include "can_indicator.h"
+#include "can_label_bool.h"
+#include "can_label_fault.h"
+#include "can_label_float.h"
 #include "can_progress_bar.h"
 #include "can_shutdown_loop_indicator.h"
+#include "can_widget_template.h"
 
 // GTK
 #include <gtk/gtk.h>
@@ -36,8 +40,12 @@ typedef struct
 	canFaultPopupStyle_t canFaultPopup;
 	canFloatPopupStyle_t canFloatPopup;
 	canIndicatorStyle_t canIndicator;
+	canLabelBoolStyle_t canLabelBool;
+	canLabelFaultStyle_t canLabelFault;
+	canLabelFloatStyle_t canLabelFloat;
 	canProgressBarStyle_t canProgressBar;
 	canShutdownLoopIndicatorStyle_t canShutdownLoopIndicator;
+	canWidgetTemplateStyle_t canWidgetTemplate;
 } canWidgetStyle_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

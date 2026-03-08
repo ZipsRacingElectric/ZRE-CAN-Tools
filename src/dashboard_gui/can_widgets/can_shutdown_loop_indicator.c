@@ -2,11 +2,8 @@
 #include "can_shutdown_loop_indicator.h"
 
 // Includes
-#include "can_widget.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
-
-// TODO(Barach): Docs and cleanup
 
 // Base datatype for the widget.
 typedef struct
@@ -20,8 +17,13 @@ typedef struct
 	// CAN database reference.
 	canDatabase_t* database;
 
+	// CAN database signal index.
 	ssize_t index;
+
+	// Last open/closed state.
 	bool closed;
+
+	// Timer for the animation.
 	float animationTimer;
 } canShutdownLoopIndicator_t;
 
@@ -50,6 +52,7 @@ static void update (void* widget)
 			indicator->animationTimer = -indicator->config.style.animationDelay;
 	}
 
+	// Redraw the widget
 	gtk_widget_queue_draw (CAN_WIDGET_TO_WIDGET (indicator));
 }
 
@@ -230,6 +233,8 @@ canWidget_t* canShutdownLoopIndicatorLoad (canDatabase_t* database, cJSON* confi
 {
 	canShutdownLoopIndicatorConfig_t widgetConfig;
 
+	// Load config fields. Exit early is required field is not specified.
+
 	if (jsonGetString (config, "signalName", &widgetConfig.signalName) != 0)
 		return NULL;
 
@@ -238,13 +243,10 @@ canWidget_t* canShutdownLoopIndicatorLoad (canDatabase_t* database, cJSON* confi
 
 	widgetConfig.inverted = false;
 	jsonGetBool (config, "inverted", &widgetConfig.inverted);
-
 	widgetConfig.text = "";
 	jsonGetString (config, "text", &widgetConfig.text);
-
 	widgetConfig.width = 0;
 	jsonGetInt (config, "width", &widgetConfig.width);
-
 	widgetConfig.height = 0;
 	jsonGetInt (config, "height", &widgetConfig.height);
 
@@ -257,9 +259,11 @@ canWidget_t* canShutdownLoopIndicatorLoad (canDatabase_t* database, cJSON* confi
 void canShutdownLoopIndicatorLoadStyle (cJSON* config, canShutdownLoopIndicatorStyle_t* style, canShutdownLoopIndicatorStyle_t* parent)
 {
 	if (parent != NULL)
+		// If a parent is specified, inherit everything.
 		*style = *parent;
 	else
 	{
+		// If no parent is specified, use default values.
 		*style = (canShutdownLoopIndicatorStyle_t)
 		{
 			.textPosition		= 0.0f,
@@ -282,8 +286,11 @@ void canShutdownLoopIndicatorLoadStyle (cJSON* config, canShutdownLoopIndicatorS
 		};
 	}
 
+	// If no config was provided, use what we have.
 	if (config == NULL)
 		return;
+
+	// Load style fields, if specified.
 
 	jsonGetFloat (config, "textPosition", &style->textPosition);
 	jsonGetFloat (config, "fontSize", &style->fontSize);
@@ -297,7 +304,6 @@ void canShutdownLoopIndicatorLoadStyle (cJSON* config, canShutdownLoopIndicatorS
 	jsonGetFloat (config, "peakHeight", &style->peakHeight);
 
 	char* color;
-
 	if (jsonGetString (config, "lineColor", &color) == 0)
 		style->lineColor = gdkHexToColor (color);
 	if (jsonGetString (config, "plugColor", &color) == 0)

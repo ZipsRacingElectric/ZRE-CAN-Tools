@@ -13,11 +13,20 @@ typedef enum
 
 typedef struct
 {
+	// Every CAN widget must start with the VMT.
 	canWidgetVmt_t vmt;
+
+	// Configuration
 	canLabelBoolConfig_t config;
-	canLabelBoolState_t state;
+
+	// CAN database reference.
 	canDatabase_t* database;
+
+	// CAN database signal index.
 	ssize_t index;
+
+	// Last state.
+	canLabelBoolState_t state;
 } canLabelBool_t;
 
 static void update (void* widget)
@@ -78,9 +87,9 @@ canWidget_t* canLabelBoolInit (canDatabase_t* database, canLabelBoolConfig_t* co
 			.widget	= gtk_label_new (config->invalidValue)
 		},
 		.config		= *config,
-		.state		= CAN_LABEL_BOOL_INVALID,
 		.database	= database,
-		.index		= canDatabaseFindSignal (database, config->signalName)
+		.index		= canDatabaseFindSignal (database, config->signalName),
+		.state		= CAN_LABEL_BOOL_INVALID
 	};
 
 	// Update initial value
@@ -90,39 +99,42 @@ canWidget_t* canLabelBoolInit (canDatabase_t* database, canLabelBoolConfig_t* co
 	return (canWidget_t*) label;
 }
 
-canWidget_t* canLabelBoolLoad (canDatabase_t* database, cJSON* config)
+canWidget_t* canLabelBoolLoad (canDatabase_t* database, cJSON* config, canLabelBoolStyle_t* parentStyle)
 {
-	char* signalName;
-	if (jsonGetString (config, "signalName", &signalName) != 0)
+	canLabelBoolConfig_t widgetConfig;
+
+	// Load config fields. Exit early is required field is not specified.
+
+	if (jsonGetString (config, "signalName", &widgetConfig.signalName) != 0)
 		return NULL;
 
-	char* activeValue;
-	if (jsonGetString (config, "activeValue", &activeValue) != 0)
+	if (jsonGetString (config, "activeValue", &widgetConfig.activeValue) != 0)
 		return NULL;
 
-	char* inactiveValue;
-	if (jsonGetString (config, "inactiveValue", &inactiveValue) != 0)
+	if (jsonGetString (config, "inactiveValue", &widgetConfig.inactiveValue) != 0)
 		return NULL;
 
-	char* invalidValue;
-	if (jsonGetString (config, "invalidValue", &invalidValue) != 0)
+	if (jsonGetString (config, "invalidValue", &widgetConfig.invalidValue) != 0)
 		return NULL;
 
-	float threshold;
-	if (jsonGetFloat (config, "threshold", &threshold) != 0)
+	if (jsonGetFloat (config, "threshold", &widgetConfig.threshold) != 0)
 		return NULL;
 
-	bool inverted;
-	if (jsonGetBool (config, "inverted", &inverted) != 0)
-		return NULL;
+	jsonGetBool (config, "inverted", &widgetConfig.inverted);
 
-	return canLabelBoolInit (database, &(canLabelBoolConfig_t)
-	{
-		.signalName		= signalName,
-		.activeValue	= activeValue,
-		.inactiveValue	= inactiveValue,
-		.invalidValue	= invalidValue,
-		.threshold		= threshold,
-		.inverted		= inverted
-	});
+	// No style to load right now.
+	(void) parentStyle;
+
+	return canLabelBoolInit (database, &widgetConfig);
+}
+
+void canLabelBoolLoadStyle (cJSON* config, canLabelBoolStyle_t* style, canLabelBoolStyle_t* parent)
+{
+	(void) config;
+	(void) style;
+	(void) parent;
+
+	// Nothing to load right now.
+
+	return;
 }

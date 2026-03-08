@@ -1,14 +1,6 @@
 // Header
 #include "can_widget.h"
 
-// TODO(Barach): This form is deprecated
-// CAN Widgets
-#include "can_label_float.h"
-#include "can_label_bool.h"
-#include "can_label_fault.h"
-#include "can_float_popup.h"
-#include "can_widget_template.h"
-
 // Includes
 #include "cjson/cjson_util.h"
 #include "debug.h"
@@ -44,56 +36,12 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 	LOAD_WIDGET_STATEMENTS (canFaultPopup);
 	LOAD_WIDGET_STATEMENTS (canFloatPopup);
 	LOAD_WIDGET_STATEMENTS (canIndicator);
+	LOAD_WIDGET_STATEMENTS (canLabelBool);
+	LOAD_WIDGET_STATEMENTS (canLabelFault);
+	LOAD_WIDGET_STATEMENTS (canLabelFloat);
 	LOAD_WIDGET_STATEMENTS (canProgressBar);
 	LOAD_WIDGET_STATEMENTS (canShutdownLoopIndicator);
-
-	if (strcmp (widgetType, "canLabelFloat_t") == 0)
-	{
-		canWidget_t* widget = canLabelFloatLoad (database, config);
-		if (widget == NULL)
-		{
-			errorPrintf ("Failed to load widget of type 'canLabelFloat_t'");
-			return widget;
-		}
-
-		return widget;
-	}
-
-	if (strcmp (widgetType, "canLabelBool_t") == 0)
-	{
-		canWidget_t* widget = canLabelBoolLoad (database, config);
-		if (widget == NULL)
-		{
-			errorPrintf ("Failed to load widget of type 'canLabelBool_t'");
-			return NULL;
-		}
-
-		return widget;
-	}
-
-	if (strcmp (widgetType, "canLabelFault_t") == 0)
-	{
-		canWidget_t* widget = canLabelFaultLoad (database, config);
-		if (widget == NULL)
-		{
-			errorPrintf ("Failed to load widget of type 'canLabelFault_t'");
-			return NULL;
-		}
-
-		return widget;
-	}
-
-	if (strcmp (widgetType, "canWidgetTemplate_t") == 0)
-	{
-		canWidget_t* widget = canWidgetTemplateLoad (database, config);
-		if (widget == NULL)
-		{
-			errorPrintf ("Failed to load widget of type 'canWidgetTemplate_t'");
-			return NULL;
-		}
-
-		return widget;
-	}
+	LOAD_WIDGET_STATEMENTS (canWidgetTemplate);
 
 	if (strcmp (widgetType, "null") == 0)
 		return NULL;
@@ -139,6 +87,10 @@ void canWidgetLoadStyle (canWidgetStyle_t* style, cJSON* config, canWidgetStyle_
 	LOAD_STYLE_STATEMENTS (canFaultPopup);
 	LOAD_STYLE_STATEMENTS (canFloatPopup);
 	LOAD_STYLE_STATEMENTS (canIndicator);
+	LOAD_STYLE_STATEMENTS (canLabelBool);
+	LOAD_STYLE_STATEMENTS (canLabelFault);
+	LOAD_STYLE_STATEMENTS (canLabelFloat);
 	LOAD_STYLE_STATEMENTS (canProgressBar);
 	LOAD_STYLE_STATEMENTS (canShutdownLoopIndicator);
+	LOAD_STYLE_STATEMENTS (canWidgetTemplate);
 }

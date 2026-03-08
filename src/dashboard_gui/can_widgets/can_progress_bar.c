@@ -9,11 +9,20 @@
 
 typedef struct
 {
+	// Every CAN widget must start with the VMT.
 	canWidgetVmt_t vmt;
+
+	// Configuration
 	canProgressBarConfig_t config;
-	stylizedProgressBar_t* bar;
+
+	// CAN database reference.
 	canDatabase_t* database;
+
+	// CAN database signal index.
 	ssize_t index;
+
+	// Progress bar widget.
+	stylizedProgressBar_t* bar;
 } canProgressBar_t;
 
 static void update (void* widget)
@@ -48,9 +57,9 @@ canWidget_t* canProgressBarInit (canDatabase_t* database, canProgressBarConfig_t
 			.widget	= NULL
 		},
 		.config		= *config,
-		.bar		= stylizedProgressBarInit (&config->style.barConfig),
 		.database	= database,
-		.index		= canDatabaseFindSignal (database, config->signalName)
+		.index		= canDatabaseFindSignal (database, config->signalName),
+		.bar		= stylizedProgressBarInit (&config->style.barConfig)
 	};
 
 	// Store a reference to the base widget

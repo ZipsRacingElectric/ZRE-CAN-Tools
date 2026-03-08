@@ -55,7 +55,7 @@ canWidget_t* canLabelFaultInit (canDatabase_t* database, canLabelFaultConfig_t* 
 	return (canWidget_t*) label;
 }
 
-canWidget_t* canLabelFaultLoad (canDatabase_t* database, cJSON* config)
+canWidget_t* canLabelFaultLoad (canDatabase_t* database, cJSON* config, canLabelFaultStyle_t* parentStyle)
 {
 	canLabelFaultConfig_t widgetConfig;
 
@@ -73,9 +73,24 @@ canWidget_t* canLabelFaultLoad (canDatabase_t* database, cJSON* config)
 	if (faultSignalsLoad (&widgetConfig.faults, nodeConfig, database) != 0)
 		return NULL;
 
-	// Get the format string
+	// Load config fields. Exit early is required field is not specified.
+
 	if (jsonGetString (config, "format", &widgetConfig.format) != 0)
 		return NULL;
 
+	// No style to load right now.
+	(void) parentStyle;
+
 	return canLabelFaultInit (database, &widgetConfig);
+}
+
+void canLabelFaultLoadStyle (cJSON* config, canLabelFaultStyle_t* style, canLabelFaultStyle_t* parent)
+{
+	(void) config;
+	(void) style;
+	(void) parent;
+
+	// Nothing to load right now.
+
+	return;
 }

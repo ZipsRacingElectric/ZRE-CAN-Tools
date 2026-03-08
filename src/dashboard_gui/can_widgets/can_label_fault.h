@@ -11,7 +11,7 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
-#include "can_widget.h"
+#include "can_widget_internal.h"
 #include "can_database/can_database.h"
 #include "can_node/fault_signal.h"
 
@@ -22,11 +22,19 @@
 
 typedef struct
 {
-	/// @brief The array of fault signals to display.
+	// Nothing here right now.
+} canLabelFaultStyle_t;
+
+typedef struct
+{
+	/// @brief The array of fault signals to display. Required. Specified as "configPath" in JSON.
 	faultSignals_t faults;
 
-	/// @brief The format string to use. Must contain the '%s' specifier once.
+	/// @brief The format string to use. Must contain the '%s' specifier exactly once. Required.
 	char* format;
+
+	/// @brief The style of the widget.
+	canLabelFaultStyle_t style;
 } canLabelFaultConfig_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -40,11 +48,20 @@ typedef struct
 canWidget_t* canLabelFaultInit (canDatabase_t* database, canLabelFaultConfig_t* config);
 
 /**
- * @brief Creates and initializes a fault CAN widget from a JSON configuration.
+ * @brief Creates and initializes a fault CAN label from a JSON configuration.
  * @param database The CAN database to bind to.
  * @param config The JSON configuration to load from.
+ * @param parentStyle The parent style to inherit from, or @c NULL .
  * @return The created widget, if successful, @c NULL otherwise.
  */
-canWidget_t* canLabelFaultLoad (canDatabase_t* database, cJSON* config);
+canWidget_t* canLabelFaultLoad (canDatabase_t* database, cJSON* config, canLabelFaultStyle_t* parentStyle);
+
+/**
+ * @brief Loads a fault CAN label's style from a JSON configuration.
+ * @param config JSON configuration to use.
+ * @param style The style to load into.
+ * @param parent The parent style to inherit from, or @c NULL .
+ */
+void canLabelFaultLoadStyle (cJSON* config, canLabelFaultStyle_t* style, canLabelFaultStyle_t* parent);
 
 #endif // CAN_LABEL_FAULT_H

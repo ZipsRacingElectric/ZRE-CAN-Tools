@@ -7,9 +7,16 @@
 
 typedef struct
 {
+	// Every CAN widget must start with the VMT.
 	canWidgetVmt_t vmt;
+
+	// Configuration
 	canLabelFloatConfig_t config;
+
+	// CAN database reference.
 	canDatabase_t* database;
+
+	// CAN database signal index.
 	ssize_t index;
 } canLabelFloat_t;
 
@@ -17,7 +24,7 @@ static void update (void* widget)
 {
 	canLabelFloat_t* label = widget;
 
-	char text [64] = "";
+	char text [512] = "";
 	snprintCanDatabaseFloat (text, sizeof (text), label->config.formatValue, label->config.formatInvalid,
 		label->database, label->index);
 	gtk_label_set_text (GTK_LABEL (label->vmt.widget), text);
@@ -50,24 +57,34 @@ canWidget_t* canLabelFloatInit (canDatabase_t* database, canLabelFloatConfig_t* 
 	return (canWidget_t*) label;
 }
 
-canWidget_t* canLabelFloatLoad (canDatabase_t* database, cJSON* config)
+canWidget_t* canLabelFloatLoad (canDatabase_t* database, cJSON* config, canLabelFloatStyle_t* parentStyle)
 {
-	char* signalName;
-	if (jsonGetString (config, "signalName", &signalName) != 0)
+	canLabelFloatConfig_t widgetConfig;
+
+	// Load config fields. Exit early is required field is not specified.
+
+	if (jsonGetString (config, "signalName", &widgetConfig.signalName) != 0)
 		return NULL;
 
-	char* formatValue;
-	if (jsonGetString (config, "formatValue", &formatValue) != 0)
+	if (jsonGetString (config, "formatValue", &widgetConfig.formatValue) != 0)
 		return NULL;
 
-	char* formatInvalid;
-	if (jsonGetString (config, "formatInvalid", &formatInvalid) != 0)
+	if (jsonGetString (config, "formatInvalid", &widgetConfig.formatInvalid) != 0)
 		return NULL;
 
-	return canLabelFloatInit (database, &(canLabelFloatConfig_t)
-	{
-		.signalName		= signalName,
-		.formatValue	= formatValue,
-		.formatInvalid	= formatInvalid
-	});
+	// No style to load right now.
+	(void) parentStyle;
+
+	return canLabelFloatInit (database, &widgetConfig);
+}
+
+void canLabelFloatLoadStyle (cJSON* config, canLabelFloatStyle_t* style, canLabelFloatStyle_t* parent)
+{
+	(void) config;
+	(void) style;
+	(void) parent;
+
+	// Nothing to load right now.
+
+	return;
 }
