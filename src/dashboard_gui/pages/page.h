@@ -20,6 +20,7 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
+// Page stack forward declaration
 typedef struct pageStack pageStack_t;
 
 typedef struct
@@ -76,39 +77,79 @@ typedef struct
 
 // Macros ---------------------------------------------------------------------------------------------------------------------
 
+/// @brief Gets the top-level GTK widget of a page.
 #define PAGE_TO_WIDGET(page) ((page)->vmt.widget)
 
-#define PAGE_STYLE(page)			((page)->style)
-#define PAGE_BASE_STYLE(page)		((page)->style.baseStyle)
-#define PAGE_WIDGET_STYLE(page)		(&(page)->style.baseStyle->widgetStyle)
+/// @brief Gets the page-specific style of a page.
+#define PAGE_STYLE(page) ((page)->style)
+
+/// @brief Gets the base page style of a page.
+#define PAGE_BASE_STYLE(page) ((page)->style.baseStyle)
+
+/// @brief Gets the CAN widget style of a page.
+#define PAGE_WIDGET_STYLE(page) (&(page)->style.baseStyle->widgetStyle)
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
+/**
+ * @brief Loads a page from a configuration JSON. This function parses the "type" field of the provided JSON to determine which
+ * type of page the configuration belongs to, then loads the page via its constructor.
+ * @param config The JSON configuration to use. The remainder of the config is parsed as the page-specific config of the page
+ * specified by "type".
+ * @param database The CAN database to bind the page's widgets to.
+ * @param style The parent base page style to inherit from.
+ * @return The created page, if successful, @c NULL otherwise.
+ */
 page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
 
-// TODO(Barach): Needs work
+/**
+ * @brief Loads a base page style from a JSON configuration.
+ * @param config The JSON configuration to load from.
+ * @param parent The parent base page style to inherit from.
+ * @return The loaded base style, if successful, @c NULL otherwise.
+ */
 pageStyle_t* pageStyleLoad (cJSON* config, pageStyle_t* parent);
 
+/**
+ * @brief Updates all the widgets on a page.
+ * @param page The page to update.
+ */
 static inline void pageUpdate (page_t* page)
 {
 	page->vmt.update (page);
 }
 
+/**
+ * @brief Adds a new navigation button to a page.
+ * @param page The page to append to.
+ * @param label The text to label the button with.
+ * @param callback The callback to execute when the button is pressed, or @c NULL to ignore.
+ * @param arg The argument to pass to the callback.
+ * @param currentPage Indicates if the button navigates to this page or not.
+ * @param style The base page style to stylize the button with.
+ */
 static inline void pageAppendButton (page_t* page, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage, pageStyle_t* style)
 {
 	page->vmt.appendButton (page, label, callback, arg, currentPage, style);
 }
 
+/// @return The name of the page.
 static inline char* pageGetName (page_t* page)
 {
 	return page->vmt.name;
 }
 
+/**
+ * @brief Sets the parent page stack of a page.
+ * @param page The page to use.
+ * @param parent The page stack to use.
+ */
 static inline void pageSetParent (page_t* page, pageStack_t* parent)
 {
 	page->vmt.parent = parent;
 }
 
+/// @return The page's parent page stack.
 static inline pageStack_t* pageGetParent (page_t* page)
 {
 	return page->vmt.parent;

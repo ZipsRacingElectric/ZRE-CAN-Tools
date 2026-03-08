@@ -12,7 +12,6 @@
 
 // Includes
 #include "page.h"
-#include "../can_widgets/can_widget.h"
 #include "can_database/can_database.h"
 #include "cjson/cjson.h"
 
@@ -45,9 +44,6 @@ typedef struct
 
 	canWidget_t* positiveIr;
 	canWidget_t* negativeIr;
-
-	canWidget_t** widgets;
-	size_t widgetCount;
 
 	canWidget_t** diagramIndicators;
 	size_t diagramIndicatorCount;

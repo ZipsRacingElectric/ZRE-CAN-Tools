@@ -107,7 +107,6 @@ static void styleLoad (pageStatusStyle_t* style, pageStyle_t* baseStyle, cJSON* 
 		style->shutdownLineColor = gdkHexToColor (color);
 
 	jsonGetFloat (config, "shutdownLineThickness", &style->shutdownLineThickness);
-
 	jsonGetFloat (config, "shutdownLineSlope", &style->shutdownLineSlope);
 }
 
@@ -141,17 +140,10 @@ static void update (void* pageArg)
 {
 	pageStatus_t* page = pageArg;
 
-	for (size_t index = 0; index < page->widgetCount; ++index)
-		canWidgetUpdate (page->widgets [index]);
-
-	for (size_t index = 0; index < page->shutdownIndicatorCount; ++index)
-		canWidgetUpdate (page->shutdownIndicators [index]);
-
-	for (size_t index = 0; index < page->diagramIndicatorCount; ++index)
-		canWidgetUpdate (page->diagramIndicators [index]);
-
 	canWidgetUpdate (page->positiveIr);
 	canWidgetUpdate (page->negativeIr);
+	canWidgetUpdateArray (page->shutdownIndicators, page->shutdownIndicatorCount);
+	canWidgetUpdateArray (page->diagramIndicators, page->diagramIndicatorCount);
 }
 
 page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
@@ -191,47 +183,25 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	gtk_overlay_add_overlay (GTK_OVERLAY (page->vmt.widget), GTK_WIDGET (page->grid));
 	gtk_overlay_set_measure_overlay (GTK_OVERLAY (page->vmt.widget), GTK_WIDGET (page->grid), true);
 
-	cJSON* widgetConfigs = jsonGetObjectV2 (config, "widgets");
-	if (widgetConfigs == NULL)
-		return NULL;
-
-	page->widgetCount = cJSON_GetArraySize (widgetConfigs);
-	page->widgets = malloc (sizeof (canWidget_t*) * page->widgetCount);
-	if (page->widgets == NULL)
-		return NULL;
-
-	for (size_t index = 0; index < page->widgetCount; ++index)
-	{
-		cJSON* widgetConfig = cJSON_GetArrayItem (widgetConfigs, index);
-		page->widgets [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
-		if (page->widgets [index] == NULL)
-			continue;
-
-		gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->widgets [index]), 0, index + 1, 1, 1);
-	}
+	// Load the shutdown panel
 
 	GtkWidget* shutdownPanel = gtk_grid_new ();
 	gtk_widget_set_margin_end (shutdownPanel, 4);
 	gtk_grid_attach (GTK_GRID (page->grid), shutdownPanel, 0, 0, 1, 1);
 
-	cJSON* shutdownConfigs = jsonGetObjectV2 (config, "shutdownIndicators");
-	if (shutdownConfigs == NULL)
-		return NULL;
-
-	page->shutdownIndicatorCount = cJSON_GetArraySize (shutdownConfigs);
-	page->shutdownIndicators = malloc (sizeof (canWidget_t*) * page->shutdownIndicatorCount);
+	page->shutdownIndicators = canWidgetLoadArray (database, jsonGetObjectV2 (config, "shutdownIndicators"),
+		PAGE_WIDGET_STYLE (page), &page->shutdownIndicatorCount);
 	if (page->shutdownIndicators == NULL)
 		return NULL;
 
 	for (size_t index = 0; index < page->shutdownIndicatorCount; ++index)
 	{
-		cJSON* widgetConfig = cJSON_GetArrayItem (shutdownConfigs, index);
-		page->shutdownIndicators [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
 		if (page->shutdownIndicators [index] == NULL)
 			continue;
 
-		gtk_widget_set_margin_top (CAN_WIDGET_TO_WIDGET (page->shutdownIndicators [index]), 8);
-		gtk_grid_attach (GTK_GRID (shutdownPanel), CAN_WIDGET_TO_WIDGET (page->shutdownIndicators [index]), index, 0, 1, 2);
+		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->shutdownIndicators [index]);
+		gtk_widget_set_margin_top (widget, 8);
+		gtk_grid_attach (GTK_GRID (shutdownPanel), widget, index, 0, 1, 2);
 	}
 
 	GtkWidget* shutdownLines = gtk_drawing_area_new ();
@@ -240,14 +210,16 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	gtk_grid_attach (GTK_GRID (shutdownPanel), shutdownLines, page->shutdownIndicatorCount, 0, 1, 2);
 
 	cJSON* positiveIr = jsonGetObjectV2 (config, "positiveIr");
-	page->positiveIr = canWidgetLoad (database, positiveIr, &page->style.baseStyle->widgetStyle);
+	page->positiveIr = canWidgetLoad (database, positiveIr, PAGE_WIDGET_STYLE (page));
 	if (page->positiveIr != NULL)
 		gtk_grid_attach (GTK_GRID (shutdownPanel), CAN_WIDGET_TO_WIDGET (page->positiveIr), page->shutdownIndicatorCount + 1, 0, 1, 1);
 
 	cJSON* negativeIr = jsonGetObjectV2 (config, "negativeIr");
-	page->negativeIr = canWidgetLoad (database, negativeIr, &page->style.baseStyle->widgetStyle);
+	page->negativeIr = canWidgetLoad (database, negativeIr, PAGE_WIDGET_STYLE (page));
 	if (page->negativeIr != NULL)
 		gtk_grid_attach (GTK_GRID (shutdownPanel), CAN_WIDGET_TO_WIDGET (page->negativeIr), page->shutdownIndicatorCount + 1, 1, 1, 1);
+
+	// Load the diagram background
 
 	GtkWidget* diagram = gtk_fixed_new ();
 	gtk_widget_set_halign (diagram, GTK_ALIGN_CENTER);
@@ -255,7 +227,6 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	gtk_widget_set_vexpand (diagram, true);
 	gtk_grid_attach (GTK_GRID (page->grid), diagram, 0, 8, 1, 1);
 
-	// TODO(Barach): Replace with image.
 	char* backgroundPath;
 	if (jsonGetString (config, "diagramBackground", &backgroundPath) != 0)
 		return NULL;
@@ -269,6 +240,8 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	gtk_fixed_put (GTK_FIXED (diagram), diagramBackground, 0, 0);
 
 	free (backgroundPathExp);
+
+	// Load the diagram indicators
 
 	cJSON* indicatorConfigs = jsonGetObjectV2 (config, "diagramIndicators");
 	if (indicatorConfigs == NULL)
@@ -290,13 +263,15 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 		jsonGetUint16_t (indicatorConfig, "yPosition", &y);
 
 		cJSON* widgetConfig = jsonGetObjectV2 (indicatorConfig, "widget");
-		page->diagramIndicators [index] = canWidgetLoad (database, widgetConfig, &page->style.baseStyle->widgetStyle);
+		page->diagramIndicators [index] = canWidgetLoad (database, widgetConfig, PAGE_WIDGET_STYLE (page));
 
 		if (page->diagramIndicators [index] == NULL)
 			continue;
 
 		gtk_fixed_put (GTK_FIXED (diagram), CAN_WIDGET_TO_WIDGET (page->diagramIndicators [index]), x, y);
 	}
+
+	// Create padding and the button panel
 
 	GtkWidget* padding = gtk_grid_new ();
 	gtk_widget_set_vexpand (padding, true);

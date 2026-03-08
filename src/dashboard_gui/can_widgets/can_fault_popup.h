@@ -6,7 +6,7 @@
 // Author: Cole Barach
 // Date Created: 2026.02.25
 //
-// Description: TODO(Barach)
+// Description: GTK widget displaying a CAN fault signal as a popup.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 

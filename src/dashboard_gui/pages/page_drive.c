@@ -548,7 +548,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_widget_set_valign (GTK_WIDGET (page->dataLoggerPanel), GTK_ALIGN_FILL);
 	gtk_widget_set_margin_top (GTK_WIDGET (page->dataLoggerPanel), 20);
 
-	page->dataLoggerTitle = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerTitle"), &page->style.baseStyle->widgetStyle);
+	page->dataLoggerTitle = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerTitle"), PAGE_WIDGET_STYLE (page));
 	if (page->dataLoggerTitle != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerTitle);
@@ -560,7 +560,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		gtk_grid_attach (page->dataLoggerPanel, widget, 0, 0, 1, 1);
 	}
 
-	page->dataLoggerStat = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerStat"), &page->style.baseStyle->widgetStyle);
+	page->dataLoggerStat = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerStat"), PAGE_WIDGET_STYLE (page));
 	if (page->dataLoggerStat != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerStat);
@@ -592,7 +592,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	// Load the fault indicators
 
 	page->faultIndicators = canWidgetLoadArray (database, jsonGetObjectV2 (config, "faultIndicators"),
-		&page->style.baseStyle->widgetStyle, &page->faultIndicatorCount);
+		PAGE_WIDGET_STYLE (page), &page->faultIndicatorCount);
 	if (page->faultIndicators == NULL)
 		return NULL;
 

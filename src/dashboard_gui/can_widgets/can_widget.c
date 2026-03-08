@@ -41,8 +41,11 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 		return NULL;
 	}
 
+	LOAD_WIDGET_STATEMENTS (canFaultPopup);
+	LOAD_WIDGET_STATEMENTS (canFloatPopup);
 	LOAD_WIDGET_STATEMENTS (canIndicator);
 	LOAD_WIDGET_STATEMENTS (canProgressBar);
+	LOAD_WIDGET_STATEMENTS (canShutdownLoopIndicator);
 
 	if (strcmp (widgetType, "canLabelFloat_t") == 0)
 	{
@@ -74,42 +77,6 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 		if (widget == NULL)
 		{
 			errorPrintf ("Failed to load widget of type 'canLabelFault_t'");
-			return NULL;
-		}
-
-		return widget;
-	}
-
-	if (strcmp (widgetType, "canShutdownLoopIndicator_t") == 0)
-	{
-		canWidget_t* widget = canShutdownLoopIndicatorLoad (database, config, &style->canShutdownLoopIndicator);
-		if (widget == NULL)
-		{
-			errorPrintf ("Failed to load widget of type 'canShutdownLoopIndicator_t'");
-			return NULL;
-		}
-
-		return widget;
-	}
-
-	if (strcmp (widgetType, "canFaultPopup_t") == 0)
-	{
-		canWidget_t* widget = canFaultPopupLoad (database, config, &style->canFaultPopup);
-		if (widget == NULL)
-		{
-			errorPrintf ("Failed to load widget of type 'canFaultPopup_t'");
-			return NULL;
-		}
-
-		return widget;
-	}
-
-	if (strcmp (widgetType, "canFloatPopup_t") == 0)
-	{
-		canWidget_t* widget = canFloatPopupLoad (database, config);
-		if (widget == NULL)
-		{
-			errorPrintf ("Failed to load widget of type 'canFloatPopup_t'");
 			return NULL;
 		}
 
@@ -170,6 +137,7 @@ void canWidgetLoadStyle (canWidgetStyle_t* style, cJSON* config, canWidgetStyle_
 	cJSON* styleConfig;
 
 	LOAD_STYLE_STATEMENTS (canFaultPopup);
+	LOAD_STYLE_STATEMENTS (canFloatPopup);
 	LOAD_STYLE_STATEMENTS (canIndicator);
 	LOAD_STYLE_STATEMENTS (canProgressBar);
 	LOAD_STYLE_STATEMENTS (canShutdownLoopIndicator);
