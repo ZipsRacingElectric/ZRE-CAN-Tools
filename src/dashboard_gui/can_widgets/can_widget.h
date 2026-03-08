@@ -8,13 +8,19 @@
 //
 // Description: Base polymorphic object describing a widget that sources information from a CAN database. This family of
 //   widgets all require a routine 'update' at a fixed rate.
+//
+// Example:
+//
+//   // Note: Error handling must be performed.
+//   cJSON* config = jsonGetObjectV2 (json, "widgetConfig");
+//   canWidget_t* widget = canWidgetLoad (database, config, NULL);
+//   gtk_grid_attach (grid, CAN_WIDGET_TO_WIDGET (widget), 0, 0, 1, 1);
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
-// Includes
+// CAN Widgets
 #include "can_indicator.h"
 #include "can_shutdown_loop_indicator.h"
-#include "can_widget_internal.h"
 #include "can_fault_popup.h"
 
 // GTK
@@ -29,29 +35,6 @@ typedef struct
 	canShutdownLoopIndicatorStyle_t canShutdownLoopIndicator;
 	canFaultPopupStyle_t canFaultPopup;
 } canWidgetStyle_t;
-
-/**
- * @brief Virtual method table entry for implementations of the @c canWidgetUpdate function.
- * @param widget Pointer to the widget to update.
- */
-typedef void (canWidgetUpdate_t) (void* widget);
-
-/// @brief Virtual method (and member) table of the polymorphic @c canWidget_t structure.
-typedef struct
-{
-	canWidgetUpdate_t* update;
-	GtkWidget* widget;
-} canWidgetVmt_t;
-
-/// @brief Base polymorphic object for all CAN database widgets.
-struct canWidget
-{
-	/// @brief The object's virtual method table. Must be the first element in derived structures.
-	canWidgetVmt_t vmt;
-};
-
-/// @brief Converts a CAN widget into a GTK widget.
-#define CAN_WIDGET_TO_WIDGET(wdgt) ((wdgt)->vmt.widget)
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 

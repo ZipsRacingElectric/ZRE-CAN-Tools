@@ -114,7 +114,7 @@
 						"formatInvalid":				"%s"
 					},
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"TODO",
 						"threshold":					"0.5",
 						"inverted":						"false",
@@ -122,7 +122,6 @@
 						"bgInactiveColor":				"#580000",
 						"bgInvalidColor":				"#FF0000",
 						"borderActiveColor":			"#000000",
-						"shape":						"circle",
 						"width":						"26",
 						"height":						"26"
 					}
@@ -288,7 +287,7 @@
 						"formatInvalid":				"%s"
 					},
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"TODO",
 						"threshold":					"0.5",
 						"inverted":						"false",
@@ -296,7 +295,6 @@
 						"bgInactiveColor":				"#580000",
 						"bgInvalidColor":				"#FF0000",
 						"borderActiveColor":			"#000000",
-						"shape":						"circle",
 						"width":						"26",
 						"height":						"26"
 					}
@@ -357,6 +355,7 @@
 						"canIndicator":
 						{
 							"font":						"Futura Std Bold Condensed 20px",
+							"shape":					"rect",
 							"bgActiveColor":			"#FF0064",
 							"bgInactiveColor":			"#67C3FF",
 							"bgInvalidColor":			"#1E2E39",
@@ -457,12 +456,11 @@
 			],
 			"positiveIr":
 			{
-				"type":									"canIndicator_t",
+				"type":									"canIndicator",
 				"signalName":							"POSITIVE_IR_ENABLED",
 				"threshold":							"0.5",
 				"width":								"70",
 				"height":								"36",
-				"shape":								"rect",
 				"text":									"+IR",
 				"style":
 				{
@@ -482,12 +480,11 @@
 			},
 			"negativeIr":
 			{
-				"type":									"canIndicator_t",
+				"type":									"canIndicator",
 				"signalName":							"NEGATIVE_IR_ENABLED",
 				"threshold":							"0.5",
 				"width":								"70",
 				"height":								"36",
-				"shape":								"rect",
 				"text":									"-IR",
 				"style":
 				{
@@ -513,12 +510,11 @@
 					"yPosition":						"160",
 					"widget":
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"VCU_FAULT",
 						"threshold":					"0.5",
 						"width":						"50",
 						"height":						"30",
-						"shape":						"rect",
 						"text":							"VCU",
 						"style":
 						{
@@ -531,12 +527,11 @@
 					"yPosition":						"160",
 					"widget":
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"BSPD_FAULT",
 						"threshold":					"0.5",
 						"width":						"50",
 						"height":						"30",
-						"shape":						"rect",
 						"text":							"BSPD",
 						"style":
 						{
@@ -561,12 +556,11 @@
 					"yPosition":						"110",
 					"widget":
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"BMS_FAULT",
 						"threshold":					"0.5",
 						"width":						"60",
 						"height":						"75",
-						"shape":						"rect",
 						"text":							"BMS",
 						"style":
 						{
@@ -591,12 +585,11 @@
 					"yPosition":						"110",
 					"widget":
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"IMD_FAULT",
 						"threshold":					"0.5",
 						"width":						"60",
 						"height":						"75",
-						"shape":						"rect",
 						"text":							"IMD",
 						"style":
 						{
@@ -609,12 +602,11 @@
 					"yPosition":						"20",
 					"widget":
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"RL_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"width":						"40",
 						"height":						"50",
-						"shape":						"rect",
 						"text":							"AMK\nRL",
 						"style":
 						{
@@ -647,13 +639,12 @@
 					"yPosition":						"230",
 					"widget":
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"RR_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
 						"width":						"40",
 						"height":						"50",
-						"shape":						"rect",
 						"text":							"AMK\nRR",
 						"style":
 						{
@@ -686,13 +677,12 @@
 					"yPosition":						"20",
 					"widget":
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"FL_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
 						"width":						"40",
 						"height":						"50",
-						"shape":						"rect",
 						"text":							"AMK\nFL",
 						"style":
 						{
@@ -725,13 +715,12 @@
 					"yPosition":						"230",
 					"widget":
 					{
-						"type":							"canIndicator_t",
+						"type":							"canIndicator",
 						"signalName":					"FR_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
 						"width":						"40",
 						"height":						"50",
-						"shape":						"rect",
 						"text":							"AMK\nFR",
 						"style":
 						{

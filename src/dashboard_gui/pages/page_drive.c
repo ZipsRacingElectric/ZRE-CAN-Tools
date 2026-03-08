@@ -622,10 +622,11 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= false,
 		.width			= 100,
 		.height			= 42,
+		// TODO(Barach):
 		// .bgInactiveColor= page->style.faultInactiveColor,
 		// .bgActiveColor	= page->style.faultActiveColor,
 		// .bgInvalidColor	= page->style.faultActiveColor,
-		.shape			= CAN_INDICATOR_RECT
+		// .shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->vcuFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->vcuFault), true);
@@ -647,10 +648,11 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= false,
 		.width			= 100,
 		.height			= 42,
+		// TODO(Barach):
 		// .bgInactiveColor= page->style.faultInactiveColor,
 		// .bgActiveColor	= page->style.faultActiveColor,
 		// .bgInvalidColor	= page->style.faultActiveColor,
-		.shape			= CAN_INDICATOR_RECT
+		// .shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->bmsFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->bmsFault), true);
@@ -670,10 +672,11 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= false,
 		.width			= 100,
 		.height			= 42,
+		// TODO(Barach):
 		// .bgInactiveColor= page->style.faultInactiveColor,
 		// .bgActiveColor	= page->style.faultActiveColor,
 		// .bgInvalidColor	= page->style.faultActiveColor,
-		.shape			= CAN_INDICATOR_RECT
+		// .shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->amkFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->amkFault), true);
@@ -693,10 +696,11 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		.inverted		= true,
 		.width			= 100,
 		.height			= 42,
+		// TODO(Barach):
 		// .bgInactiveColor= page->style.faultInactiveColor,
 		// .bgActiveColor	= page->style.faultActiveColor,
 		// .bgInvalidColor	= page->style.faultActiveColor,
-		.shape			= CAN_INDICATOR_RECT
+		// .shape			= CAN_INDICATOR_RECT
 	});
 	gtk_widget_set_halign (CAN_WIDGET_TO_WIDGET (page->gpsFault), GTK_ALIGN_FILL);
 	gtk_widget_set_hexpand (CAN_WIDGET_TO_WIDGET (page->gpsFault), true);
@@ -735,6 +739,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_widget_set_margin_top (GTK_WIDGET (page->buttonPanel), 40);
 	gtk_grid_attach (page->grid, GTK_WIDGET (page->buttonPanel), 2, 3, 3, 1);
 
+	// TODO(Barach):
 	page->apps = canProgressBarInit (database, &(canProgressBarConfig_t)
 	{
 		.barConfig	=

@@ -2,7 +2,6 @@
 #include "can_indicator.h"
 
 // Includes
-#include "can_widget.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
@@ -46,7 +45,7 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 		break;
 	}
 
-	switch (indicator->config.shape)
+	switch (indicator->config.style.shape)
 	{
 		case CAN_INDICATOR_CIRCLE:
 			cairo_arc (cr, width / 2.0, height / 2.0, MIN (width, height) / 2.0, 0, 2 * G_PI);
@@ -154,20 +153,24 @@ static void update (void* widget)
 
 canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* config)
 {
-	// Allocate the object
+	// Allocate the CAN widget
 	canIndicator_t* indicator = malloc (sizeof (canIndicator_t));
 	if (indicator == NULL)
 		return NULL;
 
+	// Setup the widget(s)
 	GtkWidget* baseWidget;
 	GtkWidget* drawingArea = gtk_drawing_area_new ();
 	GtkLabel* label = NULL;
 	if (config->text == NULL)
 	{
+		// If no text, the widget is just the drawing area
 		baseWidget = drawingArea;
 	}
 	else
 	{
+		// If text, use an overlay + drawing area + label.
+
 		baseWidget = gtk_overlay_new ();
 
 		gtk_overlay_set_child (GTK_OVERLAY (baseWidget), drawingArea);
@@ -182,7 +185,7 @@ canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* co
 		gtk_overlay_set_measure_overlay (GTK_OVERLAY (baseWidget), GTK_WIDGET (label), true);
 	}
 
-	// Init the object
+	// Init the CAN widget
 	*indicator = (canIndicator_t)
 	{
 		.vmt =
@@ -217,6 +220,8 @@ canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config, canIndica
 {
 	canIndicatorConfig_t widgetConfig;
 
+	// Load config fields. Exit early is required field is not specified.
+
 	if (jsonGetString (config, "signalName", &widgetConfig.signalName) != 0)
 		return NULL;
 	if (jsonGetFloat (config, "threshold", &widgetConfig.threshold) != 0)
@@ -224,20 +229,6 @@ canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config, canIndica
 
 	widgetConfig.inverted = false;
 	jsonGetBool (config, "inverted", &widgetConfig.inverted);
-
-	char* shapeStr;
-	if (jsonGetString (config, "shape", &shapeStr) != 0)
-		return NULL;
-	if (strcmp (shapeStr, "circle") == 0)
-		widgetConfig.shape = CAN_INDICATOR_CIRCLE;
-	else if (strcmp (shapeStr, "rect") == 0)
-		widgetConfig.shape = CAN_INDICATOR_RECT;
-	else
-	{
-		debugPrintf ("Invalid CAN indicator shape '%s'.\n", shapeStr);
-		errno = EINVAL;
-		return NULL;
-	}
 
 	widgetConfig.text = NULL;
 	jsonGetString (config, "text", &widgetConfig.text);
@@ -256,9 +247,11 @@ canWidget_t* canIndicatorLoad (canDatabase_t* database, cJSON* config, canIndica
 void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndicatorStyle_t* parent)
 {
 	if (parent != NULL)
+		// If a parent is specified, inherit everything.
 		*style = *parent;
 	else
 	{
+		// If no parent is specified, use default values.
 		*style = (canIndicatorStyle_t)
 		{
 			.font					= NULL,
@@ -277,10 +270,24 @@ void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndica
 		};
 	}
 
+	// If no config was provided, use what we have.
 	if (config == NULL)
 		return;
 
+	// Load style fields, if specified.
+
 	jsonGetString (config, "font", &style->font);
+
+	char* shapeStr;
+	if (jsonGetString (config, "shape", &shapeStr) == 0)
+	{
+		if (strcmp (shapeStr, "circle") == 0)
+			style->shape = CAN_INDICATOR_CIRCLE;
+		else if (strcmp (shapeStr, "rect") == 0)
+			style->shape = CAN_INDICATOR_RECT;
+		else
+			debugPrintf ("Invalid CAN indicator shape '%s'.\n", shapeStr);
+	}
 
 	char* color;
 	if (jsonGetString (config, "bgActiveColor", &color) == 0)

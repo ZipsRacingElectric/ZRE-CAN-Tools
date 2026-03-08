@@ -22,10 +22,22 @@
 
 // Datatypes ------------------------------------------------------------------------------------------------------------------
 
+typedef enum
+{
+	/// @brief Indicator is a circle.
+	CAN_INDICATOR_CIRCLE,
+
+	/// @brief Indicator is a rectange.
+	CAN_INDICATOR_RECT
+} canIndicatorShape_t;
+
 typedef struct
 {
 	/// @brief The font to use for the displayed text.
 	char* font;
+
+	/// @brief The shape to render the indicator as. Required.
+	canIndicatorShape_t shape;
 
 	/// @brief The color of the background when active. Default black.
 	GdkRGBA bgActiveColor;
@@ -64,15 +76,6 @@ typedef struct
 	float blinkInterval;
 } canIndicatorStyle_t;
 
-typedef enum
-{
-	/// @brief Indicator is a circle.
-	CAN_INDICATOR_CIRCLE,
-
-	/// @brief Indicator is a rectange.
-	CAN_INDICATOR_RECT
-} canIndicatorShape_t;
-
 /// @brief Configuration for the @c canIndicator_t widget.
 typedef struct
 {
@@ -87,9 +90,6 @@ typedef struct
 
 	/// @brief The text to display on the indicator, if any. Default none.
 	char* text;
-
-	/// @brief The shape to render the indicator as. Required.
-	canIndicatorShape_t shape;
 
 	/// @brief Default / minimum width of the widget. Default 0.
 	int width;

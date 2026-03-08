@@ -1,17 +1,33 @@
 // Header
 #include "can_widget.h"
 
-// Includes
+// TODO(Barach): This form is deprecated
+// CAN Widgets
 #include "can_label_float.h"
 #include "can_label_bool.h"
-#include "can_indicator.h"
 #include "can_label_fault.h"
-#include "can_shutdown_loop_indicator.h"
-#include "can_fault_popup.h"
 #include "can_float_popup.h"
 #include "can_widget_template.h"
+
+// Includes
 #include "cjson/cjson_util.h"
 #include "debug.h"
+
+#define STRINGIFY(str) #str
+#define CONCETENATE(a, b) a ## b
+
+#define LOAD_WIDGET_STATEMENTS(type)																						\
+	if (strcmp (widgetType, STRINGIFY (type)) == 0)																			\
+	{																														\
+		canWidget_t* widget = CONCETENATE (type, Load) (database, config, &style->type);									\
+		if (widget == NULL)																									\
+		{																													\
+			errorPrintf ("Failed to load widget of type '%s'", STRINGIFY (type));											\
+			return NULL;																									\
+		}																													\
+																															\
+		return widget;																										\
+	}
 
 canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetStyle_t* style)
 {
@@ -24,6 +40,8 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 		debugPrintf ("Warning, CAN widget is missing type.\n");
 		return NULL;
 	}
+
+	LOAD_WIDGET_STATEMENTS (canIndicator);
 
 	if (strcmp (widgetType, "canLabelFloat_t") == 0)
 	{
@@ -43,18 +61,6 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 		if (widget == NULL)
 		{
 			errorPrintf ("Failed to load widget of type 'canLabelBool_t'");
-			return NULL;
-		}
-
-		return widget;
-	}
-
-	if (strcmp (widgetType, "canIndicator_t") == 0)
-	{
-		canWidget_t* widget = canIndicatorLoad (database, config, &style->canIndicator);
-		if (widget == NULL)
-		{
-			errorPrintf ("Failed to load widget of type 'canIndicator_t'");
 			return NULL;
 		}
 
@@ -128,11 +134,8 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 	return NULL;
 }
 
-#define STRINGIFY(str) #str
-#define CONCETENATE(a, b) a ## b
-
-#define LOAD_STYLE_STATEMENTS(type)																		\
-	styleConfig = config != NULL ? jsonGetObjectV2 (config, STRINGIFY (type)) : NULL;					\
+#define LOAD_STYLE_STATEMENTS(type)																							\
+	styleConfig = config != NULL ? jsonGetObjectV2 (config, STRINGIFY (type)) : NULL;										\
 	CONCETENATE (type, LoadStyle) (styleConfig, &style->type, parent != NULL ? &parent->type : NULL);
 
 void canWidgetLoadStyle (canWidgetStyle_t* style, cJSON* config, canWidgetStyle_t* parent)
