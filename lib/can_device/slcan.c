@@ -261,6 +261,8 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 		//     without considering the consequences.
 		for (int index = 1; index < 256; ++index)
 		{
+			// TODO(Barach): This doesn't work for COM10+
+
 			// Allocate the device name
 			char* deviceName;
 			if (asprintf (&deviceName, "COM%i", index) < 0)
