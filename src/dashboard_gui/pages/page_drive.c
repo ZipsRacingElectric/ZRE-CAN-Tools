@@ -2,9 +2,6 @@
 #include "page_drive.h"
 
 // Includes
-#include "../can_widgets/can_widget.h"
-#include "../can_widgets/can_progress_bar.h"
-#include "../can_widgets/can_indicator.h"
 #include "../stylized_widgets/stylized_button.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
@@ -279,6 +276,7 @@ static void styleLoad (pageDriveStyle_t* style, pageStyle_t* baseStyle, cJSON* c
 		style->decalTickColorLight = gdkHexToColor (color);
 	if (jsonGetString (config, "decalTickColorDark", &color) == 0)
 		style->decalTickColorDark = gdkHexToColor (color);
+
 	jsonGetFloat (config, "decalUpperTickMargin", &style->decalUpperTickMargin);
 	jsonGetFloat (config, "decalUpperTickSpacing", &style->decalUpperTickSpacing);
 	jsonGetFloat (config, "decalCenterTickMargin", &style->decalCenterTickMargin);

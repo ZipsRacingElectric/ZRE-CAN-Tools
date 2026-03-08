@@ -8,7 +8,6 @@
 #include "can_device/can_device_stdio.h"
 #include "can_database/can_database_stdio.h"
 #include "cjson/cjson_util.h"
-#include "debug.h"
 
 static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {

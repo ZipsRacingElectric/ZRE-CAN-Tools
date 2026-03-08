@@ -12,8 +12,6 @@
 
 // Includes
 #include "page.h"
-#include "../can_widgets/can_widget.h"
-#include "can_database/can_database.h"
 #include "cjson/cjson.h"
 
 // GTK

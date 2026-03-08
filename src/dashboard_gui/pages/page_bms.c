@@ -10,8 +10,6 @@
 #include "cjson/cjson_util.h"
 #include "debug.h"
 
-#define STATUS_FONT "Monospace 12px"
-
 static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
 {
 	pageBms_t* page = arg;
