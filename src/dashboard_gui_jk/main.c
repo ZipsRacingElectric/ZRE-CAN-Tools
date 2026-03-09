@@ -6,18 +6,11 @@
 
 canDatabase_t database;
 
-static gboolean update_counter(GtkLabel* label[]) {
-	g_print("Label address: %p\n", label[0]);
-	// Check if label array is valid
-    if (label == NULL || label[0] == NULL) {
-        g_warning("Invalid label array");
-        return FALSE;
-    }
+static gboolean speed_can(GtkLabel* label) {
 
     ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
     if (index < 0) {
-        // Handle signal not found
-        gtk_label_set_text(GTK_LABEL(label[0]), "Error");
+        gtk_label_set_text(GTK_LABEL(label), "Error");
         return TRUE;
     }
 
@@ -25,52 +18,127 @@ static gboolean update_counter(GtkLabel* label[]) {
     char text[16] = "--";  // Default text
 
     if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID) {
-        snprintf(text, sizeof(text), "%.2f", value);  // Format with 2 decimal places
+        snprintf(text, sizeof(text), "%.2f", value); 
     }
-	GtkLabel* label_p = label[0];
-	g_print("Setting Label");
-    gtk_label_set_text(label_p, "Word");
-    return TRUE; // Continue calling this function
+
+    gtk_label_set_text(GTK_LABEL(label), text);
+    return TRUE;
 }
 
+static gboolean logger_can(GtkLabel* label) {
 
-/* static void print_hello (GtkWidget* widget, gpointer data)
-{
-        (void) widget;
-        (void) data;
-        g_print ("Hello, World!\n");
-        for (int i = 1; i <= 10; i++)
-        {
-                g_print("%d'\n",i);
-        }
-}
-static void winscreen (GtkWidget* widget, GtkWindow* window)
-{
-        //Default is Fullscreen
+    ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
+    if (index < 0) {
+        gtk_label_set_text(GTK_LABEL(label), "Error");
+        return TRUE;
+    }
 
-        //Set Window Unfullscreen
-        if (gtk_window_is_fullscreen (GTK_WINDOW(window)) == true)
-        {
-                g_print ("Unfullscreen\n");
-                gtk_button_set_label(GTK_BUTTON(widget), "Fullscreen");
-                gtk_window_unfullscreen (GTK_WINDOW(window));
-        }
+    float value = 0.0;
+    char text[16] = "--";  // Default text
 
-        //Set Window Fullscreen
-        else if (gtk_window_is_fullscreen (GTK_WINDOW(window)) == false)
-        {
-                g_print ("Fullscreen\n");
-                gtk_button_set_label(GTK_BUTTON(widget), "Unfullscreen");
-                gtk_window_fullscreen (GTK_WINDOW(window));
-        }
+    if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID) {
+        snprintf(text, sizeof(text), "%.2f", value); 
+    }
+
+    gtk_label_set_text(GTK_LABEL(label), text);
+    return TRUE;
 }
 
-static void quit (GtkWidget* widget, gpointer data)
-{
-        (void) widget;
-        (void) data;
-        g_print ("Quit!\n");
-}*/
+static gboolean bms_max_can(GtkLabel* label) {
+
+    ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
+    if (index < 0) {
+        gtk_label_set_text(GTK_LABEL(label), "Error");
+        return TRUE;
+    }
+
+    float value = 0.0;
+    char text[16] = "--";  // Default text
+
+    if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID) {
+        snprintf(text, sizeof(text), "%.2f", value); 
+    }
+
+    gtk_label_set_text(GTK_LABEL(label), text);
+    return TRUE;
+}
+
+static gboolean bms_avg_can(GtkLabel* label) {
+
+    ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
+    if (index < 0) {
+        gtk_label_set_text(GTK_LABEL(label), "Error");
+        return TRUE;
+    }
+
+    float value = 0.0;
+    char text[16] = "--";  // Default text
+
+    if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID) {
+        snprintf(text, sizeof(text), "%.2f", value); 
+    }
+
+    gtk_label_set_text(GTK_LABEL(label), text);
+   
+	return TRUE;
+}
+
+static gboolean vcu_faults_can(GtkLabel* label) {
+
+    ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
+    if (index < 0) {
+        gtk_label_set_text(GTK_LABEL(label), "Error");
+        return TRUE;
+    }
+
+    float value = 0.0;
+    char text[16] = "--";  // Default text
+
+    if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID) {
+        snprintf(text, sizeof(text), "%.2f", value); 
+    }
+
+    gtk_label_set_text(GTK_LABEL(label), text);
+    return TRUE;
+}
+
+static gboolean mtr_temp_can(GtkLabel* label) {
+
+    ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
+    if (index < 0) {
+        gtk_label_set_text(GTK_LABEL(label), "Error");
+        return TRUE;
+    }
+
+    float value = 0.0;
+    char text[16] = "--";  // Default text
+
+    if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID) {
+        snprintf(text, sizeof(text), "%.2f", value); 
+    }
+
+    gtk_label_set_text(GTK_LABEL(label), text);
+    return TRUE;
+}
+
+static gboolean inv_temp_can(GtkLabel* label) {
+
+    ssize_t index = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
+    if (index < 0) {
+        gtk_label_set_text(GTK_LABEL(label), "Error");
+        return TRUE;
+    }
+
+    float value = 0.0;
+    char text[16] = "--";  // Default text
+
+    if (canDatabaseGetFloat(&database, index, &value) == CAN_DATABASE_VALID) {
+        snprintf(text, sizeof(text), "%.2f", value); 
+    }
+
+    gtk_label_set_text(GTK_LABEL(label), text);
+    return TRUE;
+}
 
 static void set_window_css(GtkWidget *window) {
     GtkCssProvider *css_provider = gtk_css_provider_new();
@@ -86,14 +154,18 @@ static void activate(GtkApplication* app, gpointer title) {
     GtkWidget* window;
     GtkWidget* grid;
 	GtkWidget* page_sl_box;
-	GtkWidget* info_box;
     GtkWidget* speed;
 	GtkWidget* data_logger;
 	GtkWidget* speed_btn;
 	GtkWidget* lap_btn;
 	GtkWidget* endr_btn;
 	GtkWidget* bms_btn;
-
+	GtkWidget* Bms_VCU_AMK_label;
+	GtkWidget* bms_max;
+	GtkWidget* bms_avg;
+	GtkWidget* vcu_faults;
+	GtkWidget* mtr_temp;
+	GtkWidget* inv_temp;
 
     /* Create a new window and set its title */
     window = gtk_application_window_new(app);
@@ -115,7 +187,7 @@ static void activate(GtkApplication* app, gpointer title) {
     gtk_grid_set_column_spacing(GTK_GRID(grid), 10);
 
 	speed = gtk_label_new("42");
-	gtk_grid_attach(GTK_GRID(grid), speed, 0, 0, 1, 1); 
+	gtk_grid_attach(GTK_GRID(grid), speed, 0, 0, 1, 7); 
 
 	gtk_widget_set_halign(speed, GTK_ALIGN_CENTER);  
     gtk_widget_set_valign(speed, GTK_ALIGN_CENTER);  
@@ -124,8 +196,33 @@ static void activate(GtkApplication* app, gpointer title) {
 	data_logger = gtk_label_new("Logger");
 	gtk_grid_attach(GTK_GRID(grid), data_logger, -1, -1, 1, 1);
 
+	Bms_VCU_AMK_label = gtk_label_new("BMS");
+	gtk_grid_attach(GTK_GRID(grid), Bms_VCU_AMK_label, 2, 1, 2, 1);
+	Bms_VCU_AMK_label = gtk_label_new("Max:");
+	gtk_grid_attach(GTK_GRID(grid), Bms_VCU_AMK_label, 2, 2, 1, 1);
+	bms_max = gtk_label_new("23C");
+	gtk_grid_attach(GTK_GRID(grid), bms_max, 3, 2, 1, 1);
+	Bms_VCU_AMK_label = gtk_label_new("AVG:");
+	gtk_grid_attach(GTK_GRID(grid), Bms_VCU_AMK_label, 2, 3, 1, 1);
+	bms_avg = gtk_label_new("23C");
+	gtk_grid_attach(GTK_GRID(grid), bms_avg, 3, 3, 1, 1);
+	Bms_VCU_AMK_label = gtk_label_new("VCU:");
+	gtk_grid_attach(GTK_GRID(grid), Bms_VCU_AMK_label, 2, 4, 1, 1);
+	vcu_faults = gtk_label_new("No Faults");
+	gtk_grid_attach(GTK_GRID(grid), vcu_faults, 4, 4, 1, 1);
+	Bms_VCU_AMK_label = gtk_label_new("AMK");
+	gtk_grid_attach(GTK_GRID(grid), Bms_VCU_AMK_label, 2, 5, 2, 1);
+	Bms_VCU_AMK_label = gtk_label_new("MTR:");
+	gtk_grid_attach(GTK_GRID(grid), Bms_VCU_AMK_label, 2, 6, 1, 1);
+	mtr_temp = gtk_label_new("91C");
+	gtk_grid_attach(GTK_GRID(grid), mtr_temp, 3, 6, 1, 1);
+	Bms_VCU_AMK_label = gtk_label_new("INV:");
+	gtk_grid_attach(GTK_GRID(grid), Bms_VCU_AMK_label, 2, 7, 1, 1);
+	inv_temp = gtk_label_new("45C");
+	gtk_grid_attach(GTK_GRID(grid), inv_temp, 3, 7, 1, 1);
+
 	page_sl_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-	gtk_grid_attach(GTK_GRID(grid), page_sl_box, -1, 5, 4, 1);
+	gtk_grid_attach(GTK_GRID(grid), page_sl_box, -1, 8, 4, 1);
 	gtk_box_set_homogeneous(GTK_BOX(page_sl_box), TRUE);
 
 	speed_btn = gtk_button_new_with_label ("Speed");
@@ -137,9 +234,15 @@ static void activate(GtkApplication* app, gpointer title) {
   	gtk_box_append (GTK_BOX (page_sl_box), lap_btn);
 	gtk_box_append (GTK_BOX (page_sl_box), endr_btn);
   	gtk_box_append (GTK_BOX (page_sl_box), bms_btn);
-
-    //g_print("Label address: %p\n", can_label[0]);
-	//g_timeout_add(33, (GSourceFunc)update_counter, can_label[0]);
+	
+	//Don't worry about it 
+	g_timeout_add(33, (GSourceFunc)speed_can, speed);
+	g_timeout_add(33, (GSourceFunc)logger_can, data_logger);
+	g_timeout_add(33, (GSourceFunc)bms_max_can, bms_max);
+	g_timeout_add(33, (GSourceFunc)bms_avg_can, bms_avg);
+	g_timeout_add(33, (GSourceFunc)vcu_faults_can, vcu_faults);
+	g_timeout_add(33, (GSourceFunc)mtr_temp_can, mtr_temp);
+	g_timeout_add(33, (GSourceFunc)inv_temp_can, inv_temp);
 
     gtk_window_present(GTK_WINDOW(window));
 }
