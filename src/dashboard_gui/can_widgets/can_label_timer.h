@@ -26,19 +26,24 @@ typedef struct
 
 typedef struct
 {
+    GdkRGBA backgroundColor;
+    GdkRGBA borderColor;
+    GdkRGBA fontColor;
+
     int height;
     int width;
 
-    size_t signalIndex;
+    char* signalName;
+    double threshold;
 
 	// REVIEW(Barach): For now the stylization is probably fine, but we'll likely want to simplify in favor of using the page's
 	//   style. Don't worry about this until we start overhauling most CAN widget styles, just wanted to put the note here now.
 
+    char* font;
     float borderThickness;
 
-    GdkRGBA backgroundColor;
-    GdkRGBA borderColor;
-    GdkRGBA fontColor;
+    char** modes;
+    size_t modeCount;
 
 } canLabelTimerConfig_t;
 
@@ -51,8 +56,7 @@ typedef struct
     GtkWidget* timer;
     GtkWidget* area;
 
-	bool running;
-	bool buttonPressed;
+    size_t signalIndex;
 
     struct timespec startTime;
     struct timespec currentTime;
@@ -62,14 +66,19 @@ typedef struct
 
     canLabelTimerMode_t mode;
 
+    bool running;
+	bool buttonPressed;
+
+    char* formattedTime;
+
 } canLabelTimer_t;
 
 canWidget_t* canLabelTimerInit (canDatabase_t* database, canLabelTimerConfig_t* config);
 
 canWidget_t* canLabelTimerLoad (canDatabase_t* database, cJSON* config);
 
-// REVIEW(Barach): Either this should have the same prefix as the other functions ("canLabelTimerSetMode") or it should be
-//   made static and not included in the header. Static is probably best, as this string should come from the config JSON.
-void setMode (void* widget, char* mode);
+size_t canLabelTimerSetMode (void* widget, char* mode);
+
+void canLabelTimerTrySetFont (void* widget, char* font);
 
 #endif // CAN_LABEL_TIMER_H

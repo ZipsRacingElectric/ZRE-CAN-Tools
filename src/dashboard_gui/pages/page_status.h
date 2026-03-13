@@ -24,6 +24,9 @@
 typedef struct
 {
 	pageStyle_t* baseStyle;
+
+	char* timerFont;
+
 } pageStatusStyle_t;
 
 typedef struct
@@ -34,7 +37,7 @@ typedef struct
 
 	GtkGrid* grid;
 
-	size_t size;
+	size_t timerCount;
 	canWidget_t** timers;
 
 	GtkGrid* timerPanel;

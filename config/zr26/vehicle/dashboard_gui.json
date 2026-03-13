@@ -339,6 +339,7 @@
 			"name":										"STAT.",
 			"style":
 			{
+				"timerFont":							"47px"
 
 			},
 			"timer":
@@ -346,10 +347,13 @@
 				"type": 								"canLabelTimer_t",
 				"width":								"120",
 				"height":								"50",
+				"signalName": 							"WHEEL_BUTTON_TOP_LEFT",
+				"threshold": 							"0.5",
 				"backgroundColor":						"#000000",
 				"boarderThickness":						"1.5",
 				"borderColor":							"#D3792C",
-				"fontColor": 							"#F4931E"
+				"fontColor": 							"#F4931E",
+				"modes":								["current", "best", "last"]
 			}
 		},
 		{

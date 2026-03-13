@@ -7,6 +7,7 @@
 #include "../gtk_util.h"
 #include "cjson/cjson.h"
 #include "cjson/cjson_util.h"
+#include "debug.h"
 
 static void styleLoad (pageStatusStyle_t* style, pageStyle_t* baseStyle, cJSON* config)
 {
@@ -19,6 +20,10 @@ static void styleLoad (pageStatusStyle_t* style, pageStyle_t* baseStyle, cJSON* 
 		return;
 
 	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
+
+	char* timerFont;
+	if (jsonGetString(config, "timerFont", &timerFont) == 0)
+		style->timerFont = timerFont;
 }
 
 static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer arg)
@@ -26,8 +31,6 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	pageStatus_t* page = arg;
 	(void) area;
 	(void) arg;
-
-	// gdk_cairo_set_source_rgba (cr, &page->style.baseStyle->backgroundColor); // DiBacco: uncomment for background color from config
 
 	const char* BG = "#ffffff";
 	GdkRGBA bg = gdkHexToColor (BG);
@@ -82,10 +85,9 @@ static void update (void* pageArg)
 {
 	pageStatus_t* page = pageArg;
 
-	for (size_t timerIndex = 0; timerIndex < page->size; ++timerIndex)
-	{
+	for (size_t timerIndex = 0; timerIndex < page->timerCount; ++timerIndex)
 		canWidgetUpdate (page->timers[timerIndex]);
-	}
+
 }
 
 page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
@@ -125,19 +127,36 @@ page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 
 	page->buttonCount = 0;
 
-	page->size = 3;
-	page->timers = malloc (sizeof(canLabelTimer_t) * page->size);
+	cJSON* cjsonModes;
+	cJSON* timerConfig = jsonGetObjectV2 (config, "timer");
+
+	if (jsonGetObject (timerConfig, "modes", &cjsonModes) != 0)
+		return NULL;
+
+	size_t modeCount = (size_t) cJSON_GetArraySize (cjsonModes);
+
+	// Each timer represents a different mode
+	// TODO(DiBacco): find where deallocation is taking place
+	page->timerCount = modeCount;
+	page->timers = malloc (sizeof (canLabelTimer_t) * page->timerCount);
 	if (page->timers == NULL)
 		return NULL;
 
-	char* modes [] = {"current", "best", "last"};
+	char* modes [modeCount];
+	for (size_t modeIndex = 0; modeIndex < modeCount; ++modeIndex)
+		modes [modeIndex] = cJSON_GetArrayItem (cjsonModes, modeIndex)->valuestring;
 
-	for (size_t timerIndex = 0; timerIndex < page->size; ++timerIndex)
+	for (size_t timerIndex = 0; timerIndex < page->timerCount; ++timerIndex)
 	{
 		page->timers[timerIndex] = canWidgetLoad (database, jsonGetObjectV2 (config, "timer"));
+
 		if (page->timers[timerIndex] != NULL)
 		{
-			setMode (page->timers[timerIndex], modes[timerIndex]);
+			if (canLabelTimerSetMode (page->timers[timerIndex], modes[timerIndex]) != 0)
+				debugPrintf ("Attempted to set invalid mode %s for timer widget\n", modes[timerIndex]);
+
+			// TODO: replace timer font with the page style font & configure the size of the timer font to fit the background
+			canLabelTimerTrySetFont (page->timers[timerIndex], page->style.timerFont);
 			gtk_grid_attach (GTK_GRID (page->grid), CAN_WIDGET_TO_WIDGET (page->timers[timerIndex]), 0, timerIndex, 1, 1);
 		}
 	}
