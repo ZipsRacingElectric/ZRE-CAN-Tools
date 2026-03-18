@@ -14,7 +14,6 @@
 #include "cjson/cjson_util.h"
 #include "debug.h"
 #include "mdf/mdf_can_bus_logging.h"
-#include "mdf/mdf_stdio.h"
 #include "options.h"
 #include "time_port.h"
 
@@ -87,9 +86,10 @@ void fprintHelp (FILE* stream)
 	fprintUsage (stream);
 
 	fprintf (stream, "\nParameters:\n\n");
+	fprintf (stream, ""
+		"    <MDF Directory>       - The directory to write MDF data logging sessions\n"
+		"                            into.\n\n");
 	fprintCanDeviceNameHelp (stream, "    ");
-	// TODO(Barach)
-	fprintMdfFileHelp (stream, "    ");
 
 	fprintf (stream, ""
 		"Options:\n\n"
@@ -116,7 +116,7 @@ void* loggingThread (void* argPtr)
 	loggingThreadArg_t* arg = argPtr;
 
 	// Set a receive timeout so we can check for the termination signal.
-	canSetTimeout (arg->device, 100);
+	canSetTimeout (arg->device, 10);
 
 	// Status measurements
 	struct timespec timeStart;
