@@ -1,3 +1,7 @@
+// For asprintf. Note this must be the first include in this file.
+#define _GNU_SOURCE
+#include <stdio.h>
+
 // Header
 #include "misc_port.h"
 
@@ -5,6 +9,8 @@
 #include "debug.h"
 
 // C Standard Library
+#include <errno.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -92,4 +98,29 @@ int fsyncPort (FILE* file)
 	return 0;
 
 	#endif // ZRE_CANTOOLS_OS_linux
+}
+
+int systemf (char* format, ...)
+{
+	// Expand the format string into a dynamically-allocated buffer.
+	char* command;
+	va_list args;
+	va_start (args, format);
+	int code = vasprintf (&command, format, args);
+	va_end (args);
+
+	// If the allocation failed, return error.
+	if (code < 0)
+		return -1;
+
+	// Execute the command
+	debugPrintf ("Executing command '%s'...\n", command);
+	code = system (command);
+	debugPrintf ("Return code = %i.\n", code);
+
+	// Free the allocated memory
+	free (command);
+
+	// Return the error code, as specified by system.
+	return code;
 }

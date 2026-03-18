@@ -32,12 +32,16 @@ enum
 {
 	MODE_INTERACTIVE,
 	MODE_SSH,
-	MODE_SCP
+	MODE_SCP,
+	MODE_UPDATE_INIT_SYSTEM,
+	MODE_UPDATE_ZRE_CANTOOLS
 } mode = MODE_INTERACTIVE;
 
 char* host			= "root@192.168.0.1";
 char* hostLogDir	= "/root/zre/";
 char* localLogDir	= NULL;
+
+char* updateTarget	= NULL;
 
 // Help Page ------------------------------------------------------------------------------------------------------------------
 
@@ -109,6 +113,26 @@ void handleScpOption (char* option, char* value)
 	mode = MODE_SCP;
 }
 
+void handleUpdateZreCantoolsOption (char* option, char* value)
+{
+	(void) option;
+
+	updateTarget = value;
+
+	debugPrintf ("Running in ZRE-CAN-Tools update mode.\n");
+	mode = MODE_UPDATE_ZRE_CANTOOLS;
+}
+
+void handleUpdateInitSystemOption (char* option, char* value)
+{
+	(void) option;
+
+	updateTarget = value;
+
+	debugPrintf ("Running in init-system update mode.\n");
+	mode = MODE_UPDATE_INIT_SYSTEM;
+}
+
 void handleHostOption (char* option, char* value)
 {
 	(void) option;
@@ -170,6 +194,197 @@ char* concetenateCommand (char* command, char* options, char** argv, int argc)
 	return buffer;
 }
 
+void abortZreCantools (char* sshOptions, char* host)
+{
+	(void) sshOptions;
+	(void) host;
+
+	printf ("\n\nUPDATE ABORTED. MAINTENANCE MAY BE REQUIRED.\n\n");
+}
+
+void recoverZreCantools (char* sshOptions, char* host)
+{
+	printf ("\n\nUPDATE FAILED. ATTEMPTING RECOVERY...\n\n");
+
+	// Remove the failed version of ZRE-CAN-Tools.
+	if (systemf ("ssh %s %s \"rm -rf /root/zre_cantools/\"", sshOptions, host) != 0)
+	{
+		printf ("FAILED TO RECOVER FIRMWARE. MAINTENANCE REQUIRED.\n\n");
+		return;
+	}
+
+	// Restore the old version
+	if (systemf ("ssh %s %s \"mv /root/zre_cantools_backup/ /root/zre_cantools/\"", sshOptions, host) != 0)
+	{
+		printf ("FAILED TO RECOVER FIRMWARE. MAINTENANCE REQUIRED.\n\n");
+		return;
+	}
+
+	// Restart the init-system
+	if (systemf ("ssh %s %s \"systemctl restart init_system\"", sshOptions, host) != 0)
+	{
+		printf ("FAILED TO RECOVER FIRMWARE. MAINTENANCE REQUIRED.\n\n");
+		return;
+	}
+
+	printf ("FIRMWARE RECOVERY SUCCESSFUL.\n\n");
+}
+
+void updateZreCantools (char* localPath, char* sshOptions, char* host)
+{
+	if (localPath == NULL)
+	{
+		printf ("Failed to update ZRE-CAN-Tools: No local target path provided.\n");
+		return;
+	}
+
+	// Stop the init-system
+	if (systemf ("ssh %s %s \"systemctl stop init_system\"", sshOptions, host) != 0)
+	{
+		abortZreCantools (sshOptions, host);
+		return;
+	}
+
+	// Backup the DART's version of ZRE-CAN-Tools
+	if (systemf ("ssh %s %s \"mv /root/zre_cantools/ /root/zre_cantools_backup/\"", sshOptions, host) != 0)
+	{
+		abortZreCantools (sshOptions, host);
+		return;
+	}
+
+	// Create the destination directory
+	if (systemf ("ssh %s %s \"mkdir -p /root/zre_cantools\"", sshOptions, host) != 0)
+	{
+		recoverZreCantools (sshOptions, host);
+		return;
+	}
+
+	// Copy the target version of ZRE-CAN-Tools onto the DART
+	bool successful = true;
+	successful &= systemf ("scp %s -r %s/config/ %s:/root/zre_cantools/", sshOptions, localPath, host) == 0;
+	successful &= systemf ("scp %s -r %s/src/ %s:/root/zre_cantools/", sshOptions, localPath, host) == 0;
+	successful &= systemf ("scp %s -r %s/lib/ %s:/root/zre_cantools/", sshOptions, localPath, host) == 0;
+	successful &= systemf ("scp %s %s/include.mk %s:/root/zre_cantools/", sshOptions, localPath, host) == 0;
+	successful &= systemf ("scp %s %s/makefile %s:/root/zre_cantools/", sshOptions, localPath, host) == 0;
+	if (!successful)
+	{
+		recoverZreCantools (sshOptions, host);
+		return;
+	}
+
+	// Compile ZRE-CAN-Tools on the DART
+	if (systemf ("ssh %s %s \"make -C /root/zre_cantools/\"", sshOptions, host) != 0)
+	{
+		recoverZreCantools (sshOptions, host);
+		return;
+	}
+
+	// Restart the init-system
+	if (systemf ("ssh %s %s \"systemctl restart init_system\"", sshOptions, host) != 0)
+	{
+		recoverZreCantools (sshOptions, host);
+		return;
+	}
+
+	// Delete the old version of ZRE-CAN-Tools
+	if (systemf ("ssh %s %s \"rm -rf /root/zre_cantools_backup/\"", sshOptions, host) != 0)
+	{
+		recoverZreCantools (sshOptions, host);
+		return;
+	}
+
+	printf ("\n\nFIRMWARE UPDATE SUCCESSFUL.\n\n");
+}
+
+void abortInitSystem (char* sshOptions, char* host)
+{
+	(void) sshOptions;
+	(void) host;
+
+	printf ("\n\nUPDATE ABORTED. MAINTENANCE MAY BE REQUIRED.\n\n");
+}
+
+void recoverInitSystem (char* sshOptions, char* host)
+{
+	printf ("\n\nUPDATE FAILED. ATTEMPTING RECOVERY...\n\n");
+
+	// Remove the failed version of the init-system.
+	if (systemf ("ssh %s %s \"rm -rf /root/init_system/\"", sshOptions, host) != 0)
+	{
+		printf ("FAILED TO RECOVER FIRMWARE. MAINTENANCE REQUIRED.\n\n");
+		return;
+	}
+
+	// Restore the old version
+	if (systemf ("ssh %s %s \"mv /root/init_system_backup/ /root/init_system/\"", sshOptions, host) != 0)
+	{
+		printf ("FAILED TO RECOVER FIRMWARE. MAINTENANCE REQUIRED.\n\n");
+		return;
+	}
+
+	// Restart the init-system
+	if (systemf ("ssh %s %s \"systemctl restart init_system\"", sshOptions, host) != 0)
+	{
+		printf ("FAILED TO RECOVER FIRMWARE. MAINTENANCE REQUIRED.\n\n");
+		return;
+	}
+
+	printf ("FIRMWARE RECOVERY SUCCESSFUL.\n\n");
+}
+
+void updateInitSystem (char* localPath, char* sshOptions, char* host)
+{
+	if (localPath == NULL)
+	{
+		printf ("Failed to update Init-system: No local target path provided.\n");
+		return;
+	}
+
+	// Stop the init-system
+	if (systemf ("ssh %s %s \"systemctl stop init_system\"", sshOptions, host) != 0)
+	{
+		abortInitSystem (sshOptions, host);
+		return;
+	}
+
+	// Backup the DART's version of the init-system
+	if (systemf ("ssh %s %s \"mv /root/init_system/ /root/init_system_backup/\"", sshOptions, host) != 0)
+	{
+		abortInitSystem (sshOptions, host);
+		return;
+	}
+
+	// Copy the target version of the init-system onto the DART
+	if (systemf ("scp %s -r %s %s:/root/", sshOptions, localPath, host) != 0)
+	{
+		recoverInitSystem (sshOptions, host);
+		return;
+	}
+
+	// Compile the init_system on the DART
+	if (systemf ("ssh %s %s \"make -C /root/init_system/\"", sshOptions, host) != 0)
+	{
+		recoverInitSystem (sshOptions, host);
+		return;
+	}
+
+	// Restart the init-system
+	if (systemf ("ssh %s %s \"systemctl restart init_system\"", sshOptions, host) != 0)
+	{
+		recoverInitSystem (sshOptions, host);
+		return;
+	}
+
+	// Delete the old version of the init-system
+	if (systemf ("ssh %s %s \"rm -rf /root/init_system_backup/\"", sshOptions, host) != 0)
+	{
+		recoverInitSystem (sshOptions, host);
+		return;
+	}
+
+	printf ("\n\nFIRMWARE UPDATE SUCCESSFUL.\n\n");
+}
+
 // Entrypoint -----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
@@ -185,6 +400,8 @@ int main (int argc, char** argv)
 		{
 			&handleSshOption,
 			&handleScpOption,
+			&handleUpdateZreCantoolsOption,
+			&handleUpdateInitSystemOption,
 			&handleHostOption,
 			&handleHostLogDirOption,
 			&handleLocalLogDirOption,
@@ -193,6 +410,8 @@ int main (int argc, char** argv)
 		{
 			"ssh",
 			"scp",
+			"update-zre-cantools",
+			"update-init-system",
 			"host",
 			"host-log-dir",
 			"local-log-dir"
@@ -251,6 +470,20 @@ int main (int argc, char** argv)
 		free (command);
 
 		return code;
+	}
+
+	// Update ZRE-CAN-Tools / Init-System Modes -------------------------------------------------------------------------------
+
+	if (mode == MODE_UPDATE_ZRE_CANTOOLS)
+	{
+		updateZreCantools (updateTarget, sshOptions, host);
+		return 0;
+	}
+
+	if (mode == MODE_UPDATE_INIT_SYSTEM)
+	{
+		updateInitSystem (updateTarget, sshOptions, host);
+		return 0;
 	}
 
 	// Interactive Mode -------------------------------------------------------------------------------------------------------
