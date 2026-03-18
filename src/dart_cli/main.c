@@ -323,6 +323,10 @@ int main (int argc, char** argv)
 	if (asprintf (&journalCommand, "ssh %s %s \"journalctl -u init_system\"", sshOptions, host) < 0)
 		return errorPrintf ("Failed to allocate command buffer");
 
+	char* dmesgCommand;
+	if (asprintf (&dmesgCommand, "ssh %s %s \"dmesg\"", sshOptions, host) < 0)
+		return errorPrintf ("Failed to allocate command buffer");
+
 	// Main loop
 
 	printf ("\nTesting Connection... (Ctrl+C to Cancel)\n");
@@ -345,6 +349,7 @@ int main (int argc, char** argv)
 			" m - Modify the DART's configuration\n"
 			" s - Open an interactive SSH connection to the DART\n"
 			" j - Print the DART's system journal\n"
+			" d - Print the DART's kernel message buffer\n"
 			" t - Test connection to the DART\n"
 			" q - Quit\n");
 		fscanf (stdin, "%c%*1[\n]", &selection);
@@ -427,6 +432,13 @@ int main (int argc, char** argv)
 		case 'j':
 			printf ("\nFetching System Journal...\n\n");
 			system (journalCommand);
+			printf ("\n\n");
+			break;
+
+		// Kernel message buffer
+		case 'd':
+			printf ("\nFetching Kernel Message Buffer...\n\n");
+			system (dmesgCommand);
 			printf ("\n\n");
 			break;
 
