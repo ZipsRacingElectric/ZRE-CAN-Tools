@@ -34,6 +34,8 @@
 
 bool logging = true;
 
+bool quiet = false;
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 void testSystemTick (char option, char* value)
@@ -48,6 +50,14 @@ void testSystemTick (char option, char* value)
 		errorPrintf ("Failed to get timer resolution");
 
 	exit (0);
+}
+
+void handleOptionQuiet (char* option, char* value)
+{
+	(void) option;
+	(void) value;
+
+	quiet = true;
 }
 
 void sigtermHandler (int sig)
@@ -84,7 +94,10 @@ void fprintHelp (FILE* stream)
 	fprintf (stream, ""
 		"Options:\n\n"
 		"    -r                    - Test the logging timer resolution. This is both OS\n"
-		"                            and hardware dependent\n\n");
+		"                            and hardware dependent\n"
+		"    --quiet               - Disables printing periodic status message to\n"
+		"                            standard output.\n"
+		"\n");
 	fprintOptionHelp (stream, "    ");
 }
 
@@ -179,10 +192,12 @@ void* loggingThread (void* argPtr)
 			float minLoad = canCalculateBusLoad (minBitCount, bitTime, period);
 
 			// Print the status message
-			printf ("Channel %u,   Bus Load: [%6.2f%%, %6.2f%%],   CAN Frames Received: %5lu,   Error Frames Received: %5lu,   "
-				"Bits Received: [%7lu, %7lu]\n", arg->busChannel, minLoad * 100.0f, maxLoad * 100.0f,
-				(unsigned long) frameCount, (unsigned long) errorCount, (unsigned long) minBitCount,
-				(unsigned long) maxBitCount);
+			if (!quiet)
+				printf ("Channel %u,   Bus Load: [%6.2f%%, %6.2f%%],   CAN Frames Received: %5lu,   "
+					"Error Frames Received: %5lu,   Bits Received: [%7lu, %7lu]\n",
+					arg->busChannel, minLoad * 100.0f, maxLoad * 100.0f,
+					(unsigned long) frameCount, (unsigned long) errorCount, (unsigned long) minBitCount,
+					(unsigned long) maxBitCount);
 
 			uint32_t sessionNumber	= mdfCanBusLogGetSessionNumber (arg->log);
 			uint32_t splitNumber	= mdfCanBusLogGetSplitNumber (arg->log);
@@ -207,7 +222,7 @@ void* loggingThread (void* argPtr)
 			};
 
 			// Transmit the status message. Due to its blocking nature, this must be outside the mutex guard.
-			if (canTransmit (arg->device, &statusFrame) != 0)
+			if (canTransmit (arg->device, &statusFrame) != 0 && !quiet)
 				errorPrintf ("Warning, failed to transmit status message");
 
 			// Acquire access to the log file. Note this must be before the timestamp is generated.
@@ -314,12 +329,12 @@ int main (int argc, char** argv)
 	if (handleOptions (&argc, &argv, &(handleOptionsParams_t)
 	{
 		.fprintHelp		= fprintHelp,
-		.chars			= (char []) { 'r' },
 		.charHandlers	= (optionCharCallback_t* []) { testSystemTick },
+		.chars			= (char []) { 'r' },
 		.charCount		= 1,
-		.stringHandlers	= NULL,
-		.strings		= NULL,
-		.stringCount	= 0
+		.stringHandlers	= (optionStringCallback_t* []) { handleOptionQuiet },
+		.strings		= (char* []) { "quiet" },
+		.stringCount	= 1
 	}) != 0)
 		return errorPrintf ("Failed to handle options");
 
