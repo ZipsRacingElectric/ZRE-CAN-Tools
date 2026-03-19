@@ -6,6 +6,7 @@
 //   data logger top-left, BMS/VCU/AMK right panel, nav buttons bottom.
 
 #include <gtk/gtk.h>
+#include <stdbool.h>
 #include "debug.h"
 #include "error_codes.h"
 #include "can_device/can_device.h"
@@ -106,27 +107,126 @@ static gboolean update_logger_stat(GtkLabel* label)
         return TRUE;
     }
 
+static const char* BMS_CELL_TEMP_SIGNALS[] = {
+    /* BMS_TEMPERATURES_0_12 */
+    "SENSE_LINE_4_TEMPERATURE",
+    "SENSE_LINE_8_TEMPERATURE",
+    "SENSE_LINE_11_TEMPERATURE",
+    "SENSE_LINE_7_TEMPERATURE",
+    "SENSE_LINE_3_TEMPERATURE",
+    /* BMS_TEMPERATURES_12_24 */
+    "SENSE_LINE_13_TEMPERATURE",
+    "SENSE_LINE_17_TEMPERATURE",
+    "SENSE_LINE_21_TEMPERATURE",
+    "SENSE_LINE_16_TEMPERATURE",
+    "SENSE_LINE_20_TEMPERATURE",
+    /* BMS_TEMPERATURES_24_36 */
+    "SENSE_LINE_28_TEMPERATURE",
+    "SENSE_LINE_32_TEMPERATURE",
+    "SENSE_LINE_35_TEMPERATURE",
+    "SENSE_LINE_31_TEMPERATURE",
+    "SENSE_LINE_27_TEMPERATURE",
+    /* BMS_TEMPERATURES_36_48 */
+    "SENSE_LINE_37_TEMPERATURE",
+    "SENSE_LINE_41_TEMPERATURE",
+    "SENSE_LINE_45_TEMPERATURE",
+    "SENSE_LINE_40_TEMPERATURE",
+    "SENSE_LINE_44_TEMPERATURE",
+    /* BMS_TEMPERATURES_48_60 */
+    "SENSE_LINE_52_TEMPERATURE",
+    "SENSE_LINE_56_TEMPERATURE",
+    "SENSE_LINE_59_TEMPERATURE",
+    "SENSE_LINE_55_TEMPERATURE",
+    "SENSE_LINE_51_TEMPERATURE",
+    /* BMS_TEMPERATURES_60_72 */
+    "SENSE_LINE_61_TEMPERATURE",
+    "SENSE_LINE_65_TEMPERATURE",
+    "SENSE_LINE_69_TEMPERATURE",
+    "SENSE_LINE_64_TEMPERATURE",
+    "SENSE_LINE_68_TEMPERATURE",
+    /* BMS_TEMPERATURES_72_84 */
+    "SENSE_LINE_76_TEMPERATURE",
+    "SENSE_LINE_80_TEMPERATURE",
+    "SENSE_LINE_83_TEMPERATURE",
+    "SENSE_LINE_79_TEMPERATURE",
+    "SENSE_LINE_75_TEMPERATURE",
+    /* BMS_TEMPERATURES_84_96 */
+    "SENSE_LINE_85_TEMPERATURE",
+    "SENSE_LINE_89_TEMPERATURE",
+    "SENSE_LINE_93_TEMPERATURE",
+    "SENSE_LINE_88_TEMPERATURE",
+    "SENSE_LINE_92_TEMPERATURE",
+    /* BMS_TEMPERATURES_96_108 */
+    "SENSE_LINE_100_TEMPERATURE",
+    "SENSE_LINE_104_TEMPERATURE",
+    "SENSE_LINE_107_TEMPERATURE",
+    "SENSE_LINE_103_TEMPERATURE",
+    "SENSE_LINE_99_TEMPERATURE",
+    /* BMS_TEMPERATURES_108_120 */
+    "SENSE_LINE_109_TEMPERATURE",
+    "SENSE_LINE_113_TEMPERATURE",
+    "SENSE_LINE_117_TEMPERATURE",
+    "SENSE_LINE_112_TEMPERATURE",
+    "SENSE_LINE_116_TEMPERATURE",
+    /* BMS_TEMPERATURES_120_132 */
+    "SENSE_LINE_124_TEMPERATURE",
+    "SENSE_LINE_128_TEMPERATURE",
+    "SENSE_LINE_131_TEMPERATURE",
+    "SENSE_LINE_127_TEMPERATURE",
+    "SENSE_LINE_123_TEMPERATURE",
+    /* BMS_TEMPERATURES_132_144 */
+    "SENSE_LINE_133_TEMPERATURE",
+    "SENSE_LINE_137_TEMPERATURE",
+    "SENSE_LINE_141_TEMPERATURE",
+    "SENSE_LINE_136_TEMPERATURE",
+    "SENSE_LINE_140_TEMPERATURE",
+};
+static const int BMS_CELL_TEMP_COUNT =
+    (int)(sizeof(BMS_CELL_TEMP_SIGNALS) / sizeof(BMS_CELL_TEMP_SIGNALS[0]));
+
 static gboolean update_bms_max(GtkLabel* label)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "BMS_MAX_CELL_TEMP");
-    float val = 0.0f;
     char text[16] = "--";
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "%.1fC", val);
+    bool found = false;
+    float maxTemp = -1000.0f;
+
+    for (int i = 0; i < BMS_CELL_TEMP_COUNT; ++i) {
+        ssize_t idx = canDatabaseFindSignal(&database, BMS_CELL_TEMP_SIGNALS[i]);
+        float val = 0.0f;
+        if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID) {
+            if (!found || val > maxTemp) {
+                maxTemp = val;
+                found = true;
+            }
+        }
+    }
+
+    if (found)
+        snprintf(text, sizeof(text), "%.1fC", maxTemp);
     gtk_label_set_text(label, text);
     return TRUE;
 }
 
 static gboolean update_bms_avg(GtkLabel* label)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "BMS_AVG_CELL_TEMP");
-    float val = 0.0f;
     char text[16] = "--";
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "%.1fC", val);
-    gtk_label_set_text(label, text);
-        return TRUE;
+    float sum = 0.0f;
+    int count = 0;
+
+    for (int i = 0; i < BMS_CELL_TEMP_COUNT; ++i) {
+        ssize_t idx = canDatabaseFindSignal(&database, BMS_CELL_TEMP_SIGNALS[i]);
+        float val = 0.0f;
+        if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID) {
+            sum += val;
+            ++count;
+        }
     }
+
+    if (count > 0)
+        snprintf(text, sizeof(text), "%.1fC", sum / (float)count);
+    gtk_label_set_text(label, text);
+    return TRUE;
+}
 
 static gboolean update_vcu_faults(GtkLabel* label)
 {
@@ -598,7 +698,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     /* ==========================================================
        CAN update timers at ~30 fps
        ========================================================== */
-    /*g_timeout_add(33, G_SOURCE_FUNC(update_bse_bar),      ui.bseBar);
+    g_timeout_add(33, G_SOURCE_FUNC(update_bse_bar),      ui.bseBar);
     g_timeout_add(33, G_SOURCE_FUNC(update_apps_bar),     ui.appsBar);
     g_timeout_add(33, G_SOURCE_FUNC(update_speed),        ui.speedVal);
     g_timeout_add(33, G_SOURCE_FUNC(update_logger_title), ui.loggerTitle);
@@ -607,7 +707,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     g_timeout_add(33, G_SOURCE_FUNC(update_bms_avg),      ui.bmsAvg);
     g_timeout_add(33, G_SOURCE_FUNC(update_vcu_faults),   ui.vcuFaults);
     g_timeout_add(33, G_SOURCE_FUNC(update_mtr_temp),     ui.mtrTemp);
-    g_timeout_add(33, G_SOURCE_FUNC(update_inv_temp),     ui.invTemp); */
+    g_timeout_add(33, G_SOURCE_FUNC(update_inv_temp),     ui.invTemp);
 
     gtk_window_present(GTK_WINDOW(window));
 }
