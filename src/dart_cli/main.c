@@ -562,7 +562,7 @@ int main (int argc, char** argv)
 			mkdirPort (destinationDirectory);
 			systemf ("scp %s -r %s:%s \"%s\"", sshOptions, host, hostLogDir, destinationDirectory);
 			// TODO(Barach): Needs to expand environment variable, also wildcard.
-			systemf ("scp %s %s:/root/zre_cantools/config/zr25/vehicle/main.dbc %s", sshOptions, host, destinationDirectory);
+			systemf ("scp %s %s:/root/zre_cantools/config/zr26/vehicle/main.dbc %s", sshOptions, host, destinationDirectory);
 			printf ("\nDone.\n\n");
 			break;
 
