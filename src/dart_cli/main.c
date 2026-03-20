@@ -9,6 +9,11 @@
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
+// TODO(Barach):
+// - Replace system with systemf
+// - Move firmware update to firmware.h
+// - Support for multiple firmware updates at once
+
 // For asprintf. Note this must be the first include in this file.
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -152,6 +157,14 @@ void handleLocalLogDirOption (char* option, char* value)
 }
 
 // Functions ------------------------------------------------------------------------------------------------------------------
+
+bool promptConfirmation ()
+{
+	char selection;
+	printf ("\nAre you sure? [y/n]: ");
+	fscanf (stdin, "%c%*1[\n]", &selection);
+	return selection == 'y' || selection == 'Y';
+}
 
 char* concetenateCommand (char* command, char* options, char** argv, int argc)
 {
@@ -509,61 +522,10 @@ int main (int argc, char** argv)
 
 	debugPrintf ("Using local destination directory '%s'...\n", destinationDirectory);
 
-	// Allocate commands
-
-	char* testCommand;
-	if (asprintf (&testCommand, "ssh %s %s \"printf Connected.\"", sshOptions, host) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* listCommand;
-	if (asprintf (&listCommand, "ssh %s %s \"ls %s\"", sshOptions, host, hostLogDir) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* diskUsageCommand;
-	if (asprintf (&diskUsageCommand, "ssh %s %s \"df %s\"", sshOptions, host, hostLogDir) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* copyCommand;
-	if (asprintf (&copyCommand, "scp %s -r %s:%s \"%s\"", sshOptions, host, hostLogDir, destinationDirectory) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	// TODO(Barach): Needs to expand environment variable, also wildcard.
-	char* copyDbcCommand;
-	if (asprintf (&copyDbcCommand, "scp %s %s:/root/zre_cantools/config/zr25/vehicle/main.dbc %s", sshOptions, host, destinationDirectory) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* deleteCommand;
-	if (asprintf (&deleteCommand, "ssh %s %s \"rm -r %s/* && systemctl restart init_system\"", sshOptions, host, hostLogDir) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* reloadCommand;
-	if (asprintf (&reloadCommand, "ssh %s %s \"systemctl daemon-reload\"", sshOptions, host) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* restartCommand;
-	if (asprintf (&restartCommand, "ssh %s %s \"systemctl restart init_system\"", sshOptions, host) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* modifyConfigCommand;
-	if (asprintf (&modifyConfigCommand, "ssh %s %s -t \"nano /etc/systemd/system/init_system.service\"", sshOptions, host) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* sshInteractiveCommand;
-	if (asprintf (&sshInteractiveCommand, "ssh %s %s", sshOptions, host) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* journalCommand;
-	if (asprintf (&journalCommand, "ssh %s %s \"journalctl -u init_system\"", sshOptions, host) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
-	char* dmesgCommand;
-	if (asprintf (&dmesgCommand, "ssh %s %s \"dmesg\"", sshOptions, host) < 0)
-		return errorPrintf ("Failed to allocate command buffer");
-
 	// Main loop
 
 	printf ("\nTesting Connection... (Ctrl+C to Cancel)\n");
-	if (system (testCommand) != 0)
+	if (systemf ("ssh %s %s \"printf Connected.\"", sshOptions, host) != 0)
 	{
 		printf ("\nFailed to connect to the DART.\n\n");
 		return -1;
@@ -578,12 +540,8 @@ int main (int argc, char** argv)
 			" l - List all remote log files\n"
 			" c - Copy all logs locally\n"
 			" x - Delete all remote log files\n"
-			" r - Restart the device\n"
-			" m - Modify the DART's configuration\n"
-			" s - Open an interactive SSH connection to the DART\n"
-			" j - Print the DART's system journal\n"
-			" d - Print the DART's kernel message buffer\n"
 			" t - Test connection to the DART\n"
+			" a - List developer options\n"
 			" q - Quit\n");
 		fscanf (stdin, "%c%*1[\n]", &selection);
 
@@ -592,9 +550,9 @@ int main (int argc, char** argv)
 		// List
 		case 'l':
 			printf ("\nRemote Logs:\n\n");
-			system (listCommand);
+			systemf ("ssh %s %s \"ls %s\"", sshOptions, host, hostLogDir);
 			printf ("\n");
-			system (diskUsageCommand);
+			systemf ("ssh %s %s \"df %s\"", sshOptions, host, hostLogDir);
 			printf ("\n");
 			break;
 
@@ -602,83 +560,101 @@ int main (int argc, char** argv)
 		case 'c':
 			printf ("\nCopying Logs to '%s'...\n\n", destinationDirectory);
 			mkdirPort (destinationDirectory);
-			system (copyCommand);
-			system (copyDbcCommand);
+			systemf ("scp %s -r %s:%s \"%s\"", sshOptions, host, hostLogDir, destinationDirectory);
+			// TODO(Barach): Needs to expand environment variable, also wildcard.
+			systemf ("scp %s %s:/root/zre_cantools/config/zr25/vehicle/main.dbc %s", sshOptions, host, destinationDirectory);
 			printf ("\nDone.\n\n");
 			break;
 
 		// Delete
 		case 'x':
-			printf ("\nAre you sure? [y/n]: ");
-			fscanf (stdin, "%c%*1[\n]", &selection);
-			if (selection != 'y')
+			if (!promptConfirmation ())
 			{
 				printf ("Cancelled.\n\n");
 				break;
 			}
 
 			printf ("\nDeleting Logs...\n\n");
-			system (deleteCommand);
+			systemf ("ssh %s %s \"rm -r %s/* && systemctl restart init_system\"", sshOptions, host, hostLogDir);
 			printf ("\nDone.\n\n");
+			break;
+
+		// Advanced Options
+		case 'a':
+			printf ("\n"
+			"Developer Options:\n"
+			" p - Stop the data logger\n"
+			" r - Restart the device\n"
+			" m - Modify the DART's configuration\n"
+			" s - Open an interactive SSH connection to the DART\n"
+			" j - Print the DART's system journal\n"
+			" i - Print the DART's init-system journal\n"
+			" d - Print the DART's kernel message buffer\n\n");
+			break;
+
+		// Stop
+		case 'p':
+			printf ("\nStopping...\n\n");
+			systemf ("ssh %s %s \"systemctl stop init_system\"", sshOptions, host);
+			printf ("\nStopped.\n\n");
 			break;
 
 		// Restart
 		case 'r':
-			printf ("\nThis may corrupt the current data log. Are you sure? [y/n]: ");
-			fscanf (stdin, "%c%*1[\n]", &selection);
-			if (selection != 'y')
-			{
-				printf ("Cancelled.\n\n");
-				break;
-			}
-
+			// TODO(Barach): This will shutdown the DART currently. Not sure how to do?
 			printf ("\nRestarting the DART...\n\n");
-			system (restartCommand);
+			systemf ("ssh %s %s \"systemctl restart init_system\"", sshOptions, host);
 			printf ("\nDone.\n\n");
 			break;
 
 		// Modify config
 		case 'm':
-			printf ("\nAre you sure? [y/n]: ");
-			fscanf (stdin, "%c%*1[\n]", &selection);
-			if (selection != 'y')
+			if (!promptConfirmation ())
 			{
 				printf ("Cancelled.\n\n");
 				break;
 			}
 
 			printf ("\nOpening Editor... (Ctrl+X to Exit)\n\n");
-			system (modifyConfigCommand);
-			system (reloadCommand);
-			system (restartCommand);
+			systemf ("ssh %s %s -t \"nano /etc/systemd/system/init_system.service\"", sshOptions, host);
+			systemf ("ssh %s %s \"systemctl daemon-reload\"", sshOptions, host);
+			systemf ("ssh %s %s \"systemctl restart init_system\"", sshOptions, host);
 			printf ("\nDone.\n\n");
 			break;
 
+		// TODO(Barach): Replace with --ssh mode?
 		// Interactive SSH
 		case 's':
 			printf ("\nOpening SSH Connection... (Type \"exit\" to Close)\n");
-			system (sshInteractiveCommand);
+			systemf ("ssh %s %s", sshOptions, host);
 			printf ("\n");
 			break;
 
 		// System journal
 		case 'j':
 			printf ("\nFetching System Journal...\n\n");
-			system (journalCommand);
+			systemf ("ssh %s %s \"journalctl\"", sshOptions, host);
+			printf ("\n\n");
+			break;
+
+		// Init-system journal
+		case 'i':
+			printf ("\nFetching Init-system Journal...\n\n");
+			systemf ("ssh %s %s \"journalctl -u init_system\"", sshOptions, host);
 			printf ("\n\n");
 			break;
 
 		// Kernel message buffer
 		case 'd':
 			printf ("\nFetching Kernel Message Buffer...\n\n");
-			system (dmesgCommand);
+			systemf ("ssh %s %s \"dmesg\"", sshOptions, host);
 			printf ("\n\n");
 			break;
 
 		// Connection test
 		case 't':
 			printf ("\nTesting Connection... (Ctrl+C to Cancel)\n");
-			system (testCommand);
+			systemf ("ssh %s %s \"printf Connected.\"", sshOptions, host);
 			printf ("\n\n");
 			break;
 
@@ -686,17 +662,6 @@ int main (int argc, char** argv)
 		case 'q':
 			free (sshOptions);
 			free (destinationDirectory);
-			free (testCommand);
-			free (listCommand);
-			free (diskUsageCommand);
-			free (copyCommand);
-			free (copyDbcCommand);
-			free (deleteCommand);
-			free (reloadCommand);
-			free (restartCommand);
-			free (modifyConfigCommand);
-			free (sshInteractiveCommand);
-			free (journalCommand);
 			return 0;
 		}
 	};
