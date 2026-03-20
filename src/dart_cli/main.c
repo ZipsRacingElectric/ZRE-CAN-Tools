@@ -10,7 +10,6 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // TODO(Barach):
-// - Replace system with systemf
 // - Move firmware update to firmware.h
 // - Support for multiple firmware updates at once
 
