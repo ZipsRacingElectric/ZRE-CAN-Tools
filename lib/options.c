@@ -32,6 +32,14 @@ static void handleVerbose ()
 	debugSetStream (stderr);
 }
 
+static int handleUnbuffered ()
+{
+	int code = setvbuf (stdout, NULL, _IONBF, 0);
+	if (code != 0)
+		errorPrintf ("Failed to set unbuffered output");
+	return code;
+}
+
 optionReturn_t handleOption (const char* arg, const char** option, fprintCallback_t* fprintHelp)
 {
 	if (arg [0] != '-')
@@ -68,6 +76,14 @@ optionReturn_t handleOption (const char* arg, const char** option, fprintCallbac
 		{
 			handleVersion ();
 			return OPTION_QUIT;
+		}
+
+		if (strcmp (string, "unbuffered") == 0)
+		{
+			if (handleUnbuffered () != 0)
+				return OPTION_QUIT;
+			else
+				return OPTION_HANDLED;
 		}
 
 		if (option != NULL)
@@ -213,7 +229,8 @@ int fprintOptionHelp (FILE* stream, char* indent)
 		"%s--verbose             - Verbose debugging, prints more detailed information\n"
 		"%s                        to standard output.\n"
 		"%s-v, --version         - Version, prints the application version.\n"
+		"%s--unbuffered          - Use unbuffered standard output.\n"
 		"%s--                    - Stop parsing options. All arguments after this are\n"
 		"%s                        parsed as arguments, not options.\n\n",
-		indent, indent, indent, indent, indent, indent);
+		indent, indent, indent, indent, indent, indent, indent);
 }
