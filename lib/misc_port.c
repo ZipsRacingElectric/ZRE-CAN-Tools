@@ -9,12 +9,12 @@
 #include "debug.h"
 
 // C Standard Library
-#include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
 // POSIX
+#include <libgen.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -123,4 +123,22 @@ int systemf (char* format, ...)
 
 	// Return the error code, as specified by system.
 	return code;
+}
+
+char* getDirName (char* path)
+{
+	char* pathCopy = strdup (path);
+	if (pathCopy == NULL)
+		return NULL;
+
+	char* dirName = basename (pathCopy);
+	if (dirName == NULL)
+	{
+		free (pathCopy);
+		return NULL;
+	}
+
+	char* dirNameCopy = strdup (dirName);
+	free (pathCopy);
+	return dirNameCopy;
 }
