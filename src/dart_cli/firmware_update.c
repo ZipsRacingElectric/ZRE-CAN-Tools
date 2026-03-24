@@ -211,6 +211,6 @@ int updateInitSystem (char* localPath, char* sshOptions, char* host)
 		return -1;
 	}
 
-	printf ("\n\nFIRMWARE UPDATE SUCCESSFUL.\n\n");
+	printf ("\n\nFirmware Update Successful.\n\n");
 	return 0;
 }
