@@ -514,7 +514,7 @@ int main (int argc, char** argv)
 		if (argc == 0)
 		{
 			// No arguments, default to interactive SSH
-			systemf ("ssh %s %s", sshOptions, host);
+			return systemf ("ssh %s %s", sshOptions, host);
 		}
 		else
 		{
