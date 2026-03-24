@@ -9,9 +9,6 @@
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
-// TODO(Barach):
-// - Support for multiple firmware updates at once
-
 // For asprintf. Note this must be the first include in this file.
 #define _GNU_SOURCE
 #include <stdio.h>
