@@ -19,6 +19,7 @@
 
 // Includes
 #include "debug.h"
+#include "error_codes.h"
 #include "options.h"
 #include "misc_port.h"
 
@@ -47,6 +48,8 @@ char* localLogDir	= NULL;
 
 char* updateTarget	= NULL;
 
+bool testConnection = true;
+
 // Help Page ------------------------------------------------------------------------------------------------------------------
 
 void fprintUsage (FILE* stream)
@@ -62,8 +65,8 @@ void fprintUsage (FILE* stream)
 void fprintHelp (FILE* stream)
 {
 	fprintf (stream, ""
-		"dart-cli - Command-line Interface for Zips Racing's DART (Data Acquisition and\n"
-		"           Racing Telemetry System).\n\n");
+		"dart-cli - Command-line Interface for Zips Racing's DART (Dashboard And Racing\n"
+		"           Telemetry System).\n\n");
 
 	fprintUsage (stream);
 
@@ -79,7 +82,18 @@ void fprintHelp (FILE* stream)
 		"    --local-log-dir=<Dir> - Override the default local data log directory.\n"
 		"                            Default is the value of the ZRE_CANTOOLS_LOGGING_DIR\n"
 		"                            environment variable.\n"
-		"\n");
+		"    --skip-test           - Skips the SSH connection test at the start of the\n"
+		"                            application. Not recommended when performing\n"
+		"                            firmware updates.\n"
+		"\n"
+		"    --update-zre-cantools=<Path> - Updates the DART's version of ZRE-CAN-Tools.\n"
+		"                                   Please see the URL below before using this.\n"
+		"    --update-init-system=<Path>  - Updates the DART's version of the\n"
+		"                                   init-system. Please see the URL below before\n"
+		"                                   using this.\n"
+		"\n"
+		"    https://github.com/ZipsRacingElectric/DART-ZR/blob/main/doc/updating_firmware.md"
+		"\n\n");
 
 	fprintOptionHelp (stream, "    ");
 
@@ -155,6 +169,14 @@ void handleLocalLogDirOption (char* option, char* value)
 	localLogDir = value;
 }
 
+void handleSkipTestOption (char* option, char* value)
+{
+	(void) option;
+	(void) value;
+
+	testConnection = false;
+}
+
 // Functions ------------------------------------------------------------------------------------------------------------------
 
 bool promptConfirmation ()
@@ -202,6 +224,35 @@ char* concetenateCommand (char* command, char* options, char** argv, int argc)
 		bufferHead += count;
 		bufferSize -= count;
 	}
+
+	return buffer;
+}
+
+char* sshGetEnv (char* env, char* sshOptions, char* host)
+{
+	char* command;
+	if (asprintf (&command, "ssh %s %s \"printenv %s\"", sshOptions, host, env) < 0)
+		return NULL;
+
+	FILE* sshStdout = popen (command, "r");
+	if (sshStdout == NULL)
+		return NULL;
+
+	free (command);
+
+	char* buffer = malloc (1024);
+
+	if (fgets (buffer, 1024, sshStdout) == NULL)
+	{
+		if (feof (sshStdout))
+		{
+			errno = ERRNO_END_OF_FILE;
+			return NULL;
+		}
+
+		return NULL;
+	}
+	buffer [strcspn (buffer, "\r\n")] = '\0';
 
 	return buffer;
 }
@@ -417,6 +468,7 @@ int main (int argc, char** argv)
 			&handleHostOption,
 			&handleHostLogDirOption,
 			&handleLocalLogDirOption,
+			&handleSkipTestOption
 		},
 		.strings = (char* [])
 		{
@@ -426,9 +478,10 @@ int main (int argc, char** argv)
 			"update-init-system",
 			"host",
 			"host-log-dir",
-			"local-log-dir"
+			"local-log-dir",
+			"skip-test"
 		},
-		.stringCount = 5
+		.stringCount = 8
 	}) != 0)
 		return errorPrintf ("Failed to handle options");
 
@@ -458,15 +511,24 @@ int main (int argc, char** argv)
 
 	if (mode == MODE_SSH)
 	{
-		char* command = concetenateCommand ("ssh", sshOptions, argv, argc);
-		if (command == NULL)
-			errorPrintf ("Failed to allocate command buffer");
+		if (argc == 0)
+		{
+			// No arguments, default to interactive SSH
+			systemf ("ssh %s %s", sshOptions, host);
+		}
+		else
+		{
+			// Use user-provided arguments
 
-		debugPrintf ("Executing command '%s'...\n", command);
-		int code = system (command);
-		free (command);
+			char* command = concetenateCommand ("ssh", sshOptions, argv, argc);
+			if (command == NULL)
+				return errorPrintf ("Failed to allocate command buffer");
 
-		return code;
+			debugPrintf ("Executing command '%s'...\n", command);
+			int code = system (command);
+			free (command);
+			return code;
+		}
 	}
 
 	// SCP Mode ---------------------------------------------------------------------------------------------------------------
@@ -482,6 +544,19 @@ int main (int argc, char** argv)
 		free (command);
 
 		return code;
+	}
+
+	// Test Connection --------------------------------------------------------------------------------------------------------
+
+	if (testConnection)
+	{
+		printf ("\nTesting Connection... (Ctrl+C to Cancel)\n");
+		if (systemf ("ssh %s %s \"printf Connected.\"", sshOptions, host) != 0)
+		{
+			printf ("\nFailed to connect to the DART.\n\n");
+			return -1;
+		}
+		printf ("\n\n");
 	}
 
 	// Update ZRE-CAN-Tools / Init-System Modes -------------------------------------------------------------------------------
@@ -523,14 +598,6 @@ int main (int argc, char** argv)
 
 	// Main loop
 
-	printf ("\nTesting Connection... (Ctrl+C to Cancel)\n");
-	if (systemf ("ssh %s %s \"printf Connected.\"", sshOptions, host) != 0)
-	{
-		printf ("\nFailed to connect to the DART.\n\n");
-		return -1;
-	}
-	printf ("\n\n");
-
 	while (true)
 	{
 		char selection;
@@ -560,9 +627,18 @@ int main (int argc, char** argv)
 			printf ("\nCopying Logs to '%s'...\n\n", destinationDirectory);
 			mkdirPort (destinationDirectory);
 			systemf ("scp %s -r %s:%s \"%s\"", sshOptions, host, hostLogDir, destinationDirectory);
-			// TODO(Barach): Needs to expand environment variable, also wildcard.
-			systemf ("scp %s %s:/root/zre_cantools/config/zr26/vehicle/main.dbc %s", sshOptions, host, destinationDirectory);
-			printf ("\nDone.\n\n");
+
+			char* hostConfigDir = sshGetEnv ("DART_CONFIG", sshOptions, host);
+			if (hostConfigDir != NULL)
+			{
+				debugPrintf ("Using DART config directory '%s'...\n", hostConfigDir);
+
+				systemf ("scp %s %s:%s/*.dbc %s", sshOptions, host, hostConfigDir, destinationDirectory);
+				printf ("\nDone.\n\n");
+			}
+			else
+				errorPrintf ("Failed to get DART_CONFIG environment variable");
+
 			break;
 
 		// Delete
@@ -600,7 +676,6 @@ int main (int argc, char** argv)
 
 		// Restart
 		case 'r':
-			// TODO(Barach): This will shutdown the DART currently. Not sure how to do?
 			printf ("\nRestarting the DART...\n\n");
 			systemf ("ssh %s %s \"systemctl restart init_system\"", sshOptions, host);
 			printf ("\nDone.\n\n");
@@ -621,7 +696,6 @@ int main (int argc, char** argv)
 			printf ("\nDone.\n\n");
 			break;
 
-		// TODO(Barach): Replace with --ssh mode?
 		// Interactive SSH
 		case 's':
 			printf ("\nOpening SSH Connection... (Type \"exit\" to Close)\n");
