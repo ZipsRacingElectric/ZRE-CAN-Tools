@@ -4,8 +4,9 @@
 // Date Created: 2026.02.15
 //
 // Description:
-//   For usage, see help page.
-//   For SSH details, see https://github.com/ZipsRacingElectric/DART-ZR/blob/main/doc/ethernet_configuration.md
+//   - For CLI usage, see help page.
+//   - For info about the DART in general, see https://github.com/ZipsRacingElectric/DART-ZR/blob/main/readme.md
+//   - For SSH details, see https://github.com/ZipsRacingElectric/DART-ZR/blob/main/doc/ethernet_configuration.md
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
