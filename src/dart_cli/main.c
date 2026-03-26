@@ -482,6 +482,7 @@ int main (int argc, char** argv)
 			" m - Modify the DART's configuration\n"
 			" s - Open an interactive SSH connection to the DART\n"
 			" j - Print the DART's system journal\n"
+			" b - Print the DART's system journal from the last boot\n"
 			" i - Print the DART's init-system journal\n"
 			" d - Print the DART's kernel message buffer\n\n");
 			break;
@@ -526,6 +527,13 @@ int main (int argc, char** argv)
 		case 'j':
 			printf ("\nFetching System Journal...\n\n");
 			systemf ("ssh %s %s \"journalctl\"", sshOptions, host);
+			printf ("\n\n");
+			break;
+
+		// Last boot
+		case 'b':
+			printf ("\nFetching Last Boot System Journal...\n\n");
+			systemf ("ssh %s %s \"journalctl -b -1\"", sshOptions, host);
 			printf ("\n\n");
 			break;
 
