@@ -84,11 +84,11 @@ bool slcanNameDomain (const char* name)
 bool slcanWildcard (const char* name)
 {
 	// POSIX device format
-	if (strncmp("/dev/tty*", name, strlen ("/dev/tty*")) == 0 || strncmp("/dev/ttyACM*", name, strlen ("/dev/ttyACM*")) == 0)
+	if (strncmp ("/dev/tty*", name, strlen ("/dev/tty*")) == 0 || strncmp ("/dev/ttyACM*", name, strlen ("/dev/ttyACM*")) == 0)
 		return true;
 
 	// Windows device format
-	if (strncmp("COM*", name, strlen ("COM*")) == 0)
+	if (strncmp ("COM*", name, strlen ("COM*")) == 0 || strncmp ("\\\\.\\COM*", name, strlen ("\\\\.\\COM*")))
 		return true;
 
 	return false;
@@ -265,7 +265,7 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 
 			// Allocate the device name
 			char* deviceName;
-			if (asprintf (&deviceName, "COM%i", index) < 0)
+			if (asprintf (&deviceName, "\\\\.\\COM%i", index) < 0)
 			{
 				listDealloc (canDevicePtr_t) (&devices);
 				return NULL;
