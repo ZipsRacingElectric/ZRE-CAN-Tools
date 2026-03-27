@@ -66,9 +66,13 @@ static void styleLoad (pageBmsStyle_t* style, pageStyle_t* baseStyle, cJSON* con
 	if (jsonGetString (config, "senseLineTemperatureGraphTitleColor", &senseLineTemperatureGraphTitleColor) == 0)
 		style->senseLineTemperatureGraphTitleColor = gdkHexToColor (senseLineTemperatureGraphTitleColor);
 
-	// char* senseLineTemperatureGraphBarColor;
-	// if (jsonGetString (config, "senseLineTemperatureGraphBarColor", &senseLineTemperatureGraphBarColor) == 0)
-	// 	style->senseLineTemperatureGraphBarColor = gdkHexToColor (senseLineTemperatureGraphBarColor);
+	char* senseLineTemperatureGraphValidBarColor;
+	if (jsonGetString (config, "senseLineTemperatureGraphValidBarColor", &senseLineTemperatureGraphValidBarColor) == 0)
+		style->senseLineTemperatureGraphValidBarColor = gdkHexToColor (senseLineTemperatureGraphValidBarColor);
+
+	char* senseLineTemperatureGraphInvalidBarColor;
+	if (jsonGetString (config, "senseLineTemperatureGraphInvalidBarColor", &senseLineTemperatureGraphInvalidBarColor) == 0)
+		style->senseLineTemperatureGraphInvalidBarColor = gdkHexToColor (senseLineTemperatureGraphInvalidBarColor);
 
 	char* senseLineTemperatureGraphTickColor;
 	if (jsonGetString (config, "senseLineTemperatureGraphTickColor", &senseLineTemperatureGraphTickColor) == 0)
@@ -84,9 +88,13 @@ static void styleLoad (pageBmsStyle_t* style, pageStyle_t* baseStyle, cJSON* con
 	if (jsonGetString (config, "ltcTemperatureGraphTitleColor", &ltcTemperatureGraphTitleColor) == 0)
 		style->ltcTemperatureGraphTitleColor = gdkHexToColor (ltcTemperatureGraphTitleColor);
 
-	// char* ltcTemperatureGraphBarColor;
-	// if (jsonGetString (config, "ltcTemperatureGraphBarColor", &ltcTemperatureGraphBarColor) == 0)
-	// 	style->ltcTemperatureGraphBarColor = gdkHexToColor (ltcTemperatureGraphBarColor);
+	char* ltcTemperatureGraphValidBarColor;
+	if (jsonGetString (config, "ltcTemperatureGraphValidBarColor", &ltcTemperatureGraphValidBarColor) == 0)
+		style->ltcTemperatureGraphValidBarColor = gdkHexToColor (ltcTemperatureGraphValidBarColor);
+
+	char* ltcTemperatureGraphInvalidBarColor;
+	if (jsonGetString (config, "ltcTemperatureGraphInvalidBarColor", &ltcTemperatureGraphInvalidBarColor) == 0)
+		style->ltcTemperatureGraphInvalidBarColor = gdkHexToColor (ltcTemperatureGraphInvalidBarColor);
 
 	char* ltcTemperatureGraphTickColor;
 	if (jsonGetString (config, "ltcTemperatureGraphTickColor", &ltcTemperatureGraphTickColor) == 0)

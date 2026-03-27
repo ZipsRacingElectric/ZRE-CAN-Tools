@@ -963,13 +963,15 @@
 
 				"senseLineTemperatureGraphTitleFont":	"ITC Avant Garde Gothic CE Book 18px",
 				"senseLineTemperatureGraphTitleColor":	"#00FFAA",
-				"senseLineTemperatureGraphBarColor":	"#00FFAA",
+				"senseLineTemperatureGraphValidBarColor":"#00FFAA",
+				"senseLineTemperatureGraphInvalidBarColor":"#FF00AA",
 				"senseLineTemperatureGraphTickColor":	"#00FFAA",
 				"senseLineTemperatureGraphAxisColor":	"#00FFAA",
 
 				"ltcTemperatureGraphTitleFont":			"ITC Avant Garde Gothic CE Book 18px",
 				"ltcTemperatureGraphTitleColor":		"#00FFAA",
-				"ltcTemperatureGraphBarColor":			"#00FFAA",
+				"ltcTemperatureGraphValidBarColor":		"#00FFAA",
+				"ltcTemperatureGraphInvalidBarColor":	"#FF00AA",
 				"ltcTemperatureGraphTickColor":			"#00FFAA",
 				"ltcTemperatureGraphAxisColor":			"#00FFAA"
 			}
