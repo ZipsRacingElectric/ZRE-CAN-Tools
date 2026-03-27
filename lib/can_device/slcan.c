@@ -84,7 +84,7 @@ bool slcanNameDomain (const char* name)
 bool slcanWildcard (const char* name)
 {
 	// POSIX device format
-	if (strncmp("/dev/tty*", name, strlen ("/dev/tty*")) == 0)
+	if (strncmp("/dev/tty*", name, strlen ("/dev/tty*")) == 0 || strncmp("/dev/ttyACM*", name, strlen ("/dev/ttyACM*")) == 0)
 		return true;
 
 	// Windows device format
