@@ -193,6 +193,13 @@ canDevice_t* slcanInit (char* name, canBaudrate_t baudrate)
 
 canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 {
+	// Validate a baudrate was provided.
+	if (baudrate == CAN_BAUDRATE_UNKNOWN)
+	{
+		errno = ERRNO_SLCAN_BAUDRATE;
+		return NULL;
+	}
+
 	// Dynamic list stores enumerated can devices
 	list_t (canDevicePtr_t) devices;
 	if (listInit (canDevicePtr_t) (&devices, 8) != 0)
@@ -264,9 +271,18 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 			// TODO(Barach): This doesn't work for COM10+
 
 			// Allocate the device name
-			char* deviceName;
-			if (asprintf (&deviceName, "\\\\.\\COM%i", index) < 0)
+
+			char* deviceNameShort;
+			if (asprintf (&deviceNameShort, "COM%i", index) < 0)
 			{
+				listDealloc (canDevicePtr_t) (&devices);
+				return NULL;
+			}
+
+			char* deviceNameLong;
+			if (asprintf (&deviceNameLong, "\\\\.\\COM%i", index) < 0)
+			{
+				free (deviceNameShort);
 				listDealloc (canDevicePtr_t) (&devices);
 				return NULL;
 			}
@@ -274,7 +290,7 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 			// Creates a handle that can be used to access the device connected to the COM port.
     	    HANDLE handle = CreateFileA
 			(
-    	        deviceName,
+    	        deviceNameLong,
     	        GENERIC_READ | GENERIC_WRITE,
     	        0,
     	        NULL,
@@ -286,40 +302,44 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 			// Checks that there is a device occupying the COM port.
     	    if (handle == INVALID_HANDLE_VALUE)
 			{
-				free (deviceName);
+				free (deviceNameShort);
+				free (deviceNameLong);
 				continue;
 			}
 
 			// Release the device handler.
 			CloseHandle (handle);
 
-			debugPrintf ("    %s - ", deviceName);
+			debugPrintf ("    %s - ", deviceNameLong);
 
 			// To narrow things down (and especially to avoid Bluetooth devices, which cause the program to hang) we strip
 			// out any devices that aren't USB devices.
 
 			char buffer [65536];
-			if (QueryDosDeviceA (deviceName, buffer, sizeof (buffer)) == 0)
+			if (QueryDosDeviceA (deviceNameShort, buffer, sizeof (buffer)) == 0)
 			{
 				debugPrintf ("Failed to query DOS device information.\n");
-				free (deviceName);
+				free (deviceNameShort);
+				free (deviceNameLong);
 				continue;
 			}
 
 			if (strstr (buffer, "USBSER") == NULL)
 			{
 				debugPrintf ("No occurance of 'CAN' in device info.\n");
-				free (deviceName);
+				free (deviceNameShort);
+				free (deviceNameLong);
 				continue;
 			}
 
 			// Attempt to create SLCAN device
-			canDevice_t* slcanDevice = slcanInit (deviceName, baudrate);
+			canDevice_t* slcanDevice = slcanInit (deviceNameLong, baudrate);
 			if (slcanDevice == NULL)
 			{
 				debugPrintf ("%s.\n", errorCodeToMessage (errno));
 				errno = 0;
-				free (deviceName);
+				free (deviceNameShort);
+				free (deviceNameLong);
 				continue;
 			}
 
@@ -329,7 +349,8 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 			listAppend (canDevicePtr_t) (&devices, slcanDevice);
 
 			// Deallocate the device name
-			free (deviceName);
+			free (deviceNameShort);
+			free (deviceNameLong);
     	}
 
 	#endif // ZRE_CANTOOLS_OS_windows

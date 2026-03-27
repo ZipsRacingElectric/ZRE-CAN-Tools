@@ -1,6 +1,8 @@
 #ifndef UINPUT_HELPER_H
 #define UINPUT_HELPER_H
 
+#ifdef ZRE_CANTOOLS_OS_linux
+
 // Linux Userspace Input Subsystem Helper -------------------------------------------------------------------------------------
 //
 // Author: Cole Barach
@@ -92,5 +94,7 @@ int uinputAbsAlias (const char* alias);
  * @param fd The file descriptor of the uinput file.
  */
 void uinputClose (int fd);
+
+#endif // ZRE_CANTOOLS_OS_linux
 
 #endif // UINPUT_HELPER_H

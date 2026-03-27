@@ -74,9 +74,14 @@ int canNullReceive (void* device, canFrame_t* frame)
 
 	// Block for the timeout interval
 	if (can->timeout == 0)
-		pause ();
+	{
+		while (true)
+			usleep (1000000);
+	}
 	else
+	{
 		usleep (can->timeout * 1000);
+	}
 
 	// Return timeout
 	errno = ERRNO_CAN_DEVICE_TIMEOUT;

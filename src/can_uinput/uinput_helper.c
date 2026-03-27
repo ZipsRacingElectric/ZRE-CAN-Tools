@@ -1,6 +1,8 @@
 // Header
 #include "uinput_helper.h"
 
+#ifdef ZRE_CANTOOLS_OS_linux
+
 // Includes
 #include "debug.h"
 
@@ -473,3 +475,5 @@ void uinputClose (int fd)
 	ioctl (fd, UI_DEV_DESTROY);
 	close (fd);
 }
+
+#endif // ZRE_CANTOOLS_OS_linux
