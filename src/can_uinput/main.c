@@ -1,3 +1,12 @@
+// CAN Bus User-space Input ---------------------------------------------------------------------------------------------------
+//
+// Author: Cole Barach
+// Date Created: 2026.03.27
+//
+// Description: See help page.
+
+// Includes -------------------------------------------------------------------------------------------------------------------
+
 // Includes
 #include "abs_signal.h"
 #include "key_signal.h"
@@ -108,7 +117,7 @@ int main (int argc, char** argv)
 	if (devices == NULL)
 		return errorPrintf ("Failed to allocate CAN device array");
 
-	canDatabase_t* databases = malloc (sizeof (canDatabase_t*) * deviceCount);
+	canDatabase_t* databases = malloc (sizeof (canDatabase_t) * deviceCount);
 	if (databases == NULL)
 		return errorPrintf ("Failed to allocate CAN database array");
 
@@ -153,15 +162,16 @@ int main (int argc, char** argv)
 		if (dbcPathExpanded == NULL)
 			return errorPrintf ("Failed to expand environment variable");
 
-		canDatabase_t database;
-		if (canDatabaseInit (&database, devices [index], dbcPathExpanded) != 0)
+		if (canDatabaseInit (&databases [index], devices [index], dbcPathExpanded) != 0)
 			return errorPrintf ("Failed to initialize CAN database '%s'", dbcPathExpanded);
 
-		keys [index] = keySignalsLoad (deviceConfig, fd, &database, &keyCounts [index]);
+		free (dbcPathExpanded);
+
+		keys [index] = keySignalsLoad (deviceConfig, fd, &databases [index], &keyCounts [index]);
 		if (keys [index] == NULL)
 			return errorPrintf ("Failed to load key signals");
 
-		abs [index] = absSignalsLoad (deviceConfig, fd, &database, &absCounts [index]);
+		abs [index] = absSignalsLoad (deviceConfig, fd, &databases [index], &absCounts [index]);
 		if (abs [index] == NULL)
 			return errorPrintf ("Failed to load abs signals");
 	}
