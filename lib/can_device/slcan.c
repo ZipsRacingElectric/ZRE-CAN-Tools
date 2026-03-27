@@ -88,7 +88,7 @@ bool slcanWildcard (const char* name)
 		return true;
 
 	// Windows device format
-	if (strncmp ("COM*", name, strlen ("COM*")) == 0 || strncmp ("\\\\.\\COM*", name, strlen ("\\\\.\\COM*")))
+	if (strncmp ("COM*", name, strlen ("COM*")) == 0 || strncmp ("\\\\.\\COM*", name, strlen ("\\\\.\\COM*")) == 0)
 		return true;
 
 	return false;
