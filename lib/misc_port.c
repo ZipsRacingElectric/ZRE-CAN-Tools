@@ -125,7 +125,7 @@ int systemf (char* format, ...)
 	return code;
 }
 
-char* getDirName (char* path)
+char* getBaseName (char* path)
 {
 	char* pathCopy = strdup (path);
 	if (pathCopy == NULL)

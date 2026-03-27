@@ -152,7 +152,7 @@ int updateInitSystem (char* localPath, char* sshOptions, char* host)
 
 	// Validate the name of the target init-system directory
 
-	char* baseDirName = getDirName (localPath);
+	char* baseDirName = getBaseName (localPath);
 	if (baseDirName == NULL)
 	{
 		errorPrintf ("Failed to get target init-system directory name");

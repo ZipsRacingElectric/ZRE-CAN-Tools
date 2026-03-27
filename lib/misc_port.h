@@ -40,10 +40,10 @@ int fsyncPort (FILE* file);
 int systemf (char* format, ...);
 
 /**
- * @brief Gets the name of a directory.
- * @param path The path to the directory.
- * @return A dynamically allocated string indicating the directory's name, if successful, @c NULL otherwise.
+ * @brief Gets the base name of a file/directory, excluding the path.
+ * @param path The path to the directory. Note this is not modified.
+ * @return A dynamically allocated string indicating the name, if successful, @c NULL otherwise.
  */
-char* getDirName (char* path);
+char* getBaseName (char* path);
 
 #endif // MISC_PORT_H
