@@ -111,7 +111,7 @@ int main (int argc, char** argv)
 
 	debugInit ();
 
-	canDevice_t* device = canInit(argv [2]); 
+	canDevice_t* device = canInit(argv [2], NULL); 
 	if (device == NULL){
 		fprintf (stderr , "Invalid Device Name, %s \n" , errorCodeToMessage(errno));
 		return errno;

@@ -350,7 +350,7 @@ int main (int argc, char** argv)
 
 	// Initialize the channel 1 CAN device
 	char* channel1DeviceName = argv [2];
-	canDevice_t* channel1 = canInit (channel1DeviceName);
+	canDevice_t* channel1 = canInit (channel1DeviceName, "Channel 1");
 	if (channel1 == NULL)
 		return errorPrintf ("Failed to initialize channel 1 CAN device '%s'", channel1DeviceName);
 
@@ -366,7 +366,7 @@ int main (int argc, char** argv)
 	if (argc == 4)
 	{
 		char* channel2DeviceName = argv [3];
-		channel2 = canInit (channel2DeviceName);
+		channel2 = canInit (channel2DeviceName, "Channel 2");
 		if (channel2 == NULL)
 			return errorPrintf ("Failed to initialize channel 2 CAN device '%s'", channel2DeviceName);
 

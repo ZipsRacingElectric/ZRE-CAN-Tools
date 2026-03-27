@@ -119,9 +119,12 @@ typedef struct
  * @brief Identifies and initializes a CAN device based on its name handle. This function will attempt to identify the type of
  * adapter based on context in the provided name.
  * @param deviceName The name of the CAN device. Note this should either be a SocketCAN name or an SLCAN name.
+ * @param userContext User-friendly string for providing context to the user. Used in the text:
+ *   "Select a device to use for <User Context>:"
+ * May be set to @c NULL for default context.
  * @return The initialized CAN device if successful, @c NULL otherwise. Note @c errno is set on failure.
  */
-canDevice_t* canInit (char* deviceName);
+canDevice_t* canInit (char* deviceName, char* userContext);
 
 /**
  * @brief Closes and deallocates and CAN device. The @c device pointer is no longer usable after a call to this function.

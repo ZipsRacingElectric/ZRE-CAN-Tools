@@ -4,8 +4,11 @@
 // Includes
 #include "debug.h"
 #include "error_codes.h"
+
+// CAN device implementations
 #include "socket_can.h"
 #include "slcan.h"
+#include "can_null.h"
 
 // C Standard Library
 #include <errno.h>
@@ -15,22 +18,26 @@
  * @brief Prompts the user to select a CAN device from a list of enumerated options.
  * @param devices The array of CAN devices to select from.
  * @param deviceCount The number of elements in @c devices .
- * @return The index of the selected device.
+ * @param baudrate The baudrate to use (if the null device is selected).
+ * @param userContext String to provide for user context. May be @c NULL .
+ * @return The selected device. Note all other devices must be deallocated.
  */
-static size_t selectDevice (canDevice_t** devices, size_t deviceCount)
+static canDevice_t* selectDevice (canDevice_t** devices, size_t deviceCount, canBaudrate_t baudrate, char* userContext)
 {
-	// If only one device is present, no need to prompt.
-	if (deviceCount == 1)
-		return 0;
-
 	char buffer [512];
 
 	while (true)
 	{
 		// Prompt for a device to select
-		printf ("Select a device:\n");
+		if (userContext == NULL)
+			printf ("Select a device:\n");
+		else
+			printf ("Select a device to use for %s:\n", userContext);
+
 		for (unsigned deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
 			printf ("  %u - %s\n", deviceIndex, canGetDeviceName (devices [deviceIndex]));
+
+		printf ("  %u - none\n", (unsigned) deviceCount);
 
 		// Read the user input
 		fgets (buffer, sizeof (buffer), stdin);
@@ -39,14 +46,18 @@ static size_t selectDevice (canDevice_t** devices, size_t deviceCount)
 		// Parse as int and validate
 		char* end;
 		size_t selection = (size_t) strtol (buffer, &end, 0);
-		if (end == buffer || selection >= deviceCount)
+		if (end == buffer || selection > deviceCount)
 		{
 			// Prompt again
 			printf ("Invalid selection.\n");
 			continue;
 		}
 
-		return selection;
+		// If 'none' was selected, return a null CAN device.
+		if (selection == deviceCount)
+			return canNullInit ("null", baudrate);
+
+		return devices [selection];
 	}
 }
 
@@ -86,7 +97,7 @@ static int parseDeviceName (char* deviceName, unsigned int* baudrate)
 	return 0;
 }
 
-canDevice_t* canInit (char* deviceName)
+canDevice_t* canInit (char* deviceName, char* userContext)
 {
 	// Split the device name into the device handle and baudrate (if specified).
 	canBaudrate_t baudrate;
@@ -104,24 +115,24 @@ canDevice_t* canInit (char* deviceName)
 		if (slcanWildcard (deviceName))
 		{
 			// Enumerate all possible devices
-	 		size_t deviceCount;
+	 		size_t deviceCount = 0;
 	 		canDevice_t** devices = slcanEnumerate (baudrate, &deviceCount);
-	 		if (devices == NULL)
-	 			return NULL;
 
 			// Get the user's selection
-	 		size_t index = selectDevice (devices, deviceCount);
-			canDevice_t* device = devices [index];
+	 		canDevice_t* device = selectDevice (devices, deviceCount, baudrate, userContext);
 
-			// Deallocate unused devices
-			for (size_t i = 0; i < deviceCount; ++i)
+			if (devices != NULL)
 			{
-				if (i != index)
-					slcanDealloc (devices [i]);
-			}
+				// Deallocate unused devices
+				for (size_t index = 0; index < deviceCount; ++index)
+				{
+					if (devices [index] != device)
+						slcanDealloc (devices [index]);
+				}
 
-			// Deallocate the array of devices
-			free (devices);
+				// Deallocate the array of devices
+				free (devices);
+			}
 
 			// Return the selected device
 	 		return device;
@@ -129,7 +140,11 @@ canDevice_t* canInit (char* deviceName)
 
 		// Otherwise, use normal initialization
 		return slcanInit(deviceName, baudrate);
-	 }
+	}
+
+	// Handle null device
+	if (canNullNameDomain (deviceName))
+		return canNullInit (deviceName, baudrate);
 
 	// Unknown device
 	errno = ERRNO_CAN_DEVICE_UNKNOWN_NAME;

@@ -466,7 +466,7 @@ int main (int argc, char** argv)
 
 	// Initialize the CAN device
 	char* deviceName = argv [argc - 1];
-	canDevice_t* device = canInit (deviceName);
+	canDevice_t* device = canInit (deviceName, NULL);
 	if (device == NULL)
 		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
 

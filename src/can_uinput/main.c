@@ -149,10 +149,7 @@ int main (int argc, char** argv)
 	{
 		cJSON* deviceConfig = cJSON_GetArrayItem (deviceConfigArray, index);
 
-		char* deviceName = argv [index + 1];
-		devices [index] = canInit (deviceName);
-		if (devices [index] == NULL)
-			return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
+		// Get the DBC file path and expand any environment variables.
 
 		char* dbcPath;
 		if (jsonGetString (deviceConfig, "dbcFile", &dbcPath) != 0)
@@ -162,9 +159,20 @@ int main (int argc, char** argv)
 		if (dbcPathExpanded == NULL)
 			return errorPrintf ("Failed to expand environment variable");
 
+		// Get the base name of the DBC file for user context.
+		char* baseName = getBaseName (dbcPathExpanded);
+
+		// Initialize the CAN device
+		char* deviceName = argv [index + 1];
+		devices [index] = canInit (deviceName, baseName);
+		if (devices [index] == NULL)
+			return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
+
+		// Initialize the CAN database
 		if (canDatabaseInit (&databases [index], devices [index], dbcPathExpanded) != 0)
 			return errorPrintf ("Failed to initialize CAN database '%s'", dbcPathExpanded);
 
+		free (baseName);
 		free (dbcPathExpanded);
 
 		keys [index] = keySignalsLoad (deviceConfig, fd, &databases [index], &keyCounts [index]);
