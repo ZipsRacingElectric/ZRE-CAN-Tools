@@ -54,5 +54,6 @@ pristine:
 	$(MAKE) -C Libraries/CANAPI $@
 
 build_no:
+	chmod +x ./build_no.sh
 	@./build_no.sh
 	@cat Sources/build_no.h
