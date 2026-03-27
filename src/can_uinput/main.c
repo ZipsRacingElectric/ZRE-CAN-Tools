@@ -7,6 +7,7 @@
 #include "cjson/cjson_util.h"
 #include "debug.h"
 #include "options.h"
+#include "misc_port.h"
 
 // POSIX
 #include <unistd.h>
@@ -22,7 +23,7 @@ bool running = true;
 
 void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: can-uinput <Options> <Device Name> <DBC File> <Config JSON>.\n");
+	fprintf (stream, "Usage: can-uinput <Options> <Config JSON> <Device 0 Name> <Device 1 Name> ...\n");
 }
 
 void fprintHelp (FILE* stream)
@@ -55,48 +56,117 @@ void sigtermHandler (int sig)
 
 int main (int argc, char** argv)
 {
+	// Debug initialization
 	debugInit ();
 
-	// TODO(Barach): Update
-
-	debugSetStream (stderr);
-
-	if (argc < 4)
+	// Handle program options
+	if (handleOptions (&argc, &argv, &(handleOptionsParams_t)
 	{
-		// fprintUsage (stderr);
-		fprintHelp (stderr);
+		.fprintHelp		= fprintHelp,
+		.charHandlers	= NULL,
+		.chars			= NULL,
+		.charCount		= 0,
+		.stringHandlers	= NULL,
+		.strings		= NULL,
+		.stringCount	= 0,
+	}) != 0)
+		return errorPrintf ("Failed to handle options");
+
+	// Validate arguments
+	if (argc < 1)
+	{
+		fprintUsage (stderr);
 		return -1;
 	}
 
 	#ifdef ZRE_CANTOOLS_OS_linux
 
-	char* deviceName = argv [argc - 3];
-	canDevice_t* device = canInit (deviceName);
-	if (device == NULL)
-		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
+	// Load the config file
 
-	char* dbcPath = argv [argc - 2];
-	canDatabase_t database;
-	if (canDatabaseInit (&database, device, dbcPath) != 0)
-		return errorPrintf ("Failed to initialize CAN database");
-
-	cJSON* config = jsonLoad (argv [argc - 1]);
+	cJSON* config = jsonLoad (argv [0]);
 	if (config == NULL)
+		return errorPrintf ("Failed to load config JSON");
+
+	cJSON* deviceConfigArray = jsonGetObjectV2 (config, "canDevices");
+	if (config == NULL)
+		return errorPrintf ("Failed to load CAN device config array");
+
+	// Get the number of CAN devices from the config file
+
+	size_t deviceCount = cJSON_GetArraySize (deviceConfigArray);
+
+	if ((size_t) argc != deviceCount + 1)
+	{
+		fprintf (stderr, "Missing CAN device name, expected %lu device(s).\n", (long unsigned) deviceCount);
+		fprintUsage (stderr);
 		return -1;
+	}
+
+	// Allocate arrays
+
+	canDevice_t** devices = malloc (sizeof (canDevice_t*) * deviceCount);
+	if (devices == NULL)
+		return errorPrintf ("Failed to allocate CAN device array");
+
+	canDatabase_t* databases = malloc (sizeof (canDatabase_t*) * deviceCount);
+	if (databases == NULL)
+		return errorPrintf ("Failed to allocate CAN database array");
+
+	size_t* keyCounts = malloc (sizeof (size_t) * deviceCount);
+	if (keyCounts == NULL)
+		return errorPrintf ("Failed to allocate key count array");
+
+	keySignal_t** keys = malloc (sizeof (keySignal_t*) * deviceCount);
+	if (keys == NULL)
+		return errorPrintf ("Failed to allocate key jagged array");
+
+	size_t* absCounts = malloc (sizeof (size_t) * deviceCount);
+	if (absCounts == NULL)
+		return errorPrintf ("Failed to allocate abs count array");
+
+	absSignal_t** abs = malloc (sizeof (absSignal_t*) * deviceCount);
+	if (abs == NULL)
+		return errorPrintf ("Failed to allocate abs jagged array");
+
+	// Uinput initalization
 
 	int fd = uinputInit (true, true);
 	if (fd < 0)
 		return errorPrintf ("Failed to initialize uinput device");
 
-	size_t signalCount;
-	keySignal_t* signals = keySignalsLoad (config, fd, &database, &signalCount);
-	if (signals == NULL)
-		return errorPrintf ("Failed to load key signals");
+	// Load per-device configs
 
-	size_t absCount;
-	absSignal_t* abs = absSignalsLoad (config, fd, &database, &absCount);
-	if (abs == NULL)
-		return errorPrintf ("Failed to load abs signals");
+	for (size_t index = 0; index < deviceCount; ++index)
+	{
+		cJSON* deviceConfig = cJSON_GetArrayItem (deviceConfigArray, index);
+
+		char* deviceName = argv [index + 1];
+		devices [index] = canInit (deviceName);
+		if (devices [index] == NULL)
+			return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
+
+		char* dbcPath;
+		if (jsonGetString (deviceConfig, "dbcFile", &dbcPath) != 0)
+			return errorPrintf ("Device config is missing 'dbcFile' key");
+
+		char* dbcPathExpanded = expandEnv (dbcPath);
+		if (dbcPathExpanded == NULL)
+			return errorPrintf ("Failed to expand environment variable");
+
+		canDatabase_t database;
+		if (canDatabaseInit (&database, devices [index], dbcPathExpanded) != 0)
+			return errorPrintf ("Failed to initialize CAN database '%s'", dbcPathExpanded);
+
+		keys [index] = keySignalsLoad (deviceConfig, fd, &database, &keyCounts [index]);
+		if (keys [index] == NULL)
+			return errorPrintf ("Failed to load key signals");
+
+		abs [index] = absSignalsLoad (deviceConfig, fd, &database, &absCounts [index]);
+		if (abs [index] == NULL)
+			return errorPrintf ("Failed to load abs signals");
+	}
+
+	// Finish uinput setup
 
 	if (uinputSetup (fd, 0x054C, 0x0CE6, "DualSense Wireless Controller") != 0)
 		return errorPrintf ("Failed to setup uinput device");
@@ -107,18 +177,28 @@ int main (int argc, char** argv)
 	if (signal (SIGINT, sigtermHandler) == SIG_ERR)
 		return errorPrintf ("Failed to bind SIGINT handler");
 
+	// Main loop
+
 	while (running)
 	{
-		for (size_t index = 0; index < signalCount; ++index)
-			keySignalUpdate (&signals [index]);
+		// Check for inputs
+		for (size_t deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
+		{
+			for (size_t keyIndex = 0; keyIndex < keyCounts [deviceIndex]; ++keyIndex)
+				keySignalUpdate (&keys [deviceIndex] [keyIndex]);
 
-		for (size_t index = 0; index < absCount; ++index)
-			absSignalUpdate (&abs [index]);
+			for (size_t absIndex = 0; absIndex < absCounts [deviceIndex]; ++absIndex)
+				absSignalUpdate (&abs [deviceIndex] [absIndex]);
+		}
 
+		// Synchronize inputs
 		uinputSync (fd);
 
+		// Sleep 10 ms
 		usleep (10000);
 	}
+
+	// Termination
 
 	uinputClose (fd);
 
