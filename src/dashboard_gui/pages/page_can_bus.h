@@ -32,7 +32,8 @@ typedef struct
 	pageVmt_t vmt;
 	pageCanBusStyle_t style;
 
-	canDatabase_t* database;
+	canDatabase_t* databases;
+	size_t databaseCount;
 
 	GtkWidget* grid;
 	GtkWidget* buttonPanel;
@@ -43,6 +44,6 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageCanBusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
+page_t* pageCanBusLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount, pageStyle_t* style);
 
 #endif // PAGE_CAN_BUS_H

@@ -53,17 +53,21 @@ typedef struct
 /**
  * @brief Loads any type of CAN widget from a JSON configuration. This function parses the "type" field of the provided JSON to
  * determine which type of CAN widget the configuration belongs to, then loads the widget via its constructor.
- * @param database The CAN database to bind the widget to.
+ * @param databases The array of CAN databases to bind the widget to. The "deviceIndex" field of the widget determines which
+ * element in this array is used by the widget.
+ * @param databaseCount The number of elements in @c databases .
  * @param config The JSON configuration to use. The remainder of the config is parsed as the widget-specific config of the
  * widget specified by "type".
  * @param style The base CAN widget style to inherit from.
  * @return The created widget, if successful, @c NULL otherwise.
  */
-canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetStyle_t* style);
+canWidget_t* canWidgetLoad (canDatabase_t* databases, size_t databaseCount, cJSON* config, canWidgetStyle_t* style);
 
 /**
  * @brief Loads an array of CAN widgets from a JSON configuration. See @c canWidgetLoad for how the individual widgets are loaded.
- * @param database The CAN database to bind the widget to.
+ * @param databases The array of CAN databases to bind the widget to. The "deviceIndex" field of the widget determines which
+ * element in this array is used by the widget.
+ * @param databaseCount The number of elements in @c databases .
  * @param config The JSON configuration to use. This should be an array of CAN widget configurations. If not an array (or
  * @c NULL ), @c errno is set to @c EINVAL and this fails.
  * @param style The base CAN widget style to inherit from.
@@ -71,7 +75,7 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
  * @return A dynamically allocated array of CAN widgets, if successful, @c NULL otherwise. Note both the array and every
  * individual element within it must be deallocated.
  */
-canWidget_t** canWidgetLoadArray (canDatabase_t* database, cJSON* config, canWidgetStyle_t* style, size_t* count);
+canWidget_t** canWidgetLoadArray (canDatabase_t* databases, size_t databaseCount, cJSON* config, canWidgetStyle_t* style, size_t* count);
 
 /**
  * @brief Prompts a CAN widget to update its information.

@@ -96,11 +96,12 @@ typedef struct
  * type of page the configuration belongs to, then loads the page via its constructor.
  * @param config The JSON configuration to use. The remainder of the config is parsed as the page-specific config of the page
  * specified by "type".
- * @param database The CAN database to bind the page's widgets to.
+ * @param databases The array of CAN databases to bind the page's widgets to.
+ * @param databaseCount The number of elements in @c databases .
  * @param style The parent base page style to inherit from.
  * @return The created page, if successful, @c NULL otherwise.
  */
-page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
+page_t* pageLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount, pageStyle_t* style);
 
 /**
  * @brief Loads a base page style from a JSON configuration.

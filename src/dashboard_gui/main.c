@@ -17,6 +17,7 @@
 #include "can_device/can_device_stdio.h"
 #include "options.h"
 #include "debug.h"
+#include "misc_port.h"
 
 // GTK
 #include <gtk/gtk.h>
@@ -29,7 +30,7 @@ bool fullscreen = false;
 
 static void fprintUsage (FILE* stream)
 {
-	fprintf (stream, "Usage: dashboard-gui <Options> <Config JSON> <Device Name> <DBC File Path>\n");
+	fprintf (stream, "Usage: dashboard-gui <Options> <Config JSON> <Device 0 Name> <Device 1 Name> ...\n");
 }
 
 static void fprintHelp (FILE* stream)
@@ -68,7 +69,8 @@ typedef struct
 	const char* applicationTitle;
 	const char* applicationId;
 	cJSON* config;
-	canDatabase_t* database;
+	canDatabase_t* databases;
+	size_t databaseCount;
 } activateArg_t;
 
 static gboolean updateLoop (pageStack_t* stack)
@@ -147,7 +149,7 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	for (size_t index = 0; index < pageCount; ++index)
 	{
 		cJSON* pageConfig = cJSON_GetArrayItem (pageConfigs, index);
-		pages [index] = pageLoad (pageConfig, arg->database, style);
+		pages [index] = pageLoad (pageConfig, arg->databases, arg->databaseCount, style);
 		if (pages [index] == NULL)
 			continue;
 
@@ -249,7 +251,7 @@ int main (int argc, char** argv)
 		return errorPrintf ("Failed to handle options");
 
 	// Validate usage
-	if (argc < 3)
+	if (argc < 1)
 	{
 		fprintUsage (stderr);
 		return -1;
@@ -261,19 +263,57 @@ int main (int argc, char** argv)
 	if (config == NULL)
 		return errorPrintf ("Failed to load config JSON '%s'", configPath);
 
-	// Initialize the CAN device
-	char* deviceName = argv [1];
-	canDevice_t* device = canInit (deviceName);
-	if (device == NULL)
-		return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
+	cJSON* dbcConfigArray = jsonGetObjectV2 (config, "dbcFiles");
+	if (dbcConfigArray == NULL)
+		return errorPrintf ("Failed to load DBC file array");
 
-	// Initialize the CAN database
-	canDatabase_t database;
-	char* dbcPath = argv [2];
-	if (canDatabaseInit (&database, device, dbcPath) != 0)
-		return errorPrintf ("Failed to initialize CAN database '%s'", dbcPath);
+	// Get the number of CAN devices from the config file
+
+	size_t deviceCount = cJSON_GetArraySize (dbcConfigArray);
+
+	if ((size_t) argc != deviceCount + 1)
+	{
+		fprintf (stderr, "Missing CAN device name, expected %lu device(s).\n", (long unsigned) deviceCount);
+		fprintUsage (stderr);
+		return -1;
+	}
+
+	// Allocate arrays
+
+	canDevice_t** devices = malloc (sizeof (canDevice_t*) * deviceCount);
+	if (devices == NULL)
+		return errorPrintf ("Failed to allocate CAN device array");
+
+	canDatabase_t* databases = malloc (sizeof (canDatabase_t) * deviceCount);
+	if (databases == NULL)
+		return errorPrintf ("Failed to allocate CAN database array");
+
+	// CAN Device / Database initialization
+
+	for (size_t index = 0; index < deviceCount; ++index)
+	{
+		// Initialize the CAN device
+		char* deviceName = argv [index + 1];
+		devices [index] = canInit (deviceName);
+		if (devices [index] == NULL)
+			return errorPrintf ("Failed to initialize CAN device '%s'", deviceName);
+
+		// Get the DBC file path and expand any environment variables.
+		cJSON* dbcConfig = cJSON_GetArrayItem (dbcConfigArray, index);
+		char* dbcPath = cJSON_GetStringValue (dbcConfig);
+		char* dbcPathExpanded = expandEnv (dbcPath);
+		if (dbcPathExpanded == NULL)
+			return errorPrintf ("Failed to expand environment variable");
+
+		// Initialize the CAN database
+		if (canDatabaseInit (&databases [index], devices [index], dbcPathExpanded) != 0)
+			return errorPrintf ("Failed to initialize CAN database '%s'", dbcPathExpanded);
+
+		free (dbcPathExpanded);
+	}
 
 	// Create application ID from application name
+
 	char* applicationName;
 	if (jsonGetString (config, "name", &applicationName) != 0)
 		return errorPrintf ("Failed to load application name");
@@ -289,12 +329,15 @@ int main (int argc, char** argv)
 	debugPrintf ("Application ID: '%s'\n", applicationId);
 	debugPrintf ("Application Title: '%s'\n", applicationTitle);
 
+	// Arguments to pass activation function
+
 	activateArg_t arg =
 	{
 		.applicationTitle	= applicationTitle,
 		.applicationId		= applicationId,
 		.config				= config,
-		.database			= &database
+		.databases			= databases,
+		.databaseCount		= deviceCount
 	};
 
 	// Create the GTK application bound to the activation signal
@@ -307,9 +350,12 @@ int main (int argc, char** argv)
 	free (applicationTitle);
 	free (applicationId);
 
-	// Deallocate the CAN database and device.
-	canDatabaseDealloc (&database);
-	canDealloc (device);
+	// Deallocate the CAN Devices /Databases.
+	for (size_t index = 0; index < deviceCount; ++index)
+	{
+		canDatabaseDealloc (&databases [index]);
+		canDealloc (devices [index]);
+	}
 
 	// Exit
 	return status;

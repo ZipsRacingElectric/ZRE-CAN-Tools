@@ -67,6 +67,6 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
+page_t* pageBmsLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount, pageStyle_t* style);
 
 #endif // PAGE_BMS_H

@@ -21,7 +21,7 @@
 		return widget;																										\
 	}
 
-canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetStyle_t* style)
+canWidget_t* canWidgetLoad (canDatabase_t* databases, size_t databaseCount, cJSON* config, canWidgetStyle_t* style)
 {
 	if (config == NULL)
 		return NULL;
@@ -32,6 +32,22 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 		debugPrintf ("Warning, CAN widget is missing type.\n");
 		return NULL;
 	}
+
+	unsigned deviceIndex;
+	if (jsonGetUnsigned (config, "deviceIndex", &deviceIndex) != 0)
+	{
+		debugPrintf ("Warning, CAN widget is missing device index.\n");
+		return NULL;
+	}
+
+	if (deviceIndex >= databaseCount)
+	{
+		debugPrintf ("Warning, CAN widget specifies invalid device index %u. Device count is %lu.\n",
+			deviceIndex, (long unsigned) databaseCount);
+		return NULL;
+	}
+
+	canDatabase_t* database = &databases [deviceIndex];
 
 	LOAD_WIDGET_STATEMENTS (canFaultPopup);
 	LOAD_WIDGET_STATEMENTS (canFloatPopup);
@@ -50,7 +66,7 @@ canWidget_t* canWidgetLoad (canDatabase_t* database, cJSON* config, canWidgetSty
 	return NULL;
 }
 
-canWidget_t** canWidgetLoadArray (canDatabase_t* database, cJSON* config, canWidgetStyle_t* style, size_t* count)
+canWidget_t** canWidgetLoadArray (canDatabase_t* databases, size_t databaseCount, cJSON* config, canWidgetStyle_t* style, size_t* count)
 {
 	// Check the config is a valid array
 	if (config == NULL || !cJSON_IsArray (config))
@@ -70,7 +86,7 @@ canWidget_t** canWidgetLoadArray (canDatabase_t* database, cJSON* config, canWid
 	for (size_t index = 0; index < *count; ++index)
 	{
 		cJSON* widgetConfig = cJSON_GetArrayItem (config, index);
-		widgetArray [index] = canWidgetLoad (database, widgetConfig, style);
+		widgetArray [index] = canWidgetLoad (databases, databaseCount, widgetConfig, style);
 	}
 
 	return widgetArray;

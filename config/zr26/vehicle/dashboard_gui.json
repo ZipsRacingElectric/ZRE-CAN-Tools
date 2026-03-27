@@ -1,5 +1,9 @@
 {
 	"name":												"zr26",
+	"dbcFiles":
+	[
+		"$ZRE_CANTOOLS_DIR/config/zr26/vehicle/main.dbc"
+	],
 	"baseStyle":
 	{
 		"backgroundColor":								"#000000",
@@ -15,7 +19,7 @@
 	[
 
 		{
-			"type":										"pageDrive_t",
+			"type":										"pageDrive",
 			"name":										"AUTO-X",
 			"style":
 			{
@@ -74,6 +78,7 @@
 			"dataLoggerTitle":
 			{
 				"type":									"canLabelBool",
+				"deviceIndex":							"0",
 				"signalName":							"SESSION_NUMBER",
 				"activeValue":							"LOGGING: ON",
 				"inactiveValue":						"LOGGING: ON",
@@ -84,6 +89,7 @@
 			"dataLoggerStat":
 			{
 				"type":									"canLabelFloat",
+				"deviceIndex":							"0",
 				"signalName":							"SESSION_NUMBER",
 				"formatValue":							"Session\nNo. %.0f",
 				"formatInvalid":						"Session\nNo. %s"
@@ -96,6 +102,7 @@
 				[
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"SPEED",
 						"formatValue":					"%02.0f",
 						"formatInvalid":				"XX"
@@ -117,24 +124,28 @@
 				[
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"DRIVING_TORQUE_LIMIT",
 						"formatValue":					"%.0f%s",
 						"formatInvalid":				"%s%s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"REGEN_TORQUE_LIMIT",
 						"formatValue":					"%.0f%s",
 						"formatInvalid":				"%s%s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"TORQUE_ALGORITHM_INDEX",
 						"formatValue":					"%.0f",
 						"formatInvalid":				"%s"
 					},
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"TODO",
 						"threshold":					"0.5",
 						"width":						"26",
@@ -164,24 +175,28 @@
 				[
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"GLV_BATTERY_VOLTAGE",
 						"formatValue":					"%.1f %s",
 						"formatInvalid":				"%s %s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"PACK_VOLTAGE",
 						"formatValue":					"%.1f %s",
 						"formatInvalid":				"%s %s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"AMK_INVERTER_TEMPERATURE_MAX",
 						"formatValue":					"%.1f %s",
 						"formatInvalid":				"%s %s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"AMK_MOTOR_TEMPERATURE_MAX",
 						"formatValue":					"%.1f %s",
 						"formatInvalid":				"%s %s"
@@ -192,6 +207,7 @@
 			[
 				{
 					"type":								"canIndicator",
+					"deviceIndex":						"0",
 					"text":								"VCU",
 					"signalName":						"VCU_FAULT",
 					"threshold":						"0.5",
@@ -199,6 +215,7 @@
 				},
 				{
 					"type":								"canIndicator",
+					"deviceIndex":						"0",
 					"text":								"BMS",
 					"signalName":						"BMS_FAULT",
 					"threshold":						"0.5",
@@ -206,6 +223,7 @@
 				},
 				{
 					"type":								"canIndicator",
+					"deviceIndex":						"0",
 					"text":								"AMK",
 					"signalName":						"AMK_FAULT",
 					"threshold":						"0.5",
@@ -213,6 +231,7 @@
 				},
 				{
 					"type":								"canIndicator",
+					"deviceIndex":						"0",
 					"text":								"GPS",
 					"signalName":						"GPS_FAULT",
 					"threshold":						"0.5",
@@ -222,6 +241,7 @@
 			"leftProgressBar":
 			{
 				"type":									"canProgressBar",
+				"deviceIndex":							"0",
 				"signalName":							"BSE_FRONT_PERCENT",
 				"min":									"0",
 				"max":									"100",
@@ -234,6 +254,7 @@
 			"rightProgressBar":
 			{
 				"type":									"canProgressBar",
+				"deviceIndex":							"0",
 				"signalName":							"APPS_1_PERCENT",
 				"min":									"0",
 				"max":									"100",
@@ -248,7 +269,7 @@
 
 
 		{
-			"type":										"pageDrive_t",
+			"type":										"pageDrive",
 			"name":										"ENDR.",
 			"style":
 			{
@@ -307,6 +328,7 @@
 			"dataLoggerTitle":
 			{
 				"type":									"canLabelBool",
+				"deviceIndex":							"0",
 				"signalName":							"SESSION_NUMBER",
 				"activeValue":							"LOGGING: ON",
 				"inactiveValue":						"LOGGING: ON",
@@ -317,6 +339,7 @@
 			"dataLoggerStat":
 			{
 				"type":									"canLabelFloat",
+				"deviceIndex":							"0",
 				"signalName":							"SESSION_NUMBER",
 				"formatValue":							"Session\nNo. %.0f",
 				"formatInvalid":						"Session\nNo. %s"
@@ -334,18 +357,21 @@
 				[
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"PACK_VOLTAGE",
 						"formatValue":					"%03.0f",
 						"formatInvalid":				"XXX"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"POWER_ROLLING_AVERAGE",
 						"formatValue":					"%04.1f",
 						"formatInvalid":				"XX.X"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"ENERGY_DELIVERED",
 						"formatValue":					"%04.2f",
 						"formatInvalid":				"X.XX"
@@ -367,24 +393,28 @@
 				[
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"DRIVING_TORQUE_LIMIT",
 						"formatValue":					"%.0f%s",
 						"formatInvalid":				"%s%s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"REGEN_TORQUE_LIMIT",
 						"formatValue":					"%.0f%s",
 						"formatInvalid":				"%s%s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"TORQUE_ALGORITHM_INDEX",
 						"formatValue":					"%.0f",
 						"formatInvalid":				"%s"
 					},
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"TODO",
 						"threshold":					"0.5",
 						"width":						"26",
@@ -414,24 +444,28 @@
 				[
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"GLV_BATTERY_VOLTAGE",
 						"formatValue":					"%.1f %s",
 						"formatInvalid":				"%s %s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"PACK_VOLTAGE",
 						"formatValue":					"%.1f %s",
 						"formatInvalid":				"%s %s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"AMK_INVERTER_TEMPERATURE_MAX",
 						"formatValue":					"%.1f %s",
 						"formatInvalid":				"%s %s"
 					},
 					{
 						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"AMK_MOTOR_TEMPERATURE_MAX",
 						"formatValue":					"%.1f %s",
 						"formatInvalid":				"%s %s"
@@ -442,6 +476,7 @@
 			[
 				{
 					"type":								"canIndicator",
+					"deviceIndex":						"0",
 					"text":								"VCU",
 					"signalName":						"VCU_FAULT",
 					"threshold":						"0.5",
@@ -449,6 +484,7 @@
 				},
 				{
 					"type":								"canIndicator",
+					"deviceIndex":						"0",
 					"text":								"BMS",
 					"signalName":						"BMS_FAULT",
 					"threshold":						"0.5",
@@ -456,6 +492,7 @@
 				},
 				{
 					"type":								"canIndicator",
+					"deviceIndex":						"0",
 					"text":								"AMK",
 					"signalName":						"AMK_FAULT",
 					"threshold":						"0.5",
@@ -463,6 +500,7 @@
 				},
 				{
 					"type":								"canIndicator",
+					"deviceIndex":						"0",
 					"text":								"GPS",
 					"signalName":						"GPS_FAULT",
 					"threshold":						"0.5",
@@ -472,6 +510,7 @@
 			"leftProgressBar":
 			{
 				"type":									"canProgressBar",
+				"deviceIndex":							"0",
 				"signalName":							"BSE_FRONT_PERCENT",
 				"min":									"0",
 				"max":									"100",
@@ -484,6 +523,7 @@
 			"rightProgressBar":
 			{
 				"type":									"canProgressBar",
+				"deviceIndex":							"0",
 				"signalName":							"APPS_1_PERCENT",
 				"min":									"0",
 				"max":									"100",
@@ -498,7 +538,7 @@
 
 
 		{
-			"type":										"pageStatus_t",
+			"type":										"pageStatus",
 			"name":										"STAT.",
 			"style":
 			{
@@ -569,6 +609,7 @@
 			[
 				{
 					"type":								"canShutdownLoopIndicator",
+					"deviceIndex":						"0",
 					"signalName":						"SHUTDOWN_VEHICLE_CLOSED",
 					"threshold":						"0.5",
 					"text":								"Vehicle",
@@ -581,6 +622,7 @@
 				},
 				{
 					"type":								"canShutdownLoopIndicator",
+					"deviceIndex":						"0",
 					"signalName":						"SHUTDOWN_IMD_CLOSED",
 					"threshold":						"0.5",
 					"text":								"IMD Relay",
@@ -593,6 +635,7 @@
 				},
 				{
 					"type":								"canShutdownLoopIndicator",
+					"deviceIndex":						"0",
 					"signalName":						"SHUTDOWN_BMS_CLOSED",
 					"threshold":						"0.5",
 					"text":								"BMS Relay",
@@ -605,6 +648,7 @@
 				},
 				{
 					"type":								"canShutdownLoopIndicator",
+					"deviceIndex":						"0",
 					"signalName":						"SHUTDOWN_MSD_TSMS_CLOSED",
 					"threshold":						"0.5",
 					"text":								"MSD/TSMS",
@@ -619,6 +663,7 @@
 			"positiveIr":
 			{
 				"type":									"canIndicator",
+				"deviceIndex":							"0",
 				"signalName":							"POSITIVE_IR_ENABLED",
 				"threshold":							"0.5",
 				"width":								"70",
@@ -643,6 +688,7 @@
 			"negativeIr":
 			{
 				"type":									"canIndicator",
+				"deviceIndex":							"0",
 				"signalName":							"NEGATIVE_IR_ENABLED",
 				"threshold":							"0.5",
 				"width":								"70",
@@ -673,6 +719,7 @@
 					"widget":
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"VCU_FAULT",
 						"threshold":					"0.5",
 						"width":						"50",
@@ -690,6 +737,7 @@
 					"widget":
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"BSPD_FAULT",
 						"threshold":					"0.5",
 						"width":						"50",
@@ -707,6 +755,7 @@
 					"widget":
 					{
 						"type":							"canFaultPopup",
+						"deviceIndex":					"0",
 						"configPath":					"$ZRE_CANTOOLS_DIR/config/zr26/vcu_config.json",
 						"format":						"%s",
 						"width":						"200",
@@ -719,6 +768,7 @@
 					"widget":
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"BMS_FAULT",
 						"threshold":					"0.5",
 						"width":						"60",
@@ -736,6 +786,7 @@
 					"widget":
 					{
 						"type":							"canFaultPopup",
+						"deviceIndex":					"0",
 						"configPath":					"$ZRE_CANTOOLS_DIR/config/zr26/bms_config.json",
 						"format":						"%s",
 						"width":						"200",
@@ -748,6 +799,7 @@
 					"widget":
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"IMD_FAULT",
 						"threshold":					"0.5",
 						"width":						"60",
@@ -765,6 +817,7 @@
 					"widget":
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"RL_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"width":						"40",
@@ -782,6 +835,7 @@
 					"widget":
 					{
 						"type":							"canFloatPopup",
+						"deviceIndex":					"0",
 						"signalName":					"RL_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"format":						"ERROR: %.0f"
@@ -793,6 +847,7 @@
 					"widget":
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"RR_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
@@ -811,6 +866,7 @@
 					"widget":
 					{
 						"type":							"canFloatPopup",
+						"deviceIndex":					"0",
 						"signalName":					"RR_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"format":						"ERROR: %.0f"
@@ -822,6 +878,7 @@
 					"widget":
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"FL_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
@@ -840,6 +897,7 @@
 					"widget":
 					{
 						"type":							"canFloatPopup",
+						"deviceIndex":					"0",
 						"signalName":					"FL_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"format":						"ERROR: %.0f"
@@ -851,6 +909,7 @@
 					"widget":
 					{
 						"type":							"canIndicator",
+						"deviceIndex":					"0",
 						"signalName":					"FR_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"inverted":						"false",
@@ -869,6 +928,7 @@
 					"widget":
 					{
 						"type":							"canFloatPopup",
+						"deviceIndex":					"0",
 						"signalName":					"FR_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"format":						"ERROR: %.0f"
@@ -880,9 +940,10 @@
 
 
 		{
-			"type":										"pageBms_t",
+			"type":										"pageBms",
 			"name":										"BMS",
 			"bmsConfig":								"$ZRE_CANTOOLS_DIR/config/zr26/bms_config.json",
+			"deviceIndex":								"0",
 			"style":
 			{
 				"baseStyle":
@@ -916,7 +977,7 @@
 
 
 		{
-			"type":										"pageCanBus_t",
+			"type":										"pageCanBus",
 			"name":										"CAN",
 			"style":
 			{

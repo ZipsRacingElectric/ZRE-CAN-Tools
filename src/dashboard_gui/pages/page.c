@@ -11,7 +11,23 @@
 #include "cjson/cjson_util.h"
 #include "debug.h"
 
-page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
+#define STRINGIFY(str) #str
+#define CONCETENATE(a, b) a ## b
+
+#define LOAD_PAGE_STATEMENTS(type)																							\
+	if (strcmp (pageType, STRINGIFY (type)) == 0)																			\
+	{																														\
+		page_t* page = CONCETENATE (type, Load) (config, databases, databaseCount, style);													\
+		if (page == NULL)																									\
+		{																													\
+			errorPrintf ("Failed to load page of type '%s'", STRINGIFY (type));															\
+			return NULL;																									\
+		}																													\
+																															\
+		return page;																										\
+	}
+
+page_t* pageLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount, pageStyle_t* style)
 {
 	char* pageType;
 	if (jsonGetString (config, "type", &pageType) != 0)
@@ -20,65 +36,11 @@ page_t* pageLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 		return NULL;
 	}
 
-	if (strcmp (pageType, "pageDrive_t") == 0)
-	{
-		page_t* page = pageDriveLoad (config, database, style);
-		if (page == NULL)
-		{
-			errorPrintf ("Failed to load page of type 'pageDrive_t'");
-			return NULL;
-		}
-
-		return page;
-	}
-
-	if (strcmp (pageType, "pageBms_t") == 0)
-	{
-		page_t* page = pageBmsLoad (config, database, style);
-		if (page == NULL)
-		{
-			errorPrintf ("Failed to load page of type 'pageBms_t'");
-			return NULL;
-		}
-
-		return page;
-	}
-
-	if (strcmp (pageType, "pageCanBus_t") == 0)
-	{
-		page_t* page = pageCanBusLoad (config, database, style);
-		if (page == NULL)
-		{
-			errorPrintf ("Failed to load page of type 'pageCanBus_t'");
-			return NULL;
-		}
-
-		return page;
-	}
-
-	if (strcmp (pageType, "pageStatus_t") == 0)
-	{
-		page_t* page = pageStatusLoad (config, database, style);
-		if (page == NULL)
-		{
-			errorPrintf ("Failed to load page of type 'pageStatus_t'");
-			return NULL;
-		}
-
-		return page;
-	}
-
-	if (strcmp (pageType, "pageTemplate_t") == 0)
-	{
-		page_t* page = pageTemplateLoad (config, database, style);
-		if (page == NULL)
-		{
-			errorPrintf ("Failed to load page of type 'pageTemplate_t'");
-			return NULL;
-		}
-
-		return page;
-	}
+	LOAD_PAGE_STATEMENTS (pageDrive);
+	LOAD_PAGE_STATEMENTS (pageBms);
+	LOAD_PAGE_STATEMENTS (pageCanBus);
+	LOAD_PAGE_STATEMENTS (pageStatus);
+	LOAD_PAGE_STATEMENTS (pageTemplate);
 
 	if (strcmp (pageType, "null") == 0)
 		return NULL;

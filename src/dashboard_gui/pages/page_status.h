@@ -50,6 +50,6 @@ typedef struct
 
 // Functions ------------------------------------------------------------------------------------------------------------------
 
-page_t* pageStatusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style);
+page_t* pageStatusLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount, pageStyle_t* style);
 
 #endif // PAGE_STATUS_H

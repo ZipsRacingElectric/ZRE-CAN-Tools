@@ -53,7 +53,7 @@ static void update (void* pageArg)
 	(void) page;
 }
 
-page_t* pageTemplateLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
+page_t* pageTemplateLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount, pageStyle_t* style)
 {
 	if (config == NULL)
 		return NULL;
@@ -83,7 +83,8 @@ page_t* pageTemplateLoad (cJSON* config, canDatabase_t* database, pageStyle_t* s
 	page->buttonCount = 0;
 
 	// TODO: Setup GUI.
-	(void) database;
+	(void) databases;
+	(void) databaseCount;
 
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());
 	gtk_widget_set_margin_bottom (GTK_WIDGET (page->buttonPanel), 10);

@@ -86,10 +86,10 @@ static void update (void* pageArg)
 		return;
 
 	int scroll = stylizedTerminalGetScrollPosition (page->term);
-	size_t messageCount = canDatabaseGetMessageCount (page->database);
+	size_t messageCount = canDatabaseGetMessageCount (page->databases);
 	for (size_t messageIndex = 0; messageIndex < messageCount; ++messageIndex)
 	{
-		canMessage_t* message = canDatabaseGetMessage (page->database, messageIndex);
+		canMessage_t* message = canDatabaseGetMessage (page->databases, messageIndex);
 
 		if (scroll <= 0)
 		{
@@ -114,11 +114,11 @@ static void update (void* pageArg)
 
 			if (scroll <= 0)
 			{
-				size_t globalIndex = canDatabaseGetGlobalIndex (page->database, messageIndex, signalIndex);
+				size_t globalIndex = canDatabaseGetGlobalIndex (page->databases, messageIndex, signalIndex);
 				if (stylizedTerminalSnprintf (page->term, &buffer, &bufferSize, "    %-32s | ", signal->name) != 0)
 					return;
 
-				if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize, snprintCanDatabaseFloat, "%16f | %s", "%16s | %s", page->database, globalIndex) != 0)
+				if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize, snprintCanDatabaseFloat, "%16f | %s", "%16s | %s", page->databases, globalIndex) != 0)
 					return;
 
 				if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
@@ -132,7 +132,7 @@ static void update (void* pageArg)
 	stylizedTerminalWriteBuffer (page->term);
 }
 
-page_t* pageCanBusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
+page_t* pageCanBusLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount, pageStyle_t* style)
 {
 	if (config == NULL)
 		return NULL;
@@ -159,7 +159,8 @@ page_t* pageCanBusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 	cJSON* styleConfig = jsonGetObjectV2 (config, "style");
 	styleLoad (&page->style, style, styleConfig);
 
-	page->database = database;
+	page->databases		= databases;
+	page->databaseCount	= databaseCount;
 
 	GtkWidget* bg = gtk_drawing_area_new ();
 	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (bg), drawBg, page, NULL);
@@ -188,7 +189,7 @@ page_t* pageCanBusLoad (cJSON* config, canDatabase_t* database, pageStyle_t* sty
 		.fontSpacing			= 2,
 		.scrollEnabled			= true,
 		.scrollMin				= 0,
-		.scrollMax				= canDatabaseGetMessageCount (database) + canDatabaseGetSignalCount (database),
+		.scrollMax				= canDatabaseGetMessageCount (databases) + canDatabaseGetSignalCount (databases),
 		.backgroundColor		= page->style.terminalBackgroundColor,
 		.fontColor				= page->style.baseStyle->fontColor
 	});

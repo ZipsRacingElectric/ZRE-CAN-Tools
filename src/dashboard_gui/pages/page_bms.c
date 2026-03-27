@@ -250,7 +250,7 @@ static void update (void* pageArg)
 	stylizedTerminalWriteBuffer (page->term);
 }
 
-page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
+page_t* pageBmsLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount, pageStyle_t* style)
 {
 	if (config == NULL)
 		return NULL;
@@ -286,13 +286,27 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
 		return NULL;
 	}
 
-	if (bmsInit (&page->bms, bmsConfig, database) != 0)
+	unsigned deviceIndex;
+	if (jsonGetUnsigned (config, "deviceIndex", &deviceIndex) != 0)
+	{
+		debugPrintf ("Warning, BMS page is missing device index.\n");
+		return NULL;
+	}
+
+	if (deviceIndex >= databaseCount)
+	{
+		debugPrintf ("Warning, BMS page specifies invalid device index %u. Device count is %lu.\n",
+			deviceIndex, (long unsigned) databaseCount);
+		return NULL;
+	}
+
+	if (bmsInit (&page->bms, bmsConfig, &databases [deviceIndex]) != 0)
 	{
 		debugPrintf ("Warning, failed to initialize BMS interface.\n");
 		return NULL;
 	}
 
-	if (faultSignalsLoad (&page->faults, bmsConfig, database) != 0)
+	if (faultSignalsLoad (&page->faults, bmsConfig, &databases [deviceIndex]) != 0)
 	{
 		debugPrintf ("Warning, failed to load BMS fault array.\n");
 		return NULL;

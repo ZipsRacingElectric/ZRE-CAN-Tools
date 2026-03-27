@@ -304,7 +304,7 @@ static void styleLoad (pageDriveStyle_t* style, pageStyle_t* baseStyle, cJSON* c
 	jsonGetString (config, "sidePanelStatFont", &style->sidePanelStatFont);
 }
 
-static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* database)
+static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* databases, size_t databaseCount)
 {
 	// Check a config was specified for the panel
 
@@ -348,7 +348,7 @@ static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* da
 
 	// Load the CAN widgets
 
-	page->centerPanelWidgets = canWidgetLoadArray (database, jsonGetObjectV2 (config, "widgets"), PAGE_WIDGET_STYLE (page), &page->centerPanelWidgetCount);
+	page->centerPanelWidgets = canWidgetLoadArray (databases, databaseCount, jsonGetObjectV2 (config, "widgets"), PAGE_WIDGET_STYLE (page), &page->centerPanelWidgetCount);
 	if (page->centerPanelWidgets == NULL)
 		return;
 
@@ -380,7 +380,7 @@ static void centerPanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* da
 	gtk_grid_attach (GTK_GRID (page->centerPanel), padding, 0, page->centerPanelWidgetCount + 1, 2, 1);
 }
 
-static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* database, GtkWidget** sidePanel, canWidget_t*** widgets, size_t* widgetCount)
+static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* databases, size_t databaseCount, GtkWidget** sidePanel, canWidget_t*** widgets, size_t* widgetCount)
 {
 	// Check a config was specified for the panel
 
@@ -429,7 +429,7 @@ static void sidePanelLoad (pageDrive_t* page, cJSON* config, canDatabase_t* data
 
 	// Load the CAN widgets
 
-	*widgets = canWidgetLoadArray (database, jsonGetObjectV2 (config, "widgets"), PAGE_WIDGET_STYLE (page), widgetCount);
+	*widgets = canWidgetLoadArray (databases, databaseCount, jsonGetObjectV2 (config, "widgets"), PAGE_WIDGET_STYLE (page), widgetCount);
 	if (*widgets == NULL)
 		return;
 
@@ -487,7 +487,7 @@ static void update (void* pageArg)
 	canWidgetUpdateArray (page->faultIndicators, page->faultIndicatorCount);
 }
 
-page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* style)
+page_t* pageDriveLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount, pageStyle_t* style)
 {
 	if (config == NULL)
 		return NULL;
@@ -529,7 +529,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	// Load the left progress bar
 
 	cJSON* leftProgressBarConfig = jsonGetObjectV2 (config, "leftProgressBar");
-	page->leftProgressBar = canWidgetLoad (database, leftProgressBarConfig, PAGE_WIDGET_STYLE (page));
+	page->leftProgressBar = canWidgetLoad (databases, databaseCount, leftProgressBarConfig, PAGE_WIDGET_STYLE (page));
 	if (page->leftProgressBar != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->leftProgressBar);
@@ -546,7 +546,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_widget_set_valign (GTK_WIDGET (page->dataLoggerPanel), GTK_ALIGN_FILL);
 	gtk_widget_set_margin_top (GTK_WIDGET (page->dataLoggerPanel), 20);
 
-	page->dataLoggerTitle = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerTitle"), PAGE_WIDGET_STYLE (page));
+	page->dataLoggerTitle = canWidgetLoad (databases, databaseCount, jsonGetObjectV2 (config, "dataLoggerTitle"), PAGE_WIDGET_STYLE (page));
 	if (page->dataLoggerTitle != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerTitle);
@@ -558,7 +558,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 		gtk_grid_attach (page->dataLoggerPanel, widget, 0, 0, 1, 1);
 	}
 
-	page->dataLoggerStat = canWidgetLoad (database, jsonGetObjectV2 (config, "dataLoggerStat"), PAGE_WIDGET_STYLE (page));
+	page->dataLoggerStat = canWidgetLoad (databases, databaseCount, jsonGetObjectV2 (config, "dataLoggerStat"), PAGE_WIDGET_STYLE (page));
 	if (page->dataLoggerStat != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->dataLoggerStat);
@@ -579,7 +579,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_grid_attach (page->grid, page->leftPanel, 2, 2, 1, 1);
 
 	cJSON* leftPanelConfig = jsonGetObjectV2 (config, "leftSidePanel");
-	sidePanelLoad (page, leftPanelConfig, database, &page->leftPanel, &page->leftPanelWidgets, &page->leftPanelWidgetCount);
+	sidePanelLoad (page, leftPanelConfig, databases, databaseCount, &page->leftPanel, &page->leftPanelWidgets, &page->leftPanelWidgetCount);
 
 	page->faultPanel = GTK_GRID (gtk_grid_new ());
 	gtk_widget_set_margin_top (GTK_WIDGET (page->faultPanel), 20);
@@ -589,7 +589,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 
 	// Load the fault indicators
 
-	page->faultIndicators = canWidgetLoadArray (database, jsonGetObjectV2 (config, "faultIndicators"),
+	page->faultIndicators = canWidgetLoadArray (databases, databaseCount, jsonGetObjectV2 (config, "faultIndicators"),
 		PAGE_WIDGET_STYLE (page), &page->faultIndicatorCount);
 	if (page->faultIndicators == NULL)
 		return NULL;
@@ -623,7 +623,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_grid_attach (page->grid, page->centerPanel, 3, 2, 1, 1);
 
 	cJSON* centerPanelConfig = jsonGetObjectV2 (config, "centerPanel");
-	centerPanelLoad (page, centerPanelConfig, database);
+	centerPanelLoad (page, centerPanelConfig, databases, databaseCount);
 
 	page->rightPanel = gtk_grid_new ();
 	gtk_widget_set_margin_start (page->rightPanel, 10);
@@ -631,7 +631,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	gtk_grid_attach (page->grid, page->rightPanel, 4, 2, 1, 1);
 
 	cJSON* rightPanelConfig = jsonGetObjectV2 (config, "rightSidePanel");
-	sidePanelLoad (page, rightPanelConfig, database, &page->rightPanel, &page->rightPanelWidgets, &page->rightPanelWidgetCount);
+	sidePanelLoad (page, rightPanelConfig, databases, databaseCount, &page->rightPanel, &page->rightPanelWidgets, &page->rightPanelWidgetCount);
 
 	page->buttonPanel = GTK_GRID (gtk_grid_new ());
 	gtk_widget_set_margin_top (GTK_WIDGET (page->buttonPanel), 40);
@@ -640,7 +640,7 @@ page_t* pageDriveLoad (cJSON* config, canDatabase_t* database, pageStyle_t* styl
 	// Load the right progress bar
 
 	cJSON* rightProgressBarConfig = jsonGetObjectV2 (config, "rightProgressBar");
-	page->rightProgressBar = canWidgetLoad (database, rightProgressBarConfig, PAGE_WIDGET_STYLE (page));
+	page->rightProgressBar = canWidgetLoad (databases, databaseCount, rightProgressBarConfig, PAGE_WIDGET_STYLE (page));
 	if (page->rightProgressBar != NULL)
 	{
 		GtkWidget* widget = CAN_WIDGET_TO_WIDGET (page->rightProgressBar);
