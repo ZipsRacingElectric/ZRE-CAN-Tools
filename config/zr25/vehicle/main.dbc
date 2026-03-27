@@ -965,3 +965,4 @@ CM_ SG_ 1956 STALLED "Returns a boolean representing the stall condition, 0=>NOT
 BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","reserved","J1939PG";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+

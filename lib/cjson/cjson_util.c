@@ -190,7 +190,21 @@ int jsonGetUint16_t (cJSON* json, const char* key, uint16_t* value)
 		return errno;
 	}
 
-	*value = strtol (cJSON_GetStringValue (item), NULL, 0);
+	*value = strtoul (cJSON_GetStringValue (item), NULL, 0);
+	return 0;
+}
+
+int jsonGetUint32_t (cJSON* json, const char* key, uint32_t* value)
+{
+	cJSON* item = cJSON_GetObjectItem (json, key);
+	if (item == NULL)
+	{
+		debugPrintf ("JSON key '%s' does not exist.\n", key);
+		errno = ERRNO_CJSON_MISSING_KEY;
+		return errno;
+	}
+
+	*value = strtoul (cJSON_GetStringValue (item), NULL, 0);
 	return 0;
 }
 

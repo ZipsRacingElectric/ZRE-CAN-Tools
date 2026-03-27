@@ -1,0 +1,41 @@
+{
+	"keys":
+	[
+		{
+			"signalName":			"BUTTON_0",
+			"code":					"KEY_L"
+		},
+		{
+			"signalName":			"BUTTON_1",
+			"code":					"KEY_R"
+		},
+		{
+			"signalName":			"APPS_1_Percent",
+			"code":					"KEY_T",
+			"threshold":			"30"
+		},
+		{
+			"signalName":			"Brake_1_Percent",
+			"code":					"KEY_B",
+			"threshold":			"5"
+		}
+	],
+	"absoluteAxes":
+	[
+		{
+			"code":					"ABS_Y",
+			"positiveSignalName":	"APPS_1_Percent",
+			"positiveZero":			"0",
+			"positiveMax":			"100",
+			"negativeSignalName":	"Brake_1_Percent",
+			"negativeZero":			"0",
+			"negativeMax":			"50"
+		},
+		{
+			"positiveSignalName":	"Steering_Angle",
+			"code":					"ABS_X",
+			"positiveZero":			"-16",
+			"positiveMax":			"12"
+		}
+	]
+}

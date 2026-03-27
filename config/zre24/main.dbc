@@ -593,6 +593,10 @@ BO_ 1281 Front_Sensors: 8 ECU
  SG_ Left_Wheel_Speed : 16|16@1- (0.1,0) [0|65536] "RPM"  Dashboard
  SG_ Steering_Angle : 0|16@1- (0.1,0) [0|65536] "Degrees"  Dashboard
 
+BO_ 1288 STEERING_INPUT_BOARD: 1 Vector__XXX
+ SG_ BUTTON_0 : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ BUTTON_1 : 1|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+
 CM_ BU_ BMS "Accumulator";
 CM_ BU_ Accelerometer "Acceleration Sensor";
 CM_ BU_ Inverter "RMS PM100 DX Inverter";
@@ -693,3 +697,4 @@ CM_ BO_ 144 "Steering Angle";
 BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","reserved","J1939PG";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+

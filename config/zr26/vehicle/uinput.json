@@ -1,0 +1,67 @@
+{
+	"keys":
+	[
+		{
+			"signalName":			"SIB_BUTTON_TOP_LEFT",
+			"code":					"KEY_A",
+			"inverted":				"true"
+		},
+		{
+			"signalName":			"SIB_BUTTON_MID_LEFT",
+			"code":					"KEY_B",
+			"inverted":				"true"
+		},
+		{
+			"signalName":			"SIB_BUTTON_BOTTOM_LEFT",
+			"code":					"KEY_C",
+			"inverted":				"true"
+		},
+		{
+			"signalName":			"SIB_SWITCH_TOP_RIGHT_UP",
+			"code":					"KEY_D",
+			"inverted":				"true"
+		},
+		{
+			"signalName":			"SIB_SWITCH_TOP_RIGHT_DOWN",
+			"code":					"KEY_E",
+			"inverted":				"true"
+		},
+		{
+			"signalName":			"SIB_BUTTON_MID_RIGHT",
+			"code":					"KEY_F",
+			"inverted":				"true"
+		},
+		{
+			"signalName":			"SIB_BUTTON_BOTTOM_RIGHT",
+			"code":					"KEY_G",
+			"inverted":				"true"
+		}
+	],
+	"absoluteAxes":
+	[
+		{
+			"positiveSignalName":	"APPS_1_PERCENT",
+			"negativeSignalName":	"BSE_FRONT_PERCENT",
+			"code":					"ABS_X",
+			"positiveZero":			"0",
+			"positiveMax":			"100",
+			"negativeZero":			"0",
+			"negativeMax":			"100"
+		},
+		{
+			"positiveSignalName":	"SIB_PADDLE_RIGHT_PERCENT",
+			"negativeSignalName":	"SIB_PADDLE_LEFT_PERCENT",
+			"code":					"ABS_Y",
+			"positiveZero":			"100",
+			"positiveMax":			"15",
+			"negativeZero":			"100",
+			"negativeMax":			"15"
+		},
+		{
+			"positiveSignalName":	"STEERING_ANGLE",
+			"code":					"ABS_Z",
+			"positiveZero":			"-90",
+			"positiveMax":			"90"
+		}
+	]
+}
