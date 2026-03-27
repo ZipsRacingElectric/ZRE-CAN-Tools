@@ -102,10 +102,16 @@ void fprintHelp (FILE* stream)
 		"        dart-cli\n"
 		"\n"
 		"    Open an interactive SSH connection to the DART:\n"
-		"        dart-cli --ssh -- zre@192.168.0.1\n"
+		"        dart-cli --ssh\n"
+		"\n"
+		"    Run a command on the DART:\n"
+		"        dart-cli --ssh -- root@192.168.0.1 'ls /root/'\n"
 		"\n"
 		"    Copy a local file to a remote directory:\n"
-		"        dart-cli --scp -- ./temp.txt zre@192.168.0.1:/home/zre/\n"
+		"        dart-cli --scp -- ./temp.txt root@192.168.0.1:/root/\n"
+		"\n"
+		"    Copy a remote file to a local directory:\n"
+		"        dart-cli --scp -- root@192.168.0.1:/root/temp.txt ./\n"
 		"\n");
 }
 
