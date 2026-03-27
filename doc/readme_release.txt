@@ -37,20 +37,20 @@ information about how to use the DART.
 - dart-cli                      - Application for interacting with the DART of
                                   any vehicle.
 
-- ZR25 "Gloria" ---------------------------------------------------------------
+- ZR26 ------------------------------------------------------------------------
 
-All the applications for ZR25 start with the prefix "zr25". The postfix of each
+All the applications for ZR26 start with the prefix "zr26". The postfix of each
 application indicates whether it is intended for use with the vehicle itself
 (ends with "vehicle"), or the charging cart (ends with "charger").
 
- - zr25-dashboard-vehicle       - Dashboard for the vehicle.
- - zr25-dashboard-charger       - Dashboard for the charger.
- - zr25-eeprom-vehicle          - Application for configuring the EEPROM of
+ - zr26-dashboard-vehicle       - Dashboard for the vehicle.
+ - zr26-dashboard-charger       - Dashboard for the charger.
+ - zr26-eeprom-vehicle          - Application for configuring the EEPROM of
                                   devices in the vehicle.
- - zr25-eeprom-charger          - Application for configuring the EEPROM of the
+ - zr26-eeprom-charger          - Application for configuring the EEPROM of the
                                   BMS on the charging cart.
 
-- ZRE24 "Christine" -----------------------------------------------------------
+- ZRE24 -----------------------------------------------------------------------
 
 All the applications for ZR24 start with the prefix "zre24".
 

@@ -31,10 +31,10 @@ call :createMenuShortcut dart-cli.exe
 call :createMenuShortcut zre24-can.bat
 call :createMenuShortcut zre24-bms.bat
 
-call :createMenuShortcut zr25-dashboard-vehicle.bat
-call :createMenuShortcut zr25-dashboard-charger.bat
-call :createMenuShortcut zr25-eeprom-vehicle.bat
-call :createMenuShortcut zr25-eeprom-charger.bat
+call :createMenuShortcut zr26-dashboard-vehicle.bat
+call :createMenuShortcut zr26-dashboard-charger.bat
+call :createMenuShortcut zr26-eeprom-vehicle.bat
+call :createMenuShortcut zr26-eeprom-charger.bat
 goto :complete
 
 :: Function for creating a shortcut
