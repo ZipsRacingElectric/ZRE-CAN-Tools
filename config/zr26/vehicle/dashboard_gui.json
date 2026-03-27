@@ -96,7 +96,7 @@
 			},
 			"centerPanel":
 			{
-				"title":								"Vehicle Speed (Km/h):",
+				"title":								"Vehicle Speed (mph):",
 				"labels":								[],
 				"widgets":
 				[
