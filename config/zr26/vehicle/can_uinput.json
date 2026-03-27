@@ -24,7 +24,7 @@
 			]
 		},
 		{
-			"dbcFile":						"$ZRE_CANTOOLS_DIR/config/zr26/vehicle/main.dbc",
+			"dbcFile":						"$ZRE_CANTOOLS_DIR/config/zr26/vehicle/sensor.dbc",
 			"keys":
 			[
 				{
