@@ -1,22 +1,28 @@
 {
-	"name":												"zr26",
+	"name":												"zr26-charger",
+	"dbcFiles":
+	[
+		"$ZRE_CANTOOLS_DIR/config/zr26/charger/charger.dbc"
+	],
 	"baseStyle":
 	{
 		"backgroundColor":								"#000000",
 		"fontColor":									"#F4931E",
 		"borderColor":									"#D3792C",
 		"borderThickness":								"1.5",
-		"indicatorActiveColor":							"#FF0000",
-		"indicatorInactiveColor":						"#580000",
+		"buttonActiveColor":							"#FF0000",
+		"buttonInactiveColor":							"#580000",
 		"buttonHeight":									"80",
 		"buttonFont":									"Futura Std Bold Condensed 34px"
 	},
 	"pages":
 	[
+
 		{
-			"type":										"pageBms_t",
+			"type":										"pageBms",
 			"name":										"BMS",
 			"bmsConfig":								"$ZRE_CANTOOLS_DIR/config/zr26/bms_config.json",
+			"deviceIndex":								"0",
 			"style":
 			{
 				"baseStyle":
@@ -28,25 +34,31 @@
 
 				"cellVoltageGraphTitleFont":			"ITC Avant Garde Gothic CE Book 18px",
 				"cellVoltageGraphTitleColor":			"#00AAFF",
-				"cellVoltageGraphBarColor":				"#00AAFF",
+				"cellVoltageGraphValidBarColor":		"#00AAFF",
+				"cellVoltageGraphInvalidBarColor":		"#FF00AA",
 				"cellVoltageGraphTickColor":			"#00AAFF",
 				"cellVoltageGraphAxisColor":			"#00AAFF",
 
 				"senseLineTemperatureGraphTitleFont":	"ITC Avant Garde Gothic CE Book 18px",
 				"senseLineTemperatureGraphTitleColor":	"#00FFAA",
-				"senseLineTemperatureGraphBarColor":	"#00FFAA",
+				"senseLineTemperatureGraphValidBarColor":"#00FFAA",
+				"senseLineTemperatureGraphInvalidBarColor":"#FF00AA",
 				"senseLineTemperatureGraphTickColor":	"#00FFAA",
 				"senseLineTemperatureGraphAxisColor":	"#00FFAA",
 
 				"ltcTemperatureGraphTitleFont":			"ITC Avant Garde Gothic CE Book 18px",
 				"ltcTemperatureGraphTitleColor":		"#00FFAA",
-				"ltcTemperatureGraphBarColor":			"#00FFAA",
+				"ltcTemperatureGraphValidBarColor":		"#00FFAA",
+				"ltcTemperatureGraphInvalidBarColor":	"#FF00AA",
 				"ltcTemperatureGraphTickColor":			"#00FFAA",
 				"ltcTemperatureGraphAxisColor":			"#00FFAA"
 			}
 		},
+
+
+
 		{
-			"type":										"pageCanBus_t",
+			"type":										"pageCanBus",
 			"name":										"CAN",
 			"style":
 			{
@@ -58,14 +70,18 @@
 				"terminalBackgroundColor":				"#001012"
 			}
 		},
+
 		{
-			"type":	"null"
+			"type":										"null"
 		},
+
 		{
-			"type":	"null"
+			"type":										"null"
 		},
+
 		{
-			"type":	"null"
+			"type":										"null"
 		}
+
 	]
 }
