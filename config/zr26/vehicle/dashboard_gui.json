@@ -234,8 +234,9 @@
 					"type":								"canIndicator",
 					"deviceIndex":						"0",
 					"text":								"GPS",
-					"signalName":						"GPS_FAULT",
-					"threshold":						"0.5",
+					"signalName":						"GPS_STATUS",
+					"threshold":						"2.5",
+					"inverted":							"true",
 					"height":							"42"
 				}
 			],
@@ -503,8 +504,9 @@
 					"type":								"canIndicator",
 					"deviceIndex":						"0",
 					"text":								"GPS",
-					"signalName":						"GPS_FAULT",
-					"threshold":						"0.5",
+					"signalName":						"GPS_STATUS",
+					"threshold":						"2.5",
+					"inverted":							"true",
 					"height":							"42"
 				}
 			],
