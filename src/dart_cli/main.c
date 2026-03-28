@@ -485,7 +485,7 @@ int main (int argc, char** argv)
 			"Developer Options:\n"
 			" p - Stop the data logger\n"
 			" r - Restart the device\n"
-			" m - Modify the DART's configuration\n"
+			" m - Modify the DART's environment variables\n"
 			" s - Open an interactive SSH connection to the DART\n"
 			" j - Print the DART's system journal\n"
 			" b - Print the DART's system journal from the last boot\n"
@@ -507,7 +507,7 @@ int main (int argc, char** argv)
 			printf ("\nDone.\n\n");
 			break;
 
-		// Modify config
+		// Modify environment
 		case 'm':
 			if (!promptConfirmation ())
 			{
@@ -516,7 +516,7 @@ int main (int argc, char** argv)
 			}
 
 			printf ("\nOpening Editor... (Ctrl+X to Exit)\n\n");
-			systemf ("ssh %s %s -t \"nano /etc/systemd/system/init_system.service\"", sshOptions, host);
+			systemf ("ssh %s %s -t \"nano /etc/environment\"", sshOptions, host);
 			systemf ("ssh %s %s \"systemctl daemon-reload\"", sshOptions, host);
 			systemf ("ssh %s %s \"systemctl restart init_system\"", sshOptions, host);
 			printf ("\nDone.\n\n");
