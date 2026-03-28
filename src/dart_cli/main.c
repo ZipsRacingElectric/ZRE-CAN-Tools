@@ -195,7 +195,7 @@ char* concetenateCommand (char* command, char* options, char** argv, int argc)
 {
 	size_t bufferSize = strlen (command) + 1 + strlen (options);
 	for (int index = 0; index < argc; ++index)
-		bufferSize += strlen (argv [index]) + 1;
+		bufferSize += strlen (argv [index]) + 1 + 2;
 	++bufferSize;
 
 	char* buffer = malloc (bufferSize);
@@ -217,7 +217,7 @@ char* concetenateCommand (char* command, char* options, char** argv, int argc)
 
 	for (int index = 0; index < argc; ++index)
 	{
-		count = snprintf (bufferHead, bufferSize, " %s", argv [index]);
+		count = snprintf (bufferHead, bufferSize, " '%s'", argv [index]);
 		if (count < 0 || (size_t) count >= bufferSize)
 		{
 			errno = EINVAL;
