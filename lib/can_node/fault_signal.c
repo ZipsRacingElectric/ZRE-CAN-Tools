@@ -65,7 +65,7 @@ int faultSignalsLoad (faultSignals_t* faults, cJSON* config, canDatabase_t* data
 	// Get the size of the config array and allocate the fault array
 	faults->count = cJSON_GetArraySize (faultConfig);
 	faults->signals = malloc (faults->count * sizeof (faultSignal_t));
-	if (faults == NULL)
+	if (faults->signals == NULL)
 		return errno;
 
 	// Load each element of the array
@@ -75,7 +75,7 @@ int faultSignalsLoad (faultSignals_t* faults, cJSON* config, canDatabase_t* data
 		if (loadSignal (&faults->signals [index], config, database) != 0)
 		{
 			// Deallocate and exit early
-			free (faults);
+			free (faults->signals);
 			return errno;
 		}
 	}
