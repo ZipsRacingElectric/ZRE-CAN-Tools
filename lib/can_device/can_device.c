@@ -30,9 +30,9 @@ static canDevice_t* selectDevice (canDevice_t** devices, size_t deviceCount, can
 	{
 		// Prompt for a device to select
 		if (userContext == NULL)
-			printf ("Select a device:\n");
+			printf ("Select a CAN device to use:\n");
 		else
-			printf ("Select a device to use for %s:\n", userContext);
+			printf ("Select a CAN device to use for %s:\n", userContext);
 
 		for (unsigned deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
 			printf ("  %u - %s\n", deviceIndex, canGetDeviceName (devices [deviceIndex]));

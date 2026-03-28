@@ -120,7 +120,7 @@ typedef struct
  * adapter based on context in the provided name.
  * @param deviceName The name of the CAN device. Note this should either be a SocketCAN name or an SLCAN name.
  * @param userContext User-friendly string for providing context to the user. Used in the text:
- *   "Select a device to use for <User Context>:"
+ *   "Select a CAN device to use for <User Context>:"
  * May be set to @c NULL for default context.
  * @return The initialized CAN device if successful, @c NULL otherwise. Note @c errno is set on failure.
  */
