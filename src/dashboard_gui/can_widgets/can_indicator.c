@@ -210,6 +210,10 @@ canWidget_t* canIndicatorInit (canDatabase_t* database, canIndicatorConfig_t* co
 		.label			= label
 	};
 
+	// Validate the signal exists
+	if (indicator->index < 0)
+		return NULL;
+
 	gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (drawingArea), config->width);
 	gtk_drawing_area_set_content_height (GTK_DRAWING_AREA (drawingArea), config->height);
 	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (drawingArea), draw, indicator, NULL);

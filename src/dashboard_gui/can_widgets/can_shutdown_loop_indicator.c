@@ -214,6 +214,10 @@ canWidget_t* canShutdownLoopIndicatorInit (canDatabase_t* database, canShutdownL
 		.animationTimer	= config->style.animationTime + config->style.animationDelay
 	};
 
+	// Validate the signal exists
+	if (indicator->index < 0)
+		return NULL;
+
 	gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (CAN_WIDGET_TO_WIDGET (indicator)), config->width);
 	gtk_drawing_area_set_content_height (GTK_DRAWING_AREA (CAN_WIDGET_TO_WIDGET (indicator)), config->height);
 	gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (CAN_WIDGET_TO_WIDGET (indicator)), draw, indicator, NULL);

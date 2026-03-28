@@ -92,6 +92,10 @@ canWidget_t* canLabelBoolInit (canDatabase_t* database, canLabelBoolConfig_t* co
 		.state		= CAN_LABEL_BOOL_INVALID
 	};
 
+	// Validate the signal exists
+	if (label->index < 0)
+		return NULL;
+
 	// Update initial value
 	update (label);
 

@@ -50,6 +50,10 @@ canWidget_t* canLabelFloatInit (canDatabase_t* database, canLabelFloatConfig_t* 
 		.index		= canDatabaseFindSignal (database, config->signalName)
 	};
 
+	// Validate the signal exists
+	if (label->index < 0)
+		return NULL;
+
 	// Update initial value
 	update (label);
 

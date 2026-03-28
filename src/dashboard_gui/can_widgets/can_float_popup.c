@@ -71,6 +71,10 @@ canWidget_t* canFloatPopupInit (canDatabase_t* database, canFloatPopupConfig_t* 
 		.label		= GTK_LABEL (gtk_label_new (""))
 	};
 
+	// Validate the signal exists
+	if (popup->index < 0)
+		return NULL;
+
 	// Set the base widget
 	if (popup->frame == NULL)
 		return NULL;

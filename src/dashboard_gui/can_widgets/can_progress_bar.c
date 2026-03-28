@@ -62,6 +62,10 @@ canWidget_t* canProgressBarInit (canDatabase_t* database, canProgressBarConfig_t
 		.bar		= stylizedProgressBarInit (&config->style.barConfig)
 	};
 
+	// Validate the signal exists
+	if (bar->index < 0)
+		return NULL;
+
 	// Store a reference to the base widget
 	bar->vmt.widget = STYLIZED_PROGRESS_BAR_TO_WIDGET (bar->bar);
 
