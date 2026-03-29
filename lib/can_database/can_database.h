@@ -72,6 +72,9 @@ typedef struct
 
 	/// @brief Flag indicating if the RX thread should continue running or not.
 	bool running;
+
+	/// @brief The user-friendly name of the DBC file.
+	char* name;
 } canDatabase_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -211,5 +214,15 @@ static inline canMessage_t* canDatabaseGetMessage (canDatabase_t* database, ssiz
  * @return The state of the signal. Note that @c value is only written if the return is @c CAN_DATABASE_VALID .
  */
 canDatabaseSignalState_t canDatabaseGetBool (canDatabase_t* database, ssize_t index, bool* value);
+
+/**
+ * @brief Gets the user-friendly name of a CAN database, based on the name of the DBC file.
+ * @param database The database to use.
+ * @return The name of the database.
+ */
+static inline char* canDatabaseGetName (canDatabase_t* database)
+{
+	return database->name;
+}
 
 #endif // CAN_DATABASE_H

@@ -7,6 +7,7 @@
 #include "can_dbc.h"
 #include "debug.h"
 #include "error_codes.h"
+#include "misc_port.h"
 
 // C Standard Library
 #include <stdio.h>
@@ -53,6 +54,11 @@ int canDatabaseInit (canDatabase_t* database, canDevice_t* device, char* dbcPath
 	if (database->messageDeadlines == NULL)
 		return errno;
 
+	// Get the name of the database
+	database->name = getBaseName (dbcPath);
+	if (database->name == NULL)
+		return errno;
+
 	// Set the RX timeout (required for RX thread)
 	canSetTimeout (device, 100);
 
@@ -84,6 +90,7 @@ void canDatabaseDealloc (canDatabase_t* database)
 	debugPrintf ("CAN database RX thread terminated gracefully.\n");
 
 	// Deallocate all dynamically allocated memory.
+	free (database->name);
 	free (database->signalValues);
 	free (database->messagesValid);
 	free (database->messageDeadlines);
