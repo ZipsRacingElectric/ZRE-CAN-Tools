@@ -326,7 +326,7 @@ canDevice_t** slcanEnumerate (canBaudrate_t baudrate, size_t* deviceCount)
 
 			if (strstr (buffer, "USBSER") == NULL)
 			{
-				debugPrintf ("No occurance of 'CAN' in device info.\n");
+				debugPrintf ("No occurance of 'USBSER' in device info.\n");
 				free (deviceNameShort);
 				free (deviceNameLong);
 				continue;
