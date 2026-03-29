@@ -108,11 +108,12 @@ typedef struct
 	ssize_t packVoltageIndex;
 	/// @brief Global index of the pack current signal.
 	ssize_t packCurrentIndex;
-	/// @brief Global indices of the logical (gapless) temperatures.
+	/// @brief Global CAN database indices of the logical (gapless) temperatures.
 	ssize_t* logicalTemperatureIndices;
-	/// @brief Number of elements in @c logicalTemperatureIndices .
+	/// @brief Global sense line indices of the logical (gapless) temperatures.
+	size_t* logicalTemperatureSenseLineIndices;
+	/// @brief Number of elements in @c logicalTemperatureIndices / @c logicalTemperatureSenseLineIndices .
 	size_t logicalTemperatureCount;
-
 } bms_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
@@ -351,16 +352,15 @@ static inline size_t bmsGetCellHiSenseLineIndex (bms_t* bms, size_t cellIndex)
 	return bmsGetCellLoSenseLineIndex (bms, cellIndex) + 1;
 }
 
-// TODO(Barach): Doesn't work.
 /**
  * @brief Gets the global index of a sense line from a logical temperature index.
  * @param bms The BMS to use.
  * @param index The logical temperature index.
  * @return The global sense line index.
  */
-static inline ssize_t bmsGetLogicalTemperatureIndex (bms_t* bms, size_t index)
+static inline ssize_t bmsGetLogicalTemperatureSenseLineIndex (bms_t* bms, size_t index)
 {
-	return bms->logicalTemperatureIndices [index];
+	return bms->logicalTemperatureSenseLineIndices [index];
 }
 
 #endif // BMS_H

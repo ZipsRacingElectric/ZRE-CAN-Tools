@@ -13,6 +13,7 @@
 #include <math.h>
 
 listDefine (ssize_t);
+listDefine (size_t);
 arrayDefine (ssize_t);
 
 /**
@@ -104,6 +105,10 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	if (listInit (ssize_t) (&logicalTemperatureIndices, 64) != 0)
 		return errno;
 
+	list_t (size_t) logicalTemperatureSenseLineIndices;
+	if (listInit (size_t) (&logicalTemperatureSenseLineIndices, 64) != 0)
+		return errno;
+
 	bms->cellVoltageIndices = malloc (sizeof (ssize_t) * bms->cellCount);
 	if (bms->cellVoltageIndices == NULL)
 		return errno;
@@ -168,6 +173,9 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 		if (bms->senseLineTemperatureIndices [index] > 0)
 		{
 			if (listAppend (ssize_t) (&logicalTemperatureIndices, bms->senseLineTemperatureIndices [index]) != 0)
+				return errno;
+
+			if (listAppend (size_t) (&logicalTemperatureSenseLineIndices, index) != 0)
 				return errno;
 		}
 
@@ -288,6 +296,9 @@ int bmsInit (bms_t* bms, cJSON* config, canDatabase_t* database)
 	// Convert the logical temperature indices list into an array.
 	bms->logicalTemperatureIndices = listDestroy (ssize_t) (&logicalTemperatureIndices, &bms->logicalTemperatureCount);
 	if (bms->logicalTemperatureIndices == NULL)
+		return errno;
+	bms->logicalTemperatureSenseLineIndices = listDestroy (size_t) (&logicalTemperatureSenseLineIndices, &bms->logicalTemperatureCount);
+	if (bms->logicalTemperatureSenseLineIndices == NULL)
 		return errno;
 
 	return 0;
