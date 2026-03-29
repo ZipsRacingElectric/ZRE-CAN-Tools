@@ -973,6 +973,7 @@
 				"cellVoltageGraphValidBarColor":		"#00AAFF",
 				"cellVoltageGraphInvalidBarColor":		"#FF00AA",
 				"cellVoltageGraphTickColor":			"#00AAFF",
+				"cellVoltageGraphTickColor2":			"#00FFAA",
 				"cellVoltageGraphAxisColor":			"#00AAFF",
 
 				"senseLineTemperatureGraphTitleFont":	"ITC Avant Garde Gothic CE Book 18px",
@@ -980,6 +981,7 @@
 				"senseLineTemperatureGraphValidBarColor":"#00FFAA",
 				"senseLineTemperatureGraphInvalidBarColor":"#FF00AA",
 				"senseLineTemperatureGraphTickColor":	"#00FFAA",
+				"senseLineTemperatureGraphTickColor2":	"#00FFAA",
 				"senseLineTemperatureGraphAxisColor":	"#00FFAA",
 
 				"ltcTemperatureGraphTitleFont":			"ITC Avant Garde Gothic CE Book 18px",
@@ -987,6 +989,7 @@
 				"ltcTemperatureGraphValidBarColor":		"#00FFAA",
 				"ltcTemperatureGraphInvalidBarColor":	"#FF00AA",
 				"ltcTemperatureGraphTickColor":			"#00FFAA",
+				"ltcTemperatureGraphTickColor2":		"#00FFAA",
 				"ltcTemperatureGraphAxisColor":			"#00FFAA"
 			}
 		},

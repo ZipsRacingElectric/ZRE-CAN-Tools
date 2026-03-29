@@ -30,6 +30,7 @@ typedef struct
 	GdkRGBA cellVoltageGraphValidBarColor;
 	GdkRGBA cellVoltageGraphInvalidBarColor;
 	GdkRGBA cellVoltageGraphTickColor;
+	GdkRGBA cellVoltageGraphTickColor2;
 	GdkRGBA cellVoltageGraphAxisColor;
 
 	char* senseLineTemperatureGraphTitleFont;
@@ -37,6 +38,7 @@ typedef struct
 	GdkRGBA senseLineTemperatureGraphValidBarColor;
 	GdkRGBA senseLineTemperatureGraphInvalidBarColor;
 	GdkRGBA senseLineTemperatureGraphTickColor;
+	GdkRGBA senseLineTemperatureGraphTickColor2;
 	GdkRGBA senseLineTemperatureGraphAxisColor;
 
 	char* ltcTemperatureGraphTitleFont;
@@ -44,6 +46,7 @@ typedef struct
 	GdkRGBA ltcTemperatureGraphValidBarColor;
 	GdkRGBA ltcTemperatureGraphInvalidBarColor;
 	GdkRGBA ltcTemperatureGraphTickColor;
+	GdkRGBA ltcTemperatureGraphTickColor2;
 	GdkRGBA ltcTemperatureGraphAxisColor;
 } pageBmsStyle_t;
 

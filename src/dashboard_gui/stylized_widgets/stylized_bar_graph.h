@@ -54,6 +54,7 @@ typedef struct
 	GdkRGBA validBarColor;
 	GdkRGBA invalidBarColor;
 	GdkRGBA tickColor;
+	GdkRGBA tickColor2;
 	GdkRGBA axisColor;
 } stylizedBarGraphConfig_t;
 

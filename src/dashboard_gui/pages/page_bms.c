@@ -4,6 +4,7 @@
 // Includes
 #include "../bms_widgets/cell_voltage_bar_graph.h"
 #include "../bms_widgets/sense_line_temperature_graph.h"
+#include "../bms_widgets/ltc_temperature_graph.h"
 #include "../stylized_widgets/stylized_button.h"
 #include "../gtk_util.h"
 #include "can_database/can_database_stdio.h"
@@ -34,75 +35,54 @@ static void styleLoad (pageBmsStyle_t* style, pageStyle_t* baseStyle, cJSON* con
 
 	style->baseStyle = pageStyleLoad (jsonGetObjectV2 (config, "baseStyle"), baseStyle);
 
-	char* terminalBackgroundColor;
-	if (jsonGetString (config, "terminalBackgroundColor", &terminalBackgroundColor) == 0)
-		style->terminalBackgroundColor = gdkHexToColor (terminalBackgroundColor);
+	char* color;
+	if (jsonGetString (config, "terminalBackgroundColor", &color) == 0)
+		style->terminalBackgroundColor = gdkHexToColor (color);
 
 	jsonGetString (config, "cellVoltageGraphTitleFont", &style->cellVoltageGraphTitleFont);
 
-	char* cellVoltageGraphTitleColor;
-	if (jsonGetString (config, "cellVoltageGraphTitleColor", &cellVoltageGraphTitleColor) == 0)
-		style->cellVoltageGraphTitleColor = gdkHexToColor (cellVoltageGraphTitleColor);
-
-	char* cellVoltageGraphValidBarColor;
-	if (jsonGetString (config, "cellVoltageGraphValidBarColor", &cellVoltageGraphValidBarColor) == 0)
-		style->cellVoltageGraphValidBarColor = gdkHexToColor (cellVoltageGraphValidBarColor);
-
-	char* cellVoltageGraphInvalidBarColor;
-	if (jsonGetString (config, "cellVoltageGraphInvalidBarColor", &cellVoltageGraphInvalidBarColor) == 0)
-		style->cellVoltageGraphInvalidBarColor = gdkHexToColor (cellVoltageGraphInvalidBarColor);
-
-	char* cellVoltageGraphTickColor;
-	if (jsonGetString (config, "cellVoltageGraphTickColor", &cellVoltageGraphTickColor) == 0)
-		style->cellVoltageGraphTickColor = gdkHexToColor (cellVoltageGraphTickColor);
-
-	char* cellVoltageGraphAxisColor;
-	if (jsonGetString (config, "cellVoltageGraphAxisColor", &cellVoltageGraphAxisColor) == 0)
-		style->cellVoltageGraphAxisColor = gdkHexToColor (cellVoltageGraphAxisColor);
+	if (jsonGetString (config, "cellVoltageGraphTitleColor", &color) == 0)
+		style->cellVoltageGraphTitleColor = gdkHexToColor (color);
+	if (jsonGetString (config, "cellVoltageGraphValidBarColor", &color) == 0)
+		style->cellVoltageGraphValidBarColor = gdkHexToColor (color);
+	if (jsonGetString (config, "cellVoltageGraphInvalidBarColor", &color) == 0)
+		style->cellVoltageGraphInvalidBarColor = gdkHexToColor (color);
+	if (jsonGetString (config, "cellVoltageGraphTickColor", &color) == 0)
+		style->cellVoltageGraphTickColor = gdkHexToColor (color);
+	if (jsonGetString (config, "cellVoltageGraphTickColor2", &color) == 0)
+		style->cellVoltageGraphTickColor2 = gdkHexToColor (color);
+	if (jsonGetString (config, "cellVoltageGraphAxisColor", &color) == 0)
+		style->cellVoltageGraphAxisColor = gdkHexToColor (color);
 
 	jsonGetString (config, "senseLineTemperatureGraphTitleFont", &style->senseLineTemperatureGraphTitleFont);
 
-	char* senseLineTemperatureGraphTitleColor;
-	if (jsonGetString (config, "senseLineTemperatureGraphTitleColor", &senseLineTemperatureGraphTitleColor) == 0)
-		style->senseLineTemperatureGraphTitleColor = gdkHexToColor (senseLineTemperatureGraphTitleColor);
-
-	char* senseLineTemperatureGraphValidBarColor;
-	if (jsonGetString (config, "senseLineTemperatureGraphValidBarColor", &senseLineTemperatureGraphValidBarColor) == 0)
-		style->senseLineTemperatureGraphValidBarColor = gdkHexToColor (senseLineTemperatureGraphValidBarColor);
-
-	char* senseLineTemperatureGraphInvalidBarColor;
-	if (jsonGetString (config, "senseLineTemperatureGraphInvalidBarColor", &senseLineTemperatureGraphInvalidBarColor) == 0)
-		style->senseLineTemperatureGraphInvalidBarColor = gdkHexToColor (senseLineTemperatureGraphInvalidBarColor);
-
-	char* senseLineTemperatureGraphTickColor;
-	if (jsonGetString (config, "senseLineTemperatureGraphTickColor", &senseLineTemperatureGraphTickColor) == 0)
-		style->senseLineTemperatureGraphTickColor = gdkHexToColor (senseLineTemperatureGraphTickColor);
-
-	char* senseLineTemperatureGraphAxisColor;
-	if (jsonGetString (config, "senseLineTemperatureGraphAxisColor", &senseLineTemperatureGraphAxisColor) == 0)
-		style->senseLineTemperatureGraphAxisColor = gdkHexToColor (senseLineTemperatureGraphAxisColor);
+	if (jsonGetString (config, "senseLineTemperatureGraphTitleColor", &color) == 0)
+		style->senseLineTemperatureGraphTitleColor = gdkHexToColor (color);
+	if (jsonGetString (config, "senseLineTemperatureGraphValidBarColor", &color) == 0)
+		style->senseLineTemperatureGraphValidBarColor = gdkHexToColor (color);
+	if (jsonGetString (config, "senseLineTemperatureGraphInvalidBarColor", &color) == 0)
+		style->senseLineTemperatureGraphInvalidBarColor = gdkHexToColor (color);
+	if (jsonGetString (config, "senseLineTemperatureGraphTickColor", &color) == 0)
+		style->senseLineTemperatureGraphTickColor = gdkHexToColor (color);
+	if (jsonGetString (config, "senseLineTemperatureGraphTickColor2", &color) == 0)
+		style->senseLineTemperatureGraphTickColor2 = gdkHexToColor (color);
+	if (jsonGetString (config, "senseLineTemperatureGraphAxisColor", &color) == 0)
+		style->senseLineTemperatureGraphAxisColor = gdkHexToColor (color);
 
 	jsonGetString (config, "ltcTemperatureGraphTitleFont", &style->ltcTemperatureGraphTitleFont);
 
-	char* ltcTemperatureGraphTitleColor;
-	if (jsonGetString (config, "ltcTemperatureGraphTitleColor", &ltcTemperatureGraphTitleColor) == 0)
-		style->ltcTemperatureGraphTitleColor = gdkHexToColor (ltcTemperatureGraphTitleColor);
-
-	char* ltcTemperatureGraphValidBarColor;
-	if (jsonGetString (config, "ltcTemperatureGraphValidBarColor", &ltcTemperatureGraphValidBarColor) == 0)
-		style->ltcTemperatureGraphValidBarColor = gdkHexToColor (ltcTemperatureGraphValidBarColor);
-
-	char* ltcTemperatureGraphInvalidBarColor;
-	if (jsonGetString (config, "ltcTemperatureGraphInvalidBarColor", &ltcTemperatureGraphInvalidBarColor) == 0)
-		style->ltcTemperatureGraphInvalidBarColor = gdkHexToColor (ltcTemperatureGraphInvalidBarColor);
-
-	char* ltcTemperatureGraphTickColor;
-	if (jsonGetString (config, "ltcTemperatureGraphTickColor", &ltcTemperatureGraphTickColor) == 0)
-		style->ltcTemperatureGraphTickColor = gdkHexToColor (ltcTemperatureGraphTickColor);
-
-	char* ltcTemperatureGraphAxisColor;
-	if (jsonGetString (config, "ltcTemperatureGraphAxisColor", &ltcTemperatureGraphAxisColor) == 0)
-		style->ltcTemperatureGraphAxisColor = gdkHexToColor (ltcTemperatureGraphAxisColor);
+	if (jsonGetString (config, "ltcTemperatureGraphTitleColor", &color) == 0)
+		style->ltcTemperatureGraphTitleColor = gdkHexToColor (color);
+	if (jsonGetString (config, "ltcTemperatureGraphValidBarColor", &color) == 0)
+		style->ltcTemperatureGraphValidBarColor = gdkHexToColor (color);
+	if (jsonGetString (config, "ltcTemperatureGraphInvalidBarColor", &color) == 0)
+		style->ltcTemperatureGraphInvalidBarColor = gdkHexToColor (color);
+	if (jsonGetString (config, "ltcTemperatureGraphTickColor", &color) == 0)
+		style->ltcTemperatureGraphTickColor = gdkHexToColor (color);
+	if (jsonGetString (config, "ltcTemperatureGraphTickColor2", &color) == 0)
+		style->ltcTemperatureGraphTickColor2 = gdkHexToColor (color);
+	if (jsonGetString (config, "ltcTemperatureGraphAxisColor", &color) == 0)
+		style->ltcTemperatureGraphAxisColor = gdkHexToColor (color);
 }
 
 static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage, pageStyle_t* style)
@@ -138,7 +118,7 @@ static void update (void* pageArg)
 
 	stylizedBarGraphUpdate (&page->voltages);
 	stylizedBarGraphUpdate (&page->temperatures);
-	// stylizedBarGraphUpdate (&page->ltcTemperatures);
+	stylizedBarGraphUpdate (&page->ltcTemperatures);
 
 	size_t bufferSize;
 	char* buffer = stylizedTerminalGetBuffer (page->term, &bufferSize);
@@ -175,27 +155,19 @@ static void update (void* pageArg)
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  Voltage: %7.1f%s", "  Voltage: %7s%s", voltage, voltageState, "V") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  |  Min Cell: %6.3f%s", "  |  Min Cell: %6s%s", cellMin, cellStatsState, "V") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  |  Min Temp: %6.2f%s", "  |  Min Temp: %6s%s", tempMin, tempStatsState, "C") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  |  Max Delta: %5.3f%s", "  |  Max Delta: %5s%s", deltaMax, deltaStatsState, "V") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
 		return;
@@ -203,48 +175,34 @@ static void update (void* pageArg)
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  Current: %7.1f%s", "  Current: %7s%s", current, currentState, "A") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  |  Max Cell: %6.3f%s", "  |  Max Cell: %6s%s", cellMax, cellStatsState, "V") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  |  Max Temp: %6.2f%s", "  |  Max Temp: %6s%s", tempMax, tempStatsState, "C") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  |  Avg Delta: %5.3f%s", "  |  Avg Delta: %5s%s", deltaAvg, deltaStatsState, "V") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
 		return;
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  Power: %9.1f%s", "  Power: %9s%s", power, powerState, "W") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  |  Avg Cell: %6.3f%s", "  |  Avg Cell: %6s%s", cellAvg, cellStatsState, "V") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize,
 		snprintCanDatabaseFloatStatic, "  |  Avg Temp: %6.2f%s  |", "  |  Avg Temp: %6s%s  |", tempAvg, tempStatsState, "C") != 0)
-	{
 		return;
-	}
 
 	if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
 		return;
@@ -373,6 +331,7 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* databases, size_t databaseCou
 		.axisPosition		= 40,
 		.axisColor			= page->style.cellVoltageGraphAxisColor,
 		.tickColor			= page->style.cellVoltageGraphTickColor,
+		.tickColor2			= page->style.cellVoltageGraphTickColor2,
 		.validBarColor		= page->style.cellVoltageGraphValidBarColor,
 		.invalidBarColor	= page->style.cellVoltageGraphInvalidBarColor
 	}, &page->bms);
@@ -408,6 +367,7 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* databases, size_t databaseCou
 		.axisPosition		= 40,
 		.axisColor			= page->style.senseLineTemperatureGraphAxisColor,
 		.tickColor			= page->style.senseLineTemperatureGraphTickColor,
+		.tickColor2			= page->style.senseLineTemperatureGraphTickColor2,
 		.validBarColor		= page->style.senseLineTemperatureGraphValidBarColor,
 		.invalidBarColor	= page->style.senseLineTemperatureGraphInvalidBarColor
 	}, &page->bms);
@@ -430,7 +390,8 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* databases, size_t databaseCou
 
 	stylizedBarGraphInit (&page->ltcTemperatures, &(stylizedBarGraphConfig_t)
 	{
-		.accessor			= bmsCellVoltageBarGraphAccessor,
+		.accessor			= bmsLtcTemperatureGraphAccessor,
+		.foregroundDraw		= bmsLtcTemperatureGraphDrawForeground,
 		.offset				= 0,
 		.count				= page->bms.ltcCount,
 		.barSize			= 3.5f,
@@ -443,6 +404,7 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* databases, size_t databaseCou
 		.axisPosition		= 40,
 		.axisColor			= page->style.ltcTemperatureGraphAxisColor,
 		.tickColor			= page->style.ltcTemperatureGraphTickColor,
+		.tickColor2			= page->style.ltcTemperatureGraphTickColor2,
 		.validBarColor		= page->style.ltcTemperatureGraphValidBarColor,
 		.invalidBarColor	= page->style.ltcTemperatureGraphInvalidBarColor
 	}, &page->bms);

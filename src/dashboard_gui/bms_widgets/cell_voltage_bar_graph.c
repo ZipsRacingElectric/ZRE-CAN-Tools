@@ -2,7 +2,6 @@
 #include "cell_voltage_bar_graph.h"
 
 // Includes
-#include "../gtk_util.h"
 #include "bms/bms.h"
 
 bool bmsCellVoltageBarGraphAccessor (void* arg, size_t index, float* value)
@@ -26,8 +25,7 @@ void bmsCellVoltageBarGraphDrawForeground (stylizedBarGraph_t* graph, cairo_t* c
 {
 	bms_t* bms = graph->accessorArg;
 
-	GdkRGBA a = gdkHexToColor ("#00FFAA");
-	gdk_cairo_set_source_rgba (cr, &a);
+	gdk_cairo_set_source_rgba (cr, &graph->config.tickColor2);
 	cairo_set_line_width (cr, 1.5f);
 
 	for (size_t index = 0; index <= bms->cellCount; ++index)

@@ -2,7 +2,6 @@
 #include "sense_line_temperature_graph.h"
 
 // Includes
-#include "../gtk_util.h"
 #include "bms/bms.h"
 
 bool bmsSenseLineTemperatureGraphAccessor (void* arg, size_t index, float* value)
@@ -20,11 +19,11 @@ void bmsSenseLineTemperatureGraphDrawForeground (stylizedBarGraph_t* graph, cair
 {
 	bms_t* bms = graph->accessorArg;
 
-	GdkRGBA a = gdkHexToColor ("#00FFAA");
-	gdk_cairo_set_source_rgba (cr, &a);
+	gdk_cairo_set_source_rgba (cr, &graph->config.tickColor2);
 	cairo_set_line_width (cr, 1.5f);
 
-	// uint16_t segmentIndex = 0;
+	size_t lastLtcIndex = -1;
+	size_t lastSegmentIndex = -1;
 	for (size_t index = 0; index <= bms->logicalTemperatureCount; ++index)
 	{
 		float x = context->xAxisPosition + context->barSpacing * index;
@@ -33,12 +32,22 @@ void bmsSenseLineTemperatureGraphDrawForeground (stylizedBarGraph_t* graph, cair
 		else if (index == bms->cellCount)
 			x -= 1.5f / 2.0f;
 
-		if (index % (5 * bms->ltcsPerSegment) == 0)
+		size_t senseLineIndex = index < bms->logicalTemperatureCount ? bmsGetLogicalTemperatureSenseLineIndex (bms, index) : -1;
+		size_t ltcIndex = senseLineIndex / bms->senseLinesPerLtc;
+		size_t segmentIndex = ltcIndex / bms->ltcsPerSegment;
+
+		if (lastSegmentIndex != segmentIndex)
 		{
 			cairo_move_to (cr, x, context->yAxisPosition + 8);
 			cairo_line_to (cr, x, context->yAxisPosition - 8);
+
+			for (float y = context->yAxisPosition; y > 0; y -= context->tickSpacing / 2.0f)
+			{
+				cairo_move_to (cr, x - 2.5f, y);
+				cairo_line_to (cr, x + 2.5f, y);
+			}
 		}
-		else if (index % 5 == 0)
+		else if (lastLtcIndex != ltcIndex)
 		{
 			cairo_move_to (cr, x, context->yAxisPosition + 4);
 			cairo_line_to (cr, x, context->yAxisPosition - 4);
@@ -49,23 +58,8 @@ void bmsSenseLineTemperatureGraphDrawForeground (stylizedBarGraph_t* graph, cair
 			cairo_line_to (cr, x, context->yAxisPosition - 2);
 		}
 
-		// ssize_t senseLineIndex = bmsGetLogicalTemperatureIndex (bms, index);
-		// printf ("IDX %li\n", senseLineIndex);
-
-		// uint16_t segment = senseLineIndex / (bms->senseLinesPerLtc * bms->ltcsPerSegment);
-		// if (segment == segmentIndex)
-		// 	continue;
-
-		if (index % 10 != 0)
-			continue;
-
-		// segmentIndex = segment;
-
-		for (float y = context->yAxisPosition; y > 0; y -= context->tickSpacing / 2.0f)
-		{
-			cairo_move_to (cr, x - 2.5f, y);
-			cairo_line_to (cr, x + 2.5f, y);
-		}
+		lastLtcIndex = ltcIndex;
+		lastSegmentIndex = segmentIndex;
 	}
 
 	cairo_stroke (cr);

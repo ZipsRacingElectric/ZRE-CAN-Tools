@@ -27,7 +27,8 @@ SRC :=	main.c										\
 		stylized_widgets/stylized_progress_bar.c	\
 		stylized_widgets/stylized_terminal.c		\
 		bms_widgets/cell_voltage_bar_graph.c		\
-		bms_widgets/sense_line_temperature_graph.c
+		bms_widgets/sense_line_temperature_graph.c	\
+		bms_widgets/ltc_temperature_graph.c
 
 # Compiling and linking against GTK, so include its flags
 CFLAGS += $(LIB_GTK_CFLAGS)
