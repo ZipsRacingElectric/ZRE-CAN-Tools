@@ -23,9 +23,12 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 	float yi = height * 0.7f;
 	float hi = height * 0.2f;
 
-	gdk_cairo_set_source_rgba (cr, &button->config.indicatorColor);
-	cairo_rectangle (cr, xi, yi, wi, hi);
-	cairo_fill (cr);
+	if (button->config.useIndicator)
+	{
+		gdk_cairo_set_source_rgba (cr, &button->config.indicatorColor);
+		cairo_rectangle (cr, xi, yi, wi, hi);
+		cairo_fill (cr);
+	}
 
 	// Draw the frame
 
@@ -39,8 +42,12 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 
 	// Draw the indicator frame
 
-	cairo_rectangle (cr, xi, yi, wi, hi);
-	cairo_stroke (cr);
+	if (button->config.useIndicator)
+	{
+		cairo_rectangle (cr, xi, yi, wi, hi);
+		cairo_stroke (cr);
+	}
+
 }
 
 static void pressed (GtkGestureClick* self, gint nPress, gdouble x, gdouble y, gpointer arg)
@@ -100,9 +107,10 @@ stylizedButton_t* stylizedButtonInit (stylizedButtonCallback_t* callback, void* 
 	};
 
 	// Set the label color, size, and alignment.
+	float yalign = config->useIndicator ? 0.25f : 0.5f;
 	gtkLabelSetColor (button->label, &config->selectedColor);
 	gtk_widget_set_size_request (GTK_WIDGET (button->label), 0, config->height);
-	gtk_label_set_yalign (button->label, 0.25);
+	gtk_label_set_yalign (button->label, yalign);
 
 	// Set the drawing area size and drawing function
 	gtk_drawing_area_set_content_width (button->drawingArea, config->width);

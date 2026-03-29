@@ -988,10 +988,12 @@
 			{
 				"baseStyle":
 				{
+					"buttonFont":						"ITC Avant Garde Gothic CE Book 24px",
 					"borderColor":						"#00FFAA",
 					"fontColor":						"#00FFAA"
 				},
-				"terminalBackgroundColor":				"#001012"
+				"terminalBackgroundColor":				"#001012",
+				"animationTime":						"0.5"
 			}
 		}
 

@@ -33,7 +33,8 @@ static void appendButton (void* pageArg, const char* label, pageButtonCallback_t
 		.borderColor		= style->borderColor,
 		.selectedColor		= style->fontColor,
 		.indicatorColor		= currentPage ?
-			page->style.baseStyle->buttonActiveColor : page->style.baseStyle->buttonInactiveColor
+			page->style.baseStyle->buttonActiveColor : page->style.baseStyle->buttonInactiveColor,
+		.useIndicator		= true
 	});
 	if (style->buttonFont != NULL)
 		gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (button), style->buttonFont);

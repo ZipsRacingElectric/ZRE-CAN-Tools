@@ -42,6 +42,9 @@ typedef struct
 
 	/// @brief The color of the button's indicator.
 	GdkRGBA indicatorColor;
+
+	/// @brief Indicates whether to use an indicator or not.
+	bool useIndicator;
 } stylizedButtonConfig_t;
 
 typedef struct

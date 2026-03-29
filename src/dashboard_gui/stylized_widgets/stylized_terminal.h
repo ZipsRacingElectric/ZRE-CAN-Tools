@@ -134,4 +134,26 @@ int stylizedTerminalSnprintf (stylizedTerminal_t* term, char** buffer, size_t* b
 
 int stylizedTerminalPrintNewline (stylizedTerminal_t* term, char** buffer, size_t* bufferSize);
 
+static inline void stylizedTerminalSetScrollPosition (stylizedTerminal_t* term, int scroll)
+{
+	term->scrollPosition = scroll;
+
+	if (term->scrollPosition < term->config.scrollMin)
+		term->scrollPosition = term->config.scrollMin;
+	if (term->scrollPosition > term->config.scrollMax - 1)
+		term->scrollPosition = term->config.scrollMax - 1;
+}
+
+static inline void stylizedTerminalSetScrollMin (stylizedTerminal_t* term, int min)
+{
+	term->config.scrollMin = min;
+	stylizedTerminalSetScrollPosition (term, term->scrollPosition);
+}
+
+static inline void stylizedTerminalSetScrollMax (stylizedTerminal_t* term, int max)
+{
+	term->config.scrollMax = max;
+	stylizedTerminalSetScrollPosition (term, term->scrollPosition);
+}
+
 #endif // STYLIZED_TERMINAL_H

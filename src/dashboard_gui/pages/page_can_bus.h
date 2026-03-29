@@ -25,6 +25,7 @@ typedef struct
 	pageStyle_t* baseStyle;
 
 	GdkRGBA terminalBackgroundColor;
+	float animationTime;
 } pageCanBusStyle_t;
 
 typedef struct
@@ -40,6 +41,10 @@ typedef struct
 	size_t buttonCount;
 
 	stylizedTerminal_t* term;
+
+	size_t dbcIndex;
+
+	float animationTimer;
 } pageCanBus_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------
