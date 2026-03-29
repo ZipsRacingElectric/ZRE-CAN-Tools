@@ -242,7 +242,7 @@ static void update (void* pageArg)
 				if (stylizedTerminalSnprintf (page->term, &buffer, &bufferSize, "    %-32s | ", signal->name) != 0)
 					return;
 
-				if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize, snprintCanDatabaseFloat, "%16f | %s", "%16s | %s", page->databases, globalIndex) != 0)
+				if (stylizedTerminalSnprintCallback (page->term, buffer, bufferSize, snprintCanDatabaseFloat, "%16f | %s", "%16s | %s", database, globalIndex) != 0)
 					return;
 
 				if (stylizedTerminalPrintNewline (page->term, &buffer, &bufferSize) != 0)
@@ -331,7 +331,7 @@ page_t* pageCanBusLoad (cJSON* config, canDatabase_t* databases, size_t database
 		.fontSpacing			= 2,
 		.scrollEnabled			= true,
 		.scrollMin				= 0,
-		.scrollMax				= canDatabaseGetMessageCount (databases) + canDatabaseGetSignalCount (databases),
+		.scrollMax				= canDatabaseGetMessageCount (&databases [0]) + canDatabaseGetSignalCount (&databases [0]),
 		.backgroundColor		= page->style.terminalBackgroundColor,
 		.fontColor				= page->style.baseStyle->fontColor
 	});
