@@ -71,6 +71,48 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 			cairo_arc (cr, x1, y2, indicator->config.style.cornerRadius, G_PI_2, G_PI);
 			cairo_line_to (cr, x0, y1);
 			cairo_arc (cr, x1, y1, indicator->config.style.cornerRadius, G_PI, 3 * G_PI_2);
+
+			break;
+		}
+
+		case CAN_INDICATOR_HAZARD_VERT:
+		{
+			float x0 = indicator->config.style.borderThickness / 2.0f;
+			float y0 = indicator->config.style.borderThickness / 2.0f;
+			float x1 = width - indicator->config.style.borderThickness / 2.0f;
+			float y1 = height - indicator->config.style.borderThickness / 2.0f;
+
+			cairo_move_to (cr, x0, y0);
+			cairo_line_to (cr, x1, y0);
+			cairo_line_to (cr, x1, y1);
+			cairo_line_to (cr, x0, y1);
+			cairo_close_path (cr);
+
+			float x2 = x0 + indicator->config.style.hazardWidth + indicator->config.style.borderThickness;
+			float x3 = x1 - indicator->config.style.hazardWidth - indicator->config.style.borderThickness;
+
+			float xDelta = x2 - x0;
+			float yDelta = xDelta * indicator->config.style.hazardSlope;
+
+			for (float y2 = -yDelta; y2 < height; y2 += indicator->config.style.hazardHeight * 2)
+			{
+				float y3 = y2 + indicator->config.style.hazardHeight;
+
+				cairo_move_to (cr, x0, y2 - indicator->config.style.borderThickness / 2.0f);
+				cairo_line_to (cr, x0, y3 + indicator->config.style.borderThickness / 2.0f);
+				cairo_line_to (cr, x2, y3 + yDelta + indicator->config.style.borderThickness / 2.0f);
+				cairo_line_to (cr, x2, y2 + yDelta - indicator->config.style.borderThickness / 2.0f);
+				cairo_close_path (cr);
+
+				cairo_move_to (cr, x1, y2 - indicator->config.style.borderThickness / 2.0f);
+				cairo_line_to (cr, x3, y2 + yDelta - indicator->config.style.borderThickness / 2.0f);
+				cairo_line_to (cr, x3, y3 + yDelta + indicator->config.style.borderThickness / 2.0f);
+				cairo_line_to (cr, x1, y3 + indicator->config.style.borderThickness / 2.0f);
+				cairo_close_path (cr);
+			}
+
+			cairo_move_to (cr, x2, 0);
+			cairo_line_to (cr, x2, height);
 		}
 		break;
 	}
@@ -276,6 +318,9 @@ void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndica
 			.fontInvalidColor		= gdkHexToColor ("#FFFFFF"),
 			.padding				= 0,
 			.cornerRadius			= 0,
+			.hazardWidth			= 0,
+			.hazardHeight			= 0,
+			.hazardSlope			= 1,
 			.borderThickness		= 1.5,
 			.blinkInterval			= 0,
 		};
@@ -296,6 +341,8 @@ void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndica
 			style->shape = CAN_INDICATOR_CIRCLE;
 		else if (strcmp (shapeStr, "rect") == 0)
 			style->shape = CAN_INDICATOR_RECT;
+		else if (strcmp (shapeStr, "hazard_vert") == 0)
+			style->shape = CAN_INDICATOR_HAZARD_VERT;
 		else
 			debugPrintf ("Invalid CAN indicator shape '%s'.\n", shapeStr);
 	}
@@ -322,6 +369,9 @@ void canIndicatorLoadStyle (cJSON* config, canIndicatorStyle_t* style, canIndica
 
 	jsonGetInt (config, "padding", &style->padding);
 	jsonGetFloat (config, "cornerRadius", &style->cornerRadius);
+	jsonGetFloat (config, "hazardWidth", &style->hazardWidth);
+	jsonGetFloat (config, "hazardHeight", &style->hazardHeight);
+	jsonGetFloat (config, "hazardSlope", &style->hazardSlope);
 	jsonGetFloat (config, "borderThickness", &style->borderThickness);
 	jsonGetFloat (config, "blinkInterval", &style->blinkInterval);
 }

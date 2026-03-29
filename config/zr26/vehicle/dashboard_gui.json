@@ -31,14 +31,20 @@
 						"canIndicator":
 						{
 							"font":						"Futura Std Bold Condensed 32px",
-							"shape":					"rect",
+							"shape":					"hazard_vert",
 							"bgActiveColor":			"#FF0000",
 							"bgInvalidColor":			"#FF0000",
 							"bgInactiveColor":			"#580000",
+							"borderActiveColor":		"#FF0000",
+							"borderInvalidColor":		"#FF0000",
+							"borderInactiveColor":		"#580000",
 							"fontActiveColor":			"#000000",
 							"fontInvalidColor":			"#000000",
 							"fontInactiveColor":		"#000000",
-							"borderThickness":			"0"
+							"borderThickness":			"2",
+							"hazardWidth":				"18",
+							"hazardHeight":				"8",
+							"hazardSlope":				"0.67"
 						},
 						"canProgressBar":
 						{
@@ -282,14 +288,20 @@
 						"canIndicator":
 						{
 							"font":						"Futura Std Bold Condensed 32px",
-							"shape":					"rect",
+							"shape":					"hazard_vert",
 							"bgActiveColor":			"#FF0000",
 							"bgInvalidColor":			"#FF0000",
 							"bgInactiveColor":			"#580000",
+							"borderActiveColor":		"#FF0000",
+							"borderInvalidColor":		"#FF0000",
+							"borderInactiveColor":		"#580000",
 							"fontActiveColor":			"#000000",
 							"fontInvalidColor":			"#000000",
 							"fontInactiveColor":		"#000000",
-							"borderThickness":			"0"
+							"borderThickness":			"2",
+							"hazardWidth":				"18",
+							"hazardHeight":				"8",
+							"hazardSlope":				"0.67"
 						},
 						"canProgressBar":
 						{

@@ -28,7 +28,10 @@ typedef enum
 	CAN_INDICATOR_RECT,
 
 	/// @brief Indicator is a circle.
-	CAN_INDICATOR_CIRCLE
+	CAN_INDICATOR_CIRCLE,
+
+	/// @brief Indicator has vertical hazard markers.
+	CAN_INDICATOR_HAZARD_VERT
 } canIndicatorShape_t;
 
 typedef struct
@@ -71,6 +74,15 @@ typedef struct
 
 	/// @brief The radius of the shape's corners (if any), in pixels. Default 0.
 	float cornerRadius;
+
+	/// @brief The width of the shape's hazard markers (if any), in pixels. Default 0.
+	float hazardWidth;
+
+	/// @brief The height of the shape's hazard markers (if any), in pixels. Default 0.
+	float hazardHeight;
+
+	/// @brief The slope of the shape's hazard markers (if any), in pixels per pixel. Default 0.
+	float hazardSlope;
 
 	/// @brief The thickness of the shape's border, in pixels. Default 1.5.
 	float borderThickness;
