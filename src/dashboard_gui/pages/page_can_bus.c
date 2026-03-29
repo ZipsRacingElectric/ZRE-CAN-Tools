@@ -18,6 +18,59 @@ static void drawBg (GtkDrawingArea* area, cairo_t* cr, int width, int height, gp
 	gdk_cairo_set_source_rgba (cr, &page->style.baseStyle->backgroundColor);
 	cairo_rectangle (cr, 0, 0, width, height);
 	cairo_fill (cr);
+
+	graphene_rect_t bounds;
+	if (!gtk_widget_compute_bounds (STYLIZED_BUTTON_TO_WIDGET (page->dbcButton), GTK_WIDGET (area), &bounds))
+		bounds = *graphene_rect_zero ();
+
+	float x0 = 0;
+	float y0 = bounds.origin.y + page->style.baseStyle->borderThickness / 2.0f;
+
+	float x1 = bounds.origin.x + bounds.size.width;
+	float y1 = y0;
+
+	if (!gtk_widget_compute_bounds (STYLIZED_TERMINAL_TO_WIDGET (page->term), GTK_WIDGET (area), &bounds))
+		bounds = *graphene_rect_zero ();
+
+	float yDelta = y1 - bounds.origin.y - bounds.size.height;
+	float xDelta = x1 - x0;
+
+	float x2 = x1 + yDelta * page->style.decalSlope;
+	float y2 = y1 - yDelta;
+
+	float x3 = (x2 + x1) / 2.0f;
+	float y3 = (y2 + y1) / 2.0f;
+
+	float x4 = width;
+	float y4 = y3;
+
+	gdk_cairo_set_source_rgba (cr, &page->style.baseStyle->borderColor);
+	cairo_set_line_width (cr, page->style.baseStyle->borderThickness);
+
+	cairo_move_to (cr, x0, y0);
+	cairo_line_to (cr, x1, y1);
+	cairo_line_to (cr, x2, y2);
+	cairo_line_to (cr, x3, y3);
+	cairo_line_to (cr, x4, y4);
+
+	cairo_stroke (cr);
+
+	for (int index = 0; index < page->style.decalCount; ++index)
+	{
+		float x00 = index * xDelta / page->style.decalCount;
+		float x01 = x00 + xDelta / page->style.decalCount / 2;
+		float x02 = x01 + yDelta * page->style.decalSlope;
+		float x03 = x00 + yDelta * page->style.decalSlope;
+		float y00 = y0;
+		float y01 = y2;
+
+		cairo_move_to (cr, x00, y00);
+		cairo_line_to (cr, x01, y00);
+		cairo_line_to (cr, x02, y01);
+		cairo_line_to (cr, x03, y01);
+	}
+
+	cairo_fill (cr);
 }
 
 static void styleLoad (pageCanBusStyle_t* style, pageStyle_t* baseStyle, cJSON* config)
@@ -26,7 +79,9 @@ static void styleLoad (pageCanBusStyle_t* style, pageStyle_t* baseStyle, cJSON* 
 	{
 		.baseStyle					= baseStyle,
 		.terminalBackgroundColor	= gdkHexToColor ("#000000"),
-		.animationTime				= 0.5f
+		.animationTime				= 0.5f,
+		.decalSlope					= 1.5f,
+		.decalCount					= 4
 	};
 
 	if (config == NULL)
@@ -39,6 +94,8 @@ static void styleLoad (pageCanBusStyle_t* style, pageStyle_t* baseStyle, cJSON* 
 		style->terminalBackgroundColor = gdkHexToColor (color);
 
 	jsonGetFloat (config, "animationTime", &style->animationTime);
+	jsonGetFloat (config, "decalSlope", &style->decalSlope);
+	jsonGetInt (config, "decalCount", &style->decalCount);
 }
 
 static void appendButton (void* pageArg, const char* label, pageButtonCallback_t* callback, void* arg, bool currentPage, pageStyle_t* style)
@@ -284,23 +341,23 @@ page_t* pageCanBusLoad (cJSON* config, canDatabase_t* databases, size_t database
 	gtk_widget_set_margin_end (STYLIZED_TERMINAL_TO_WIDGET (page->term), 4);
 	stylizedFrameSetChild (frame, STYLIZED_TERMINAL_TO_WIDGET (page->term));
 
-	stylizedButton_t* dbcButton = stylizedButtonInit (dbcButtonCallback, page, &(stylizedButtonConfig_t)
+	page->dbcButton = stylizedButtonInit (dbcButtonCallback, page, &(stylizedButtonConfig_t)
 	{
-		.width				= 80,
+		.width				= 82,
 		.height				= 0,
 		.borderThickness	= page->style.baseStyle->borderThickness,
-		.label				= "DBC",
+		.label				= "↺",
 		.borderColor		= page->style.baseStyle->borderColor,
 		.backgroundColor	= page->style.baseStyle->backgroundColor,
 		.selectedColor		= page->style.baseStyle->borderColor,
 		.indicatorColor		= page->style.baseStyle->borderColor,
 		.useIndicator		= false
 	});
-	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (dbcButton), page->style.baseStyle->buttonFont);
-	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (dbcButton), 10);
-	gtk_widget_set_margin_bottom (STYLIZED_BUTTON_TO_WIDGET (dbcButton), 10);
-	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (dbcButton), 10);
-	gtk_grid_attach (GTK_GRID (page->grid), STYLIZED_BUTTON_TO_WIDGET (dbcButton), 0, 1, 1, 1);
+	gtkLabelSetFont (STYLIZED_BUTTON_TO_LABEL (page->dbcButton), page->style.baseStyle->buttonFont);
+	gtk_widget_set_margin_start (STYLIZED_BUTTON_TO_WIDGET (page->dbcButton), 8);
+	gtk_widget_set_margin_top (STYLIZED_BUTTON_TO_WIDGET (page->dbcButton), 8);
+	gtk_widget_set_margin_bottom (STYLIZED_BUTTON_TO_WIDGET (page->dbcButton), 10);
+	gtk_grid_attach (GTK_GRID (page->grid), STYLIZED_BUTTON_TO_WIDGET (page->dbcButton), 0, 1, 1, 1);
 
 	page->buttonCount = 0;
 	page->buttonPanel = gtk_grid_new ();

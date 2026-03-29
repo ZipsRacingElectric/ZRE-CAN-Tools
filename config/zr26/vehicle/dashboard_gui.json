@@ -990,10 +990,13 @@
 				{
 					"buttonFont":						"ITC Avant Garde Gothic CE Book 24px",
 					"borderColor":						"#00FFAA",
-					"fontColor":						"#00FFAA"
+					"fontColor":						"#00FFAA",
+					"borderThickness":					"2.0"
 				},
 				"terminalBackgroundColor":				"#001012",
-				"animationTime":						"0.5"
+				"animationTime":						"0.5",
+				"decalSlope":							"1.5",
+				"decalCount":							"4"
 			}
 		}
 

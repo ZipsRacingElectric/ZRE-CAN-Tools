@@ -12,6 +12,7 @@
 
 // Includes
 #include "page.h"
+#include "../stylized_widgets/stylized_button.h"
 #include "../stylized_widgets/stylized_terminal.h"
 #include "can_database/can_database.h"
 
@@ -26,6 +27,9 @@ typedef struct
 
 	GdkRGBA terminalBackgroundColor;
 	float animationTime;
+
+	float decalSlope;
+	int decalCount;
 } pageCanBusStyle_t;
 
 typedef struct
@@ -41,6 +45,7 @@ typedef struct
 	size_t buttonCount;
 
 	stylizedTerminal_t* term;
+	stylizedButton_t* dbcButton;
 
 	size_t dbcIndex;
 
