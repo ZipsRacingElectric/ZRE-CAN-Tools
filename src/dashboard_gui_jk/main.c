@@ -33,6 +33,9 @@ static struct {
     GtkWidget*  buttonPanel;     // Bottom nav button box      (used by Cairo)
     GtkWidget*  bseBar;          // BSE pedal bar drawing area
     GtkWidget*  appsBar;         // APPS pedal bar drawing area
+    GtkWidget*  stack;           // Root GtkStack (speed page / CAN bus page)
+    GtkLabel**  signalLabels;    // One value label per CAN signal (indexed by global index)
+    size_t      signalLabelCount;
     GtkLabel*   speedVal;        // Large center speed number
     GtkLabel*   loggerTitle;     // "LOGGER ON"
     GtkLabel*   loggerStat;      // "Session\nNo. 273"
@@ -439,6 +442,43 @@ static void draw_vert_bar(GtkDrawingArea* area, cairo_t* cr, int w, int h, gpoin
 }
 
 // ============================================================
+// Page switching
+// ============================================================
+
+static void switch_to_bms(GtkWidget* btn, gpointer data)
+{
+    (void)btn; (void)data;
+    gtk_stack_set_visible_child_name(GTK_STACK(ui.stack), "bms");
+}
+
+static void switch_to_speed(GtkWidget* btn, gpointer data)
+{
+    (void)btn; (void)data;
+    gtk_stack_set_visible_child_name(GTK_STACK(ui.stack), "speed");
+}
+
+// ============================================================
+// CAN bus page update — refreshes all signal value labels
+// ============================================================
+
+static gboolean update_can_page(gpointer unused)
+{
+    (void)unused;
+    for (size_t i = 0; i < ui.signalLabelCount; ++i) {
+        if (ui.signalLabels[i] == NULL)
+            continue;
+        float val = 0.0f;
+        char text[24];
+        if (canDatabaseGetFloat(&database, (ssize_t)i, &val) == CAN_DATABASE_VALID)
+            snprintf(text, sizeof(text), "%.4g", val);
+        else
+            snprintf(text, sizeof(text), "--");
+        gtk_label_set_text(ui.signalLabels[i], text);
+    }
+    return TRUE;
+}
+
+// ============================================================
 // activate() — build all widgets
 // ============================================================
 
@@ -488,9 +528,14 @@ static void activate(GtkApplication* app, gpointer title_ptr)
         GTK_STYLE_PROVIDER_PRIORITY_USER);
     g_object_unref(css);
 
-    /* ---- Root overlay: Cairo bg under grid ---- */
+    /* ---- Root stack: switches between speed page and CAN bus page ---- */
+    ui.stack = gtk_stack_new();
+    gtk_stack_set_transition_type(GTK_STACK(ui.stack), GTK_STACK_TRANSITION_TYPE_NONE);
+    gtk_window_set_child(GTK_WINDOW(window), ui.stack);
+
+    /* ---- Speed page: Cairo bg under grid ---- */
     GtkWidget* overlay = gtk_overlay_new();
-    gtk_window_set_child(GTK_WINDOW(window), overlay);
+    gtk_stack_add_named(GTK_STACK(ui.stack), overlay, "speed");
 
     ui.bg = gtk_drawing_area_new();
     gtk_drawing_area_set_draw_func(
@@ -670,11 +715,12 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     const char* btn_labels[] = {"SPEED", "LAP", "ENDR", "BMS", "BACK"};
     for (int i = 0; i < 5; ++i) {
         GtkWidget* btn = gtk_button_new_with_label(btn_labels[i]);
-        /* Style active/inactive pages */
         if (i == 0)
             gtk_widget_add_css_class(btn, "nav-btn-active");
         else
             gtk_widget_add_css_class(btn, "nav-btn");
+        if (i == 3)  /* BMS button → CAN bus page */
+            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_bms), NULL);
         gtk_box_append(GTK_BOX(ui.buttonPanel), btn);
     }
 
@@ -696,8 +742,95 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_grid_attach(GTK_GRID(ui.grid), appsLabel, 4, 4, 1, 1);
 
     /* ==========================================================
+       CAN bus page — scrollable signal list grouped by message
+       ========================================================== */
+    ui.signalLabelCount = database.signalCount;
+    ui.signalLabels = calloc(ui.signalLabelCount, sizeof(GtkLabel*));
+
+    GtkWidget* canPage = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_stack_add_named(GTK_STACK(ui.stack), canPage, "bms");
+
+    /* Header bar */
+    GtkWidget* canHeader = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+    gtk_widget_set_margin_start (canHeader, 8);
+    gtk_widget_set_margin_end   (canHeader, 8);
+    gtk_widget_set_margin_top   (canHeader, 6);
+    gtk_widget_set_margin_bottom(canHeader, 6);
+    gtk_box_append(GTK_BOX(canPage), canHeader);
+
+    GtkLabel* canTitle = make_label("CAN Bus Monitor", "Monospace Bold 13", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(canTitle, 0.0f);
+    gtk_widget_set_hexpand(GTK_WIDGET(canTitle), TRUE);
+    gtk_box_append(GTK_BOX(canHeader), GTK_WIDGET(canTitle));
+
+    GtkWidget* backBtn = gtk_button_new_with_label("BACK");
+    gtk_widget_add_css_class(backBtn, "nav-btn");
+    g_signal_connect(backBtn, "clicked", G_CALLBACK(switch_to_speed), NULL);
+    gtk_box_append(GTK_BOX(canHeader), backBtn);
+
+    /* Scrollable signal list */
+    GtkWidget* scroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    gtk_widget_set_vexpand(scroll, TRUE);
+    gtk_box_append(GTK_BOX(canPage), scroll);
+
+    GtkWidget* signalList = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_margin_start(signalList, 8);
+    gtk_widget_set_margin_end  (signalList, 8);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), signalList);
+
+    for (size_t mi = 0; mi < database.messageCount; ++mi) {
+        canMessage_t* msg = canDatabaseGetMessage(&database, (ssize_t)mi);
+        if (msg == NULL || msg->signalCount == 0) continue;
+
+        /* Message name as group header */
+        GtkLabel* msgHdr = make_label(msg->name, "Monospace Bold 10", 0.70f, 0.85f, 1.0f);
+        gtk_label_set_xalign(msgHdr, 0.0f);
+        gtk_widget_set_margin_top   (GTK_WIDGET(msgHdr), 8);
+        gtk_widget_set_margin_bottom(GTK_WIDGET(msgHdr), 2);
+        gtk_box_append(GTK_BOX(signalList), GTK_WIDGET(msgHdr));
+
+        GtkWidget* sep = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+        gtk_box_append(GTK_BOX(signalList), sep);
+
+        for (size_t si = 0; si < msg->signalCount; ++si) {
+            canSignal_t* sig = &msg->signals[si];
+            size_t gi = (size_t)canDatabaseGetGlobalIndex(&database, mi, si);
+
+            GtkWidget* row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+            gtk_widget_set_margin_start(row, 12);
+            gtk_box_append(GTK_BOX(signalList), row);
+
+            /* Signal name (expands to fill) */
+            GtkLabel* nameLbl = make_label(sig->name, "Monospace 9", 0.80f, 0.80f, 0.80f);
+            gtk_label_set_xalign(nameLbl, 0.0f);
+            gtk_widget_set_hexpand(GTK_WIDGET(nameLbl), TRUE);
+            gtk_box_append(GTK_BOX(row), GTK_WIDGET(nameLbl));
+
+            /* Unit */
+            if (sig->unit && sig->unit[0] != '\0') {
+                GtkLabel* unitLbl = make_label(sig->unit, "Monospace 9", 0.55f, 0.55f, 0.55f);
+                gtk_label_set_xalign(unitLbl, 1.0f);
+                gtk_widget_set_margin_end(GTK_WIDGET(unitLbl), 4);
+                gtk_box_append(GTK_BOX(row), GTK_WIDGET(unitLbl));
+            }
+
+            /* Value (fixed width so column stays aligned) */
+            GtkLabel* valLbl = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+            gtk_label_set_xalign(valLbl, 1.0f);
+            gtk_widget_set_size_request(GTK_WIDGET(valLbl), 80, -1);
+            gtk_box_append(GTK_BOX(row), GTK_WIDGET(valLbl));
+
+            if (gi < ui.signalLabelCount)
+                ui.signalLabels[gi] = valLbl;
+        }
+    }
+
+    /* ==========================================================
        CAN update timers at ~30 fps
        ========================================================== */
+    g_timeout_add(33, G_SOURCE_FUNC(update_can_page),     NULL);
     g_timeout_add(33, G_SOURCE_FUNC(update_bse_bar),      ui.bseBar);
     g_timeout_add(33, G_SOURCE_FUNC(update_apps_bar),     ui.appsBar);
     g_timeout_add(33, G_SOURCE_FUNC(update_speed),        ui.speedVal);
