@@ -92,16 +92,18 @@ static gboolean update_speed(GtkLabel* label)
 
 static gboolean update_logger_title(GtkLabel* label)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "LOGGER_STATUS");
+    ssize_t idx = canDatabaseFindSignal(&database, "SESSION_NUMBER");
     float val = 0.0f;
     if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
         gtk_label_set_text(label, val > 0.5f ? "LOGGER ON" : "LOGGER OFF");
     return TRUE;
+
+    //IF session number is a actiuall number then sesstion number is on. otherwise off
 }
 
 static gboolean update_logger_stat(GtkLabel* label)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "LOGGER_SESSION");
+    ssize_t idx = canDatabaseFindSignal(&database, "SESSION_NUMBER");
     float val = 0.0f;
     char text[32] = "Session\n--";
     if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
