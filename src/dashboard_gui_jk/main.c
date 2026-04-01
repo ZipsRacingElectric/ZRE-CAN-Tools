@@ -45,6 +45,8 @@ static struct {
     GtkLabel*   energyDelivered;
     GtkLabel**  signalLabels;    // One value label per CAN signal (indexed by global index)
     size_t      signalLabelCount;
+    GtkLabel*   cellVoltLabels[144]; // One value label per cell voltage (indexed 0-143)
+    ssize_t     cellVoltIdx[144];    // Pre-cached signal indices for CELL_VOLTAGE_0..143
     GtkLabel*   speedVal;        // Large center speed number
     GtkLabel*   loggerTitle;     // "LOGGER OFF"
     GtkLabel*   loggerStat;      // "Session\nNo. 273"
@@ -435,6 +437,12 @@ static void draw_vert_bar(GtkDrawingArea* area, cairo_t* cr, int w, int h, gpoin
 // Page switching
 // ============================================================
 
+static void switch_to_bms(GtkWidget* btn, gpointer data)
+{
+    (void)btn; (void)data;
+    gtk_stack_set_visible_child_name(GTK_STACK(ui.stack), "bms");
+}
+
 static void switch_to_can(GtkWidget* btn, gpointer data)
 {
     (void)btn; (void)data;
@@ -559,6 +567,23 @@ static gboolean update_can_page(gpointer unused)
     return TRUE;
 }
 
+static gboolean update_bms_volt_page(gpointer unused)
+{
+    (void)unused;
+    for (int c = 0; c < 144; ++c) {
+        if (ui.cellVoltLabels[c] == NULL) continue;
+        float val = 0.0f;
+        char text[12];
+        if (ui.cellVoltIdx[c] >= 0 &&
+            canDatabaseGetFloat(&database, ui.cellVoltIdx[c], &val) == CAN_DATABASE_VALID)
+            snprintf(text, sizeof(text), "%.3fV", val);
+        else
+            snprintf(text, sizeof(text), "--");
+        gtk_label_set_text(ui.cellVoltLabels[c], text);
+    }
+    return TRUE;
+}
+
 // ============================================================
 // activate() — build all widgets
 // ============================================================
@@ -601,6 +626,11 @@ static void activate(GtkApplication* app, gpointer title_ptr)
         "  background: #000000;"
         "  border: 2px solid #000000;"
         "  border-radius: 4px;"
+        "}"
+        ".cell-tile {"
+        "  background: #111111;"
+        "  border: 1px solid #333333;"
+        "  border-radius: 2px;"
         "}"
         , -1);
     gtk_style_context_add_provider_for_display(
@@ -802,6 +832,8 @@ static void activate(GtkApplication* app, gpointer title_ptr)
             gtk_widget_add_css_class(btn, "nav-btn");
         if (i == 1)  /* ENDR button → endurance page */
             g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_endr), NULL);
+        if (i == 2)  /* BMS button → BMS cell voltage page */
+            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_bms), NULL);
         if (i == 3)  /* CAN button → CAN bus page */
             g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_can), NULL);
         gtk_box_append(GTK_BOX(ui.buttonPanel), btn);
@@ -1021,6 +1053,8 @@ static void activate(GtkApplication* app, gpointer title_ptr)
             gtk_widget_add_css_class(btn, "nav-btn");
         if (i == 0)
             g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_speed), NULL);
+        if (i == 2)
+            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_bms), NULL);
         if (i == 3)
             g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_can), NULL);
         gtk_box_append(GTK_BOX(endrBtnPanel), btn);
@@ -1140,8 +1174,99 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     }
 
     /* ==========================================================
+       BMS cell voltage page — 12×12 grid of CELL_VOLTAGE_0..143
+       ========================================================== */
+
+    /* Pre-cache signal indices so the update loop is fast */
+    for (int c = 0; c < 144; ++c) {
+        char name[24];
+        snprintf(name, sizeof(name), "CELL_VOLTAGE_%d", c);
+        ui.cellVoltIdx[c]    = canDatabaseFindSignal(&database, name);
+        ui.cellVoltLabels[c] = NULL;
+    }
+
+    GtkWidget* bmsPage = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_stack_add_named(GTK_STACK(ui.stack), bmsPage, "bms");
+
+    /* Header bar */
+    GtkWidget* bmsHeader = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+    gtk_widget_set_margin_start (bmsHeader, 8);
+    gtk_widget_set_margin_end   (bmsHeader, 8);
+    gtk_widget_set_margin_top   (bmsHeader, 6);
+    gtk_widget_set_margin_bottom(bmsHeader, 4);
+    gtk_box_append(GTK_BOX(bmsPage), bmsHeader);
+
+    GtkLabel* bmsPageTitle = make_label("BMS Cell Voltages", "Monospace Bold 13", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(bmsPageTitle, 0.0f);
+    gtk_widget_set_hexpand(GTK_WIDGET(bmsPageTitle), TRUE);
+    gtk_box_append(GTK_BOX(bmsHeader), GTK_WIDGET(bmsPageTitle));
+
+    GtkWidget* bmsBtnPanel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+    gtk_box_append(GTK_BOX(bmsHeader), bmsBtnPanel);
+
+    GtkWidget* bmsBackBtn = gtk_button_new_with_label("BACK");
+    gtk_widget_add_css_class(bmsBackBtn, "nav-btn");
+    g_signal_connect(bmsBackBtn, "clicked", G_CALLBACK(switch_to_speed), NULL);
+    gtk_box_append(GTK_BOX(bmsBtnPanel), bmsBackBtn);
+
+    GtkWidget* bmsToCanBtn = gtk_button_new_with_label("CAN");
+    gtk_widget_add_css_class(bmsToCanBtn, "nav-btn");
+    g_signal_connect(bmsToCanBtn, "clicked", G_CALLBACK(switch_to_can), NULL);
+    gtk_box_append(GTK_BOX(bmsBtnPanel), bmsToCanBtn);
+
+    GtkWidget* bmsHdrSep = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+    gtk_box_append(GTK_BOX(bmsPage), bmsHdrSep);
+
+    GtkWidget* bmsScroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(bmsScroll),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    gtk_widget_set_vexpand(bmsScroll, TRUE);
+    gtk_box_append(GTK_BOX(bmsPage), bmsScroll);
+
+    GtkWidget* cellGrid = gtk_grid_new();
+    gtk_grid_set_row_spacing   (GTK_GRID(cellGrid), 2);
+    gtk_grid_set_column_spacing(GTK_GRID(cellGrid), 2);
+    gtk_widget_set_margin_top   (cellGrid, 4);
+    gtk_widget_set_margin_bottom(cellGrid, 4);
+    gtk_widget_set_margin_start (cellGrid, 4);
+    gtk_widget_set_margin_end   (cellGrid, 4);
+    gtk_widget_set_hexpand(cellGrid, TRUE);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(bmsScroll), cellGrid);
+
+    for (int c = 0; c < 144; ++c) {
+        int col = c % 12;
+        int row = c / 12;
+
+        GtkWidget* tile = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+        gtk_widget_add_css_class(tile, "cell-tile");
+        gtk_widget_set_margin_top   (tile, 1);
+        gtk_widget_set_margin_bottom(tile, 1);
+        gtk_widget_set_margin_start (tile, 1);
+        gtk_widget_set_margin_end   (tile, 1);
+        gtk_widget_set_hexpand(tile, TRUE);
+        gtk_widget_set_size_request(tile, 60, 34);
+
+        char idxText[8];
+        snprintf(idxText, sizeof(idxText), "C%d", c);
+        GtkLabel* idxLbl = make_label(idxText, "Monospace 7", 0.55f, 0.55f, 0.55f);
+        gtk_label_set_xalign(idxLbl, 0.5f);
+        gtk_widget_set_margin_top(GTK_WIDGET(idxLbl), 2);
+        gtk_box_append(GTK_BOX(tile), GTK_WIDGET(idxLbl));
+
+        GtkLabel* voltLbl = make_label("--", "Monospace Bold 9",
+                                       0.957f, 0.576f, 0.118f);
+        gtk_label_set_xalign(voltLbl, 0.5f);
+        gtk_widget_set_margin_bottom(GTK_WIDGET(voltLbl), 2);
+        gtk_box_append(GTK_BOX(tile), GTK_WIDGET(voltLbl));
+
+        gtk_grid_attach(GTK_GRID(cellGrid), tile, col, row, 1, 1);
+        ui.cellVoltLabels[c] = voltLbl;
+    }
+
+    /* ==========================================================
        CAN update timers at ~30 fps
        ========================================================== */
+    g_timeout_add(33, G_SOURCE_FUNC(update_bms_volt_page), NULL);
     g_timeout_add(33, G_SOURCE_FUNC(update_can_page),     NULL);
     g_timeout_add(33, G_SOURCE_FUNC(update_bse_bar),      ui.bseBar);
     g_timeout_add(33, G_SOURCE_FUNC(update_apps_bar),     ui.appsBar);
