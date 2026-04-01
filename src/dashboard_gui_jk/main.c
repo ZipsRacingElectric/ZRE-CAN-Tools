@@ -33,11 +33,20 @@ static struct {
     GtkWidget*  buttonPanel;     // Bottom nav button box      (used by Cairo)
     GtkWidget*  bseBar;          // BSE pedal bar drawing area
     GtkWidget*  appsBar;         // APPS pedal bar drawing area
-    GtkWidget*  stack;           // Root GtkStack (speed page / CAN bus page)
+    GtkWidget*  stack;           // Root GtkStack (speed / endr / CAN pages)
+    /* Endurance page widget refs (mirror of speed page for Cairo bg) */
+    GtkWidget*  endrGrid;
+    GtkWidget*  endrDataLoggerPanel;
+    GtkWidget*  endrRightPanel;
+    GtkWidget*  endrBseBar;
+    GtkWidget*  endrAppsBar;
+    GtkLabel*   packVoltage;
+    GtkLabel*   powerAvg;
+    GtkLabel*   energyDelivered;
     GtkLabel**  signalLabels;    // One value label per CAN signal (indexed by global index)
     size_t      signalLabelCount;
     GtkLabel*   speedVal;        // Large center speed number
-    GtkLabel*   loggerTitle;     // "LOGGER ON"
+    GtkLabel*   loggerTitle;     // "LOGGER OFF"
     GtkLabel*   loggerStat;      // "Session\nNo. 273"
     GtkLabel*   bmsMax;
     GtkLabel*   bmsAvg;
@@ -305,8 +314,7 @@ static gboolean update_apps_bar(GtkWidget* area)
 //   2. Red→dark→green horizontal gradient over the grid area
 //   3. Horizontal border lines (top / bottom of grid area)
 //   4. Tick-mark decals along the top border
-//   5. Slanted divider from data-logger bottom-right to velocity-title
-//   6. Bordered rectangle around the right BMS/VCU/AMK panel
+//   5. Bordered rectangle around the right BMS/VCU/AMK panel
 // ============================================================
 
 static void draw_tick_row(cairo_t* cr, float x0, float x1, float y, int n, bool downward)
@@ -381,26 +389,6 @@ static void draw_background(GtkDrawingArea* area, cairo_t* cr,
     int   tick_count  = (int)(tick_span_x / 25.0f) + 1;
     draw_tick_row(cr, xGMin + margin, xGMax - margin, yGMin, tick_count, true);
 
-    /* ---- 5. Slanted divider: data-logger → velocity title ---- */
-    if (ui.dataLoggerPanel && ui.velocityTitle) {
-        graphene_rect_t dlB, vtB;
-        bool hasDl = gtk_widget_compute_bounds(ui.dataLoggerPanel, GTK_WIDGET(area), &dlB);
-        bool hasVt = gtk_widget_compute_bounds(ui.velocityTitle,   GTK_WIDGET(area), &vtB);
-
-        if (hasDl && hasVt) {
-            float x0 = dlB.origin.x + dlB.size.width;
-            float y0 = dlB.origin.y + dlB.size.height;
-            float x1 = vtB.origin.x;
-            float y1 = vtB.origin.y;
-
-            cairo_set_source_rgba(cr, 0.55f, 0.55f, 0.55f, 1.0f);
-            cairo_set_line_width(cr, 1.0f);
-            cairo_move_to(cr, x0, y0);
-            cairo_line_to(cr, x1, y1);
-            cairo_stroke(cr);
-        }
-    }
-
     /* ---- 6. Bordered rectangle around the right BMS/VCU/AMK panel ---- */
     if (ui.rightPanel && gtk_widget_compute_bounds(ui.rightPanel, GTK_WIDGET(area), &b)) {
         float pad = 5.0f;
@@ -447,16 +435,107 @@ static void draw_vert_bar(GtkDrawingArea* area, cairo_t* cr, int w, int h, gpoin
 // Page switching
 // ============================================================
 
-static void switch_to_bms(GtkWidget* btn, gpointer data)
+static void switch_to_can(GtkWidget* btn, gpointer data)
 {
     (void)btn; (void)data;
-    gtk_stack_set_visible_child_name(GTK_STACK(ui.stack), "bms");
+    gtk_stack_set_visible_child_name(GTK_STACK(ui.stack), "can");
+}
+
+static void switch_to_endr(GtkWidget* btn, gpointer data)
+{
+    (void)btn; (void)data;
+    gtk_stack_set_visible_child_name(GTK_STACK(ui.stack), "endr");
 }
 
 static void switch_to_speed(GtkWidget* btn, gpointer data)
 {
     (void)btn; (void)data;
     gtk_stack_set_visible_child_name(GTK_STACK(ui.stack), "speed");
+}
+
+// ============================================================
+// Endurance page Cairo background (same decorations as speed
+// page but referencing endr-specific widget pointers)
+// ============================================================
+
+static void draw_endr_background(GtkDrawingArea* area, cairo_t* cr,
+                                  int width, int height, gpointer user_data)
+{
+    (void)user_data;
+    (void)area;
+
+    graphene_rect_t b;
+    float xGMin = 0.0f, yGMin = 0.0f, xGMax = (float)width, yGMax = (float)height;
+
+    if (ui.endrGrid && gtk_widget_compute_bounds(ui.endrGrid, GTK_WIDGET(area), &b)) {
+        xGMin = b.origin.x;
+        yGMin = b.origin.y;
+        xGMax = b.origin.x + b.size.width;
+        yGMax = b.origin.y + b.size.height;
+    }
+    if (ui.endrRightPanel && gtk_widget_compute_bounds(ui.endrRightPanel, GTK_WIDGET(area), &b))
+        xGMax = b.origin.x + b.size.width;
+
+    cairo_set_source_rgba(cr, 0.55f, 0.55f, 0.55f, 1.0f);
+    cairo_set_line_width(cr, 1.0f);
+    cairo_move_to(cr, xGMin, yGMin);
+    cairo_line_to(cr, xGMax, yGMin);
+    cairo_stroke(cr);
+    cairo_move_to(cr, xGMin, yGMax);
+    cairo_line_to(cr, xGMax, yGMax);
+    cairo_stroke(cr);
+
+    float margin     = 15.0f;
+    float tick_span  = xGMax - xGMin - margin * 2.0f;
+    int   tick_count = (int)(tick_span / 25.0f) + 1;
+    draw_tick_row(cr, xGMin + margin, xGMax - margin, yGMin, tick_count, true);
+
+    if (ui.endrRightPanel && gtk_widget_compute_bounds(ui.endrRightPanel, GTK_WIDGET(area), &b)) {
+        float pad = 5.0f;
+        cairo_set_source_rgba(cr, 0.55f, 0.55f, 0.55f, 1.0f);
+        cairo_set_line_width(cr, 1.0f);
+        cairo_rectangle(cr,
+            b.origin.x - pad, b.origin.y - pad,
+            b.size.width + pad * 2.0f, b.size.height + pad * 2.0f);
+        cairo_stroke(cr);
+    }
+}
+
+// ============================================================
+// Endurance page CAN update callbacks
+// ============================================================
+
+static gboolean update_pack_voltage(GtkLabel* label)
+{
+    ssize_t idx = canDatabaseFindSignal(&database, "PACK_VOLTAGE");
+    float val = 0.0f;
+    char text[16] = "--";
+    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
+        snprintf(text, sizeof(text), "%.1f", val);
+    gtk_label_set_text(label, text);
+    return TRUE;
+}
+
+static gboolean update_power_avg(GtkLabel* label)
+{
+    ssize_t idx = canDatabaseFindSignal(&database, "POWER_ROLLING_AVERAGE");
+    float val = 0.0f;
+    char text[16] = "--";
+    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
+        snprintf(text, sizeof(text), "%.1f", val);
+    gtk_label_set_text(label, text);
+    return TRUE;
+}
+
+static gboolean update_energy_delivered(GtkLabel* label)
+{
+    ssize_t idx = canDatabaseFindSignal(&database, "ENERGY_DELIVERED");
+    float val = 0.0f;
+    char text[16] = "--";
+    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
+        snprintf(text, sizeof(text), "%.2f", val);
+    gtk_label_set_text(label, text);
+    return TRUE;
 }
 
 // ============================================================
@@ -581,7 +660,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_widget_set_valign(ui.dataLoggerPanel, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(ui.grid), ui.dataLoggerPanel, 1, 0, 1, 1);
 
-    ui.loggerTitle = make_label("LOGGER ON", "Monospace Bold 13", 1.0f, 1.0f, 1.0f);
+    ui.loggerTitle = make_label("LOGGER OFF", "Monospace Bold 13", 1.0f, 1.0f, 1.0f);
     gtk_label_set_xalign(ui.loggerTitle, 0.0f);
     gtk_grid_attach(GTK_GRID(ui.dataLoggerPanel), GTK_WIDGET(ui.loggerTitle), 0, 0, 1, 1);
 
@@ -714,15 +793,17 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_box_set_homogeneous(GTK_BOX(ui.buttonPanel), TRUE);
     gtk_grid_attach(GTK_GRID(ui.grid), ui.buttonPanel, 1, 4, 3, 1);
 
-    const char* btn_labels[] = {"SPEED", "LAP", "ENDR", "BMS", "BACK"};
+    const char* btn_labels[] = {"SPEED", "ENDR", "BMS", "CAN", "BACK"};
     for (int i = 0; i < 5; ++i) {
         GtkWidget* btn = gtk_button_new_with_label(btn_labels[i]);
         if (i == 0)
             gtk_widget_add_css_class(btn, "nav-btn-active");
         else
             gtk_widget_add_css_class(btn, "nav-btn");
-        if (i == 3)  /* BMS button → CAN bus page */
-            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_bms), NULL);
+        if (i == 1)  /* ENDR button → endurance page */
+            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_endr), NULL);
+        if (i == 3)  /* CAN button → CAN bus page */
+            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_can), NULL);
         gtk_box_append(GTK_BOX(ui.buttonPanel), btn);
     }
 
@@ -744,13 +825,242 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_grid_attach(GTK_GRID(ui.grid), appsLabel, 4, 4, 1, 1);
 
     /* ==========================================================
+       Endurance page — mirrors speed page layout, center box
+       shows PACK_VOLTAGE / POWER_ROLLING_AVERAGE / ENERGY_DELIVERED
+       ========================================================== */
+    GtkWidget* endrOverlay = gtk_overlay_new();
+    gtk_stack_add_named(GTK_STACK(ui.stack), endrOverlay, "endr");
+
+    GtkWidget* endrBg = gtk_drawing_area_new();
+    gtk_drawing_area_set_draw_func(
+        GTK_DRAWING_AREA(endrBg), draw_endr_background, NULL, NULL);
+    gtk_overlay_set_child(GTK_OVERLAY(endrOverlay), endrBg);
+
+    ui.endrGrid = gtk_grid_new();
+    gtk_widget_set_margin_top   (ui.endrGrid, 8);
+    gtk_widget_set_margin_bottom(ui.endrGrid, 8);
+    gtk_widget_set_margin_start (ui.endrGrid, 4);
+    gtk_widget_set_margin_end   (ui.endrGrid, 4);
+    gtk_widget_set_hexpand(ui.endrGrid, TRUE);
+    gtk_widget_set_vexpand(ui.endrGrid, TRUE);
+    gtk_overlay_add_overlay(GTK_OVERLAY(endrOverlay), ui.endrGrid);
+    gtk_overlay_set_measure_overlay(GTK_OVERLAY(endrOverlay), ui.endrGrid, TRUE);
+
+    /* Col 0 — BSE bar */
+    ui.endrBseBar = gtk_drawing_area_new();
+    gtk_drawing_area_set_draw_func(
+        GTK_DRAWING_AREA(ui.endrBseBar), draw_vert_bar, (gpointer)&bseData, NULL);
+    gtk_widget_set_size_request(ui.endrBseBar, 10, -1);
+    gtk_widget_set_vexpand(ui.endrBseBar, TRUE);
+    gtk_widget_set_margin_end(ui.endrBseBar, 6);
+    gtk_grid_attach(GTK_GRID(ui.endrGrid), ui.endrBseBar, 0, 0, 1, 4);
+
+    GtkWidget* endrBseLbl = GTK_WIDGET(make_label("BSE", "Monospace 7", 0.7f, 0.7f, 0.7f));
+    gtk_widget_add_css_class(endrBseLbl, "rotated-label");
+    gtk_widget_set_margin_bottom(endrBseLbl, 4);
+    gtk_widget_set_valign(endrBseLbl, GTK_ALIGN_END);
+    gtk_grid_attach(GTK_GRID(ui.endrGrid), endrBseLbl, 0, 4, 1, 1);
+
+    /* Col 1, Row 0 — data logger panel */
+    ui.endrDataLoggerPanel = gtk_grid_new();
+    gtk_widget_set_margin_top  (ui.endrDataLoggerPanel, 12);
+    gtk_widget_set_margin_start(ui.endrDataLoggerPanel, 8);
+    gtk_widget_set_valign(ui.endrDataLoggerPanel, GTK_ALIGN_START);
+    gtk_grid_attach(GTK_GRID(ui.endrGrid), ui.endrDataLoggerPanel, 1, 0, 1, 1);
+
+    GtkLabel* endrLogTitle = make_label("LOGGER OFF", "Monospace Bold 13", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(endrLogTitle, 0.0f);
+    gtk_grid_attach(GTK_GRID(ui.endrDataLoggerPanel), GTK_WIDGET(endrLogTitle), 0, 0, 1, 1);
+
+    GtkLabel* endrLogStat = make_label("Session\n--", "Monospace 8", 0.75f, 0.75f, 0.75f);
+    gtk_label_set_xalign(endrLogStat, 0.0f);
+    gtk_widget_set_margin_top(GTK_WIDGET(endrLogStat), 2);
+    gtk_grid_attach(GTK_GRID(ui.endrDataLoggerPanel), GTK_WIDGET(endrLogStat), 0, 1, 1, 1);
+
+    /* Cols 2-3, Rows 1-3 — black box: 3 stacked energy signals */
+    GtkWidget* endrMainBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_add_css_class(endrMainBox, "speed-box");
+    gtk_widget_set_hexpand(endrMainBox, TRUE);
+    gtk_widget_set_vexpand(endrMainBox, TRUE);
+    gtk_grid_attach(GTK_GRID(ui.endrGrid), endrMainBox, 2, 1, 2, 3);
+
+    /* Left side: 3 signal sections stacked vertically */
+    GtkWidget* endrSignalBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_hexpand(endrSignalBox, TRUE);
+    gtk_widget_set_vexpand(endrSignalBox, TRUE);
+    gtk_box_append(GTK_BOX(endrMainBox), endrSignalBox);
+
+    /* Helper: each signal section = title + value, sharing vertical space */
+    struct { const char* title; const char* unit; GtkLabel** dest; } endr_signals[] = {
+        { "Pack Voltage",        "V",   &ui.packVoltage     },
+        { "Power Rolling Avg",   "kW",  &ui.powerAvg        },
+        { "Energy Delivered",    "kWh", &ui.energyDelivered },
+    };
+    for (int si = 0; si < 3; ++si) {
+        GtkWidget* section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+        gtk_widget_set_vexpand(section, TRUE);
+        gtk_widget_set_hexpand(section, TRUE);
+        gtk_box_append(GTK_BOX(endrSignalBox), section);
+
+        /* Title row: signal name + unit */
+        GtkWidget* titleRow = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+        gtk_widget_set_halign(titleRow, GTK_ALIGN_CENTER);
+        gtk_widget_set_margin_top(titleRow, 4);
+        gtk_box_append(GTK_BOX(section), titleRow);
+
+        GtkLabel* titleLbl = make_label(endr_signals[si].title,
+                                        "Monospace 10", 0.70f, 0.70f, 0.70f);
+        gtk_box_append(GTK_BOX(titleRow), GTK_WIDGET(titleLbl));
+
+        GtkLabel* unitLbl = make_label(endr_signals[si].unit,
+                                       "Monospace 10", 0.50f, 0.50f, 0.50f);
+        gtk_box_append(GTK_BOX(titleRow), GTK_WIDGET(unitLbl));
+
+        /* Value — large, centered, Technology Bold */
+        *endr_signals[si].dest = make_label("--", "Technology Bold 48",
+                                             0.957f, 0.576f, 0.118f);
+        gtk_label_set_xalign(*endr_signals[si].dest, 0.5f);
+        gtk_widget_set_halign(GTK_WIDGET(*endr_signals[si].dest), GTK_ALIGN_CENTER);
+        gtk_widget_set_valign(GTK_WIDGET(*endr_signals[si].dest), GTK_ALIGN_CENTER);
+        gtk_widget_set_vexpand(GTK_WIDGET(*endr_signals[si].dest), TRUE);
+        gtk_box_append(GTK_BOX(section), GTK_WIDGET(*endr_signals[si].dest));
+
+        /* Separator between sections (skip after last) */
+        if (si < 2) {
+            GtkWidget* div = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+            gtk_box_append(GTK_BOX(endrSignalBox), div);
+        }
+    }
+
+    /* Right side: BMS / VCU / AMK (same content as speed page) */
+    ui.endrRightPanel = gtk_grid_new();
+    gtk_widget_set_margin_start(ui.endrRightPanel, 8);
+    gtk_widget_set_margin_end  (ui.endrRightPanel, 8);
+    gtk_widget_set_valign(ui.endrRightPanel, GTK_ALIGN_CENTER);
+    gtk_widget_set_vexpand(ui.endrRightPanel, TRUE);
+    gtk_grid_set_row_spacing(GTK_GRID(ui.endrRightPanel), 1);
+    gtk_box_append(GTK_BOX(endrMainBox), ui.endrRightPanel);
+
+    int er = 0;
+
+    GtkLabel* endrBmsTitle = make_label("BMS", "Monospace Bold 11", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(endrBmsTitle, 0.5f);
+    gtk_widget_set_hexpand(GTK_WIDGET(endrBmsTitle), TRUE);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(endrBmsTitle), 2);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsTitle), 0, er++, 2, 1);
+
+    GtkLabel* endrBmsMaxLbl = make_label("MAX:", "Monospace 9", 0.55f, 0.55f, 0.55f);
+    gtk_label_set_xalign(endrBmsMaxLbl, 0.0f);
+    gtk_widget_set_margin_start(GTK_WIDGET(endrBmsMaxLbl), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsMaxLbl), 0, er, 1, 1);
+    GtkLabel* endrBmsMax = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(endrBmsMax, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(endrBmsMax), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsMax), 1, er++, 1, 1);
+
+    GtkLabel* endrBmsAvgLbl = make_label("AVG:", "Monospace 9", 0.55f, 0.55f, 0.55f);
+    gtk_label_set_xalign(endrBmsAvgLbl, 0.0f);
+    gtk_widget_set_margin_start(GTK_WIDGET(endrBmsAvgLbl), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsAvgLbl), 0, er, 1, 1);
+    GtkLabel* endrBmsAvg = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(endrBmsAvg, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(endrBmsAvg), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsAvg), 1, er++, 1, 1);
+
+    GtkWidget* endrSp1 = gtk_label_new(""); gtk_widget_set_size_request(endrSp1, 0, 8);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), endrSp1, 0, er++, 2, 1);
+
+    GtkLabel* endrVcuTitle = make_label("VCU", "Monospace Bold 11", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(endrVcuTitle, 0.5f);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(endrVcuTitle), 2);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrVcuTitle), 0, er++, 2, 1);
+    GtkLabel* endrVcuFaults = make_label("No faults", "Monospace 9", 0.75f, 0.75f, 0.75f);
+    gtk_label_set_xalign(endrVcuFaults, 0.5f);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrVcuFaults), 0, er++, 2, 1);
+
+    GtkWidget* endrSp2 = gtk_label_new(""); gtk_widget_set_size_request(endrSp2, 0, 8);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), endrSp2, 0, er++, 2, 1);
+
+    GtkLabel* endrAmkTitle = make_label("AMK", "Monospace Bold 11", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(endrAmkTitle, 0.5f);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(endrAmkTitle), 2);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrAmkTitle), 0, er++, 2, 1);
+
+    GtkLabel* endrMtrLbl = make_label("MTR:", "Monospace 9", 0.55f, 0.55f, 0.55f);
+    gtk_label_set_xalign(endrMtrLbl, 0.0f);
+    gtk_widget_set_margin_start(GTK_WIDGET(endrMtrLbl), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrMtrLbl), 0, er, 1, 1);
+    GtkLabel* endrMtrTemp = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(endrMtrTemp, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(endrMtrTemp), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrMtrTemp), 1, er++, 1, 1);
+
+    GtkLabel* endrInvLbl = make_label("INV:", "Monospace 9", 0.55f, 0.55f, 0.55f);
+    gtk_label_set_xalign(endrInvLbl, 0.0f);
+    gtk_widget_set_margin_start(GTK_WIDGET(endrInvLbl), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrInvLbl), 0, er, 1, 1);
+    GtkLabel* endrInvTemp = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(endrInvTemp, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(endrInvTemp), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrInvTemp), 1, er++, 1, 1);
+
+    /* Row 4 — nav buttons (ENDR active) */
+    GtkWidget* endrBtnPanel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    gtk_widget_set_margin_top   (endrBtnPanel, 12);
+    gtk_widget_set_margin_bottom(endrBtnPanel, 4);
+    gtk_widget_set_margin_start (endrBtnPanel, 4);
+    gtk_box_set_homogeneous(GTK_BOX(endrBtnPanel), TRUE);
+    gtk_grid_attach(GTK_GRID(ui.endrGrid), endrBtnPanel, 1, 4, 3, 1);
+
+    const char* endr_btn_labels[] = {"SPEED", "ENDR", "BMS", "CAN", "BACK"};
+    for (int i = 0; i < 5; ++i) {
+        GtkWidget* btn = gtk_button_new_with_label(endr_btn_labels[i]);
+        if (i == 1)
+            gtk_widget_add_css_class(btn, "nav-btn-active");
+        else
+            gtk_widget_add_css_class(btn, "nav-btn");
+        if (i == 0)
+            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_speed), NULL);
+        if (i == 3)
+            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_can), NULL);
+        gtk_box_append(GTK_BOX(endrBtnPanel), btn);
+    }
+
+    /* Col 4 — APPS bar */
+    ui.endrAppsBar = gtk_drawing_area_new();
+    gtk_drawing_area_set_draw_func(
+        GTK_DRAWING_AREA(ui.endrAppsBar), draw_vert_bar, (gpointer)&appsData, NULL);
+    gtk_widget_set_size_request(ui.endrAppsBar, 10, -1);
+    gtk_widget_set_vexpand(ui.endrAppsBar, TRUE);
+    gtk_widget_set_margin_start(ui.endrAppsBar, 6);
+    gtk_grid_attach(GTK_GRID(ui.endrGrid), ui.endrAppsBar, 4, 0, 1, 4);
+
+    GtkWidget* endrAppsLbl = GTK_WIDGET(make_label("APPS", "Monospace 7", 0.7f, 0.7f, 0.7f));
+    gtk_widget_add_css_class(endrAppsLbl, "rotated-label");
+    gtk_widget_set_margin_bottom(endrAppsLbl, 4);
+    gtk_widget_set_valign(endrAppsLbl, GTK_ALIGN_END);
+    gtk_grid_attach(GTK_GRID(ui.endrGrid), endrAppsLbl, 4, 4, 1, 1);
+
+    /* Register timers for the endr page value labels and bars */
+    g_timeout_add(33, G_SOURCE_FUNC(update_bse_bar),          ui.endrBseBar);
+    g_timeout_add(33, G_SOURCE_FUNC(update_apps_bar),         ui.endrAppsBar);
+    g_timeout_add(33, G_SOURCE_FUNC(update_pack_voltage),     ui.packVoltage);
+    g_timeout_add(33, G_SOURCE_FUNC(update_power_avg),        ui.powerAvg);
+    g_timeout_add(33, G_SOURCE_FUNC(update_energy_delivered), ui.energyDelivered);
+    g_timeout_add(33, G_SOURCE_FUNC(update_bms_max),          endrBmsMax);
+    g_timeout_add(33, G_SOURCE_FUNC(update_bms_avg),          endrBmsAvg);
+    g_timeout_add(33, G_SOURCE_FUNC(update_vcu_faults),       endrVcuFaults);
+    g_timeout_add(33, G_SOURCE_FUNC(update_mtr_temp),         endrMtrTemp);
+    g_timeout_add(33, G_SOURCE_FUNC(update_inv_temp),         endrInvTemp);
+
+    /* ==========================================================
        CAN bus page — scrollable signal list grouped by message
        ========================================================== */
     ui.signalLabelCount = database.signalCount;
     ui.signalLabels = calloc(ui.signalLabelCount, sizeof(GtkLabel*));
 
     GtkWidget* canPage = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_stack_add_named(GTK_STACK(ui.stack), canPage, "bms");
+    gtk_stack_add_named(GTK_STACK(ui.stack), canPage, "can");
 
     /* Header bar */
     GtkWidget* canHeader = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
