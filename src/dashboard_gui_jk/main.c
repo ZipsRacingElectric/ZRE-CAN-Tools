@@ -47,6 +47,18 @@ static struct {
     size_t      signalLabelCount;
     GtkLabel*   cellVoltLabels[144]; // One value label per cell voltage (indexed 0-143)
     ssize_t     cellVoltIdx[144];    // Pre-cached signal indices for CELL_VOLTAGE_0..143
+    // Pre-cached named signal indices — looked up once in activate(), never change
+    ssize_t     idx_speed;
+    ssize_t     idx_session;
+    ssize_t     idx_vcu_fault;
+    ssize_t     idx_bse;
+    ssize_t     idx_apps;
+    ssize_t     idx_mtr_temp;
+    ssize_t     idx_inv_temp;
+    ssize_t     idx_pack_voltage;
+    ssize_t     idx_power_avg;
+    ssize_t     idx_energy_delivered;
+    ssize_t     idx_cell_temp[60];   // SENSE_LINE_*_TEMPERATURE signals
     GtkLabel*   speedVal;        // Large center speed number
     GtkLabel*   loggerTitle;     // "LOGGER OFF"
     GtkLabel*   loggerStat;      // "Session\nNo. 273"
@@ -55,6 +67,12 @@ static struct {
     GtkLabel*   vcuFaults;
     GtkLabel*   mtrTemp;
     GtkLabel*   invTemp;
+    // Duplicate right-panel labels on ENDR page (same data, separate widgets)
+    GtkLabel*   endrBmsMax;
+    GtkLabel*   endrBmsAvg;
+    GtkLabel*   endrVcuFaults;
+    GtkLabel*   endrMtrTemp;
+    GtkLabel*   endrInvTemp;
 } ui;
 
 // ============================================================
@@ -90,38 +108,26 @@ static GtkLabel* make_label(const char* text, const char* font_desc, float r, fl
 // CAN update callbacks (30 fps via g_timeout_add)
 // ============================================================
 
-static gboolean update_speed(GtkLabel* label)
+static void update_speed(void)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "VCU_VEHICLE_SPEED");
     float val = 0.0f;
     char text[8] = "--";
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
+    if (canDatabaseGetFloat(&database, ui.idx_speed, &val) == CAN_DATABASE_VALID)
         snprintf(text, sizeof(text), "%.0f", val);
-    gtk_label_set_text(label, text);
-    return TRUE;
+    gtk_label_set_text(ui.speedVal, text);
 }
 
-static gboolean update_logger_title(GtkLabel* label)
+// Single pass for both logger title and session number (same signal)
+static void update_logger(void)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "SESSION_NUMBER");
     float val = 0.0f;
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
-        gtk_label_set_text(label, val > 0.5f ? "LOGGER ON" : "LOGGER OFF");
-    return TRUE;
-
-    //IF session number is a actiuall number then sesstion number is on. otherwise off
+    if (canDatabaseGetFloat(&database, ui.idx_session, &val) != CAN_DATABASE_VALID)
+        return;
+    gtk_label_set_text(ui.loggerTitle, val > 0.5f ? "LOGGER ON" : "LOGGER OFF");
+    char text[32];
+    snprintf(text, sizeof(text), "Session\nNo. %.0f", val);
+    gtk_label_set_text(ui.loggerStat, text);
 }
-
-static gboolean update_logger_stat(GtkLabel* label)
-{
-    ssize_t idx = canDatabaseFindSignal(&database, "SESSION_NUMBER");
-    float val = 0.0f;
-    char text[32] = "Session\n--";
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "Session\nNo. %.0f", val);
-    gtk_label_set_text(label, text);
-        return TRUE;
-    }
 
 static const char* BMS_CELL_TEMP_SIGNALS[] = {
     /* BMS_TEMPERATURES_0_12 */
@@ -200,112 +206,94 @@ static const char* BMS_CELL_TEMP_SIGNALS[] = {
 static const int BMS_CELL_TEMP_COUNT =
     (int)(sizeof(BMS_CELL_TEMP_SIGNALS) / sizeof(BMS_CELL_TEMP_SIGNALS[0]));
 
-static gboolean update_bms_max(GtkLabel* label)
+// Single pass computes both max and avg temperature, updates both speed and endr labels
+static void update_bms_temps(void)
 {
-    char text[16] = "--";
-    bool found = false;
-    float maxTemp = -1000.0f;
-
-    for (int i = 0; i < BMS_CELL_TEMP_COUNT; ++i) {
-        ssize_t idx = canDatabaseFindSignal(&database, BMS_CELL_TEMP_SIGNALS[i]);
-        float val = 0.0f;
-        if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID) {
-            if (!found || val > maxTemp) {
-                maxTemp = val;
-                found = true;
-            }
-        }
-    }
-
-    if (found)
-        snprintf(text, sizeof(text), "%.1fC", maxTemp);
-    gtk_label_set_text(label, text);
-    return TRUE;
-}
-
-static gboolean update_bms_avg(GtkLabel* label)
-{
-    char text[16] = "--";
-    float sum = 0.0f;
+    float sum = 0.0f, maxTemp = -1000.0f;
     int count = 0;
 
     for (int i = 0; i < BMS_CELL_TEMP_COUNT; ++i) {
-        ssize_t idx = canDatabaseFindSignal(&database, BMS_CELL_TEMP_SIGNALS[i]);
         float val = 0.0f;
-        if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID) {
-            sum += val;
-            ++count;
-        }
+        if (canDatabaseGetFloat(&database, ui.idx_cell_temp[i], &val) != CAN_DATABASE_VALID)
+            continue;
+        sum += val;
+        if (val > maxTemp) maxTemp = val;
+        ++count;
     }
 
-    if (count > 0)
-        snprintf(text, sizeof(text), "%.1fC", sum / (float)count);
-    gtk_label_set_text(label, text);
-    return TRUE;
-}
-
-static gboolean update_vcu_faults(GtkLabel* label)
-{
-    ssize_t idx = canDatabaseFindSignal(&database, "VCU_FAULT");
-    float val = 0.0f;
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
-        gtk_label_set_text(label, val > 0.5f ? "FAULT" : "No faults");
-    return TRUE;
-}
-
-static gboolean update_mtr_temp(GtkLabel* label)
-{
-    ssize_t idx = canDatabaseFindSignal(&database, "AMK_MOTOR_TEMP");
-    float val = 0.0f;
-    char text[16] = "--";
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "%.1fC", val);
-    gtk_label_set_text(label, text);
-        return TRUE;
+    char maxText[16], avgText[16];
+    if (count > 0) {
+        snprintf(maxText, sizeof(maxText), "%.1fC", maxTemp);
+        snprintf(avgText, sizeof(avgText), "%.1fC", sum / (float)count);
+    } else {
+        maxText[0] = avgText[0] = '-'; maxText[1] = avgText[1] = '-'; maxText[2] = avgText[2] = '\0';
     }
+    gtk_label_set_text(ui.bmsMax,     maxText);
+    gtk_label_set_text(ui.bmsAvg,     avgText);
+    gtk_label_set_text(ui.endrBmsMax, maxText);
+    gtk_label_set_text(ui.endrBmsAvg, avgText);
+}
 
-static gboolean update_inv_temp(GtkLabel* label)
+static void update_vcu_faults(void)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "AMK_INVERTER_TEMP");
+    float val = 0.0f;
+    const char* text = (canDatabaseGetFloat(&database, ui.idx_vcu_fault, &val) == CAN_DATABASE_VALID)
+                       ? (val > 0.5f ? "FAULT" : "No faults") : "No faults";
+    gtk_label_set_text(ui.vcuFaults,     text);
+    gtk_label_set_text(ui.endrVcuFaults, text);
+}
+
+static void update_mtr_temp(void)
+{
     float val = 0.0f;
     char text[16] = "--";
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
+    if (canDatabaseGetFloat(&database, ui.idx_mtr_temp, &val) == CAN_DATABASE_VALID)
         snprintf(text, sizeof(text), "%.1fC", val);
-    gtk_label_set_text(label, text);
-    return TRUE;
+    gtk_label_set_text(ui.mtrTemp,     text);
+    gtk_label_set_text(ui.endrMtrTemp, text);
+}
+
+static void update_inv_temp(void)
+{
+    float val = 0.0f;
+    char text[16] = "--";
+    if (canDatabaseGetFloat(&database, ui.idx_inv_temp, &val) == CAN_DATABASE_VALID)
+        snprintf(text, sizeof(text), "%.1fC", val);
+    gtk_label_set_text(ui.invTemp,     text);
+    gtk_label_set_text(ui.endrInvTemp, text);
 }
 
 static BarData bseData  = {0.80f, 0.20f, 0.20f, 0.0f};
 static BarData appsData = {0.20f, 0.75f, 0.25f, 0.0f};
 
-static gboolean update_bse_bar(GtkWidget* area)
+// Updates bseData and redraws both speed and endr BSE bars
+static void update_bse_bar(void)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
     float val = 0.0f;
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID) {
+    if (canDatabaseGetFloat(&database, ui.idx_bse, &val) == CAN_DATABASE_VALID) {
         if (val < 0.0f)   val = 0.0f;
         if (val > 100.0f) val = 100.0f;
         bseData.percent = val / 100.0f;
     } else {
         bseData.percent = 0.0f;
     }
-    gtk_widget_queue_draw(area);
-    return TRUE;
+    if (ui.bseBar)     gtk_widget_queue_draw(ui.bseBar);
+    if (ui.endrBseBar) gtk_widget_queue_draw(ui.endrBseBar);
 }
 
-static gboolean update_apps_bar(GtkWidget* area)
+// Updates appsData and redraws both speed and endr APPS bars
+static void update_apps_bar(void)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "APPS_1_PERCENT");
     float val = 0.0f;
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID) {
+    if (canDatabaseGetFloat(&database, ui.idx_apps, &val) == CAN_DATABASE_VALID) {
         if (val < 0.0f)   val = 0.0f;
         if (val > 100.0f) val = 100.0f;
         appsData.percent = val / 100.0f;
     } else {
         appsData.percent = 0.0f;
     }
-    gtk_widget_queue_draw(area);
-    return TRUE;
+    if (ui.appsBar)     gtk_widget_queue_draw(ui.appsBar);
+    if (ui.endrAppsBar) gtk_widget_queue_draw(ui.endrAppsBar);
 }
 
 // ============================================================
@@ -513,37 +501,31 @@ static void draw_endr_background(GtkDrawingArea* area, cairo_t* cr,
 // Endurance page CAN update callbacks
 // ============================================================
 
-static gboolean update_pack_voltage(GtkLabel* label)
+static void update_pack_voltage(void)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "PACK_VOLTAGE");
     float val = 0.0f;
     char text[16] = "--";
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
+    if (canDatabaseGetFloat(&database, ui.idx_pack_voltage, &val) == CAN_DATABASE_VALID)
         snprintf(text, sizeof(text), "%.1f", val);
-    gtk_label_set_text(label, text);
-    return TRUE;
+    gtk_label_set_text(ui.packVoltage, text);
 }
 
-static gboolean update_power_avg(GtkLabel* label)
+static void update_power_avg(void)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "POWER_ROLLING_AVERAGE");
     float val = 0.0f;
     char text[16] = "--";
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
+    if (canDatabaseGetFloat(&database, ui.idx_power_avg, &val) == CAN_DATABASE_VALID)
         snprintf(text, sizeof(text), "%.1f", val);
-    gtk_label_set_text(label, text);
-    return TRUE;
+    gtk_label_set_text(ui.powerAvg, text);
 }
 
-static gboolean update_energy_delivered(GtkLabel* label)
+static void update_energy_delivered(void)
 {
-    ssize_t idx = canDatabaseFindSignal(&database, "ENERGY_DELIVERED");
     float val = 0.0f;
     char text[16] = "--";
-    if (idx >= 0 && canDatabaseGetFloat(&database, idx, &val) == CAN_DATABASE_VALID)
+    if (canDatabaseGetFloat(&database, ui.idx_energy_delivered, &val) == CAN_DATABASE_VALID)
         snprintf(text, sizeof(text), "%.2f", val);
-    gtk_label_set_text(label, text);
-    return TRUE;
+    gtk_label_set_text(ui.energyDelivered, text);
 }
 
 // ============================================================
@@ -581,6 +563,26 @@ static gboolean update_bms_volt_page(gpointer unused)
             snprintf(text, sizeof(text), "--");
         gtk_label_set_text(ui.cellVoltLabels[c], text);
     }
+    return TRUE;
+}
+
+// Single 30fps master update — replaces many individual timers
+static gboolean update_all(gpointer unused)
+{
+    (void)unused;
+    update_speed();
+    update_logger();
+    update_bms_temps();
+    update_vcu_faults();
+    update_mtr_temp();
+    update_inv_temp();
+    update_bse_bar();
+    update_apps_bar();
+    update_pack_voltage();
+    update_power_avg();
+    update_energy_delivered();
+    update_can_page(NULL);
+    update_bms_volt_page(NULL);
     return TRUE;
 }
 
@@ -985,19 +987,19 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_label_set_xalign(endrBmsMaxLbl, 0.0f);
     gtk_widget_set_margin_start(GTK_WIDGET(endrBmsMaxLbl), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsMaxLbl), 0, er, 1, 1);
-    GtkLabel* endrBmsMax = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
-    gtk_label_set_xalign(endrBmsMax, 1.0f);
-    gtk_widget_set_margin_end(GTK_WIDGET(endrBmsMax), 4);
-    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsMax), 1, er++, 1, 1);
+    ui.endrBmsMax = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(ui.endrBmsMax, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(ui.endrBmsMax), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrBmsMax), 1, er++, 1, 1);
 
     GtkLabel* endrBmsAvgLbl = make_label("AVG:", "Monospace 9", 0.55f, 0.55f, 0.55f);
     gtk_label_set_xalign(endrBmsAvgLbl, 0.0f);
     gtk_widget_set_margin_start(GTK_WIDGET(endrBmsAvgLbl), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsAvgLbl), 0, er, 1, 1);
-    GtkLabel* endrBmsAvg = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
-    gtk_label_set_xalign(endrBmsAvg, 1.0f);
-    gtk_widget_set_margin_end(GTK_WIDGET(endrBmsAvg), 4);
-    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsAvg), 1, er++, 1, 1);
+    ui.endrBmsAvg = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(ui.endrBmsAvg, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(ui.endrBmsAvg), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrBmsAvg), 1, er++, 1, 1);
 
     GtkWidget* endrSp1 = gtk_label_new(""); gtk_widget_set_size_request(endrSp1, 0, 8);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), endrSp1, 0, er++, 2, 1);
@@ -1006,9 +1008,9 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_label_set_xalign(endrVcuTitle, 0.5f);
     gtk_widget_set_margin_bottom(GTK_WIDGET(endrVcuTitle), 2);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrVcuTitle), 0, er++, 2, 1);
-    GtkLabel* endrVcuFaults = make_label("No faults", "Monospace 9", 0.75f, 0.75f, 0.75f);
-    gtk_label_set_xalign(endrVcuFaults, 0.5f);
-    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrVcuFaults), 0, er++, 2, 1);
+    ui.endrVcuFaults = make_label("No faults", "Monospace 9", 0.75f, 0.75f, 0.75f);
+    gtk_label_set_xalign(ui.endrVcuFaults, 0.5f);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrVcuFaults), 0, er++, 2, 1);
 
     GtkWidget* endrSp2 = gtk_label_new(""); gtk_widget_set_size_request(endrSp2, 0, 8);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), endrSp2, 0, er++, 2, 1);
@@ -1022,19 +1024,19 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_label_set_xalign(endrMtrLbl, 0.0f);
     gtk_widget_set_margin_start(GTK_WIDGET(endrMtrLbl), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrMtrLbl), 0, er, 1, 1);
-    GtkLabel* endrMtrTemp = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
-    gtk_label_set_xalign(endrMtrTemp, 1.0f);
-    gtk_widget_set_margin_end(GTK_WIDGET(endrMtrTemp), 4);
-    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrMtrTemp), 1, er++, 1, 1);
+    ui.endrMtrTemp = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(ui.endrMtrTemp, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(ui.endrMtrTemp), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrMtrTemp), 1, er++, 1, 1);
 
     GtkLabel* endrInvLbl = make_label("INV:", "Monospace 9", 0.55f, 0.55f, 0.55f);
     gtk_label_set_xalign(endrInvLbl, 0.0f);
     gtk_widget_set_margin_start(GTK_WIDGET(endrInvLbl), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrInvLbl), 0, er, 1, 1);
-    GtkLabel* endrInvTemp = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
-    gtk_label_set_xalign(endrInvTemp, 1.0f);
-    gtk_widget_set_margin_end(GTK_WIDGET(endrInvTemp), 4);
-    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrInvTemp), 1, er++, 1, 1);
+    ui.endrInvTemp = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(ui.endrInvTemp, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(ui.endrInvTemp), 4);
+    gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrInvTemp), 1, er++, 1, 1);
 
     /* Row 4 — nav buttons (ENDR active) */
     GtkWidget* endrBtnPanel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
@@ -1075,17 +1077,6 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_widget_set_valign(endrAppsLbl, GTK_ALIGN_END);
     gtk_grid_attach(GTK_GRID(ui.endrGrid), endrAppsLbl, 4, 4, 1, 1);
 
-    /* Register timers for the endr page value labels and bars */
-    g_timeout_add(33, G_SOURCE_FUNC(update_bse_bar),          ui.endrBseBar);
-    g_timeout_add(33, G_SOURCE_FUNC(update_apps_bar),         ui.endrAppsBar);
-    g_timeout_add(33, G_SOURCE_FUNC(update_pack_voltage),     ui.packVoltage);
-    g_timeout_add(33, G_SOURCE_FUNC(update_power_avg),        ui.powerAvg);
-    g_timeout_add(33, G_SOURCE_FUNC(update_energy_delivered), ui.energyDelivered);
-    g_timeout_add(33, G_SOURCE_FUNC(update_bms_max),          endrBmsMax);
-    g_timeout_add(33, G_SOURCE_FUNC(update_bms_avg),          endrBmsAvg);
-    g_timeout_add(33, G_SOURCE_FUNC(update_vcu_faults),       endrVcuFaults);
-    g_timeout_add(33, G_SOURCE_FUNC(update_mtr_temp),         endrMtrTemp);
-    g_timeout_add(33, G_SOURCE_FUNC(update_inv_temp),         endrInvTemp);
 
     /* ==========================================================
        CAN bus page — scrollable signal list grouped by message
@@ -1174,10 +1165,26 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     }
 
     /* ==========================================================
+       Pre-cache all named signal indices (done once, used every frame)
+       ========================================================== */
+    ui.idx_speed            = canDatabaseFindSignal(&database, "VCU_VEHICLE_SPEED");
+    ui.idx_session          = canDatabaseFindSignal(&database, "SESSION_NUMBER");
+    ui.idx_vcu_fault        = canDatabaseFindSignal(&database, "VCU_FAULT");
+    ui.idx_bse              = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
+    ui.idx_apps             = canDatabaseFindSignal(&database, "APPS_1_PERCENT");
+    ui.idx_mtr_temp         = canDatabaseFindSignal(&database, "AMK_MOTOR_TEMP");
+    ui.idx_inv_temp         = canDatabaseFindSignal(&database, "AMK_INVERTER_TEMP");
+    ui.idx_pack_voltage     = canDatabaseFindSignal(&database, "PACK_VOLTAGE");
+    ui.idx_power_avg        = canDatabaseFindSignal(&database, "POWER_ROLLING_AVERAGE");
+    ui.idx_energy_delivered = canDatabaseFindSignal(&database, "ENERGY_DELIVERED");
+    for (int i = 0; i < BMS_CELL_TEMP_COUNT; ++i)
+        ui.idx_cell_temp[i] = canDatabaseFindSignal(&database, BMS_CELL_TEMP_SIGNALS[i]);
+
+    /* ==========================================================
        BMS cell voltage page — 12×12 grid of CELL_VOLTAGE_0..143
        ========================================================== */
 
-    /* Pre-cache signal indices so the update loop is fast */
+    /* Pre-cache cell voltage signal indices */
     for (int c = 0; c < 144; ++c) {
         char name[24];
         snprintf(name, sizeof(name), "CELL_VOLTAGE_%d", c);
@@ -1186,6 +1193,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     }
 
     GtkWidget* bmsPage = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_name(bmsPage, "bmsPage");
     gtk_stack_add_named(GTK_STACK(ui.stack), bmsPage, "bms");
 
     /* Header bar */
@@ -1214,15 +1222,18 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     g_signal_connect(bmsToCanBtn, "clicked", G_CALLBACK(switch_to_can), NULL);
     gtk_box_append(GTK_BOX(bmsBtnPanel), bmsToCanBtn);
 
+    /* Separator below header */
     GtkWidget* bmsHdrSep = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_box_append(GTK_BOX(bmsPage), bmsHdrSep);
 
+    /* Scrollable area wrapping the cell grid */
     GtkWidget* bmsScroll = gtk_scrolled_window_new();
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(bmsScroll),
                                    GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
     gtk_widget_set_vexpand(bmsScroll, TRUE);
     gtk_box_append(GTK_BOX(bmsPage), bmsScroll);
 
+    /* 12-column grid of cell tiles */
     GtkWidget* cellGrid = gtk_grid_new();
     gtk_grid_set_row_spacing   (GTK_GRID(cellGrid), 2);
     gtk_grid_set_column_spacing(GTK_GRID(cellGrid), 2);
@@ -1246,6 +1257,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
         gtk_widget_set_hexpand(tile, TRUE);
         gtk_widget_set_size_request(tile, 60, 34);
 
+        /* Cell index label e.g. "C 47" */
         char idxText[8];
         snprintf(idxText, sizeof(idxText), "C%d", c);
         GtkLabel* idxLbl = make_label(idxText, "Monospace 7", 0.55f, 0.55f, 0.55f);
@@ -1253,8 +1265,9 @@ static void activate(GtkApplication* app, gpointer title_ptr)
         gtk_widget_set_margin_top(GTK_WIDGET(idxLbl), 2);
         gtk_box_append(GTK_BOX(tile), GTK_WIDGET(idxLbl));
 
+        /* Voltage value label */
         GtkLabel* voltLbl = make_label("--", "Monospace Bold 9",
-                                       0.957f, 0.576f, 0.118f);
+                                       0.957f, 0.576f, 0.118f); /* #F4931E orange */
         gtk_label_set_xalign(voltLbl, 0.5f);
         gtk_widget_set_margin_bottom(GTK_WIDGET(voltLbl), 2);
         gtk_box_append(GTK_BOX(tile), GTK_WIDGET(voltLbl));
@@ -1263,21 +1276,8 @@ static void activate(GtkApplication* app, gpointer title_ptr)
         ui.cellVoltLabels[c] = voltLbl;
     }
 
-    /* ==========================================================
-       CAN update timers at ~30 fps
-       ========================================================== */
-    g_timeout_add(33, G_SOURCE_FUNC(update_bms_volt_page), NULL);
-    g_timeout_add(33, G_SOURCE_FUNC(update_can_page),     NULL);
-    g_timeout_add(33, G_SOURCE_FUNC(update_bse_bar),      ui.bseBar);
-    g_timeout_add(33, G_SOURCE_FUNC(update_apps_bar),     ui.appsBar);
-    g_timeout_add(33, G_SOURCE_FUNC(update_speed),        ui.speedVal);
-    g_timeout_add(33, G_SOURCE_FUNC(update_logger_title), ui.loggerTitle);
-    g_timeout_add(33, G_SOURCE_FUNC(update_logger_stat),  ui.loggerStat);
-    g_timeout_add(33, G_SOURCE_FUNC(update_bms_max),      ui.bmsMax);
-    g_timeout_add(33, G_SOURCE_FUNC(update_bms_avg),      ui.bmsAvg);
-    g_timeout_add(33, G_SOURCE_FUNC(update_vcu_faults),   ui.vcuFaults);
-    g_timeout_add(33, G_SOURCE_FUNC(update_mtr_temp),     ui.mtrTemp);
-    g_timeout_add(33, G_SOURCE_FUNC(update_inv_temp),     ui.invTemp);
+    /* Single 30fps timer drives all UI updates */
+    g_timeout_add(33, G_SOURCE_FUNC(update_all), NULL);
 
     gtk_window_present(GTK_WINDOW(window));
 }
