@@ -231,7 +231,7 @@ canWidget_t* canLabelTimerLoad (canDatabase_t* database, cJSON* config)
 	});
 }
 
-size_t canLabelTimerSetMode (void* widget, char* mode)
+size_t setMode (void* widget, char* mode)
 {
 	canLabelTimer_t* timer = widget;
 

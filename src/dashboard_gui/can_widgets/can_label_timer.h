@@ -1,7 +1,18 @@
 #ifndef CAN_LABEL_TIMER_H
 #define CAN_LABEL_TIMER_H
 
-#include "time_port.h"
+// CAN Label Timer Widget -----------------------------------------------------------------------------------------------------
+//
+// Author: Owen DiBacco
+// Date Created: 2026.03.13
+//
+// Description: GTK widget displaying a timer. The timer can be set to one of three modes:
+//  1. Current Time - displays time elapsed since that last button press.
+//  2. Last Time - displays the total time of the last interval.
+//  3. Best Time - displays the total time of the best interval.
+
+// Includes -------------------------------------------------------------------------------------------------------------------
+
 #include "can_widget.h"
 #include "../pages/page.h"
 #include "can_database/can_database.h"
