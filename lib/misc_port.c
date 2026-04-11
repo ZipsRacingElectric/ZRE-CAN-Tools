@@ -149,6 +149,12 @@ char* getBaseName (char* path)
 
 int getStorageInfo (size_t* free, size_t* total, char* dir)
 {
+	// Checks that the OS defined is not Windows
+	#ifdef ZRE_CANTOOLS_OS_windows
+	errno = ERRNO_OS_NOT_SUPPORTED;
+	return -1;
+	#endif
+
 	struct statfs statfsBuffer;
 
 	if (statfs (dir, &statfsBuffer) != 0)
@@ -159,6 +165,27 @@ int getStorageInfo (size_t* free, size_t* total, char* dir)
 
 	// total storage = the total amount of blocks * block size
 	(*total) = statfsBuffer.f_blocks * statfsBuffer.f_bsize;
+
+	return 0;
+}
+
+int getCpuTemperature (float* temp)
+{
+	// Checks that the OS defined is not Windows
+	#ifdef ZRE_CANTOOLS_OS_windows
+	errno = ERRNO_OS_NOT_SUPPORTED;
+	return -1;
+	#endif
+
+	// Opens / reads file containing the temperature of the thermal zone located beside the CPU socket
+	// TODO (DiBacco): validate that this idea extrapolate this to work with different linux filesystem setups
+	FILE* file = fopen ("/sys/class/thermal/thermal_zone0/temp", "r");
+	if (file == NULL) return -1;
+
+	fscanf (file, "%f", temp);
+
+	// Converts the temperature value to Celsius
+	(*temp) = (*temp) / 1000;
 
 	return 0;
 }

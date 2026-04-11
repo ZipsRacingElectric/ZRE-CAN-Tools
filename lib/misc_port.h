@@ -50,7 +50,15 @@ char* getBaseName (char* path);
  * @brief Gets the free and total storage of a file / directory.
  * @param free The variable to initialize with the amount of total storage (in bytes).
  * @param total The variable to initialize with the amount of free storage (in bytes).
- */
+ * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
+*/
 int getStorageInfo (size_t* free, size_t* total, char* dir);
+
+/**
+ * @brief Gets the temperature of the CPU.
+ * @param temp The variable to initialize with the temperature of the CPU (in Celsius).
+ * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
+ */
+int getCpuTemperature (float* temp);
 
 #endif // MISC_PORT_H

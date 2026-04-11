@@ -350,6 +350,12 @@ int main (int argc, char** argv)
 		printf ("Free: %zu\n", free);
 	}
 
+	float temp = 0;
+	if (getCpuTemperature (&temp) == 0)
+	{
+		printf ("Temp: %f\n", temp);
+	}
+
 	/*
 
 	// Validate usage
