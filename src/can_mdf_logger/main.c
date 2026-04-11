@@ -326,6 +326,11 @@ int main (int argc, char** argv)
 	// Debug initialization
 	debugInit ();
 
+	char* devName = argv [1];
+	canDevice_t* dev = canInit (devName, "Temp Can Device");
+	if (dev == NULL)
+		return errorPrintf ("Failed to initialize channel 1 CAN device '%s'", devName);
+
 	// Handle program options
 	if (handleOptions (&argc, &argv, &(handleOptionsParams_t)
 	{
@@ -338,7 +343,6 @@ int main (int argc, char** argv)
 		.stringCount	= 1
 	}) != 0)
 		return errorPrintf ("Failed to handle options");
-
 
 	size_t total = 0;
 	size_t free = 0;
@@ -355,6 +359,25 @@ int main (int argc, char** argv)
 	{
 		printf ("Temp: %f\n", temp);
 	}
+
+	// TODO(DiBacco): log the devInfo to the mdf file
+	// TODO(DiBacco): determine the appropriate id for this can frame
+	canFrame_t devInfo =
+	{
+		.id = 0x0,
+		.ide = false,
+		.rtr = false,
+		.dlc = 3,
+		.data =
+		{
+			total,
+			free,
+			temp
+		}
+	};
+
+	if (canTransmit (dev, &devInfo) != 0)
+		printf ("Failed to transmit devInfo");
 
 	/*
 
