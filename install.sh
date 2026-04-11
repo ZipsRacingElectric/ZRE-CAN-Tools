@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO(Barach): This needs to create ~/zre
+
 # Shell script to be executed on user login. This is meant to define environment variables and add the installation to the
 # system path.
 SCRIPT=/etc/profile.d/zre_cantools.sh
