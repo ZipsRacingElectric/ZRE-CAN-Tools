@@ -46,7 +46,11 @@ int systemf (char* format, ...);
  */
 char* getBaseName (char* path);
 
-// TODO(DiBacco)
-int getStorageSize (size_t* total, size_t* free, char* dir);
+/**
+ * @brief Gets the free and total storage of a file / directory.
+ * @param free The variable to initialize with the amount of total storage (in bytes).
+ * @param total The variable to initialize with the amount of free storage (in bytes).
+ */
+int getStorageInfo (size_t* free, size_t* total, char* dir);
 
 #endif // MISC_PORT_H

@@ -343,10 +343,8 @@ int main (int argc, char** argv)
 	size_t total = 0;
 	size_t free = 0;
 
-	// TODO(DiBacco): determine what the directory should be & where it should come from.
-	char* dir = "/";
-
-	if (getStorageSize (&total, &free, dir) == 0)
+	// Gets the free and total storage (in bytes) of the current directory
+	if (getStorageInfo (&free, &total, "/") == 0)
 	{
 		printf ("Total: %zu\n", total);
 		printf ("Free: %zu\n", free);

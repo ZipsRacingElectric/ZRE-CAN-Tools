@@ -147,7 +147,7 @@ char* getBaseName (char* path)
 	return dirNameCopy;
 }
 
-int getStorageSize (size_t* total, size_t* free, char* dir)
+int getStorageInfo (size_t* free, size_t* total, char* dir)
 {
 	struct statfs statfsBuffer;
 
