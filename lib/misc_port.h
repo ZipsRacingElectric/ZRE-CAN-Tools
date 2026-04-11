@@ -46,4 +46,7 @@ int systemf (char* format, ...);
  */
 char* getBaseName (char* path);
 
+// TODO(DiBacco)
+int getStorageSize (size_t* total, size_t* free, char* dir);
+
 #endif // MISC_PORT_H

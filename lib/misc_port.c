@@ -18,6 +18,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#ifdef ZRE_CANTOOLS_OS_linux
+#include <sys/vfs.h>
+#endif // ZRE_CANTOOLS_OS_linux
+
 char* expandEnv (const char* str)
 {
 	size_t variablePosition = strcspn (str, "$");
@@ -141,4 +145,20 @@ char* getBaseName (char* path)
 	char* dirNameCopy = strdup (dirName);
 	free (pathCopy);
 	return dirNameCopy;
+}
+
+int getStorageSize (size_t* total, size_t* free, char* dir)
+{
+	struct statfs statfsBuffer;
+
+	if (statfs (dir, &statfsBuffer) != 0)
+		return -1;
+
+	// free storage = the amount of free blocks * block size
+	(*free) = statfsBuffer.f_bfree * statfsBuffer.f_bsize;
+
+	// total storage = the total amount of blocks * block size
+	(*total) = statfsBuffer.f_blocks * statfsBuffer.f_bsize;
+
+	return 0;
 }

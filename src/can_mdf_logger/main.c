@@ -8,6 +8,7 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
+#include "../../lib/misc_port.h"
 #include "can_device/can_bus_load.h"
 #include "can_device/can_device.h"
 #include "can_device/can_device_stdio.h"
@@ -338,6 +339,21 @@ int main (int argc, char** argv)
 	}) != 0)
 		return errorPrintf ("Failed to handle options");
 
+
+	size_t total = 0;
+	size_t free = 0;
+
+	// TODO(DiBacco): determine what the directory should be & where it should come from.
+	char* dir = "/";
+
+	if (getStorageSize (&total, &free, dir) == 0)
+	{
+		printf ("Total: %zu\n", total);
+		printf ("Free: %zu\n", free);
+	}
+
+	/*
+
 	// Validate usage
 	if (argc < 3 || argc > 4)
 	{
@@ -437,6 +453,8 @@ int main (int argc, char** argv)
 	if (channel2 != NULL)
 		canDealloc (channel2);
 	canDealloc (channel1);
+
+	*/
 
 	return 0;
 }
