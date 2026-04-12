@@ -170,7 +170,7 @@ int getStorageInfo (size_t* free, size_t* total, char* dir)
 	return 0;
 }
 
-int getCpuTemperature (float* temp)
+int getCpuTemperature (size_t* temp)
 {
 	// Checks that the OS defined is not Windows
 	#ifdef ZRE_CANTOOLS_OS_windows
@@ -214,11 +214,8 @@ int getCpuTemperature (float* temp)
 					file = fopen (path, "r");
 					if (file == NULL) return -1;
 
-					fscanf (file, "%f", temp);
+					fscanf (file, "%zu", temp);
 					fclose (file);
-
-					// Converts the temperature value to Celsius
-					(*temp) = (*temp) / 1000;
 
 					closedir (directory);
 					return 0;

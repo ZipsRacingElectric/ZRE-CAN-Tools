@@ -57,9 +57,9 @@ int getStorageInfo (size_t* free, size_t* total, char* dir);
 /**
  * @brief Gets the temperature of the CPU. Note: this function is not thread-safe, in order to use
  * it a multithreaded context, a mutex must be employed.
- * @param temp The variable to initialize with the temperature of the CPU (in Celsius).
+ * @param temp The variable to initialize with the temperature of the CPU. Divide the result by 1000 to convert to Celsius.
  * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
  */
-int getCpuTemperature (float* temp);
+int getCpuTemperature (size_t* temp);
 
 #endif // MISC_PORT_H

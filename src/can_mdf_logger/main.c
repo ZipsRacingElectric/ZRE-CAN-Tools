@@ -229,14 +229,69 @@ void* loggingThread (void* argPtr)
 			// Acquire access to the log file. Note this must be before the timestamp is generated.
 			pthread_mutex_lock (arg->logMutex);
 
-			// Get a timestamp for the frame. We canot reuse the previous value, as it will have already been used if a frame
+			// Get a timestamp for the frame. We cannot reuse the previous value, as it will have already been used if a frame
 			// was just received.
-			struct timespec timeCurrent;
 			if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
 				errorPrintf ("Warning, failed to get MDF timestamp");
 
 			// Log the status frame.
 			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame, arg->busChannel, true, &timeCurrent) != 0)
+				errorPrintf ("Warning, failed to log CAN data frame");
+
+			// Release access to the log file.
+			pthread_mutex_unlock (arg->logMutex);
+
+			size_t total = 0;
+			size_t free = 0;
+
+			size_t temp = 0;
+
+			// Gets the free and total storage (in bytes) of the current directory
+			if (getStorageInfo (&free, &total, "/") == 0)
+			{
+				debugPrintf ("Total: %zu\n", total);
+				debugPrintf ("Free: %zu\n", free);
+			}
+
+			if (getCpuTemperature (&temp) != 0)
+				printf("Couldn't get CPU Temperature\n");
+
+			float memoryPercentage = ((float) free / total) * 100;
+			debugPrintf ("Memory Percentage: %f\n", memoryPercentage);
+
+			float temperature = ((float) temp / 1000);
+			debugPrintf ("Temperature: %zu\n", temperature);
+
+			float byte1 = memoryPercentage;
+			float byte2 = temperature;
+
+			canFrame_t devInfo =
+			{
+				.id = 0x181,
+				.ide = false,
+				.rtr = false,
+				.dlc = 2,
+				.data =
+				{
+					byte1,
+					byte2
+				}
+			};
+
+			// Transmit the device info message. Due to its blocking nature, this must be outside the mutex guard.
+			if (canTransmit (arg->device, &devInfo) != 0 && !quiet)
+			 	errorPrintf ("Warning, failed to transmit device info message");
+
+			// Acquire access to the log file. Note this must be before the timestamp is generated.
+			pthread_mutex_lock (arg->logMutex);
+
+			// Get a timestamp for the frame. We cannot reuse the previous value, as it will have already been used if a frame was just received.
+			struct timespec timeCurrent;
+			if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
+				errorPrintf ("Warning, failed to get MDF timestamp");
+
+			// Log the device info frame.
+			if (mdfCanBusLogWriteDataFrame (arg->log, &devInfo, arg->busChannel, true, &timeCurrent) != 0)
 				errorPrintf ("Warning, failed to log CAN data frame");
 
 			// Release access to the log file.
@@ -326,11 +381,6 @@ int main (int argc, char** argv)
 	// Debug initialization
 	debugInit ();
 
-	char* devName = argv [1];
-	canDevice_t* dev = canInit (devName, "Temp Can Device");
-	if (dev == NULL)
-		return errorPrintf ("Failed to initialize channel 1 CAN device '%s'", devName);
-
 	// Handle program options
 	if (handleOptions (&argc, &argv, &(handleOptionsParams_t)
 	{
@@ -343,43 +393,6 @@ int main (int argc, char** argv)
 		.stringCount	= 1
 	}) != 0)
 		return errorPrintf ("Failed to handle options");
-
-	size_t total = 0;
-	size_t free = 0;
-
-	// Gets the free and total storage (in bytes) of the current directory
-	if (getStorageInfo (&free, &total, "/") == 0)
-	{
-		printf ("Total: %zu\n", total);
-		printf ("Free: %zu\n", free);
-	}
-
-	float temp = 0;
-	if (getCpuTemperature (&temp) == 0)
-	{
-		printf ("Temp: %f\n", temp);
-	}
-
-	// TODO(DiBacco): log the devInfo to the mdf file
-	// TODO(DiBacco): determine the appropriate id for this can frame
-	canFrame_t devInfo =
-	{
-		.id = 0x0,
-		.ide = false,
-		.rtr = false,
-		.dlc = 3,
-		.data =
-		{
-			total,
-			free,
-			temp
-		}
-	};
-
-	if (canTransmit (dev, &devInfo) != 0)
-		printf ("Failed to transmit devInfo");
-
-	/*
 
 	// Validate usage
 	if (argc < 3 || argc > 4)
@@ -480,8 +493,6 @@ int main (int argc, char** argv)
 	if (channel2 != NULL)
 		canDealloc (channel2);
 	canDealloc (channel1);
-
-	*/
 
 	return 0;
 }
