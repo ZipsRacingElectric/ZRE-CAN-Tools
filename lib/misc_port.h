@@ -55,7 +55,8 @@ char* getBaseName (char* path);
 int getStorageInfo (size_t* free, size_t* total, char* dir);
 
 /**
- * @brief Gets the temperature of the CPU.
+ * @brief Gets the temperature of the CPU. Note: this function is not thread-safe, in order to use
+ * it a multithreaded context, a mutex must be employed.
  * @param temp The variable to initialize with the temperature of the CPU (in Celsius).
  * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
  */

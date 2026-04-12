@@ -20,6 +20,7 @@
 
 #ifdef ZRE_CANTOOLS_OS_linux
 #include <sys/vfs.h>
+#include <dirent.h>
 #endif // ZRE_CANTOOLS_OS_linux
 
 char* expandEnv (const char* str)
@@ -177,15 +178,55 @@ int getCpuTemperature (float* temp)
 	return -1;
 	#endif
 
-	// Opens / reads file containing the temperature of the thermal zone located beside the CPU socket
-	// TODO (DiBacco): validate that this idea extrapolate this to work with different linux filesystem setups
-	FILE* file = fopen ("/sys/class/thermal/thermal_zone0/temp", "r");
-	if (file == NULL) return -1;
+	FILE* file;
+	char type [] = "######";
+	char path [] = "/sys/class/thermal/#############/####";
 
-	fscanf (file, "%f", temp);
+	struct dirent* direntStruct;
+	DIR* directory = opendir ("/sys/class/thermal");
 
-	// Converts the temperature value to Celsius
-	(*temp) = (*temp) / 1000;
+	if (directory)
 
-	return 0;
+		// Enumerates the files in the "/sys/class/thermal" directory
+		while ((direntStruct = readdir (directory)) != NULL)
+
+			// Checks that the file in the directory has the "thermal_zone" prefix
+			// (Note: there can be more than one "thermal_zone" depending on the device)
+			if (strstr (direntStruct->d_name, "thermal_zone"))
+			{
+
+				// Opens & reads the content of the "thermal_zone" file
+				snprintf (path, sizeof (path), "/sys/class/thermal/%s/type", direntStruct->d_name);
+
+				file = fopen (path, "r");
+				if (file == NULL) return -1;
+
+				fscanf (file, "%s", type);
+				fclose (file);
+
+				// Indicates that the "thermal_zone" monitors the CPU socket
+				if (strcmp(type, "acpitz") == 0)
+				{
+
+					// Opens & reads the content of the "temp" (temperature) file
+					snprintf (path, sizeof (path), "/sys/class/thermal/%s/temp", direntStruct->d_name);
+
+					file = fopen (path, "r");
+					if (file == NULL) return -1;
+
+					fscanf (file, "%f", temp);
+					fclose (file);
+
+					// Converts the temperature value to Celsius
+					(*temp) = (*temp) / 1000;
+
+					closedir (directory);
+					return 0;
+				}
+			}
+
+	closedir (directory);
+
+	// Indicates that the temperature was not found
+	return -1;
 }
