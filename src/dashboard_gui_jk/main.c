@@ -126,8 +126,9 @@ static void update_speed(void)
 {
     float val = 0.0f;
     char text[8] = "--";
-    if (canDatabaseGetFloat(&database, ui.idx_speed, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "%.0f", val);
+    if (canDatabaseGetFloat(&database, ui.idx_speed, &val) == CAN_DATABASE_VALID){
+		val *= 0.00424999;
+        snprintf(text, sizeof(text), "%.0f", val);}
     gtk_label_set_text(ui.speedVal, text);
 }
 
@@ -665,6 +666,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     GtkWidget* window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), (const char*)title_ptr);
     gtk_window_set_default_size(GTK_WINDOW(window), 800, 480);
+    gtk_window_fullscreen(GTK_WINDOW(window));
 
     /* ---- Global CSS ---- */
     GtkCssProvider* css = gtk_css_provider_new();
@@ -1098,7 +1100,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_label_set_xalign(endrVcuTitle, 0.5f);
     gtk_widget_set_margin_bottom(GTK_WIDGET(endrVcuTitle), 2);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrVcuTitle), 0, er++, 2, 1);
-    ui.endrVcuFaults = make_label("No faults", "Monospace 9", 0.75f, 0.75f, 0.75f);
+    ui.endrVcuFaults = make_label("No faults", "Monospace 15", 0.75f, 0.75f, 0.75f);
     gtk_label_set_xalign(ui.endrVcuFaults, 0.5f);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrVcuFaults), 0, er++, 2, 1);
 
@@ -1257,7 +1259,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     /* ==========================================================
        Pre-cache all named signal indices (done once, used every frame)
        ========================================================== */
-    ui.idx_speed            = canDatabaseFindSignal(&database, "VCU_VEHICLE_SPEED");
+    ui.idx_speed            = canDatabaseFindSignal(&database, "RL_ACTUAL_SPEED_VALUE");
     ui.idx_session          = canDatabaseFindSignal(&database, "SESSION_NUMBER");
     ui.idx_vcu_fault        = canDatabaseFindSignal(&database, "VCU_FAULT");
     ui.idx_bse              = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
