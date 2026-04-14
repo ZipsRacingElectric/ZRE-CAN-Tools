@@ -1103,7 +1103,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_widget_set_margin_bottom(canHeader, 6);
     gtk_box_append(GTK_BOX(canPage), canHeader);
 
-    GtkLabel* canTitle = make_label("CAN Bus Monitor", "Monospace Bold 13", 1.0f, 1.0f, 1.0f);
+    GtkLabel* canTitle = make_label("CAN Bus Monitor", "Monospace Bold 13", 0.0f, 0.0f, 0.0f);
     gtk_label_set_xalign(canTitle, 0.0f);
     gtk_widget_set_hexpand(GTK_WIDGET(canTitle), TRUE);
     gtk_box_append(GTK_BOX(canHeader), GTK_WIDGET(canTitle));
@@ -1130,7 +1130,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
         if (msg == NULL || msg->signalCount == 0) continue;
 
         /* Message name as group header */
-        GtkLabel* msgHdr = make_label(msg->name, "Monospace Bold 10", 0.70f, 0.85f, 1.0f);
+        GtkLabel* msgHdr = make_label(msg->name, "Monospace Bold 10", 0.0f, 0.0f, 0.0f);
         gtk_label_set_xalign(msgHdr, 0.0f);
         gtk_widget_set_margin_top   (GTK_WIDGET(msgHdr), 8);
         gtk_widget_set_margin_bottom(GTK_WIDGET(msgHdr), 2);
@@ -1148,21 +1148,21 @@ static void activate(GtkApplication* app, gpointer title_ptr)
             gtk_box_append(GTK_BOX(signalList), row);
 
             /* Signal name (expands to fill) */
-            GtkLabel* nameLbl = make_label(sig->name, "Monospace 9", 0.80f, 0.80f, 0.80f);
+            GtkLabel* nameLbl = make_label(sig->name, "Monospace 9", 0.0f, 0.0f, 0.0f);
             gtk_label_set_xalign(nameLbl, 0.0f);
             gtk_widget_set_hexpand(GTK_WIDGET(nameLbl), TRUE);
             gtk_box_append(GTK_BOX(row), GTK_WIDGET(nameLbl));
 
             /* Unit */
             if (sig->unit && sig->unit[0] != '\0') {
-                GtkLabel* unitLbl = make_label(sig->unit, "Monospace 9", 0.55f, 0.55f, 0.55f);
+                GtkLabel* unitLbl = make_label(sig->unit, "Monospace 9", 0.0f, 0.0f, 0.0f);
                 gtk_label_set_xalign(unitLbl, 1.0f);
                 gtk_widget_set_margin_end(GTK_WIDGET(unitLbl), 4);
                 gtk_box_append(GTK_BOX(row), GTK_WIDGET(unitLbl));
             }
 
             /* Value (fixed width so column stays aligned) */
-            GtkLabel* valLbl = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+            GtkLabel* valLbl = make_label("--", "Monospace 9", 0.0f, 0.0f, 0.0f);
             gtk_label_set_xalign(valLbl, 1.0f);
             gtk_widget_set_size_request(GTK_WIDGET(valLbl), 80, -1);
             gtk_box_append(GTK_BOX(row), GTK_WIDGET(valLbl));
