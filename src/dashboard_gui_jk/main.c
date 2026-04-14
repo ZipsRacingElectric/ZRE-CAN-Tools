@@ -47,14 +47,6 @@ static struct {
     size_t      signalLabelCount;
     GtkLabel*   cellVoltLabels[144]; // One value label per cell voltage (indexed 0-143)
     ssize_t     cellVoltIdx[144];    // Pre-cached signal indices for CELL_VOLTAGE_0..143
-    // Powertrain panel labels (speed page right)
-    GtkLabel*   lvVoltage;
-    GtkLabel*   hvVoltage;
-    // Torque Config panel labels (speed page left inside black box)
-    GtkLabel*   drivingTorque;
-    GtkLabel*   regenTorque;
-    GtkLabel*   torqueIndex;
-    GtkLabel*   drsStatus;
     // Pre-cached named signal indices — looked up once in activate(), never change
     ssize_t     idx_speed;
     ssize_t     idx_session;
@@ -66,12 +58,6 @@ static struct {
     ssize_t     idx_pack_voltage;
     ssize_t     idx_power_avg;
     ssize_t     idx_energy_delivered;
-    ssize_t     idx_lv;
-    ssize_t     idx_hv;
-    ssize_t     idx_driving_torque;
-    ssize_t     idx_regen_torque;
-    ssize_t     idx_torque_index;
-    ssize_t     idx_drs;
     ssize_t     idx_cell_temp[60];   // SENSE_LINE_*_TEMPERATURE signals
     GtkLabel*   speedVal;        // Large center speed number
     GtkLabel*   loggerTitle;     // "LOGGER OFF"
@@ -87,6 +73,9 @@ static struct {
     GtkLabel*   endrVcuFaults;
     GtkLabel*   endrMtrTemp;
     GtkLabel*   endrInvTemp;
+    // Data logger labels on ENDR page (separate from speed page)
+    GtkLabel*   endrLoggerTitle;
+    GtkLabel*   endrLoggerStat;
 } ui;
 
 // ============================================================
@@ -128,6 +117,7 @@ static void update_speed(void)
     char text[8] = "--";
     if (canDatabaseGetFloat(&database, ui.idx_speed, &val) == CAN_DATABASE_VALID){
 		val *= 0.00424999;
+        if ( val < -0 ) val = -val;
         snprintf(text, sizeof(text), "%.0f", val);}
     gtk_label_set_text(ui.speedVal, text);
 }
@@ -139,9 +129,11 @@ static void update_logger(void)
     if (canDatabaseGetFloat(&database, ui.idx_session, &val) != CAN_DATABASE_VALID)
         return;
     gtk_label_set_text(ui.loggerTitle, val > 0.5f ? "LOGGER ON" : "LOGGER OFF");
+    gtk_label_set_text(ui.endrLoggerTitle, val > 0.5f ? "LOGGER ON" : "LOGGER OFF");
     char text[32];
     snprintf(text, sizeof(text), "Session\nNo. %.0f", val);
     gtk_label_set_text(ui.loggerStat, text);
+    gtk_label_set_text(ui.endrLoggerStat, text);
 }
 
 static const char* BMS_CELL_TEMP_SIGNALS[] = {
@@ -243,8 +235,8 @@ static void update_bms_temps(void)
     } else {
         maxText[0] = avgText[0] = '-'; maxText[1] = avgText[1] = '-'; maxText[2] = avgText[2] = '\0';
     }
-    if (ui.bmsMax) gtk_label_set_text(ui.bmsMax, maxText);
-    if (ui.bmsAvg) gtk_label_set_text(ui.bmsAvg, avgText);
+    gtk_label_set_text(ui.bmsMax,     maxText);
+    gtk_label_set_text(ui.bmsAvg,     avgText);
     gtk_label_set_text(ui.endrBmsMax, maxText);
     gtk_label_set_text(ui.endrBmsAvg, avgText);
 }
@@ -254,7 +246,7 @@ static void update_vcu_faults(void)
     float val = 0.0f;
     const char* text = (canDatabaseGetFloat(&database, ui.idx_vcu_fault, &val) == CAN_DATABASE_VALID)
                        ? (val > 0.5f ? "FAULT" : "No faults") : "No faults";
-    if (ui.vcuFaults) gtk_label_set_text(ui.vcuFaults, text);
+    gtk_label_set_text(ui.vcuFaults,     text);
     gtk_label_set_text(ui.endrVcuFaults, text);
 }
 
@@ -276,58 +268,6 @@ static void update_inv_temp(void)
         snprintf(text, sizeof(text), "%.1fC", val);
     gtk_label_set_text(ui.invTemp,     text);
     gtk_label_set_text(ui.endrInvTemp, text);
-}
-
-static void update_lv_voltage(void)
-{
-    float val = 0.0f;
-    char text[12] = "--";
-    if (canDatabaseGetFloat(&database, ui.idx_lv, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "%.1fV", val);
-    gtk_label_set_text(ui.lvVoltage, text);
-}
-
-static void update_hv_voltage(void)
-{
-    float val = 0.0f;
-    char text[12] = "--";
-    if (canDatabaseGetFloat(&database, ui.idx_hv, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "%.0fV", val);
-    gtk_label_set_text(ui.hvVoltage, text);
-}
-
-// Single pass for all four Torque Config fields
-static void update_torque_config(void)
-{
-    float val = 0.0f;
-    char text[12];
-
-    snprintf(text, sizeof(text), "--");
-    if (canDatabaseGetFloat(&database, ui.idx_driving_torque, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "%.0f%%", val);
-    gtk_label_set_text(ui.drivingTorque, text);
-
-    snprintf(text, sizeof(text), "--");
-    if (canDatabaseGetFloat(&database, ui.idx_regen_torque, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "%.0f%%", val);
-    gtk_label_set_text(ui.regenTorque, text);
-
-    snprintf(text, sizeof(text), "--");
-    if (canDatabaseGetFloat(&database, ui.idx_torque_index, &val) == CAN_DATABASE_VALID)
-        snprintf(text, sizeof(text), "%.0f", val);
-    gtk_label_set_text(ui.torqueIndex, text);
-
-    // WING_STATUS: 0=Open, 1=Opening, 2=Closed, 3=Closing, 4=Stall
-    const char* drs = "--";
-    if (canDatabaseGetFloat(&database, ui.idx_drs, &val) == CAN_DATABASE_VALID) {
-        int s = (int)val;
-        if      (s == 0) drs = "Open";
-        else if (s == 1) drs = "Opening";
-        else if (s == 2) drs = "Closed";
-        else if (s == 3) drs = "Closing";
-        else             drs = "Stall";
-    }
-    gtk_label_set_text(ui.drsStatus, drs);
 }
 
 static BarData bseData  = {0.80f, 0.20f, 0.20f, 0.0f};
@@ -648,9 +588,6 @@ static gboolean update_all(gpointer unused)
     update_pack_voltage();
     update_power_avg();
     update_energy_delivered();
-    update_lv_voltage();
-    update_hv_voltage();
-    update_torque_config();
     update_can_page(NULL);
     update_bms_volt_page(NULL);
     return TRUE;
@@ -676,39 +613,23 @@ static void activate(GtkApplication* app, gpointer title_ptr)
 
         /* Navigation buttons */
         ".nav-btn {"
-        "  background: #141414;"
-        "  color: #F4931E;"
-        "  font-weight: bold;"
-        "  border: 1px solid #333333;"
-        "  border-bottom: 3px solid #aa1500;"
-        "  border-radius: 0px;"
+        "  background: #181818;"
+        "  color: #bbbbbb;"
+        "  border: 1px solid #484848;"
+        "  border-radius: 2px;"
         "  min-width: 80px;"
         "  min-height: 36px;"
         "  padding: 0px 4px;"
         "}"
-        ".nav-btn:hover { background: #222222; border-color: #555; border-bottom-color: #cc2200; }"
+        ".nav-btn:hover { background: #252525; border-color: #777; }"
         ".nav-btn-active {"
-        "  background: #1a1a1a;"
-        "  color: #F4931E;"
-        "  font-weight: bold;"
-        "  border: 1px solid #666666;"
-        "  border-bottom: 3px solid #cc2200;"
-        "  border-radius: 0px;"
+        "  background: #242424;"
+        "  color: #ffffff;"
+        "  border: 1px solid #888888;"
+        "  border-radius: 2px;"
         "  min-width: 80px;"
         "  min-height: 36px;"
         "  padding: 0px 4px;"
-        "}"
-        /* System status tab strip */
-        ".sys-tab {"
-        "  background: #0a0a0a;"
-        "  color: #44cc44;"
-        "  font-weight: bold;"
-        "  border: 1px solid #227722;"
-        "  padding: 2px 8px;"
-        "}"
-        ".sys-tab-strip {"
-        "  border: 1px solid #33aa33;"
-        "  background: #0a0a0a;"
         "}"
         ".rotated-label { transform: rotate(-90deg); }"
         ".speed-box {"
@@ -771,95 +692,39 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_grid_attach(GTK_GRID(ui.grid), bseLabel, 0, 4, 1, 1);
 
     /* ==========================================================
-       Column 1, Row 0 — Data Logger panel (top-left)
+       Columns 1-2, Row 0 — Data Logger panel (top-left)
        ========================================================== */
     ui.dataLoggerPanel = gtk_grid_new();
-    gtk_widget_set_margin_top  (ui.dataLoggerPanel, 8);
+    gtk_widget_set_margin_top  (ui.dataLoggerPanel, 12);
     gtk_widget_set_margin_start(ui.dataLoggerPanel, 8);
     gtk_widget_set_valign(ui.dataLoggerPanel, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(ui.grid), ui.dataLoggerPanel, 1, 0, 1, 1);
 
-    ui.loggerTitle = make_label("LOGGING OFF", "Monospace Bold 15", 1.0f, 1.0f, 1.0f);
+    ui.loggerTitle = make_label("LOGGER OFF", "Monospace Bold 13", 1.0f, 1.0f, 1.0f);
     gtk_label_set_xalign(ui.loggerTitle, 0.0f);
     gtk_grid_attach(GTK_GRID(ui.dataLoggerPanel), GTK_WIDGET(ui.loggerTitle), 0, 0, 1, 1);
 
-    ui.loggerStat = make_label("Session\nNo. 273", "Monospace 9", 0.75f, 0.75f, 0.75f);
+    ui.loggerStat = make_label("Session\nNo. 273", "Monospace 8", 0.75f, 0.75f, 0.75f);
     gtk_label_set_xalign(ui.loggerStat, 0.0f);
     gtk_widget_set_margin_top(GTK_WIDGET(ui.loggerStat), 2);
     gtk_grid_attach(GTK_GRID(ui.dataLoggerPanel), GTK_WIDGET(ui.loggerStat), 0, 1, 1, 1);
 
     /* ==========================================================
-       Columns 2-3, Row 0 — System status tab strip (VCU/BMS/AMK/GPS)
-       ========================================================== */
-    GtkWidget* tabStrip = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_widget_add_css_class(tabStrip, "sys-tab-strip");
-    gtk_widget_set_halign(tabStrip, GTK_ALIGN_END);
-    gtk_widget_set_valign(tabStrip, GTK_ALIGN_CENTER);
-    gtk_widget_set_margin_end(tabStrip, 4);
-    gtk_widget_set_margin_top(tabStrip, 6);
-    gtk_grid_attach(GTK_GRID(ui.grid), tabStrip, 2, 0, 2, 1);
-
-    const char* sys_names[] = {"VCU", "BMS", "AMK", "GPS"};
-    for (int i = 0; i < 4; ++i) {
-        if (i > 0) {
-            GtkWidget* sep = gtk_label_new("/");
-            gtk_widget_add_css_class(sep, "sys-tab");
-            gtk_box_append(GTK_BOX(tabStrip), sep);
-        }
-        GtkLabel* sysLbl = make_label(sys_names[i], "Monospace Bold 11", 0.267f, 0.80f, 0.267f);
-        gtk_widget_add_css_class(GTK_WIDGET(sysLbl), "sys-tab");
-        gtk_box_append(GTK_BOX(tabStrip), GTK_WIDGET(sysLbl));
-    }
-
-    /* ==========================================================
-       Columns 1-3, Rows 1-3 — Main black box: Torque Config + speed + Powertrain
+       Columns 2-3, Rows 0-3 — Combined black box: speed + BMS/VCU/AMK
        ========================================================== */
     GtkWidget* mainBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_add_css_class(mainBox, "speed-box");
     gtk_widget_set_hexpand(mainBox, TRUE);
     gtk_widget_set_vexpand(mainBox, TRUE);
-    gtk_grid_attach(GTK_GRID(ui.grid), mainBox, 1, 1, 3, 3);
+    gtk_grid_attach(GTK_GRID(ui.grid), mainBox, 2, 1, 2, 3);
 
-    /* Left panel: Torque Config */
-    GtkWidget* torquePanel = gtk_grid_new();
-    gtk_widget_set_margin_start(torquePanel, 8);
-    gtk_widget_set_margin_end  (torquePanel, 8);
-    gtk_widget_set_valign(torquePanel, GTK_ALIGN_CENTER);
-    gtk_grid_set_row_spacing(GTK_GRID(torquePanel), 2);
-    gtk_box_append(GTK_BOX(mainBox), torquePanel);
-
-    int t = 0;
-    GtkLabel* torqueTitle = make_label("Torque Config", "Monospace Bold 11",
-                                       0.957f, 0.576f, 0.118f);
-    gtk_label_set_xalign(torqueTitle, 0.5f);
-    gtk_widget_set_hexpand(GTK_WIDGET(torqueTitle), TRUE);
-    gtk_widget_set_margin_bottom(GTK_WIDGET(torqueTitle), 4);
-    gtk_grid_attach(GTK_GRID(torquePanel), GTK_WIDGET(torqueTitle), 0, t++, 2, 1);
-
-    struct { const char* lbl; GtkLabel** val; } tcfg[] = {
-        { "Driving:", &ui.drivingTorque },
-        { "Regen:",   &ui.regenTorque   },
-        { "Index:",   &ui.torqueIndex   },
-        { "DRS:",     &ui.drsStatus     },
-    };
-    for (int i = 0; i < 4; ++i) {
-        GtkLabel* key = make_label(tcfg[i].lbl, "Monospace 9", 0.55f, 0.55f, 0.55f);
-        gtk_label_set_xalign(key, 0.0f);
-        gtk_widget_set_margin_start(GTK_WIDGET(key), 4);
-        gtk_grid_attach(GTK_GRID(torquePanel), GTK_WIDGET(key), 0, t, 1, 1);
-        *tcfg[i].val = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
-        gtk_label_set_xalign(*tcfg[i].val, 1.0f);
-        gtk_widget_set_margin_end(GTK_WIDGET(*tcfg[i].val), 4);
-        gtk_grid_attach(GTK_GRID(torquePanel), GTK_WIDGET(*tcfg[i].val), 1, t++, 1, 1);
-    }
-
-    /* Center: Vehicle Speed (MPH) */
+    /* Left side: Vehicle Velocity / speed / MPH */
     GtkWidget* speedBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_set_hexpand(speedBox, TRUE);
     gtk_widget_set_vexpand(speedBox, TRUE);
     gtk_box_append(GTK_BOX(mainBox), speedBox);
 
-    ui.velocityTitle = GTK_WIDGET(make_label("Vehicle Speed (MPH):", "Monospace 10", 0.70f, 0.70f, 0.70f));
+    ui.velocityTitle = GTK_WIDGET(make_label("Vehicle Velocity:", "Monospace 10", 0.70f, 0.70f, 0.70f));
     gtk_label_set_xalign(GTK_LABEL(ui.velocityTitle), 0.5f);
     gtk_widget_set_margin_top(ui.velocityTitle, 6);
     gtk_widget_set_vexpand(ui.velocityTitle, FALSE);
@@ -872,40 +737,91 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_widget_set_vexpand(GTK_WIDGET(ui.speedVal), TRUE);
     gtk_box_append(GTK_BOX(speedBox), GTK_WIDGET(ui.speedVal));
 
-    /* Right panel: Powertrain */
+    GtkLabel* mphLabel = make_label("MPH", "Monospace Bold 15", 0.80f, 0.80f, 0.80f);
+    gtk_label_set_xalign(mphLabel, 0.5f);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(mphLabel), 6);
+    gtk_widget_set_vexpand(GTK_WIDGET(mphLabel), FALSE);
+    gtk_box_append(GTK_BOX(speedBox), GTK_WIDGET(mphLabel));
+
+    /* Right side: BMS / VCU / AMK */
     ui.rightPanel = gtk_grid_new();
     gtk_widget_set_margin_start(ui.rightPanel, 8);
     gtk_widget_set_margin_end  (ui.rightPanel, 8);
     gtk_widget_set_valign(ui.rightPanel, GTK_ALIGN_CENTER);
     gtk_widget_set_vexpand(ui.rightPanel, TRUE);
-    gtk_grid_set_row_spacing(GTK_GRID(ui.rightPanel), 2);
+    gtk_grid_set_row_spacing(GTK_GRID(ui.rightPanel), 1);
     gtk_box_append(GTK_BOX(mainBox), ui.rightPanel);
 
     int r = 0;
 
-    GtkLabel* ptTitle = make_label("Powertrain", "Monospace Bold 11",
-                                   0.957f, 0.576f, 0.118f);
-    gtk_label_set_xalign(ptTitle, 0.5f);
-    gtk_widget_set_hexpand(GTK_WIDGET(ptTitle), TRUE);
-    gtk_widget_set_margin_bottom(GTK_WIDGET(ptTitle), 4);
-    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(ptTitle), 0, r++, 2, 1);
+    /* -- BMS -- */
+    GtkLabel* bmsTitle = make_label("BMS", "Monospace Bold 15", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(bmsTitle, 0.5f);
+    gtk_widget_set_hexpand(GTK_WIDGET(bmsTitle), TRUE);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(bmsTitle), 2);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(bmsTitle), 0, r++, 2, 1);
 
-    struct { const char* lbl; GtkLabel** val; } pt[] = {
-        { "LV:",  &ui.lvVoltage },
-        { "HV:",  &ui.hvVoltage },
-        { "Inv:", &ui.invTemp   },
-        { "Mtr:", &ui.mtrTemp   },
-    };
-    for (int i = 0; i < 4; ++i) {
-        GtkLabel* key = make_label(pt[i].lbl, "Monospace 9", 0.55f, 0.55f, 0.55f);
-        gtk_label_set_xalign(key, 0.0f);
-        gtk_widget_set_margin_start(GTK_WIDGET(key), 4);
-        gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(key), 0, r, 1, 1);
-        *pt[i].val = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
-        gtk_label_set_xalign(*pt[i].val, 1.0f);
-        gtk_widget_set_margin_end(GTK_WIDGET(*pt[i].val), 4);
-        gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(*pt[i].val), 1, r++, 1, 1);
-    }
+    GtkLabel* bmsMaxLbl = make_label("MAX:", "Monospace 11", 0.70f, 0.70f, 0.70f);
+    gtk_label_set_xalign(bmsMaxLbl, 0.0f);
+    gtk_widget_set_margin_start(GTK_WIDGET(bmsMaxLbl), 4);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(bmsMaxLbl), 0, r, 1, 1);
+    ui.bmsMax = make_label("25.1C", "Monospace 11", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(ui.bmsMax, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(ui.bmsMax), 4);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(ui.bmsMax), 1, r++, 1, 1);
+
+    GtkLabel* bmsAvgLbl = make_label("AVG:", "Monospace 11", 0.70f, 0.70f, 0.70f);
+    gtk_label_set_xalign(bmsAvgLbl, 0.0f);
+    gtk_widget_set_margin_start(GTK_WIDGET(bmsAvgLbl), 4);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(bmsAvgLbl), 0, r, 1, 1);
+    ui.bmsAvg = make_label("22.1C", "Monospace 11", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(ui.bmsAvg, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(ui.bmsAvg), 4);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(ui.bmsAvg), 1, r++, 1, 1);
+
+    /* spacer */
+    GtkWidget* sp1 = gtk_label_new("");
+    gtk_widget_set_size_request(sp1, 0, 8);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), sp1, 0, r++, 2, 1);
+
+    /* -- VCU -- */
+    GtkLabel* vcuTitle = make_label("VCU", "Monospace Bold 15", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(vcuTitle, 0.5f);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(vcuTitle), 2);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(vcuTitle), 0, r++, 2, 1);
+
+    ui.vcuFaults = make_label("No faults", "Monospace 11", 0.75f, 0.75f, 0.75f);
+    gtk_label_set_xalign(ui.vcuFaults, 0.5f);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(ui.vcuFaults), 0, r++, 2, 1);
+
+    /* spacer */
+    GtkWidget* sp2 = gtk_label_new("");
+    gtk_widget_set_size_request(sp2, 0, 8);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), sp2, 0, r++, 2, 1);
+
+    /* -- AMK -- */
+    GtkLabel* amkTitle = make_label("AMK", "Monospace Bold 15", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(amkTitle, 0.5f);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(amkTitle), 2);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(amkTitle), 0, r++, 2, 1);
+
+    GtkLabel* mtrLbl = make_label("MTR:", "Monospace 11", 0.70f, 0.70f, 0.70f);
+    gtk_label_set_xalign(mtrLbl, 0.0f);
+    gtk_widget_set_margin_start(GTK_WIDGET(mtrLbl), 4);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(mtrLbl), 0, r, 1, 1);
+    ui.mtrTemp = make_label("91.4C", "Monospace 11", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(ui.mtrTemp, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(ui.mtrTemp), 4);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(ui.mtrTemp), 1, r++, 1, 1);
+
+    GtkLabel* invLbl = make_label("INV:", "Monospace 11", 0.70f, 0.70f, 0.70f);
+    gtk_label_set_xalign(invLbl, 0.0f);
+    gtk_widget_set_margin_start(GTK_WIDGET(invLbl), 4);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(invLbl), 0, r, 1, 1);
+    ui.invTemp = make_label("46.6C", "Monospace 11", 0.90f, 0.90f, 0.90f);
+    gtk_label_set_xalign(ui.invTemp, 1.0f);
+    gtk_widget_set_margin_end(GTK_WIDGET(ui.invTemp), 4);
+    gtk_grid_attach(GTK_GRID(ui.rightPanel), GTK_WIDGET(ui.invTemp), 1, r++, 1, 1);
 
     /* ==========================================================
        Row 4 (cols 1-3) — Navigation button bar
@@ -917,19 +833,19 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_box_set_homogeneous(GTK_BOX(ui.buttonPanel), TRUE);
     gtk_grid_attach(GTK_GRID(ui.grid), ui.buttonPanel, 1, 4, 3, 1);
 
-    const char* btn_labels[] = {"AUTO-X", "ENDR.", "DEBUG", "BMS", "BACK"};
+    const char* btn_labels[] = {"SPEED", "ENDR", "BMS", "CAN", "BACK"};
     for (int i = 0; i < 5; ++i) {
         GtkWidget* btn = gtk_button_new_with_label(btn_labels[i]);
         if (i == 0)
             gtk_widget_add_css_class(btn, "nav-btn-active");
         else
             gtk_widget_add_css_class(btn, "nav-btn");
-        if (i == 1)  /* ENDR → endurance page */
+        if (i == 1)  /* ENDR button → endurance page */
             g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_endr), NULL);
-        if (i == 2)  /* DEBUG → CAN bus monitor */
-            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_can), NULL);
-        if (i == 3)  /* BMS → cell voltage page */
+        if (i == 2)  /* BMS button → BMS cell voltage page */
             g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_bms), NULL);
+        if (i == 3)  /* CAN button → CAN bus page */
+            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_can), NULL);
         gtk_box_append(GTK_BOX(ui.buttonPanel), btn);
     }
 
@@ -994,14 +910,14 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_widget_set_valign(ui.endrDataLoggerPanel, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(ui.endrGrid), ui.endrDataLoggerPanel, 1, 0, 1, 1);
 
-    GtkLabel* endrLogTitle = make_label("LOGGER OFF", "Monospace Bold 13", 1.0f, 1.0f, 1.0f);
-    gtk_label_set_xalign(endrLogTitle, 0.0f);
-    gtk_grid_attach(GTK_GRID(ui.endrDataLoggerPanel), GTK_WIDGET(endrLogTitle), 0, 0, 1, 1);
+    ui.endrLoggerTitle = make_label("LOGGER OFF", "Monospace Bold 13", 1.0f, 1.0f, 1.0f);
+    gtk_label_set_xalign(ui.endrLoggerTitle, 0.0f);
+    gtk_grid_attach(GTK_GRID(ui.endrDataLoggerPanel), GTK_WIDGET(ui.endrLoggerTitle), 0, 0, 1, 1);
 
-    GtkLabel* endrLogStat = make_label("Session\n--", "Monospace 8", 0.75f, 0.75f, 0.75f);
-    gtk_label_set_xalign(endrLogStat, 0.0f);
-    gtk_widget_set_margin_top(GTK_WIDGET(endrLogStat), 2);
-    gtk_grid_attach(GTK_GRID(ui.endrDataLoggerPanel), GTK_WIDGET(endrLogStat), 0, 1, 1, 1);
+    ui.endrLoggerStat = make_label("Session\nNo. 273", "Monospace 8", 0.75f, 0.75f, 0.75f);
+    gtk_label_set_xalign(ui.endrLoggerStat, 0.0f);
+    gtk_widget_set_margin_top(GTK_WIDGET(ui.endrLoggerStat), 2);
+    gtk_grid_attach(GTK_GRID(ui.endrDataLoggerPanel), GTK_WIDGET(ui.endrLoggerStat), 0, 1, 1, 1);
 
     /* Cols 2-3, Rows 1-3 — black box: 3 stacked energy signals */
     GtkWidget* endrMainBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
@@ -1069,26 +985,26 @@ static void activate(GtkApplication* app, gpointer title_ptr)
 
     int er = 0;
 
-    GtkLabel* endrBmsTitle = make_label("BMS", "Monospace Bold 11", 1.0f, 1.0f, 1.0f);
+    GtkLabel* endrBmsTitle = make_label("BMS", "Monospace Bold 15", 1.0f, 1.0f, 1.0f);
     gtk_label_set_xalign(endrBmsTitle, 0.5f);
     gtk_widget_set_hexpand(GTK_WIDGET(endrBmsTitle), TRUE);
     gtk_widget_set_margin_bottom(GTK_WIDGET(endrBmsTitle), 2);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsTitle), 0, er++, 2, 1);
 
-    GtkLabel* endrBmsMaxLbl = make_label("MAX:", "Monospace 9", 0.55f, 0.55f, 0.55f);
+    GtkLabel* endrBmsMaxLbl = make_label("MAX:", "Monospace 11", 0.70f, 0.70f, 0.70f);
     gtk_label_set_xalign(endrBmsMaxLbl, 0.0f);
     gtk_widget_set_margin_start(GTK_WIDGET(endrBmsMaxLbl), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsMaxLbl), 0, er, 1, 1);
-    ui.endrBmsMax = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    ui.endrBmsMax = make_label("--", "Monospace 11", 0.90f, 0.90f, 0.90f);
     gtk_label_set_xalign(ui.endrBmsMax, 1.0f);
     gtk_widget_set_margin_end(GTK_WIDGET(ui.endrBmsMax), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrBmsMax), 1, er++, 1, 1);
 
-    GtkLabel* endrBmsAvgLbl = make_label("AVG:", "Monospace 9", 0.55f, 0.55f, 0.55f);
+    GtkLabel* endrBmsAvgLbl = make_label("AVG:", "Monospace 11", 0.70f, 0.70f, 0.70f);
     gtk_label_set_xalign(endrBmsAvgLbl, 0.0f);
     gtk_widget_set_margin_start(GTK_WIDGET(endrBmsAvgLbl), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrBmsAvgLbl), 0, er, 1, 1);
-    ui.endrBmsAvg = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    ui.endrBmsAvg = make_label("--", "Monospace 11", 0.90f, 0.90f, 0.90f);
     gtk_label_set_xalign(ui.endrBmsAvg, 1.0f);
     gtk_widget_set_margin_end(GTK_WIDGET(ui.endrBmsAvg), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrBmsAvg), 1, er++, 1, 1);
@@ -1096,36 +1012,36 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     GtkWidget* endrSp1 = gtk_label_new(""); gtk_widget_set_size_request(endrSp1, 0, 8);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), endrSp1, 0, er++, 2, 1);
 
-    GtkLabel* endrVcuTitle = make_label("VCU", "Monospace Bold 11", 1.0f, 1.0f, 1.0f);
+    GtkLabel* endrVcuTitle = make_label("VCU", "Monospace Bold 15", 1.0f, 1.0f, 1.0f);
     gtk_label_set_xalign(endrVcuTitle, 0.5f);
     gtk_widget_set_margin_bottom(GTK_WIDGET(endrVcuTitle), 2);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrVcuTitle), 0, er++, 2, 1);
-    ui.endrVcuFaults = make_label("No faults", "Monospace 15", 0.75f, 0.75f, 0.75f);
+    ui.endrVcuFaults = make_label("No faults", "Monospace 11", 0.75f, 0.75f, 0.75f);
     gtk_label_set_xalign(ui.endrVcuFaults, 0.5f);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrVcuFaults), 0, er++, 2, 1);
 
     GtkWidget* endrSp2 = gtk_label_new(""); gtk_widget_set_size_request(endrSp2, 0, 8);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), endrSp2, 0, er++, 2, 1);
 
-    GtkLabel* endrAmkTitle = make_label("AMK", "Monospace Bold 11", 1.0f, 1.0f, 1.0f);
+    GtkLabel* endrAmkTitle = make_label("AMK", "Monospace Bold 15", 1.0f, 1.0f, 1.0f);
     gtk_label_set_xalign(endrAmkTitle, 0.5f);
     gtk_widget_set_margin_bottom(GTK_WIDGET(endrAmkTitle), 2);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrAmkTitle), 0, er++, 2, 1);
 
-    GtkLabel* endrMtrLbl = make_label("MTR:", "Monospace 9", 0.55f, 0.55f, 0.55f);
+    GtkLabel* endrMtrLbl = make_label("MTR:", "Monospace 11", 0.70f, 0.70f, 0.70f);
     gtk_label_set_xalign(endrMtrLbl, 0.0f);
     gtk_widget_set_margin_start(GTK_WIDGET(endrMtrLbl), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrMtrLbl), 0, er, 1, 1);
-    ui.endrMtrTemp = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    ui.endrMtrTemp = make_label("--", "Monospace 11", 0.90f, 0.90f, 0.90f);
     gtk_label_set_xalign(ui.endrMtrTemp, 1.0f);
     gtk_widget_set_margin_end(GTK_WIDGET(ui.endrMtrTemp), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrMtrTemp), 1, er++, 1, 1);
 
-    GtkLabel* endrInvLbl = make_label("INV:", "Monospace 9", 0.55f, 0.55f, 0.55f);
+    GtkLabel* endrInvLbl = make_label("INV:", "Monospace 11", 0.70f, 0.70f, 0.70f);
     gtk_label_set_xalign(endrInvLbl, 0.0f);
     gtk_widget_set_margin_start(GTK_WIDGET(endrInvLbl), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(endrInvLbl), 0, er, 1, 1);
-    ui.endrInvTemp = make_label("--", "Monospace 9", 0.90f, 0.90f, 0.90f);
+    ui.endrInvTemp = make_label("--", "Monospace 11", 0.90f, 0.90f, 0.90f);
     gtk_label_set_xalign(ui.endrInvTemp, 1.0f);
     gtk_widget_set_margin_end(GTK_WIDGET(ui.endrInvTemp), 4);
     gtk_grid_attach(GTK_GRID(ui.endrRightPanel), GTK_WIDGET(ui.endrInvTemp), 1, er++, 1, 1);
@@ -1138,7 +1054,7 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     gtk_box_set_homogeneous(GTK_BOX(endrBtnPanel), TRUE);
     gtk_grid_attach(GTK_GRID(ui.endrGrid), endrBtnPanel, 1, 4, 3, 1);
 
-    const char* endr_btn_labels[] = {"AUTO-X", "ENDR.", "DEBUG", "BMS", "BACK"};
+    const char* endr_btn_labels[] = {"SPEED", "ENDR", "BMS", "CAN", "BACK"};
     for (int i = 0; i < 5; ++i) {
         GtkWidget* btn = gtk_button_new_with_label(endr_btn_labels[i]);
         if (i == 1)
@@ -1148,9 +1064,9 @@ static void activate(GtkApplication* app, gpointer title_ptr)
         if (i == 0)
             g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_speed), NULL);
         if (i == 2)
-            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_can), NULL);
-        if (i == 3)
             g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_bms), NULL);
+        if (i == 3)
+            g_signal_connect(btn, "clicked", G_CALLBACK(switch_to_can), NULL);
         gtk_box_append(GTK_BOX(endrBtnPanel), btn);
     }
 
@@ -1264,17 +1180,11 @@ static void activate(GtkApplication* app, gpointer title_ptr)
     ui.idx_vcu_fault        = canDatabaseFindSignal(&database, "VCU_FAULT");
     ui.idx_bse              = canDatabaseFindSignal(&database, "BSE_FRONT_PERCENT");
     ui.idx_apps             = canDatabaseFindSignal(&database, "APPS_1_PERCENT");
-    ui.idx_mtr_temp         = canDatabaseFindSignal(&database, "AMK_MOTOR_TEMP");
-    ui.idx_inv_temp         = canDatabaseFindSignal(&database, "AMK_INVERTER_TEMP");
+    ui.idx_mtr_temp         = canDatabaseFindSignal(&database, "AMK_MOTOR_TEMPERATURE_MAX");
+    ui.idx_inv_temp         = canDatabaseFindSignal(&database, "AMK_INVERTER_TEMPERATURE_MAX");
     ui.idx_pack_voltage     = canDatabaseFindSignal(&database, "PACK_VOLTAGE");
     ui.idx_power_avg        = canDatabaseFindSignal(&database, "POWER_ROLLING_AVERAGE");
     ui.idx_energy_delivered = canDatabaseFindSignal(&database, "ENERGY_DELIVERED");
-    ui.idx_lv               = canDatabaseFindSignal(&database, "GLV_BATTERY_VOLTAGE");
-    ui.idx_hv               = canDatabaseFindSignal(&database, "PACK_VOLTAGE");
-    ui.idx_driving_torque   = canDatabaseFindSignal(&database, "DRIVING_TORQUE_LIMIT");
-    ui.idx_regen_torque     = canDatabaseFindSignal(&database, "REGEN_TORQUE_LIMIT");
-    ui.idx_torque_index     = canDatabaseFindSignal(&database, "TORQUE_ALGORITHM_INDEX");
-    ui.idx_drs              = canDatabaseFindSignal(&database, "WING_STATUS");
     for (int i = 0; i < BMS_CELL_TEMP_COUNT; ++i)
         ui.idx_cell_temp[i] = canDatabaseFindSignal(&database, BMS_CELL_TEMP_SIGNALS[i]);
 
