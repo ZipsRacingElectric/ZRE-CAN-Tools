@@ -248,15 +248,15 @@
 		},
 		{
 			"address":	"0x0050",
-			"name":		"GLV_BATTERY_SAMPLE_11V5",
+			"name":		"GLV_BATTERY_SAMPLE_20V",
 			"type":		"uint16_t",
-			"comment":	"The ADC sample of the GLV battery at 11.5V."
+			"comment":	"The ADC sample of the GLV battery at 20.0V."
 		},
 		{
 			"address":	"0x0052",
-			"name":		"GLV_BATTERY_SAMPLE_14V4",
+			"name":		"GLV_BATTERY_SAMPLE_29V",
 			"type":		"uint16_t",
-			"comment":	"The ADC sample of the GLV battery at 14.4V."
+			"comment":	"The ADC sample of the GLV battery at 29.0V."
 		},
 		{
 			"address":	"0x0060",
