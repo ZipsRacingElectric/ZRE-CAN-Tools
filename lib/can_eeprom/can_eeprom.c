@@ -5,6 +5,7 @@
 #include "error_codes.h"
 #include "can_eeprom_operations.h"
 #include "cjson/cjson_util.h"
+#include "debug.h"
 
 // C Standard Library
 #include <errno.h>
@@ -234,6 +235,7 @@ int canEepromWriteJson (canEeprom_t* eeprom, canDevice_t* device, cJSON* dataJso
 		// If the key was not matched to a variable, exit early.
 		if (variableIndex == eeprom->variableCount)
 		{
+			debugPrintf ("Data JSON contains an invalid key '%s'.\n", key->string);
 			errno = ERRNO_CAN_EEPROM_BAD_KEY;
 			return errno;
 		}
