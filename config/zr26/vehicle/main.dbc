@@ -53,7 +53,7 @@ BO_ 256 VCU_STATUS: 4 VCU
  SG_ AMK_RR_VALID : 17|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ AMK_FL_VALID : 18|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ AMK_FR_VALID : 19|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ GLV_BATTERY_VOLTAGE : 24|8@1+ (0.070588235294,0) [0|18] "V" Vector__XXX
+ SG_ GLV_BATTERY_VOLTAGE : 24|8@1+ (0.09375,12) [12|36] "V" Vector__XXX
  SG_ SAS_STATE : 22|2@1+ (1,0) [0|3] "Enum" Vector__XXX
  SG_ AMK_FAULT : 20|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ BSPD_FAULT : 21|1@1+ (1,0) [0|1] "Bool" Vector__XXX
@@ -937,4 +937,5 @@ BO_ 19 BMS_EEPROM_RESPONSE: 6 Vector__XXX
 BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","reserved","J1939PG";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+
 
