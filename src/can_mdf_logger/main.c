@@ -260,10 +260,7 @@ void* loggingThread (void* argPtr)
 			debugPrintf ("Memory Percentage: %f\n", memoryPercentage);
 
 			float temperature = ((float) temp / 1000);
-			debugPrintf ("Temperature: %zu\n", temperature);
-
-			float byte1 = memoryPercentage;
-			float byte2 = temperature;
+			debugPrintf ("Temperature: %f\n", temperature);
 
 			canFrame_t devInfo =
 			{
@@ -273,8 +270,11 @@ void* loggingThread (void* argPtr)
 				.dlc = 2,
 				.data =
 				{
-					byte1,
-					byte2
+					// Provides one decimal point of precision with a scale factor of 0.255
+					(uint8_t) ((memoryPercentage * 10.0f ) * 0.255f),
+
+					// Temperature is always a whole number
+					(uint8_t) (temperature)
 				}
 			};
 

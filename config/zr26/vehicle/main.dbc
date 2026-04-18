@@ -322,6 +322,10 @@ BO_ 384 DART_STATUS: 8 DART
  SG_ SESSION_NUMBER : 32|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ SPLIT_NUMBER : 48|16@1+ (1,0) [0|65535] "" Vector__XXX
 
+BO_ 385 DEV_INFO: 0 Vector__XXX
+ SG_ MEM_PERC : 0|8@1+ (0.255,0) [0|1000] "%" Vector__XXX
+ SG_ CPU_TEMP : 8|8@1+ (0,0) [0|100] "C" Vector__XXX
+
 BO_ 1952 VCU_TEMPERATURES: 4 Vector__XXX
  SG_ AMK_INVERTER_TEMPERATURE_MAX : 0|16@1- (0.1,0) [0|0] "C" Vector__XXX
  SG_ AMK_MOTOR_TEMPERATURE_MAX : 16|16@1- (0.1,0) [0|0] "C" Vector__XXX
@@ -936,3 +940,5 @@ BO_ 19 BMS_EEPROM_RESPONSE: 6 Vector__XXX
 BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","reserved","J1939PG";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+
+
