@@ -17,10 +17,11 @@
 #include <libgen.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <sys/sysinfo.h>
 
 #ifdef ZRE_CANTOOLS_OS_linux
 #include <sys/vfs.h>
-#include <dirent.h>
 #endif // ZRE_CANTOOLS_OS_linux
 
 char* expandEnv (const char* str)
@@ -226,4 +227,21 @@ int getCpuTemperature (size_t* temp)
 
 	// Indicates that the temperature was not found
 	return -1;
+}
+
+int getRamUtilization (size_t* free, size_t* total)
+{
+	struct sysinfo info;
+
+	// Retrieves memory information
+	if (sysinfo (&info) != 0)
+		return -1;
+
+	// Retrieves the total usable main memory size
+	(*total) = info.totalram;
+
+	// Retrieves the available memory size
+	(*free) = info.freeram;
+
+	return 0;
 }

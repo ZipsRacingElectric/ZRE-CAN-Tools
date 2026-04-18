@@ -62,4 +62,7 @@ int getStorageInfo (size_t* free, size_t* total, char* dir);
  */
 int getCpuTemperature (size_t* temp);
 
+// TODO(DiBacco)
+int getRamUtilization (size_t* free, size_t* total);
+
 #endif // MISC_PORT_H

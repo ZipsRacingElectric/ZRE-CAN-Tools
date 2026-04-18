@@ -256,6 +256,15 @@ void* loggingThread (void* argPtr)
 			if (getCpuTemperature (&temp) != 0)
 				printf("Couldn't get CPU Temperature\n");
 
+			size_t freeRam;
+			size_t totalRam;
+
+			if (getRamUtilization (&freeRam, &totalRam) != 0)
+				printf("Couldn't get CPU Utilization\n");
+
+			debugPrintf("Free Ram: %zu, ", freeRam);
+			debugPrintf("Total Ram: %zu, ", totalRam);
+
 			float memoryPercentage = ((float) free / total) * 100;
 			debugPrintf ("Memory Percentage: %f\n", memoryPercentage);
 
