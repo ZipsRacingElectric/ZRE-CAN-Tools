@@ -30,6 +30,10 @@
 #include <sys/vfs.h>
 #endif // ZRE_CANTOOLS_OS_linux
 
+// Macros  --------------------------------------------------------------------------------------------------------------------
+
+#define BYTES_TO_GIGABYTES(bytes) ((double)(bytes) / (1024.0 * 1024.0 * 1024.0))
+
 // Globals --------------------------------------------------------------------------------------------------------------------
 
 bool logging = true;
@@ -203,7 +207,37 @@ void* loggingThread (void* argPtr)
 			uint32_t sessionNumber	= mdfCanBusLogGetSessionNumber (arg->log);
 			uint32_t splitNumber	= mdfCanBusLogGetSplitNumber (arg->log);
 
-			canFrame_t statusFrame =
+			size_t totalMemory = 0;
+			size_t usedMemory = 0;
+
+			size_t usedRam;
+			size_t totalRam;
+
+			size_t temp = 0;
+
+			// Gets the free and total storage (in bytes) of the current directory
+			if (getStorageInfo (&usedMemory, &totalMemory, "/") == 0)
+			{
+				debugPrintf ("Total: %zu\n", totalMemory);
+				debugPrintf ("Free: %zu\n", free);
+			}
+
+			if (getCpuTemperature (&temp) != 0)
+				printf("Couldn't get CPU Temperature\n");
+
+			if (getRamUtilization (&usedRam, &totalRam) != 0)
+				printf("Couldn't get RAM Utilization\n");
+
+			debugPrintf("Free Ram: %zu, ", usedRam);
+			debugPrintf("Total Ram: %zu, ", totalRam);
+
+			float memoryPercentage = ((float) usedMemory / totalMemory) * 100;
+			debugPrintf ("Memory Percentage: %f\n", memoryPercentage);
+
+			float temperature = ((float) temp / 1000);
+			debugPrintf ("Temperature: %f\n", temperature);
+
+			canFrame_t statusFrame0 =
 			{
 				.id		= 0x180,
 				.ide	= false,
@@ -222,9 +256,46 @@ void* loggingThread (void* argPtr)
 				}
 			};
 
-			// Transmit the status message. Due to its blocking nature, this must be outside the mutex guard.
-			if (canTransmit (arg->device, &statusFrame) != 0 && !quiet)
-				errorPrintf ("Warning, failed to transmit status message");
+			canFrame_t statusFrame1 =
+			{
+				.id = 0x181,
+				.ide = false,
+				.rtr = false,
+				.dlc = 2,
+				.data =
+				{
+					// TODO: CPU Load
+					(uint8_t) (temperature) + 55
+				}
+			};
+
+			canFrame_t statusFrame2 =
+			{
+				.id = 0x182,
+				.ide = false,
+				.rtr = false,
+				.dlc = 8,
+				.data =
+				{
+					(uint8_t) (BYTES_TO_GIGABYTES (usedMemory) * 0.000262144) + 1e-9,
+					(uint8_t) (BYTES_TO_GIGABYTES (totalMemory) * 0.000262144) + 1e-9,
+					(uint8_t) (BYTES_TO_GIGABYTES (usedRam) * 0.000262144) + 1e-9,
+					(uint8_t) (BYTES_TO_GIGABYTES (totalRam) * 0.000262144) + 1e-9,
+				}
+			};
+
+			// Transmit the status messages. Due to its blocking nature, this must be outside the mutex guard.
+			if (!quiet)
+			{
+				if (canTransmit (arg->device, &statusFrame0) != 0)
+					errorPrintf ("Warning, failed to transmit status message");
+
+				if (canTransmit (arg->device, &statusFrame1) != 0)
+				 	errorPrintf ("Warning, failed to transmit device info message");
+
+				if (canTransmit (arg->device, &statusFrame2) != 0)
+				 	errorPrintf ("Warning, failed to transmit device info message");
+			}
 
 			// Acquire access to the log file. Note this must be before the timestamp is generated.
 			pthread_mutex_lock (arg->logMutex);
@@ -234,73 +305,14 @@ void* loggingThread (void* argPtr)
 			if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
 				errorPrintf ("Warning, failed to get MDF timestamp");
 
-			// Log the status frame.
-			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame, arg->busChannel, true, &timeCurrent) != 0)
+			// Log the status frames.
+			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame0, arg->busChannel, true, &timeCurrent) != 0)
 				errorPrintf ("Warning, failed to log CAN data frame");
 
-			// Release access to the log file.
-			pthread_mutex_unlock (arg->logMutex);
+			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame1, arg->busChannel, true, &timeCurrent) != 0)
+				errorPrintf ("Warning, failed to log CAN data frame");
 
-			size_t total = 0;
-			size_t free = 0;
-
-			size_t temp = 0;
-
-			// Gets the free and total storage (in bytes) of the current directory
-			if (getStorageInfo (&free, &total, "/") == 0)
-			{
-				debugPrintf ("Total: %zu\n", total);
-				debugPrintf ("Free: %zu\n", free);
-			}
-
-			if (getCpuTemperature (&temp) != 0)
-				printf("Couldn't get CPU Temperature\n");
-
-			size_t freeRam;
-			size_t totalRam;
-
-			if (getRamUtilization (&freeRam, &totalRam) != 0)
-				printf("Couldn't get CPU Utilization\n");
-
-			debugPrintf("Free Ram: %zu, ", freeRam);
-			debugPrintf("Total Ram: %zu, ", totalRam);
-
-			float memoryPercentage = ((float) free / total) * 100;
-			debugPrintf ("Memory Percentage: %f\n", memoryPercentage);
-
-			float temperature = ((float) temp / 1000);
-			debugPrintf ("Temperature: %f\n", temperature);
-
-			canFrame_t devInfo =
-			{
-				.id = 0x181,
-				.ide = false,
-				.rtr = false,
-				.dlc = 2,
-				.data =
-				{
-					// Provides one decimal point of precision with a scale factor of 0.255
-					(uint8_t) ((memoryPercentage * 10.0f ) * 0.255f),
-
-					// Temperature is always a whole number
-					(uint8_t) (temperature)
-				}
-			};
-
-			// Transmit the device info message. Due to its blocking nature, this must be outside the mutex guard.
-			if (canTransmit (arg->device, &devInfo) != 0 && !quiet)
-			 	errorPrintf ("Warning, failed to transmit device info message");
-
-			// Acquire access to the log file. Note this must be before the timestamp is generated.
-			pthread_mutex_lock (arg->logMutex);
-
-			// Get a timestamp for the frame. We cannot reuse the previous value, as it will have already been used if a frame was just received.
-			struct timespec timeCurrent;
-			if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
-				errorPrintf ("Warning, failed to get MDF timestamp");
-
-			// Log the device info frame.
-			if (mdfCanBusLogWriteDataFrame (arg->log, &devInfo, arg->busChannel, true, &timeCurrent) != 0)
+			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame2, arg->busChannel, true, &timeCurrent) != 0)
 				errorPrintf ("Warning, failed to log CAN data frame");
 
 			// Release access to the log file.
@@ -309,8 +321,8 @@ void* loggingThread (void* argPtr)
 			// Reset the measurements (include the status frame, as we just transmitted that)
 			frameCount = 1;
 			errorCount = 0;
-			minBitCount = canGetMinBitCount (&statusFrame);
-			maxBitCount = canGetMaxBitCount (&statusFrame);
+			minBitCount = canGetMinBitCount (&statusFrame0);
+			maxBitCount = canGetMaxBitCount (&statusFrame0);
 
 			// Set the new deadline
 			timeStart = timeCurrent;

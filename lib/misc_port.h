@@ -52,7 +52,7 @@ char* getBaseName (char* path);
  * @param total The variable to initialize with the amount of free storage (in bytes).
  * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
 */
-int getStorageInfo (size_t* free, size_t* total, char* dir);
+int getStorageInfo (size_t* used, size_t* total, char* dir);
 
 /**
  * @brief Gets the temperature of the CPU. Note: this function is not thread-safe, in order to use
@@ -63,6 +63,6 @@ int getStorageInfo (size_t* free, size_t* total, char* dir);
 int getCpuTemperature (size_t* temp);
 
 // TODO(DiBacco)
-int getRamUtilization (size_t* free, size_t* total);
+int getRamUtilization (size_t* used, size_t* total);
 
 #endif // MISC_PORT_H

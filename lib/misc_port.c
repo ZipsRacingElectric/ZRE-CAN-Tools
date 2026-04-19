@@ -149,7 +149,7 @@ char* getBaseName (char* path)
 	return dirNameCopy;
 }
 
-int getStorageInfo (size_t* free, size_t* total, char* dir)
+int getStorageInfo (size_t* used, size_t* total, char* dir)
 {
 	// Checks that the OS defined is not Windows
 	#ifdef ZRE_CANTOOLS_OS_windows
@@ -162,8 +162,8 @@ int getStorageInfo (size_t* free, size_t* total, char* dir)
 	if (statfs (dir, &statfsBuffer) != 0)
 		return -1;
 
-	// free storage = the amount of free blocks * block size
-	(*free) = statfsBuffer.f_bfree * statfsBuffer.f_bsize;
+	// free storage = (the total amount of blocks - free blocks) * block size
+	(*used) = (statfsBuffer.f_blocks - statfsBuffer.f_bfree) * statfsBuffer.f_bsize;
 
 	// total storage = the total amount of blocks * block size
 	(*total) = statfsBuffer.f_blocks * statfsBuffer.f_bsize;
@@ -229,19 +229,16 @@ int getCpuTemperature (size_t* temp)
 	return -1;
 }
 
-int getRamUtilization (size_t* free, size_t* total)
+int getRamUtilization (size_t* used, size_t* total)
 {
 	struct sysinfo info;
 
-	// Retrieves memory information
 	if (sysinfo (&info) != 0)
 		return -1;
 
-	// Retrieves the total usable main memory size
 	(*total) = info.totalram;
 
-	// Retrieves the available memory size
-	(*free) = info.freeram;
+	(*used) = info.totalram - info.freeram;
 
 	return 0;
 }
