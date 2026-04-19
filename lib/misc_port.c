@@ -1,4 +1,5 @@
 // For asprintf. Note this must be the first include in this file.
+#include <stdint.h>
 #define _GNU_SOURCE
 #include <stdio.h>
 
@@ -149,7 +150,7 @@ char* getBaseName (char* path)
 	return dirNameCopy;
 }
 
-int getStorageInfo (size_t* used, size_t* total, char* dir)
+int getStorageUtilization (size_t* storageUsed, size_t* storageTotal, char* dir)
 {
 	// Checks that the OS defined is not Windows
 	#ifdef ZRE_CANTOOLS_OS_windows
@@ -162,11 +163,72 @@ int getStorageInfo (size_t* used, size_t* total, char* dir)
 	if (statfs (dir, &statfsBuffer) != 0)
 		return -1;
 
-	// free storage = (the total amount of blocks - free blocks) * block size
-	(*used) = (statfsBuffer.f_blocks - statfsBuffer.f_bfree) * statfsBuffer.f_bsize;
+	// used storage = (the total amount of blocks - free blocks) * block size
+	(*storageUsed) = (statfsBuffer.f_blocks - statfsBuffer.f_bfree) * statfsBuffer.f_bsize;
 
 	// total storage = the total amount of blocks * block size
-	(*total) = statfsBuffer.f_blocks * statfsBuffer.f_bsize;
+	(*storageTotal) = statfsBuffer.f_blocks * statfsBuffer.f_bsize;
+
+	return 0;
+}
+
+int getMemoryUtilization (size_t* memoryUsed, size_t* memoryTotal)
+{
+
+	// Checks that the OS defined is not Windows
+	#ifdef ZRE_CANTOOLS_OS_windows
+	errno = ERRNO_OS_NOT_SUPPORTED;
+	return -1;
+	#endif
+
+	struct sysinfo info;
+
+	if (sysinfo (&info) != 0)
+		return -1;
+
+	(*memoryUsed) = info.totalram - info.freeram;
+
+	(*memoryTotal) = info.totalram;
+
+	return 0;
+}
+
+int getCpuUtilization (size_t* cpuUsed, size_t* cpuTotal)
+{
+	// Checks that the OS defined is not Windows
+	#ifdef ZRE_CANTOOLS_OS_windows
+	errno = ERRNO_OS_NOT_SUPPORTED;
+	return -1;
+	#endif
+
+	// Reads file providing a real-time snapshot of CPU usage since the system boot
+	FILE* file = fopen ("/proc/stat", "r");
+	if (file == NULL)
+		return -1;
+
+	size_t cpuInfo [10];
+
+	fscanf (file, "cpu  %zu %zu %zu %zu %zu %zu %zu %zu %zu %zu",
+	&cpuInfo[0], &cpuInfo[1], &cpuInfo[2], &cpuInfo[3], &cpuInfo[4],
+	&cpuInfo[5], &cpuInfo[6], &cpuInfo[7], &cpuInfo[8], &cpuInfo[9]);
+
+	fclose (file);
+
+	// The amount of idling CPU time
+	size_t idle = cpuInfo[3];
+
+	// The amount of idling CPU time waiting for I/O
+	size_t iowait = cpuInfo[4];
+
+	// The total amount of idling CPU time
+	size_t idleTime = idle + iowait;
+
+	// The total amount of CPU time
+	for (size_t i = 0; i < 10; ++i)
+		(*cpuTotal) += cpuInfo[i];
+
+	// The amount of CPU used time
+	(*cpuUsed) = (*cpuTotal) - idleTime;
 
 	return 0;
 }
@@ -227,18 +289,4 @@ int getCpuTemperature (size_t* temp)
 
 	// Indicates that the temperature was not found
 	return -1;
-}
-
-int getRamUtilization (size_t* used, size_t* total)
-{
-	struct sysinfo info;
-
-	if (sysinfo (&info) != 0)
-		return -1;
-
-	(*total) = info.totalram;
-
-	(*used) = info.totalram - info.freeram;
-
-	return 0;
 }

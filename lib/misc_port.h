@@ -47,22 +47,35 @@ int systemf (char* format, ...);
 char* getBaseName (char* path);
 
 /**
- * @brief Gets the free and total storage of a file / directory.
- * @param free The variable to initialize with the amount of total storage (in bytes).
- * @param total The variable to initialize with the amount of free storage (in bytes).
+ * @brief Gets the used and total storage (in bytes) of a directory.
+ * @param storageUsed The variable to initialize with the amount of used storage (in bytes).
+ * @param storageTotal The variable to initialize with the total amount storage (in bytes).
  * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
 */
-int getStorageInfo (size_t* used, size_t* total, char* dir);
+int getStorageUtilization (size_t* storageUsed, size_t* storageTotal, char* dir);
 
 /**
- * @brief Gets the temperature of the CPU. Note: this function is not thread-safe, in order to use
- * it a multithreaded context, a mutex must be employed.
- * @param temp The variable to initialize with the temperature of the CPU. Divide the result by 1000 to convert to Celsius.
+ * @brief Gets the used and total RAM (in bytes) of a system.
+ * @param memoryUsed The variable to initialize with the amount of used storage (in bytes).
+ * @param memoryTotal The variable to initialize with the total amount of storage (in bytes).
+ * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
+*/
+int getMemoryUtilization (size_t* memoryUsed, size_t* memoryTotal);
+
+/**
+ * @brief Gets the cumulative used CPU time and total CPU time.
+ * Note: the difference of the current and previous values within an arbitrary interval will compute the CPU utilization of that interval.
+ * @param cpuUsed The variable to initialize with the cumulative used CPU time (in a jiffy).
+ * @param cpuTotal The variable to initialize with the cumulative total CPU time (in a jiffy).
  * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
  */
-int getCpuTemperature (size_t* temp);
+int getCpuUtilization (size_t* cpuUsed, size_t* cpuTotal);
 
-// TODO(DiBacco)
-int getRamUtilization (size_t* used, size_t* total);
+/**
+ * @brief Gets the temperature of the CPU.
+ * @param cpuTemperatureValue The variable to initialize with the value of the CPU socket temperature. Divide the result by 1000 to convert to Celsius.
+ * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
+ */
+int getCpuTemperature (size_t* cpuTemperatureValue);
 
 #endif // MISC_PORT_H

@@ -138,6 +138,11 @@ void* loggingThread (void* argPtr)
 	// Calculate the bit time from the bus baudrate.
 	float bitTime = canCalculateBitTime (canGetBaudrate (arg->device));
 
+	// Initially sets the CPU utilization values to be subtracted from the current values
+	size_t lUsedCPU, lTotalCPU;
+	if (getCpuUtilization (&lUsedCPU, &lTotalCPU) != 0)
+		debugPrintf ("Could not get CPU utilization.\n");
+
 	while (logging)
 	{
 		// Receive a CAN frame. Due to its blocking nature, this must be outside the mutex guard.
@@ -207,35 +212,69 @@ void* loggingThread (void* argPtr)
 			uint32_t sessionNumber	= mdfCanBusLogGetSessionNumber (arg->log);
 			uint32_t splitNumber	= mdfCanBusLogGetSplitNumber (arg->log);
 
-			size_t totalMemory = 0;
-			size_t usedMemory = 0;
+			size_t cpuUsed = 0;
+			size_t cpuTotal = 0;
+			float cpuPercentage = 0;
 
-			size_t usedRam;
-			size_t totalRam;
-
-			size_t temp = 0;
-
-			// Gets the free and total storage (in bytes) of the current directory
-			if (getStorageInfo (&usedMemory, &totalMemory, "/") == 0)
+			// Gets the cumulative used CPU time and total CPU time
+			if (getCpuUtilization (&cpuUsed, &cpuTotal) == 0)
 			{
-				debugPrintf ("Total: %zu\n", totalMemory);
-				debugPrintf ("Free: %zu\n", free);
+				cpuPercentage = (float) (cpuUsed - lUsedCPU) / (cpuTotal - lTotalCPU) * 100.0;
+				debugPrintf ("CPU Used: %zu, CPU Total: %zu\n", cpuUsed, cpuTotal);
+				debugPrintf ("CPU Percentage: %.2f%%\n", cpuPercentage);
+			}
+			else
+			{
+				debugPrintf ("Could not get CPU utilization.\n");
+				return NULL;
 			}
 
-			if (getCpuTemperature (&temp) != 0)
-				printf("Couldn't get CPU Temperature\n");
+			float cpuTemperature = 0;
+			size_t cpuTemperatureValue = 0;
 
-			if (getRamUtilization (&usedRam, &totalRam) != 0)
-				printf("Couldn't get RAM Utilization\n");
+			// Gets the temperature of the CPU
+			if (getCpuTemperature (&cpuTemperatureValue) == 0)
+			{
+				cpuTemperature =  ((float) cpuTemperatureValue / 1000);
+				debugPrintf ("CPU Temperature: %.2f\n", cpuTemperature);
+			}
+			else
+			{
+				debugPrintf ("Could not get CPU Temperature.\n");
+				return NULL;
+			}
 
-			debugPrintf("Free Ram: %zu, ", usedRam);
-			debugPrintf("Total Ram: %zu, ", totalRam);
+			size_t storageUsed = 0;
+			size_t storageTotal = 0;
 
-			float memoryPercentage = ((float) usedMemory / totalMemory) * 100;
-			debugPrintf ("Memory Percentage: %f\n", memoryPercentage);
+			// Gets the used storage and total storage (in bytes) of the current directory
+			if (getStorageUtilization (&storageUsed, &storageTotal, "/") == 0)
+				debugPrintf ("Storage Used: %zu, Storage Total: %zu\n", storageUsed, storageTotal);
 
-			float temperature = ((float) temp / 1000);
-			debugPrintf ("Temperature: %f\n", temperature);
+			else
+			{
+				debugPrintf("Could not get storage utilization.\n");
+				return NULL;
+			}
+
+			size_t memoryUsed = 0;
+			size_t memoryTotal = 0;
+
+			// Gets the used and total RAM (in bytes) of a system
+			if (getMemoryUtilization (&memoryUsed, &memoryTotal) == 0)
+				debugPrintf("Memory Used: %zu, Memory Total: %zu\n", memoryUsed, memoryTotal);
+
+			else
+			{
+				debugPrintf ("Could not get memory utilization.\n");
+				return NULL;
+			}
+
+			uint16_t storageUsedGB = BYTES_TO_GIGABYTES (storageUsed);
+			uint16_t storageTotalGB = BYTES_TO_GIGABYTES (storageTotal);
+
+			uint16_t memoryUsedGB = BYTES_TO_GIGABYTES (memoryUsed);
+			uint16_t memoryTotalGB = BYTES_TO_GIGABYTES (memoryTotal);
 
 			canFrame_t statusFrame0 =
 			{
@@ -264,10 +303,16 @@ void* loggingThread (void* argPtr)
 				.dlc = 2,
 				.data =
 				{
-					// TODO: CPU Load
-					(uint8_t) (temperature) + 55
+					(uint8_t) (cpuPercentage / 0.392156862745),
+					(uint8_t) (cpuTemperature + 55)
 				}
 			};
+
+			uint16_t decodedStorageUsedGB = (storageUsedGB - 1e-9) / 0.001048576;
+			uint16_t decodedStorageTotalGB = (storageTotalGB - 1e-9) / 0.001048576;
+
+			uint16_t decodedMemoryUsedGB = (memoryUsedGB - 1e-9) / 0.000262144;
+			uint16_t decodedMemoryTotalGB = (memoryTotalGB - 1e-9) / 0.000262144;
 
 			canFrame_t statusFrame2 =
 			{
@@ -277,10 +322,14 @@ void* loggingThread (void* argPtr)
 				.dlc = 8,
 				.data =
 				{
-					(uint8_t) (BYTES_TO_GIGABYTES (usedMemory) * 0.000262144) + 1e-9,
-					(uint8_t) (BYTES_TO_GIGABYTES (totalMemory) * 0.000262144) + 1e-9,
-					(uint8_t) (BYTES_TO_GIGABYTES (usedRam) * 0.000262144) + 1e-9,
-					(uint8_t) (BYTES_TO_GIGABYTES (totalRam) * 0.000262144) + 1e-9,
+					(uint8_t) decodedStorageUsedGB,
+					(uint8_t) (decodedStorageUsedGB >> 8),
+					(uint8_t) (decodedStorageTotalGB),
+					(uint8_t) (decodedStorageTotalGB >> 8),
+					(uint8_t) (decodedMemoryUsedGB),
+					(uint8_t) (decodedMemoryUsedGB >> 8),
+					(uint8_t) (decodedMemoryTotalGB),
+					(uint8_t) (decodedMemoryTotalGB >> 8)
 				}
 			};
 
@@ -309,14 +358,24 @@ void* loggingThread (void* argPtr)
 			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame0, arg->busChannel, true, &timeCurrent) != 0)
 				errorPrintf ("Warning, failed to log CAN data frame");
 
+			if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
+				errorPrintf ("Warning, failed to get MDF timestamp");
+
 			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame1, arg->busChannel, true, &timeCurrent) != 0)
 				errorPrintf ("Warning, failed to log CAN data frame");
+
+			if (mdfCanBusLogGetTimestamp (&timeCurrent) != 0)
+				errorPrintf ("Warning, failed to get MDF timestamp");
 
 			if (mdfCanBusLogWriteDataFrame (arg->log, &statusFrame2, arg->busChannel, true, &timeCurrent) != 0)
 				errorPrintf ("Warning, failed to log CAN data frame");
 
 			// Release access to the log file.
 			pthread_mutex_unlock (arg->logMutex);
+
+			// Initially sets the previous CPU utilization values to be subtracted from the current values in the next iteration
+			lUsedCPU = cpuUsed;
+			lTotalCPU = cpuTotal;
 
 			// Reset the measurements (include the status frame, as we just transmitted that)
 			frameCount = 1;
