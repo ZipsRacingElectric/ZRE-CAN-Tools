@@ -214,7 +214,7 @@
 			"address":	"0x0038",
 			"name":		"TORQUE_ALGORITHM_INDEX",
 			"type":		"uint16_t",
-			"comment":	"The index of the torque-vectoring algorithm to use. 0 => Straight-diff, 1 => Linear-steering, 2 => Linear-steering Slalom, 3 => Single-tire-fire (left), 4 => Single-tire-fire (right)."
+			"comment":	"The index of the torque-vectoring algorithm to use. 0 => Straight-diff, 1 => Linear-steering, 2 => Single-tire-fire (left), 3 => Single-tire-fire (right)."
 		},
 		{
 			"address":	"0x003C",
@@ -320,99 +320,39 @@
 		},
 		{
 			"address":	"0x0084",
-			"name":		"LS_MOTOR_SPEED_BIAS_BEGIN",
+			"name":		"LS_DRIVING_FR_BIAS",
 			"type":		"float",
-			"comment":	"The motor speed at which the front-to-rear bias starts shifting from the beginning value."
+			"comment":	"The front-to-rear bias."
 		},
 		{
 			"address":	"0x0088",
-			"name":		"LS_MOTOR_SPEED_BIAS_END",
+			"name":		"LS_REGEN_FR_BIAS",
 			"type":		"float",
-			"comment":	"The motor speed at which the front-to-rear bias stops shifting to the end value."
+			"comment":	"The front-to-rear bias."
 		},
 		{
 			"address":	"0x008C",
-			"name":		"LS_FR_BIAS_BEGIN",
-			"type":		"float",
-			"comment":	"The front-to-rear bias at the beginning motor speed."
-		},
-		{
-			"address":	"0x0090",
-			"name":		"LS_FR_BIAS_END",
-			"type":		"float",
-			"comment":	"The front-to-rear bias at the ending motor speed."
-		},
-		{
-			"address":	"0x0094",
 			"name":		"LS_STEERING_ANGLE_BEGIN",
 			"type":		"float",
 			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
 		},
 		{
-			"address":	"0x0098",
+			"address":	"0x0090",
 			"name":		"LS_STEERING_ANGLE_END",
 			"type":		"float",
 			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
 		},
 		{
-			"address":	"0x009C",
+			"address":	"0x0094",
 			"name":		"LS_LR_BIAS_END",
 			"type":		"float",
 			"comment":	"The left-to-right bias at the ending steering angle."
 		},
 		{
-			"address":	"0x00A0",
-			"name":		"LSS_MOTOR_SPEED_BIAS_BEGIN",
-			"type":		"float",
-			"comment":	"The motor speed at which the front-to-rear bias starts shifting from the beginning value."
-		},
-		{
-			"address":	"0x00A4",
-			"name":		"LSS_MOTOR_SPEED_BIAS_END",
-			"type":		"float",
-			"comment":	"The motor speed at which the front-to-rear bias stops shifting to the end value."
-		},
-		{
-			"address":	"0x00A8",
-			"name":		"LSS_FR_BIAS_BEGIN",
-			"type":		"float",
-			"comment":	"The front-to-rear bias at the beginning motor speed."
-		},
-		{
-			"address":	"0x00AC",
-			"name":		"LSS_FR_BIAS_END",
-			"type":		"float",
-			"comment":	"The front-to-rear bias at the ending motor speed."
-		},
-		{
-			"address":	"0x00B0",
-			"name":		"LSS_STEERING_ANGLE_BEGIN",
-			"type":		"float",
-			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
-		},
-		{
-			"address":	"0x00B4",
-			"name":		"LSS_STEERING_ANGLE_END",
-			"type":		"float",
-			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
-		},
-		{
-			"address":	"0x00B8",
-			"name":		"LSS_LR_BIAS_END",
-			"type":		"float",
-			"comment":	"The left-to-right bias at the ending steering angle."
-		},
-		{
-			"address":	"0x00E0",
-			"name":		"REGEN_LIGHT_REQUEST",
-			"type":		"float",
-			"comment":	"The ratio of regen to request when a single paddle is depressed."
-		},
-		{
 			"address":	"0x00E4",
-			"name":		"REGEN_HARD_REQUEST",
-			"type":		"float",
-			"comment":	"The ratio of regen to request when both paddles are depressed."
+			"name":		"AMK_AUTO_RESET_REQUEST",
+			"type":		"uint8_t",
+			"comment":	"Enables / disables the automatic suppression of AMK inverter errors. 0 => No automatric error reset, 1 => Automatic error reset."
 		},
 		{
 			"address":	"0x00E8",
