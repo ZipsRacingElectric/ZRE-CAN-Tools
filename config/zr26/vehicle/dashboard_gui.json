@@ -125,7 +125,7 @@
 					"Torque:",
 					"Regen:",
 					"Index:",
-					"DRS:"
+					"F/R:"
 				],
 				"widgets":
 				[
@@ -151,19 +151,11 @@
 						"formatInvalid":				"%s"
 					},
 					{
-						"type":							"canIndicator",
+						"type":							"canLabelFloat",
 						"deviceIndex":					"0",
-						"signalName":					"TODO",
-						"threshold":					"0.5",
-						"width":						"26",
-						"height":						"26",
-						"style":
-						{
-							"shape":					"circle",
-							"bgActiveColor":			"#FFFFFF",
-							"bgInactiveColor":			"#580000",
-							"bgInvalidColor":			"#FF0000"
-						}
+						"signalName":					"DRIVING_FR_BIAS",
+						"formatValue":					"%.0f%s",
+						"formatInvalid":				"%s %s"
 					}
 				]
 			},
@@ -401,7 +393,7 @@
 					"Torque:",
 					"Regen:",
 					"Index:",
-					"DRS:"
+					"F/R:"
 				],
 				"widgets":
 				[
@@ -427,19 +419,11 @@
 						"formatInvalid":				"%s"
 					},
 					{
-						"type":							"canIndicator",
+						"type":							"canLabelFloat",
 						"deviceIndex":					"0",
-						"signalName":					"TODO",
-						"threshold":					"0.5",
-						"width":						"26",
-						"height":						"26",
-						"style":
-						{
-							"shape":					"circle",
-							"bgActiveColor":			"#FFFFFF",
-							"bgInactiveColor":			"#580000",
-							"bgInvalidColor":			"#FF0000"
-						}
+						"signalName":					"DRIVING_FR_BIAS",
+						"formatValue":					"%.0f%s",
+						"formatInvalid":				"%s %s"
 					}
 				]
 			},

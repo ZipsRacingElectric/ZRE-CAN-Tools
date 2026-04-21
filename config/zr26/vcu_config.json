@@ -1,6 +1,6 @@
 {
-	"name":				"VCU",
-	"canId":			"0x010",
+	"name":					"VCU",
+	"canId":				"0x010",
 	"faults":
 	[
 		{
@@ -212,177 +212,165 @@
 		},
 		{
 			"address":	"0x0038",
-			"name":		"TORQUE_ALGORITHM_INDEX",
-			"type":		"uint16_t",
-			"comment":	"The index of the torque-vectoring algorithm to use. 0 => Straight-diff, 1 => Linear-steering, 2 => Single-tire-fire (left), 3 => Single-tire-fire (right)."
+			"name":		"DRIVING_FR_BIAS",
+			"type":		"float",
+			"comment":	"The front-to-rear bias for distributing driving torque. Only used by certain torque vectoring algorithms. (1 => 100% rearwards, 0 => 100% frontwards)."
 		},
 		{
-			"address":	"0x003C",
-			"name":		"POWER_LIMIT",
+			"address":	"0x03C",
+			"name":		"REGEN_FR_BIAS",
 			"type":		"float",
-			"comment":	"The cumulative power limit of the vehicle, in W."
+			"comment":	"The front-to-rear bias for distributing regen torque. Only used by certain torque vectoring algorithms. (1 => 100% rearwards, 0 => 100% frontwards)."
 		},
 		{
 			"address":	"0x0040",
-			"name":		"POWER_LIMIT_PID_KP",
-			"type":		"float",
-			"comment":	"The proportional coefficient of the power limit PID, in 1/W."
+			"name":		"SAS_ENABLED",
+			"type":		"uint8_t",
+			"comment":	"Enables / disables the steering-angle sensor (0 => Disabled, 1 => Enabled)."
+		},
+		{
+			"address":	"0x0041",
+			"name":		"AMK_AUTO_RESET_REQUEST",
+			"type":		"uint8_t",
+			"comment":	"Enables / disables the automatic suppression of AMK inverter errors. (0 => Disabled, 1 => Enabled)."
+		},
+		{
+			"address":	"0x0042",
+			"name":		"TORQUE_ALGORITHM_INDEX",
+			"type":		"uint16_t",
+			"comment":	"The index of the torque-vectoring algorithm to use. (0 => Straight-diff, 1 => Linear-steering)."
 		},
 		{
 			"address":	"0x0044",
-			"name":		"POWER_LIMIT_PID_KI",
-			"type":		"float",
-			"comment":	"The integral coefficient of the power limit PID, in 1/Ws."
-		},
-		{
-			"address":	"0x0048",
-			"name":		"POWER_LIMIT_PID_KD",
-			"type":		"float",
-			"comment":	"The derivative coefficient of the power limit PID, in s/W."
-		},
-		{
-			"address":	"0x004C",
-			"name":		"POWER_LIMIT_PID_A",
-			"type":		"float",
-			"comment":	"The measurement gain of the power limit PID, in range [0, 1)"
-		},
-		{
-			"address":	"0x0050",
 			"name":		"GLV_BATTERY_SAMPLE_20V",
 			"type":		"uint16_t",
 			"comment":	"The ADC sample of the GLV battery at 20.0V."
 		},
 		{
-			"address":	"0x0052",
+			"address":	"0x0046",
 			"name":		"GLV_BATTERY_SAMPLE_29V",
 			"type":		"uint16_t",
 			"comment":	"The ADC sample of the GLV battery at 29.0V."
 		},
 		{
-			"address":	"0x0060",
+			"address":	"0x0048",
 			"name":		"SAS_SAMPLE_ZERO",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the zero position."
 		},
 		{
-			"address":	"0x0062",
+			"address":	"0x004C",
 			"name":		"SAS_SAMPLE_NEGATIVE",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the negative-most position."
 		},
 		{
-			"address":	"0x0064",
+			"address":	"0x004E",
 			"name":		"SAS_SAMPLE_POSITIVE",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the positive-most position."
 		},
 		{
-			"address":	"0x0068",
+			"address":	"0x0050",
 			"name":		"SAS_ANGLE_NEGATIVE",
 			"type":		"float",
 			"comment":	"The steering angle of the vehicle at the negative-most position."
 		},
 		{
-			"address":	"0x006C",
+			"address":	"0x0054",
 			"name":		"SAS_ANGLE_POSITIVE",
 			"type":		"float",
 			"comment":	"The steering angle of the vehicle at the positive-most position."
 		},
 		{
-			"address":	"0x0070",
+			"address":	"0x0058",
 			"name":		"SAS_DEADZONE_RANGE",
 			"type":		"float",
 			"comment":	"The range of the steering angle deadzone, centered around the zero position."
 		},
 		{
-			"address":	"0x0074",
-			"name":		"SD_DRIVING_FR_BIAS",
-			"type":		"float",
-			"comment":	"The front-to-rear bias of the straight-diff algorithm (1 => 100% rear, 0 => 100% front)."
-		},
-		{
-			"address":	"0x0078",
-			"name":		"SD_DRIVING_LR_BIAS",
-			"type":		"float",
-			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
-		},
-		{
-			"address":	"0x007C",
-			"name":		"SD_REGEN_FR_BIAS",
-			"type":		"float",
-			"comment":	"The front-to-rear bias of the straight-diff algorithm (1 => 100% rear, 0 => 100% front)."
-		},
-		{
-			"address":	"0x0080",
-			"name":		"SD_REGEN_LR_BIAS",
-			"type":		"float",
-			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
-		},
-		{
-			"address":	"0x0084",
-			"name":		"LS_DRIVING_FR_BIAS",
-			"type":		"float",
-			"comment":	"The front-to-rear bias."
-		},
-		{
-			"address":	"0x0088",
-			"name":		"LS_REGEN_FR_BIAS",
-			"type":		"float",
-			"comment":	"The front-to-rear bias."
-		},
-		{
-			"address":	"0x008C",
-			"name":		"LS_STEERING_ANGLE_BEGIN",
-			"type":		"float",
-			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
-		},
-		{
-			"address":	"0x0090",
-			"name":		"LS_STEERING_ANGLE_END",
-			"type":		"float",
-			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
-		},
-		{
-			"address":	"0x0094",
-			"name":		"LS_LR_BIAS_END",
-			"type":		"float",
-			"comment":	"The left-to-right bias at the ending steering angle."
-		},
-		{
-			"address":	"0x00E4",
-			"name":		"AMK_AUTO_RESET_REQUEST",
-			"type":		"uint8_t",
-			"comment":	"Enables / disables the automatic suppression of AMK inverter errors. 0 => No automatric error reset, 1 => Automatic error reset."
-		},
-		{
-			"address":	"0x00E8",
+			"address":	"0x005C",
 			"name":		"REGEN_DERATING_THROTTLE_START",
 			"type":		"float",
 			"comment":	"The throttle position at which regen should start to be derated."
 		},
 		{
-			"address":	"0x00EC",
+			"address":	"0x0060",
 			"name":		"REGEN_DERATING_THROTTLE_END",
 			"type":		"float",
 			"comment":	"The throttle position past which no regen should be requested."
 		},
 		{
-			"address":	"0x00F0",
+			"address":	"0x0064",
 			"name":		"REGEN_DERATING_SPEED_END",
 			"type":		"float",
 			"comment":	"The motor speed at which no regen should be requested."
 		},
 		{
-			"address":	"0x00F4",
+			"address":	"0x0068",
 			"name":		"REGEN_DERATING_SPEED_START",
 			"type":		"float",
 			"comment":	"The motor speed at which to start derating regen requests."
 		},
 		{
-			"address":	"0x00F8",
-			"name":		"SAS_ENABLED",
-			"type":		"uint8_t",
-			"comment":	"Enables / disables the steering-angle sensor (0 => disabled, 1 => enabled)."
+			"address":	"0x006C",
+			"name":		"POWER_LIMIT",
+			"type":		"float",
+			"comment":	"The cumulative power limit of the vehicle, in W."
+		},
+		{
+			"address":	"0x0070",
+			"name":		"POWER_LIMIT_PID_KP",
+			"type":		"float",
+			"comment":	"The proportional coefficient of the power limit PID, in 1/W."
+		},
+		{
+			"address":	"0x0074",
+			"name":		"POWER_LIMIT_PID_KI",
+			"type":		"float",
+			"comment":	"The integral coefficient of the power limit PID, in 1/Ws."
+		},
+		{
+			"address":	"0x0078",
+			"name":		"POWER_LIMIT_PID_KD",
+			"type":		"float",
+			"comment":	"The derivative coefficient of the power limit PID, in s/W."
+		},
+		{
+			"address":	"0x007C",
+			"name":		"POWER_LIMIT_PID_A",
+			"type":		"float",
+			"comment":	"The measurement gain of the power limit PID, in range [0, 1)"
+		},
+		{
+			"address":	"0x0080",
+			"name":		"SD_DRIVING_LR_BIAS",
+			"type":		"float",
+			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
+		},
+		{
+			"address":	"0x0084",
+			"name":		"SD_REGEN_LR_BIAS",
+			"type":		"float",
+			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
+		},
+		{
+			"address":	"0x0088",
+			"name":		"LS_STEERING_ANGLE_BEGIN",
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
+		},
+		{
+			"address":	"0x008C",
+			"name":		"LS_STEERING_ANGLE_END",
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
+		},
+		{
+			"address":	"0x0090",
+			"name":		"LS_LR_BIAS_END",
+			"type":		"float",
+			"comment":	"The left-to-right bias at the ending steering angle."
 		},
 		{
 			"address":	"0x1000",
@@ -431,28 +419,28 @@
 			"name":		"TORQUE_REQUEST_RL",
 			"type":		"float",
 			"mode":		"read_only",
-			"comment":	"The torque to be requested of the rear-left inverter."
+			"comment":	"The non-derated torque to be requested of the rear-left inverter."
 		},
 		{
 			"address":	"0x1010",
 			"name":		"TORQUE_REQUEST_RR",
 			"type":		"float",
 			"mode":		"read_only",
-			"comment":	"The torque to be requested of the rear-right inverter."
+			"comment":	"The non-derated torque to be requested of the rear-right inverter."
 		},
 		{
 			"address":	"0x1014",
 			"name":		"TORQUE_REQUEST_FL",
 			"type":		"float",
 			"mode":		"read_only",
-			"comment":	"The torque to be requested of the front-left inverter."
+			"comment":	"The non-derated torque to be requested of the front-left inverter."
 		},
 		{
 			"address":	"0x1018",
 			"name":		"TORQUE_REQUEST_FR",
 			"type":		"float",
 			"mode":		"read_only",
-			"comment":	"The torque to be requested of the front-right inverter."
+			"comment":	"The non-derated torque to be requested of the front-right inverter."
 		},
 		{
 			"address":	"0x1000",
@@ -460,58 +448,6 @@
 			"type":		"uint8_t",
 			"mode":		"write_only",
 			"comment":	"Sends an error reset request to all of the AMK inverters."
-		},
-		{
-			"address":	"0x2000",
-			"name":		"SAS_CONFIG_REG_0",
-			"type":		"uint16_t",
-			"comment":	"The steering angle sensor's first configuration register (register address 0)."
-		},
-		{
-			"address":	"0x2002",
-			"name":		"SAS_CONFIG_REG_1",
-			"type":		"uint16_t",
-			"comment":	"The steering angle sensor's second configuration register (register address 1)."
-		},
-		{
-			"address":	"0x2004",
-			"name":		"SAS_CONFIG_REG_2",
-			"type":		"uint16_t",
-			"comment":	"The steering angle sensor's third configuration register (register address 2)."
-		},
-		{
-			"address":	"0x2006",
-			"name":		"SAS_CONFIG_REG_3",
-			"type":		"uint16_t",
-			"comment":	"The steering angle sensor's fourth configuration register (register address 3)."
-		},
-		{
-			"address":	"0x2020",
-			"name":		"SAS_RELATIVE_POS_REG",
-			"type":		"uint16_t",
-			"mode":		"read_only",
-			"comment":	"The steering angle sensor's relative position output register (register address 32)."
-		},
-		{
-			"address":	"0x2022",
-			"name":		"SAS_ABSOLUTE_POS_REG",
-			"type":		"uint16_t",
-			"mode":		"read_only",
-			"comment":	"The steering angle sensor's absolute position output register (register address 33)."
-		},
-		{
-			"address":	"0x2024",
-			"name":		"SAS_STATUS_REG",
-			"type":		"uint16_t",
-			"mode":		"read_only",
-			"comment":	"The steering angle sensor's status output register (register address 34)."
-		},
-		{
-			"address":	"0x2026",
-			"name":		"SAS_TACHO_REG",
-			"type":		"uint16_t",
-			"mode":		"read_only",
-			"comment":	"The steering angle sensor's tachometer output register (register address 35)."
 		}
 	]
 }
