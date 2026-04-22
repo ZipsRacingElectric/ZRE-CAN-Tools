@@ -259,13 +259,13 @@
 			"comment":	"The sample of the steering angle sensor at the zero position."
 		},
 		{
-			"address":	"0x004C",
+			"address":	"0x004A",
 			"name":		"SAS_SAMPLE_NEGATIVE",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the negative-most position."
 		},
 		{
-			"address":	"0x004E",
+			"address":	"0x004C",
 			"name":		"SAS_SAMPLE_POSITIVE",
 			"type":		"uint16_t",
 			"comment":	"The sample of the steering angle sensor at the positive-most position."
