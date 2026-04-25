@@ -578,20 +578,20 @@ BO_ 1835 BMS_SEGMENT_0_1_BALANCING: 8 BMS
  SG_ CELL_BALANCING_30 : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CELL_BALANCING_40 : 44|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CELL_BALANCING_41 : 45|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_42 : 46|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_43 : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_44 : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_45 : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_46 : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_47 : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_48 : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_49 : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_50 : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_51 : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_52 : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_53 : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_54 : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_55 : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_42 : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_43 : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_44 : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_45 : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_46 : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_47 : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_48 : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_49 : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_50 : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_51 : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_52 : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_53 : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_54 : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_55 : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1836 BMS_SEGMENT_2_3_BALANCING: 8 BMS
  SG_ CELL_BALANCING_56 : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
@@ -636,20 +636,20 @@ BO_ 1836 BMS_SEGMENT_2_3_BALANCING: 8 BMS
  SG_ CELL_BALANCING_95 : 43|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CELL_BALANCING_96 : 44|1@1+ (1,0) [0|1] "Bool" Vector__XXX
  SG_ CELL_BALANCING_97 : 45|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_98 : 46|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_99 : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_100 : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_101 : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_102 : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_103 : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_104 : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_105 : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_106 : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_107 : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_108 : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_109 : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_110 : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
- SG_ CELL_BALANCING_111 : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_98 : 48|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_99 : 49|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_100 : 50|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_101 : 51|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_102 : 52|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_103 : 53|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_104 : 54|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_105 : 55|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_106 : 56|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_107 : 57|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_108 : 58|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_109 : 59|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_110 : 60|1@1+ (1,0) [0|1] "Bool" Vector__XXX
+ SG_ CELL_BALANCING_111 : 61|1@1+ (1,0) [0|1] "Bool" Vector__XXX
 
 BO_ 1837 BMS_SEGMENT_4_BALANCING: 4 BMS
  SG_ CELL_BALANCING_112 : 0|1@1+ (1,0) [0|1] "Bool" Vector__XXX
