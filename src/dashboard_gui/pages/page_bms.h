@@ -29,6 +29,7 @@ typedef struct
 	GdkRGBA cellVoltageGraphTitleColor;
 	GdkRGBA cellVoltageGraphValidBarColor;
 	GdkRGBA cellVoltageGraphInvalidBarColor;
+	GdkRGBA cellVoltageGraphBalancingBarColor;
 	GdkRGBA cellVoltageGraphTickColor;
 	GdkRGBA cellVoltageGraphTickColor2;
 	GdkRGBA cellVoltageGraphAxisColor;

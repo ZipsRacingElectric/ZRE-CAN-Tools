@@ -4,7 +4,7 @@
 // Includes
 #include "../stylized_widgets/stylized_bar_graph.h"
 
-bool bmsCellVoltageBarGraphAccessor (void* arg, size_t index, float* value);
+stylizedBarGraphAccessorReturn_t bmsCellVoltageBarGraphAccessor (void* arg, size_t index, float* value);
 
 void bmsCellVoltageBarGraphDrawForeground (stylizedBarGraph_t* graph, cairo_t* cr, stylizedBarGraphDrawContext_t* context);
 

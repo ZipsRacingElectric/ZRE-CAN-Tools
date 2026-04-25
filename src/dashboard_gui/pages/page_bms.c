@@ -47,6 +47,8 @@ static void styleLoad (pageBmsStyle_t* style, pageStyle_t* baseStyle, cJSON* con
 		style->cellVoltageGraphValidBarColor = gdkHexToColor (color);
 	if (jsonGetString (config, "cellVoltageGraphInvalidBarColor", &color) == 0)
 		style->cellVoltageGraphInvalidBarColor = gdkHexToColor (color);
+	if (jsonGetString (config, "cellVoltageGraphBalancingBarColor", &color) == 0)
+		style->cellVoltageGraphBalancingBarColor = gdkHexToColor (color);
 	if (jsonGetString (config, "cellVoltageGraphTickColor", &color) == 0)
 		style->cellVoltageGraphTickColor = gdkHexToColor (color);
 	if (jsonGetString (config, "cellVoltageGraphTickColor2", &color) == 0)
@@ -333,7 +335,8 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* databases, size_t databaseCou
 		.tickColor			= page->style.cellVoltageGraphTickColor,
 		.tickColor2			= page->style.cellVoltageGraphTickColor2,
 		.validBarColor		= page->style.cellVoltageGraphValidBarColor,
-		.invalidBarColor	= page->style.cellVoltageGraphInvalidBarColor
+		.invalidBarColor	= page->style.cellVoltageGraphInvalidBarColor,
+		.alternateBarColor	= page->style.cellVoltageGraphBalancingBarColor
 	}, &page->bms);
 	gtk_widget_set_halign (STYLIZED_BAR_GRAPH_TO_WIDGET (&page->voltages), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (STYLIZED_BAR_GRAPH_TO_WIDGET (&page->voltages), GTK_ALIGN_FILL);

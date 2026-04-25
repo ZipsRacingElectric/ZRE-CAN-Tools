@@ -4,7 +4,7 @@
 // Includes
 #include "../stylized_widgets/stylized_bar_graph.h"
 
-bool bmsSenseLineTemperatureGraphAccessor (void* arg, size_t index, float* value);
+stylizedBarGraphAccessorReturn_t bmsSenseLineTemperatureGraphAccessor (void* arg, size_t index, float* value);
 
 void bmsSenseLineTemperatureGraphDrawForeground (stylizedBarGraph_t* graph, cairo_t* cr, stylizedBarGraphDrawContext_t* context);
 

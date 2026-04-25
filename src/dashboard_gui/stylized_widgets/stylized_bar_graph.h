@@ -32,7 +32,14 @@ typedef struct
 struct stylizedBarGraph;
 typedef struct stylizedBarGraph stylizedBarGraph_t;
 
-typedef bool (stylizedBarGraphAccessor_t) (void* arg, size_t index, float* value);
+typedef enum
+{
+	STYLIZED_BAR_GRAPH_VALID,
+	STYLIZED_BAR_GRAPH_INVALID,
+	STYLIZED_BAR_GRAPH_ALTERNATE
+} stylizedBarGraphAccessorReturn_t;
+
+typedef stylizedBarGraphAccessorReturn_t (stylizedBarGraphAccessor_t) (void* arg, size_t index, float* value);
 
 typedef void (stylizedBarGraphDraw_t) (stylizedBarGraph_t* graph, cairo_t* cr, stylizedBarGraphDrawContext_t* context);
 
@@ -53,6 +60,7 @@ typedef struct
 	float axisPosition;
 	GdkRGBA validBarColor;
 	GdkRGBA invalidBarColor;
+	GdkRGBA alternateBarColor;
 	GdkRGBA tickColor;
 	GdkRGBA tickColor2;
 	GdkRGBA axisColor;

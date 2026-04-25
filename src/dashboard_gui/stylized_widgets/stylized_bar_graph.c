@@ -68,10 +68,20 @@ static void draw (GtkDrawingArea* area, cairo_t* cr, int width, int height, gpoi
 	{
 		// Get the value and color of the bar.
 		float value;
-		if (graph->config.accessor (graph->accessorArg, index + graph->config.offset, &value))
+		switch (graph->config.accessor (graph->accessorArg, index + graph->config.offset, &value))
+		{
+		case STYLIZED_BAR_GRAPH_VALID:
 			gdk_cairo_set_source_rgba (cr, &graph->config.validBarColor);
-		else
+			break;
+
+		case STYLIZED_BAR_GRAPH_INVALID:
 			gdk_cairo_set_source_rgba (cr, &graph->config.invalidBarColor);
+			break;
+
+		case STYLIZED_BAR_GRAPH_ALTERNATE:
+			gdk_cairo_set_source_rgba (cr, &graph->config.alternateBarColor);
+			break;
+		}
 
 		// Uncomment below for test values:
 		// float value = (graph->config.max - graph->config.min) * index / (graph->config.count - 1.0f) + graph->config.min;

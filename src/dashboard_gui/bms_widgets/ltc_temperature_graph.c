@@ -4,7 +4,7 @@
 // Includes
 #include "bms/bms.h"
 
-bool bmsLtcTemperatureGraphAccessor (void* arg, size_t index, float* value)
+stylizedBarGraphAccessorReturn_t bmsLtcTemperatureGraphAccessor (void* arg, size_t index, float* value)
 {
 	bms_t* bms = arg;
 
@@ -12,7 +12,7 @@ bool bmsLtcTemperatureGraphAccessor (void* arg, size_t index, float* value)
 	if (!valid)
 		*value = 0;
 
-	return valid;
+	return valid ? STYLIZED_BAR_GRAPH_VALID : STYLIZED_BAR_GRAPH_INVALID;
 }
 
 void bmsLtcTemperatureGraphDrawForeground (stylizedBarGraph_t* graph, cairo_t* cr, stylizedBarGraphDrawContext_t* context)

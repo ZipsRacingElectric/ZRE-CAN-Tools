@@ -36,6 +36,7 @@
 				"cellVoltageGraphTitleColor":			"#00AAFF",
 				"cellVoltageGraphValidBarColor":		"#00AAFF",
 				"cellVoltageGraphInvalidBarColor":		"#FF00AA",
+				"cellVoltageGraphBalancingBarColor":	"#00FFAA",
 				"cellVoltageGraphTickColor":			"#00AAFF",
 				"cellVoltageGraphTickColor2":			"#00FFAA",
 				"cellVoltageGraphAxisColor":			"#00AAFF",

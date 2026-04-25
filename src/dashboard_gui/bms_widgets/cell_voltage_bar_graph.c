@@ -4,7 +4,7 @@
 // Includes
 #include "bms/bms.h"
 
-bool bmsCellVoltageBarGraphAccessor (void* arg, size_t index, float* value)
+stylizedBarGraphAccessorReturn_t bmsCellVoltageBarGraphAccessor (void* arg, size_t index, float* value)
 {
 	bms_t* bms = arg;
 
@@ -18,7 +18,13 @@ bool bmsCellVoltageBarGraphAccessor (void* arg, size_t index, float* value)
 	if (!valid)
 		*value = 0;
 
-	return valid && !loOpen && !hiOpen;
+	bool balancing = false;
+	bmsGetCellDischarging (bms, index, &balancing);
+
+	if (!valid || loOpen || hiOpen)
+		return STYLIZED_BAR_GRAPH_INVALID;
+
+	return balancing ? STYLIZED_BAR_GRAPH_ALTERNATE : STYLIZED_BAR_GRAPH_VALID;
 }
 
 void bmsCellVoltageBarGraphDrawForeground (stylizedBarGraph_t* graph, cairo_t* cr, stylizedBarGraphDrawContext_t* context)
