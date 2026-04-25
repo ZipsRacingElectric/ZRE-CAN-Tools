@@ -44,5 +44,6 @@
 	"SD_REGEN_LR_BIAS":								"0.5",
 	"LS_STEERING_ANGLE_BEGIN":						"0",
 	"LS_STEERING_ANGLE_END":						"110",
-	"LS_LR_BIAS_END":								"0.9"
+	"LS_LR_BIAS_END":								"0.9",
+	"WATCHDOG_ENABLED":								"0"
 }

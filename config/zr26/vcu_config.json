@@ -373,6 +373,12 @@
 			"comment":	"The left-to-right bias at the ending steering angle."
 		},
 		{
+			"address":	"0x0094",
+			"name":		"WATCHDOG_ENABLED",
+			"type":		"bool",
+			"comment":	"Enableds / disables the Formula Hybrid + Electric required CAN bus watchdog. (0 => Disabled, 1 => Enabled)."
+		},
+		{
 			"address":	"0x1000",
 			"name":		"APPS_1_SAMPLE",
 			"type":		"uint16_t",
