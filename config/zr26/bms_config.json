@@ -261,6 +261,12 @@
 			"comment":	"The maximum number of faulted temperature samples until a temperature fault is thrown."
 		},
 		{
+			"address":	"0x007C",
+			"name":		"WATCHDOG_ENABLED",
+			"type":		"bool",
+			"comment":	"Enableds / disables the Formula Hybrid + Electric required BMS watchdog. (0 => Disabled, 1 => Enabled). Note, this only takes affect after a device power cycle,"
+		},
+		{
 			"address":	"0x1000",
 			"name":		"CURRENT_SENSOR_CHANNEL_1_SAMPLE",
 			"type":		"uint16_t",
