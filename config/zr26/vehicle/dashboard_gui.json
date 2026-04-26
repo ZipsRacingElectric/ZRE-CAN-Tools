@@ -122,9 +122,10 @@
 				"width":								"180",
 				"labels":
 				[
-					"Torque:",
-					"Regen:",
 					"Index:",
+					"Torque:",
+					"F/R:",
+					"Regen:",
 					"F/R:"
 				],
 				"widgets":
@@ -132,9 +133,23 @@
 					{
 						"type":							"canLabelFloat",
 						"deviceIndex":					"0",
+						"signalName":					"TORQUE_ALGORITHM_INDEX",
+						"formatValue":					"%.0f",
+						"formatInvalid":				"%s"
+					},
+					{
+						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"DRIVING_TORQUE_LIMIT",
 						"formatValue":					"%.0f%s",
 						"formatInvalid":				"%s%s"
+					},
+					{
+						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
+						"signalName":					"DRIVING_FR_BIAS",
+						"formatValue":					"%.0f%s",
+						"formatInvalid":				"%s %s"
 					},
 					{
 						"type":							"canLabelFloat",
@@ -146,14 +161,7 @@
 					{
 						"type":							"canLabelFloat",
 						"deviceIndex":					"0",
-						"signalName":					"TORQUE_ALGORITHM_INDEX",
-						"formatValue":					"%.0f",
-						"formatInvalid":				"%s"
-					},
-					{
-						"type":							"canLabelFloat",
-						"deviceIndex":					"0",
-						"signalName":					"DRIVING_FR_BIAS",
+						"signalName":					"REGEN_FR_BIAS",
 						"formatValue":					"%.0f%s",
 						"formatInvalid":				"%s %s"
 					}
@@ -390,9 +398,10 @@
 				"width":								"180",
 				"labels":
 				[
-					"Torque:",
-					"Regen:",
 					"Index:",
+					"Torque:",
+					"F/R:",
+					"Regen:",
 					"F/R:"
 				],
 				"widgets":
@@ -400,9 +409,23 @@
 					{
 						"type":							"canLabelFloat",
 						"deviceIndex":					"0",
+						"signalName":					"TORQUE_ALGORITHM_INDEX",
+						"formatValue":					"%.0f",
+						"formatInvalid":				"%s"
+					},
+					{
+						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
 						"signalName":					"DRIVING_TORQUE_LIMIT",
 						"formatValue":					"%.0f%s",
 						"formatInvalid":				"%s%s"
+					},
+					{
+						"type":							"canLabelFloat",
+						"deviceIndex":					"0",
+						"signalName":					"DRIVING_FR_BIAS",
+						"formatValue":					"%.0f%s",
+						"formatInvalid":				"%s %s"
 					},
 					{
 						"type":							"canLabelFloat",
@@ -414,14 +437,7 @@
 					{
 						"type":							"canLabelFloat",
 						"deviceIndex":					"0",
-						"signalName":					"TORQUE_ALGORITHM_INDEX",
-						"formatValue":					"%.0f",
-						"formatInvalid":				"%s"
-					},
-					{
-						"type":							"canLabelFloat",
-						"deviceIndex":					"0",
-						"signalName":					"DRIVING_FR_BIAS",
+						"signalName":					"REGEN_FR_BIAS",
 						"formatValue":					"%.0f%s",
 						"formatInvalid":				"%s %s"
 					}
