@@ -375,7 +375,7 @@
 		{
 			"address":	"0x0094",
 			"name":		"WATCHDOG_ENABLED",
-			"type":		"bool",
+			"type":		"uint8_t",
 			"comment":	"Enableds / disables the Formula Hybrid + Electric required CAN bus watchdog. (0 => Disabled, 1 => Enabled)."
 		},
 		{

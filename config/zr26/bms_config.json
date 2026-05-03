@@ -263,7 +263,7 @@
 		{
 			"address":	"0x007C",
 			"name":		"WATCHDOG_ENABLED",
-			"type":		"bool",
+			"type":		"uint8_t",
 			"comment":	"Enableds / disables the Formula Hybrid + Electric required BMS watchdog. (0 => Disabled, 1 => Enabled). Note, this only takes affect after a device power cycle."
 		},
 		{
