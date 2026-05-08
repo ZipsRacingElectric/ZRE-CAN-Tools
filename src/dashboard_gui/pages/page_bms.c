@@ -328,7 +328,7 @@ page_t* pageBmsLoad (cJSON* config, canDatabase_t* databases, size_t databaseCou
 		.length				= 60,
 		.min				= page->bms.minCellVoltage,
 		.max				= page->bms.maxCellVoltage,
-		.tickSpacing		= 0.25,
+		.tickSpacing		= 0.5,
 		.tickFormat			= "%.2f V",
 		.axisPosition		= 40,
 		.axisColor			= page->style.cellVoltageGraphAxisColor,
