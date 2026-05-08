@@ -387,8 +387,8 @@
 						"type":							"canLabelFloat",
 						"deviceIndex":					"0",
 						"signalName":					"ENERGY_DELIVERED",
-						"formatValue":					"%04.2f",
-						"formatInvalid":				"X.XX"
+						"formatValue":					"%04.0f",
+						"formatInvalid":				"XXXX"
 					}
 				]
 			},
