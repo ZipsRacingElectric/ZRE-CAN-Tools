@@ -252,13 +252,13 @@
 			"address":	"0x0078",
 			"name":		"CELL_VOLTAGE_FAULT_THRESHOLD",
 			"type":		"uint16_t",
-			"comment":	"The maximum number of faulted cell voltage samples until a cell voltage fault is thrown."
+			"comment":	"The maximum amount of time a cell voltage may be faulted until a cell voltage fault is thrown, in milliseconds."
 		},
 		{
 			"address":	"0x007A",
 			"name":		"TEMPERATURE_FAULT_THRESHOLD",
 			"type":		"uint16_t",
-			"comment":	"The maximum number of faulted temperature samples until a temperature fault is thrown."
+			"comment":	"The maximum amount of time a temperature may be faulted until a temperature fault is thrown, in milliseconds."
 		},
 		{
 			"address":	"0x007C",
