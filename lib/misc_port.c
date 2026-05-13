@@ -1,5 +1,4 @@
 // For asprintf. Note this must be the first include in this file.
-#include <stdint.h>
 #define _GNU_SOURCE
 #include <stdio.h>
 
@@ -8,11 +7,13 @@
 
 // Includes
 #include "debug.h"
+#include "error_codes.h"
 
 // C Standard Library
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 // POSIX
 #include <libgen.h>
@@ -152,11 +153,10 @@ char* getBaseName (char* path)
 
 int getStorageUtilization (size_t* storageUsed, size_t* storageTotal, char* dir)
 {
-	// Checks that the OS defined is not Windows
-	#ifdef ZRE_CANTOOLS_OS_windows
-	errno = ERRNO_OS_NOT_SUPPORTED;
-	return -1;
-	#endif
+	// REVIEW(Barach): This guard doesn't work for porting to Windows. The POSIX-specific code needs wrapped in a guard so it
+	// doesn't attempt to compile on Windows. See below for how to do.
+
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	struct statfs statfsBuffer;
 
@@ -170,16 +170,22 @@ int getStorageUtilization (size_t* storageUsed, size_t* storageTotal, char* dir)
 	(*storageTotal) = statfsBuffer.f_blocks * statfsBuffer.f_bsize;
 
 	return 0;
+
+	#else // ZRE_CANTOOLS_OS_linux
+
+	(void) storageUsed;
+	(void) storageTotal;
+	(void) dir;
+
+	errno = ERRNO_OS_NOT_SUPPORTED;
+	return -1;
+
+	#endif // ZRE_CANTOOLS_OS_linux
 }
 
 int getMemoryUtilization (size_t* memoryUsed, size_t* memoryTotal)
 {
-
-	// Checks that the OS defined is not Windows
-	#ifdef ZRE_CANTOOLS_OS_windows
-	errno = ERRNO_OS_NOT_SUPPORTED;
-	return -1;
-	#endif
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	struct sysinfo info;
 
@@ -191,15 +197,21 @@ int getMemoryUtilization (size_t* memoryUsed, size_t* memoryTotal)
 	(*memoryTotal) = info.totalram;
 
 	return 0;
+
+	#else // ZRE_CANTOOLS_OS_linux
+
+	(void) memoryUsed;
+	(void) memoryTotal;
+
+	errno = ERRNO_OS_NOT_SUPPORTED;
+	return -1;
+
+	#endif // ZRE_CANTOOLS_OS_linux
 }
 
 int getCpuUtilization (size_t* cpuUsed, size_t* cpuTotal)
 {
-	// Checks that the OS defined is not Windows
-	#ifdef ZRE_CANTOOLS_OS_windows
-	errno = ERRNO_OS_NOT_SUPPORTED;
-	return -1;
-	#endif
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	// Reads file providing a real-time snapshot of CPU usage since the system boot
 	FILE* file = fopen ("/proc/stat", "r");
@@ -208,9 +220,20 @@ int getCpuUtilization (size_t* cpuUsed, size_t* cpuTotal)
 
 	size_t cpuInfo [10];
 
+	// REVIEW(Barach): The "%zu" specifier is technically supported by the C99 standard, however I had some
+	// portability issues with it a while back (I believe it was Debian ARM, but not certain). Best to use
+	// %lu for the specifier and use the (unsigned long) cast on the parameter. Ex.
+	//
+	//   size_t value = 10;
+	//   printf ("value = %lu.\n", (unsigned long) value);
+
+	// REVIEW(Barach): /proc/stat does appear to be guaranteed to be this format. In the case it isn't, this code should
+	// detect the error and exit with failure. This can be done by checking the return value of fscanf. In general, fscanf
+	// should never be used without checking the error code.
+
 	fscanf (file, "cpu  %zu %zu %zu %zu %zu %zu %zu %zu %zu %zu",
-	&cpuInfo[0], &cpuInfo[1], &cpuInfo[2], &cpuInfo[3], &cpuInfo[4],
-	&cpuInfo[5], &cpuInfo[6], &cpuInfo[7], &cpuInfo[8], &cpuInfo[9]);
+		&cpuInfo[0], &cpuInfo[1], &cpuInfo[2], &cpuInfo[3], &cpuInfo[4],
+		&cpuInfo[5], &cpuInfo[6], &cpuInfo[7], &cpuInfo[8], &cpuInfo[9]);
 
 	fclose (file);
 
@@ -231,15 +254,24 @@ int getCpuUtilization (size_t* cpuUsed, size_t* cpuTotal)
 	(*cpuUsed) = (*cpuTotal) - idleTime;
 
 	return 0;
+
+	#else // ZRE_CANTOOLS_OS_linux
+
+	(void) cpuUsed;
+	(void) cpuTotal;
+
+	errno = ERRNO_OS_NOT_SUPPORTED;
+	return -1;
+
+	#endif // ZRE_CANTOOLS_OS_linux
 }
 
 int getCpuTemperature (size_t* temp)
 {
-	// Checks that the OS defined is not Windows
-	#ifdef ZRE_CANTOOLS_OS_windows
-	errno = ERRNO_OS_NOT_SUPPORTED;
-	return -1;
-	#endif
+	// REVIEW(Barach): Because there can be multiple temp sensors per socket, this should probably be renamed to
+	//   "getCpuTemperatureMax" and it should get the hottest (largest) temperature. My bad for not saying this in the specs.
+
+	#ifdef ZRE_CANTOOLS_OS_linux
 
 	FILE* file;
 	char type [] = "######";
@@ -249,16 +281,18 @@ int getCpuTemperature (size_t* temp)
 	DIR* directory = opendir ("/sys/class/thermal");
 
 	if (directory)
-
+	{
 		// Enumerates the files in the "/sys/class/thermal" directory
 		while ((direntStruct = readdir (directory)) != NULL)
-
+		{
 			// Checks that the file in the directory has the "thermal_zone" prefix
 			// (Note: there can be more than one "thermal_zone" depending on the device)
 			if (strstr (direntStruct->d_name, "thermal_zone"))
 			{
-
 				// Opens & reads the content of the "thermal_zone" file
+				// REVIEW(Barach): Return code of snprintf needs checked, as this can fail for a system with 10+
+				//   thermal_zones. (Unlikely, but possible). Note, this doesn't need to work on said system, it just needs to
+				//   fail reliably rather than crashing.
 				snprintf (path, sizeof (path), "/sys/class/thermal/%s/type", direntStruct->d_name);
 
 				file = fopen (path, "r");
@@ -270,7 +304,6 @@ int getCpuTemperature (size_t* temp)
 				// Indicates that the "thermal_zone" monitors the CPU socket
 				if (strcmp(type, "acpitz") == 0)
 				{
-
 					// Opens & reads the content of the "temp" (temperature) file
 					snprintf (path, sizeof (path), "/sys/class/thermal/%s/temp", direntStruct->d_name);
 
@@ -284,9 +317,20 @@ int getCpuTemperature (size_t* temp)
 					return 0;
 				}
 			}
+		}
+	}
 
 	closedir (directory);
 
 	// Indicates that the temperature was not found
 	return -1;
+
+	#else // ZRE_CANTOOLS_OS_linux
+
+	(void) temp;
+
+	errno = ERRNO_OS_NOT_SUPPORTED;
+	return -1;
+
+	#endif // ZRE_CANTOOLS_OS_linux
 }

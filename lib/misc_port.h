@@ -47,34 +47,41 @@ int systemf (char* format, ...);
 char* getBaseName (char* path);
 
 /**
- * @brief Gets the used and total storage (in bytes) of a directory.
- * @param storageUsed The variable to initialize with the amount of used storage (in bytes).
- * @param storageTotal The variable to initialize with the total amount storage (in bytes).
- * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
+ * @brief Gets the amount of used storage and the total storage of a directory's filesystem. This does not indicate the how
+ * much storage is used by the directory itself, but rather how much storage is used in the filesystem the directory belongs
+ * to.
+ * @note This function is only implemented for Linux.
+ * @param storageUsed Buffer to write the amount of used storage (in bytes) into.
+ * @param storageTotal Buffer to write the total amount of storage (in bytes) into.
+ * @return 0 if successful, -1 otherwise and @c errno is set to indicate the error code.
 */
 int getStorageUtilization (size_t* storageUsed, size_t* storageTotal, char* dir);
 
 /**
- * @brief Gets the used and total RAM (in bytes) of a system.
- * @param memoryUsed The variable to initialize with the amount of used storage (in bytes).
- * @param memoryTotal The variable to initialize with the total amount of storage (in bytes).
- * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
+ * @brief Gets the amount of used and total memory (in bytes) of a system.
+ * @note This function is only implemented for Linux.
+ * @param memoryUsed Buffer to write the amount of used storage (in bytes) into.
+ * @param memoryTotal Buffer to write the total amount of storage (in bytes) into.
+ * @return 0 if successful, -1 otherwise and @c errno is set to indicate the error code.
 */
 int getMemoryUtilization (size_t* memoryUsed, size_t* memoryTotal);
 
+// REVIEW(Barach): Percentage
 /**
  * @brief Gets the cumulative used CPU time and total CPU time.
  * Note: the difference of the current and previous values within an arbitrary interval will compute the CPU utilization of that interval.
- * @param cpuUsed The variable to initialize with the cumulative used CPU time (in a jiffy).
- * @param cpuTotal The variable to initialize with the cumulative total CPU time (in a jiffy).
- * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
+ * @note This function is only implemented for Linux.
+ * @param cpuUsed Buffer to write the cumulative used CPU time (in jiffies) into.
+ * @param cpuTotal Buffer to write the cumulative total CPU time (in jiffies) into.
+ * @return 0 if successful, -1 otherwise and @c errno is set to indicate the error code.
  */
 int getCpuUtilization (size_t* cpuUsed, size_t* cpuTotal);
 
 /**
  * @brief Gets the temperature of the CPU.
- * @param cpuTemperatureValue The variable to initialize with the value of the CPU socket temperature. Divide the result by 1000 to convert to Celsius.
- * @return 0 if successful, -1 otherwise and @c errno is set to indicate the errno.
+ * @note This function is only implemented for Linux.
+ * @param cpuTemperatureValue Buffer to write the value of the CPU socket temperature into. Divide the result by 1000 to convert to Celsius.
+ * @return 0 if successful, -1 otherwise and @c errno is set to indicate the error code.
  */
 int getCpuTemperature (size_t* cpuTemperatureValue);
 
