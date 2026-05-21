@@ -85,7 +85,7 @@ keySignal_t* keySignalsLoad (cJSON* json, int fd, canDatabase_t* database, size_
 		if (jsonGetFloat (configJson, "threshold", &config.threshold) != 0)
 			config.threshold = 0.5f;
 
-		debugPrintf (
+		printf (
 			"Loaded signal key:\n"
 			"    signalName = '%s'\n"
 			"    code = %i\n"
@@ -108,6 +108,7 @@ int keySignalUpdate (keySignal_t* key)
 	{
 		if ((value >= key->config.threshold) != key->config.inverted && !key->pressed)
 		{
+			debugPrintf ("Key signal '%s' pressed.\n", key->config.signalName);
 			key->pressed = true;
 			return uinputEmit (key->fd, EV_KEY, key->config.code, 1);
 		}

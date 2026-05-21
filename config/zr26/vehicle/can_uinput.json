@@ -29,38 +29,31 @@
 			[
 				{
 					"signalName":			"SIB_BUTTON_TOP_LEFT",
-					"code":					"KEY_A",
-					"inverted":				"true"
+					"code":					"KEY_A"
 				},
 				{
 					"signalName":			"SIB_BUTTON_MID_LEFT",
-					"code":					"KEY_B",
-					"inverted":				"true"
+					"code":					"KEY_B"
 				},
 				{
 					"signalName":			"SIB_BUTTON_BOTTOM_LEFT",
-					"code":					"KEY_C",
-					"inverted":				"true"
+					"code":					"KEY_C"
 				},
 				{
 					"signalName":			"SIB_SWITCH_TOP_RIGHT_UP",
-					"code":					"KEY_D",
-					"inverted":				"true"
+					"code":					"KEY_D"
 				},
 				{
 					"signalName":			"SIB_SWITCH_TOP_RIGHT_DOWN",
-					"code":					"KEY_E",
-					"inverted":				"true"
+					"code":					"KEY_E"
 				},
 				{
 					"signalName":			"SIB_BUTTON_MID_RIGHT",
-					"code":					"KEY_F",
-					"inverted":				"true"
+					"code":					"KEY_F"
 				},
 				{
 					"signalName":			"SIB_BUTTON_BOTTOM_RIGHT",
-					"code":					"KEY_G",
-					"inverted":				"true"
+					"code":					"KEY_G"
 				}
 			],
 			"absoluteAxes":

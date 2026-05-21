@@ -130,7 +130,7 @@ absSignal_t* absSignalsLoad (cJSON* config, int fd, canDatabase_t* database, siz
 		if (config.code < 0)
 			return NULL;
 
-		debugPrintf (
+		printf (
 			"Loaded absolute axis signal:\n"
 			"    positiveSignalName = '%s'\n"
 			"    negativeSignalName = '%s'\n"
