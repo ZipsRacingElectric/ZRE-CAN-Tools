@@ -25,8 +25,18 @@ static void update (void* widget)
 	canLabelFloat_t* label = widget;
 
 	char text [512] = "";
-	snprintCanDatabaseFloat (text, sizeof (text), label->config.formatValue, label->config.formatInvalid,
-		label->database, label->index);
+
+	char* unit = NULL;
+	canSignal_t* signal = canDatabaseGetSignal (label->database, label->index);
+	if (signal != NULL)
+		unit = signal->unit;
+
+	float value;
+	canDatabaseSignalState_t state = canDatabaseGetFloat (label->database, label->index, &value);
+	value *= label->config.scaleFactor;
+
+	snprintCanDatabaseFloatStatic (text, sizeof (text), label->config.formatValue, label->config.formatInvalid, value, state, unit);
+
 	gtk_label_set_text (GTK_LABEL (label->vmt.widget), text);
 }
 
@@ -75,6 +85,9 @@ canWidget_t* canLabelFloatLoad (canDatabase_t* database, cJSON* config, canLabel
 
 	if (jsonGetString (config, "formatInvalid", &widgetConfig.formatInvalid) != 0)
 		return NULL;
+
+	widgetConfig.scaleFactor = 1;
+	jsonGetFloat (config, "scaleFactor", &widgetConfig.scaleFactor);
 
 	// No style to load right now.
 	(void) parentStyle;

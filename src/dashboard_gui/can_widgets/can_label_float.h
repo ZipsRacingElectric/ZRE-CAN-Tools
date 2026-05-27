@@ -38,6 +38,9 @@ typedef struct
 	/// @brief Format string for invalid values. Must contain the %s format specified exactly once. May contain the %s after
 	/// the first specifier for the unit. Required.
 	char* formatInvalid;
+
+	/// @brief Factor to scale the value by before displaying. Useful for unit conversions. Optional, default 1.
+	float scaleFactor;
 } canLabelFloatConfig_t;
 
 // Functions ------------------------------------------------------------------------------------------------------------------

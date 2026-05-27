@@ -290,93 +290,167 @@
 		},
 		{
 			"address":	"0x005C",
-			"name":		"REGEN_DERATING_THROTTLE_START",
+			"name":		"REGEN_DERATING_THROTTLE_LOW",
+			"type":		"float",
+			"comment":	"The throttle position at which no regen should be requested."
+		},
+		{
+			"address":	"0x0060",
+			"name":		"REGEN_DERATING_THROTTLE_HIGH",
 			"type":		"float",
 			"comment":	"The throttle position at which regen should start to be derated."
 		},
 		{
-			"address":	"0x0060",
-			"name":		"REGEN_DERATING_THROTTLE_END",
-			"type":		"float",
-			"comment":	"The throttle position past which no regen should be requested."
-		},
-		{
 			"address":	"0x0064",
-			"name":		"REGEN_DERATING_SPEED_END",
+			"name":		"REGEN_DERATING_SPEED_LOW",
 			"type":		"float",
-			"comment":	"The motor speed at which no regen should be requested."
+			"comment":	"The ground speed at which no regen should be requested, in km/h (no less than 5 km/h)."
 		},
 		{
 			"address":	"0x0068",
-			"name":		"REGEN_DERATING_SPEED_START",
+			"name":		"REGEN_DERATING_SPEED_HIGH",
 			"type":		"float",
-			"comment":	"The motor speed at which to start derating regen requests."
+			"comment":	"The ground speed at which regen should start to be derated, in km/h."
 		},
 		{
 			"address":	"0x006C",
+			"name":		"REGEN_DERATING_SPEED_HYSTERESIS",
+			"type":		"float",
+			"comment":	"The amount of hysteresis to apply to the regen speed derating, in km/h."
+		},
+		{
+			"address":	"0x0070",
 			"name":		"POWER_LIMIT",
 			"type":		"float",
 			"comment":	"The cumulative power limit of the vehicle, in W."
 		},
 		{
-			"address":	"0x0070",
+			"address":	"0x0074",
 			"name":		"POWER_LIMIT_PID_KP",
 			"type":		"float",
 			"comment":	"The proportional coefficient of the power limit PID, in 1/W."
 		},
 		{
-			"address":	"0x0074",
+			"address":	"0x0078",
 			"name":		"POWER_LIMIT_PID_KI",
 			"type":		"float",
 			"comment":	"The integral coefficient of the power limit PID, in 1/Ws."
 		},
 		{
-			"address":	"0x0078",
+			"address":	"0x007C",
 			"name":		"POWER_LIMIT_PID_KD",
 			"type":		"float",
 			"comment":	"The derivative coefficient of the power limit PID, in s/W."
 		},
 		{
-			"address":	"0x007C",
-			"name":		"POWER_LIMIT_PID_A",
+			"address":	"0x0080",
+			"name":		"POWER_LIMIT_PID_KA",
 			"type":		"float",
 			"comment":	"The measurement gain of the power limit PID, in range [0, 1)"
 		},
 		{
-			"address":	"0x0080",
+			"address":	"0x0084",
 			"name":		"SD_DRIVING_LR_BIAS",
 			"type":		"float",
 			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
 		},
 		{
-			"address":	"0x0084",
+			"address":	"0x0088",
 			"name":		"SD_REGEN_LR_BIAS",
 			"type":		"float",
 			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
 		},
 		{
-			"address":	"0x0088",
+			"address":	"0x008C",
 			"name":		"LS_STEERING_ANGLE_BEGIN",
 			"type":		"float",
 			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
 		},
 		{
-			"address":	"0x008C",
+			"address":	"0x0090",
 			"name":		"LS_STEERING_ANGLE_END",
 			"type":		"float",
 			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
 		},
 		{
-			"address":	"0x0090",
+			"address":	"0x0094",
 			"name":		"LS_LR_BIAS_END",
 			"type":		"float",
 			"comment":	"The left-to-right bias at the ending steering angle."
 		},
 		{
-			"address":	"0x0094",
+			"address":	"0x0098",
 			"name":		"WATCHDOG_ENABLED",
 			"type":		"uint8_t",
-			"comment":	"Enableds / disables the Formula Hybrid + Electric required CAN bus watchdog. (0 => Disabled, 1 => Enabled)."
+			"comment":	"Enables / disables the Formula Hybrid + Electric required CAN bus watchdog. (0 => Disabled, 1 => Enabled)."
+		},
+		{
+			"address":	"0x009C",
+			"name":		"GEAR_RATIO",
+			"type":		"float",
+			"comment":	"The reduction ratio of the vehicle's gearboxes. Ex, 14:1 => 14, 27:2 => 13.5."
+		},
+		{
+			"address":	"0x00A0",
+			"name":		"WHEEL_RADIUS",
+			"type":		"float",
+			"comment":	"The radius of the vehicle's wheels, in inches."
+		},
+		{
+			"address":	"0x00A4",
+			"name":		"WHEEL_BASE",
+			"type":		"float",
+			"comment":	"The distance between the center of the front wheel and the center of the rear wheel, along the x-axis, in meters."
+		},
+		{
+			"address":	"0x00A8",
+			"name":		"WEIGHT_FR_BIAS",
+			"type":		"float",
+			"comment":	"The front-to-rear bias of the vehicle's weight distribution. 1 => 100% rearwards, 0 => 100% frontwards."
+		},
+		{
+			"address":	"0x00AC",
+			"name":		"TRACK_WIDTH_REAR",
+			"type":		"float",
+			"comment":	"The distance between the center of the rear left and rear right wheels' contact patches, in meters."
+		},
+		{
+			"address":	"0x00B0",
+			"name":		"TRACK_WIDTH_FRONT",
+			"type":		"float",
+			"comment":	"The distance between the center of the front left and front right wheels' contact patches, in meters."
+		},
+		{
+			"address":	"0x00B4",
+			"name":		"STEERING_RATIO",
+			"type":		"float",
+			"comment":	"The reduction ratio of the vehicle's steering rack. Ex, 10 => 110 deg steering wheel angle = 11 deg wheel angle."
+		},
+		{
+			"address":	"0x00B8",
+			"name":		"YAW_MOMENT_OF_INERTIA",
+			"type":		"float",
+			"comment":	"The moment of intertia of the vehicle, about the yaw axis, in kg*m^2."
+		},
+		{
+			"address":	"0x0100",
+			"name":		"BICYCLE_KP",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0104",
+			"name":		"BICYCLE_KI",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0108",
+			"name":		"BICYCLE_KD",
+			"type":		"float"
+		},
+		{
+			"address":	"0x010C",
+			"name":		"BICYCLE_KA",
+			"type":		"float"
 		},
 		{
 			"address":	"0x1000",

@@ -112,7 +112,8 @@
 						"deviceIndex":					"0",
 						"signalName":					"SPEED",
 						"formatValue":					"%02.0f",
-						"formatInvalid":				"XX"
+						"formatInvalid":				"XX",
+						"scaleFactor":					"0.621"
 					}
 				]
 			},
@@ -947,6 +948,48 @@
 						"signalName":					"FR_DIAGNOSTIC_NUMBER",
 						"threshold":					"0.5",
 						"format":						"ERROR: %.0f"
+					}
+				},
+				{
+					"xPosition":						"350",
+					"yPosition":						"130",
+					"widget":
+					{
+						"type":							"canIndicator",
+						"deviceIndex":					"1",
+						"signalName":					"SIB_BUTTON_MID_LEFT",
+						"threshold":					"-1",
+						"width":						"35",
+						"height":						"40",
+						"text":							"SIB"
+					}
+				},
+				{
+					"xPosition":						"495",
+					"yPosition":						"105",
+					"widget":
+					{
+						"type":							"canIndicator",
+						"deviceIndex":					"1",
+						"signalName":					"MSB_FL_DAMPER_DISPLACEMENT",
+						"threshold":					"-1",
+						"width":						"55",
+						"height":						"30",
+						"text":							"MSB-F"
+					}
+				},
+				{
+					"xPosition":						"70",
+					"yPosition":						"170",
+					"widget":
+					{
+						"type":							"canIndicator",
+						"deviceIndex":					"1",
+						"signalName":					"MSB_RL_DAMPER_DISPLACEMENT",
+						"threshold":					"-1",
+						"width":						"55",
+						"height":						"30",
+						"text":							"MSB-R"
 					}
 				}
 			]
