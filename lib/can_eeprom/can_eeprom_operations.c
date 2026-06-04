@@ -18,11 +18,11 @@
 #define EEPROM_RESPONSE_MESSAGE_RW(word)	((((word) >> 15) & 0b1) == 0b1)
 #define EEPROM_RESPONSE_MESSAGE_ADDR(word)	((word) & 0x7FFF)
 
-#define RESPONSE_ATTEMPT_COUNT 10
+#define RESPONSE_ATTEMPT_COUNT 100
 static const struct timeval RESPONSE_ATTEMPT_TIMEOUT =
 {
 	.tv_sec		= 0,
-	.tv_usec	= 1000
+	.tv_usec	= 50000
 };
 
 // Function Prototypes --------------------------------------------------------------------------------------------------------
