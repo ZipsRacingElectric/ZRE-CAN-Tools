@@ -959,6 +959,7 @@
 						"deviceIndex":					"1",
 						"signalName":					"SIB_BUTTON_MID_LEFT",
 						"threshold":					"-1",
+						"inverted":						"true",
 						"width":						"35",
 						"height":						"40",
 						"text":							"SIB"
@@ -973,6 +974,7 @@
 						"deviceIndex":					"1",
 						"signalName":					"MSB_FL_DAMPER_DISPLACEMENT",
 						"threshold":					"-1",
+						"inverted":						"true",
 						"width":						"55",
 						"height":						"30",
 						"text":							"MSB-F"
@@ -987,6 +989,7 @@
 						"deviceIndex":					"1",
 						"signalName":					"MSB_RL_DAMPER_DISPLACEMENT",
 						"threshold":					"-1",
+						"inverted":						"true",
 						"width":						"55",
 						"height":						"30",
 						"text":							"MSB-R"
