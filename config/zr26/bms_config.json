@@ -264,7 +264,7 @@
 			"address":	"0x007C",
 			"name":		"WATCHDOG_ENABLED",
 			"type":		"uint8_t",
-			"comment":	"Enableds / disables the Formula Hybrid + Electric required BMS watchdog. (0 => Disabled, 1 => Enabled). Note, this only takes affect after a device power cycle."
+			"comment":	"Enables / disables the Formula Hybrid + Electric required BMS watchdog. (0 => Disabled, 1 => Enabled). Note, this only takes affect after a device power cycle."
 		},
 		{
 			"address":	"0x1000",
@@ -298,6 +298,20 @@
 			"type":		"uint8_t",
 			"mode":		"write_only",
 			"comment":	"Command for enabling a cell's discharge resistor. Written value should be the index of the cell."
+		},
+		{
+			"address":	"0x1004",
+			"name":		"POSITIVE_IR_ENABLE",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Command for forcefully enabling the positive IR. Only used for testing, use with extreme caution. (1 => Enable, 0 => Disable)."
+		},
+		{
+			"address":	"0x1005",
+			"name":		"BMS_RELAY_ENABLE",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Command for forcefully enabling the BMS relay. Only used for testing, use with extreme caution. (1 => Enable, 0 => Disable)."
 		}
 	]
 }
