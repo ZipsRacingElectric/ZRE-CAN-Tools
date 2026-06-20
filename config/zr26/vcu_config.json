@@ -349,6 +349,12 @@
 			"comment":	"The measurement gain of the power limit PID, in range [0, 1)"
 		},
 		{
+			"address":	"0x00BC",
+			"name":		"POWER_LIMIT_EFFICIENCY",
+			"type":		"float",
+			"comment":	"The estimated powertrain efficiency (battery to motor) to use for power limiting."
+		},
+		{
 			"address":	"0x0084",
 			"name":		"SD_DRIVING_LR_BIAS",
 			"type":		"float",
