@@ -121,6 +121,12 @@ int systemf (char* format, ...)
 	// Free the allocated memory
 	free (command);
 
+	// On Windows, some programs don't appear to be flushing stdout correctly, this leads to the user waiting for output.
+	// Likely an issue with "/r/n" vs just "/n". Here we just force the OS to always flush after a command has been run.
+	#ifdef ZRE_CANTOOLS_OS_windows
+	fflush (stdout);
+	#endif // ZRE_CANTOOLS_OS_windows
+
 	// Return the error code, as specified by system.
 	return code;
 }
