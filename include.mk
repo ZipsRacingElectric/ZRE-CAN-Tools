@@ -43,6 +43,15 @@ else
 	OS_TYPE := $(shell uname | tr '[:upper:]' '[:lower:]')
 endif
 
+# Python dependencies used by the MDF decoder
+ifeq ($(OS_TYPE),windows)
+	PYTHON_INSTALL := python3 -m pip install asammdf pandas
+else ifeq ($(OS_TYPE),linux)
+	PYTHON_INSTALL := sudo apt install -y python3-venv python3-full && python3 -m venv ~/mdf-env && bash -c 'source ~/mdf-env/bin/activate && pip install asammdf pandas'
+else
+	PYTHON_INSTALL := python3 -m pip install asammdf pandas
+endif
+
 ARCH_TYPE := $(shell uname -m)
 
 # Release Version -------------------------------------------------------------

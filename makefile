@@ -34,8 +34,12 @@ VSCODE_SETTINGS := ./.vscode/settings.json
 
 # Default target. Compiles all applications in the src directory. Marked as
 # phony because this corresponds to an actual directory name.
-bin: $(CLANGD_FILE) $(VSCODE_SETTINGS) $(wildcard $(SRC_DIR)/*)
+bin: python-dependencies $(CLANGD_FILE) $(VSCODE_SETTINGS) $(wildcard $(SRC_DIR)/*)
 .PHONY: bin
+
+.PHONY: python-dependencies
+python-dependencies:
+	$(PYTHON_INSTALL)
 
 # Wildcard defining the compilation rule for each subdirectory in the src
 # directory. Dependent on libs, meaning all libraries are compiled first.
