@@ -43,6 +43,9 @@ else
 	OS_TYPE := $(shell uname | tr '[:upper:]' '[:lower:]')
 endif
 
+# TODO(DiBacco): Guarantee Python is installed on Linux and Windows via documentation
+# TODO(DiBacco): Guarantee pip is installed on Linux and Windows
+
 # Python dependencies used by the MDF decoder
 ifeq ($(OS_TYPE),windows)
 	PYTHON_INSTALL := python3 -m pip install asammdf pandas
