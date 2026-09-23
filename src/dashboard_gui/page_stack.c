@@ -1,6 +1,9 @@
 // Header
 #include "page_stack.h"
 
+// Includes
+#include "pages/page_warning.h"
+
 pageStack_t* pageStackInit (void)
 {
 	pageStack_t* stack = malloc (sizeof (pageStack_t));
@@ -9,6 +12,7 @@ pageStack_t* pageStackInit (void)
 
 	stack->widget = gtk_stack_new ();
 	stack->selectedPage = NULL;
+	stack->warningReturnPage = NULL;
 
 	return stack;
 }
@@ -42,4 +46,31 @@ void pageStackUpdate (pageStack_t* stack)
 {
 	if (stack->selectedPage != NULL)
 		pageUpdate (stack->selectedPage);
+}
+
+void pageStackShowWarning (pageStack_t* stack, page_t* warningPage)
+{
+	if (stack == NULL || warningPage == NULL)
+	{
+		return;
+	}
+	if (stack->selectedPage != warningPage)
+	{
+		stack->warningReturnPage = stack->selectedPage;
+		pageWarningResetButtonState (warningPage);
+	}
+
+	pageStackSelect(stack, warningPage);
+}
+
+void pageStackReturnFromWarning(pageStack_t *stack)
+{
+	if (stack == NULL || stack->warningReturnPage == NULL)
+		return;
+
+	page_t* returnPage = stack->warningReturnPage;
+
+	stack->warningReturnPage = NULL;
+
+	pageStackSelect(stack, returnPage);
 }

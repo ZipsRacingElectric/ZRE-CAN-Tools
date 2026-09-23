@@ -24,6 +24,8 @@ struct pageStack
 {
 	GtkWidget* widget;
 	page_t* selectedPage;
+
+	page_t* warningReturnPage;
 };
 typedef struct pageStack pageStack_t;
 
@@ -41,5 +43,9 @@ void pageStackSelect (pageStack_t* stack, page_t* page);
 void pageStackSelectCallback (GtkWidget* widget, void* arg);
 
 void pageStackUpdate (pageStack_t* stack);
+
+void pageStackShowWarning (pageStack_t* stack, page_t* warningPage);
+
+void pageStackReturnFromWarning (pageStack_t* stack);
 
 #endif // PAGE_STACK_H

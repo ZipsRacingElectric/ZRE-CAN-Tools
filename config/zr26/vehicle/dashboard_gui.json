@@ -1060,7 +1060,57 @@
 				"decalSlope":							"1.5",
 				"decalCount":							"4"
 			}
-		}
+		},
 
+		{
+			"type": 									"pageWarning",
+			"name": 									"WARN",
+			"style":
+			{
+			},
+			"warningBackground":						"$ZRE_CANTOOLS_DIR/config/zr26/warning_screen.png",
+			"sibInput":
+			{
+				"deviceIndex": 							"1"
+			},
+			"warnings":
+			[
+				{
+					"widget":
+					{
+						"type":							"canWarning",
+						"deviceIndex": 					"0",
+						"signalName": 					"BMS_LIMP_MODE",
+						"threshold":					"0.5",
+						"text":							"LIMP MODE",
+						"textXPosition": 					"155",
+						"textYPosition": 					"255",
+						"textStyle":
+						{
+							"font": 					"Helvetica Bold Condensed 64",
+							"fontColor": 				"#F7D616",
+							"blinkColor":				"#F0AA29",
+							"blinkInterval":			"0.7"
+						},
+						"descriptorOne": 					"TEMPERATURE",
+						"descriptorOneXPosition": 					"225",
+						"descriptorOneYPosition": 					"444",
+						"descriptorOneStyle":
+						{
+							"font": 					"Helvetica Bold Condensed 32",
+							"fontColor": 				"#F0AA29"
+						},
+						"descriptorTwo": 					"CELL VOLTAGE",
+						"descriptorTwoXPosition": 					"225",
+						"descriptorTwoYPosition": 					"27",
+						"descriptorTwoStyle":
+						{
+							"font": 					"Helvetica Bold Condensed 32",
+							"fontColor": 				"#F0AA29"
+						}
+					}
+				}
+			]
+		}
 	]
 }

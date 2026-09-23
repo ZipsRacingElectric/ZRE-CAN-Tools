@@ -459,6 +459,12 @@
 			"type":		"float"
 		},
 		{
+			"address":  "0x0110",
+			"name":     "LIMP_DRIVING_TORQUE_LIMIT",
+			"type":	    "float",
+			"comment":	"The cumulative driving (positive) torque limit in limp mode, in Nm."
+		},
+		{
 			"address":	"0x1000",
 			"name":		"APPS_1_SAMPLE",
 			"type":		"uint16_t",

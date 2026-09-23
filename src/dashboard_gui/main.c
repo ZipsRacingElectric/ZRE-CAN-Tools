@@ -12,6 +12,7 @@
 
 // Includes
 #include "page_stack.h"
+#include "pages/page_warning.h"
 #include "cjson/cjson_util.h"
 #include "can_database/can_database_stdio.h"
 #include "can_device/can_device_stdio.h"
@@ -73,10 +74,27 @@ typedef struct
 	size_t databaseCount;
 } activateArg_t;
 
-static gboolean updateLoop (pageStack_t* stack)
+typedef struct
 {
-	pageStackUpdate (stack);
+	pageStack_t* stack;
+	page_t* warningPage;
+	bool warningActive;
+	guint timeoutId;
+} appLoop_t;
 
+static gboolean updateLoop (appLoop_t* loop)
+{
+	pageStackUpdate (loop->stack);
+
+	if (loop->warningPage != NULL)
+	{
+		bool active = pageWarningIsActive(loop->warningPage);
+
+		if (active && !loop->warningActive)
+			pageStackShowWarning(loop->stack, loop->warningPage);
+
+		loop->warningActive = active;
+	}
 	// Continue calling this function
 	return TRUE;
 }
@@ -110,15 +128,17 @@ static gboolean gtkDestroyHandler (GtkWidget* self, gpointer data)
 	(void) self;
 
 	// Remove the event loop timer
-	guint* timeout = data;
-	g_source_remove (*timeout);
-	free (timeout);
+	appLoop_t* loop = data;
+	g_source_remove (loop->timeoutId);
+	free (loop);
 
 	return TRUE;
 }
 
 static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 {
+	page_t* warningPage = NULL;
+
 	// Create a new window and set its title
 	GtkWidget* window = gtk_application_window_new (app);
 	gtk_window_set_title (GTK_WINDOW (window), arg->applicationTitle);
@@ -154,6 +174,16 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 			continue;
 
 		pageStackAppend (stack, pages [index]);
+
+
+		char* pageType;
+		if (jsonGetString(pageConfig, "type", &pageType) == 0 && strcmp (pageType, "pageWarning") == 0)
+		{
+			if (warningPage != NULL)
+				errorPrintf ("Warning: multiple pageWarning pages found, only the first will be used.\n");
+			else
+				warningPage = pages [index];
+		}
 	}
 
 	for (size_t index = 0; index < pageCount; ++index)
@@ -163,16 +193,22 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 
 		for (size_t buttonIndex = 0; buttonIndex < pageCount; ++buttonIndex)
 		{
-			if (pages [buttonIndex] != NULL)
+			if (pages [buttonIndex] == NULL)
 			{
-				if (index != buttonIndex)
-					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), pageStackSelectCallback, pages [buttonIndex], false, style);
-				else
-					pageAppendButton (pages [index], pageGetName (pages [buttonIndex]), NULL, NULL, true, style);
+				pageAppendButton(pages[index], "", NULL, NULL, false, style);
+				continue;
+			}
+
+			if (pages[buttonIndex] == warningPage)
+				continue;
+
+			if (index != buttonIndex)
+			{
+				pageAppendButton(pages[index], pageGetName(pages[buttonIndex]), pageStackSelectCallback, pages[buttonIndex], false, style);
 			}
 			else
 			{
-				pageAppendButton (pages [index], "", NULL, NULL, false, style);
+				pageAppendButton(pages[index], pageGetName(pages[buttonIndex]), NULL, NULL, true, style);
 			}
 		}
 	}
@@ -184,12 +220,18 @@ static void gtkActivate (GtkApplication* app, activateArg_t* arg)
 	gtk_window_present (GTK_WINDOW (window));
 
 	// Create the event loop timer
-	guint* timeout = malloc (sizeof (guint));
-	*timeout = g_timeout_add (40, G_SOURCE_FUNC (updateLoop), stack);
+	appLoop_t* loop = malloc (sizeof (appLoop_t));
+	*loop = (appLoop_t)
+	{
+		.stack = stack,
+		.warningPage = warningPage,
+		.warningActive = false
+	};
+
+	loop->timeoutId = g_timeout_add (40, G_SOURCE_FUNC (updateLoop), loop);
 
 	// Bind the destroy signal to a handler
-	g_signal_connect (GTK_WINDOW (window), "destroy", G_CALLBACK (gtkDestroyHandler), timeout);
-}
+	g_signal_connect (GTK_WINDOW (window), "destroy", G_CALLBACK (gtkDestroyHandler), loop);}
 
 static char* getApplicationTitle (const char* applicationName)
 {

@@ -99,6 +99,22 @@ lib: $(LIBS)
 clean:
 	rm -rf $(BIN_DIR)
 
+# Make Dashboard and Run ------------------------------------------------------
+
+.PHONY: dash
+
+ifeq ($(OS_TYPE), windows)
+
+dash: bin/dashboard-gui
+	./bin/dashboard-gui config/zr26/vehicle/dashboard_gui.json "COM*@1000000" "COM*@1000000"
+
+else
+
+dash: bin/dashboard-gui
+	./bin/dashboard-gui config/zr26/vehicle/dashboard_gui.json "/dev/tty*@1000000" "/dev/tty*@1000000"
+
+endif
+
 # Releasing -------------------------------------------------------------------
 
 .PHONY: release

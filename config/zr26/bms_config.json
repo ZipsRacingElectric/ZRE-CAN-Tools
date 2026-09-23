@@ -4,8 +4,8 @@
 	"segmentCount":			"5",
 	"ltcsPerSegment":		"2",
 	"cellsPerLtc":			"14",
-	"minCellVoltage":		"2.0",
-	"maxCellVoltage":		"4.25",
+	"minCellVoltage":		"3.0",
+	"maxCellVoltage":		"4.16",
 	"minTemperature":		"-10",
 	"maxTemperature":		"60",
 	"maxLtcTemperature":	"80",
@@ -252,19 +252,25 @@
 			"address":	"0x0078",
 			"name":		"CELL_VOLTAGE_FAULT_THRESHOLD",
 			"type":		"uint16_t",
-			"comment":	"The maximum amount of time a cell voltage may be faulted until a cell voltage fault is thrown, in milliseconds."
+			"comment":	"The maximum number of faulted cell voltage samples until a cell voltage fault is thrown."
 		},
 		{
 			"address":	"0x007A",
 			"name":		"TEMPERATURE_FAULT_THRESHOLD",
 			"type":		"uint16_t",
-			"comment":	"The maximum amount of time a temperature may be faulted until a temperature fault is thrown, in milliseconds."
+			"comment":	"The maximum number of faulted temperature samples until a temperature fault is thrown."
 		},
 		{
-			"address":	"0x007C",
-			"name":		"WATCHDOG_ENABLED",
-			"type":		"uint8_t",
-			"comment":	"Enables / disables the Formula Hybrid + Electric required BMS watchdog. (0 => Disabled, 1 => Enabled). Note, this only takes affect after a device power cycle."
+			"address":	"0x0080",
+			"name": 	"LIMP_VOLTAGE_MARGIN",
+			"type":		"float",
+			"comment": 	"The voltage margin above CELL_VOLTAGE_MIN at which the BMS limits the allowable torque of the car."
+		},
+		{
+			"address":  "0x0084",
+			"name":     "CELL_VOLTAGE_LIMP_THRESHOLD",
+			"type":     "uint16_t",
+			"comment":  "The maximum number of cell voltage samples until a limp mode is entered."
 		},
 		{
 			"address":	"0x1000",
@@ -298,20 +304,6 @@
 			"type":		"uint8_t",
 			"mode":		"write_only",
 			"comment":	"Command for enabling a cell's discharge resistor. Written value should be the index of the cell."
-		},
-		{
-			"address":	"0x1004",
-			"name":		"POSITIVE_IR_ENABLE",
-			"type":		"uint8_t",
-			"mode":		"write_only",
-			"comment":	"Command for forcefully enabling the positive IR. Only used for testing, use with extreme caution. (1 => Enable, 0 => Disable)."
-		},
-		{
-			"address":	"0x1005",
-			"name":		"BMS_RELAY_ENABLE",
-			"type":		"uint8_t",
-			"mode":		"write_only",
-			"comment":	"Command for forcefully enabling the BMS relay. Only used for testing, use with extreme caution. (1 => Enable, 0 => Disable)."
 		}
 	]
 }

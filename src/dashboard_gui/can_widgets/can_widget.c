@@ -57,6 +57,7 @@ canWidget_t* canWidgetLoad (canDatabase_t* databases, size_t databaseCount, cJSO
 	LOAD_WIDGET_STATEMENTS (canLabelFloat);
 	LOAD_WIDGET_STATEMENTS (canProgressBar);
 	LOAD_WIDGET_STATEMENTS (canShutdownLoopIndicator);
+	LOAD_WIDGET_STATEMENTS (canWarning);
 	LOAD_WIDGET_STATEMENTS (canWidgetTemplate);
 
 	if (strcmp (widgetType, "null") == 0)
@@ -108,5 +109,6 @@ void canWidgetLoadStyle (canWidgetStyle_t* style, cJSON* config, canWidgetStyle_
 	LOAD_STYLE_STATEMENTS (canLabelFloat);
 	LOAD_STYLE_STATEMENTS (canProgressBar);
 	LOAD_STYLE_STATEMENTS (canShutdownLoopIndicator);
+	LOAD_STYLE_STATEMENTS (canWarning);
 	LOAD_STYLE_STATEMENTS (canWidgetTemplate);
 }

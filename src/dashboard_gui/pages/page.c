@@ -7,6 +7,7 @@
 #include "page_can_bus.h"
 #include "page_status.h"
 #include "page_template.h"
+#include "page_warning.h"
 #include "../gtk_util.h"
 #include "cjson/cjson_util.h"
 #include "debug.h"
@@ -41,6 +42,7 @@ page_t* pageLoad (cJSON* config, canDatabase_t* databases, size_t databaseCount,
 	LOAD_PAGE_STATEMENTS (pageCanBus);
 	LOAD_PAGE_STATEMENTS (pageStatus);
 	LOAD_PAGE_STATEMENTS (pageTemplate);
+	LOAD_PAGE_STATEMENTS (pageWarning);
 
 	if (strcmp (pageType, "null") == 0)
 		return NULL;

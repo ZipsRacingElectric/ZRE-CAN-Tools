@@ -27,6 +27,7 @@
 #include "can_label_float.h"
 #include "can_progress_bar.h"
 #include "can_shutdown_loop_indicator.h"
+#include "can_warning.h"
 #include "can_widget_template.h"
 
 // GTK
@@ -45,6 +46,7 @@ typedef struct
 	canLabelFloatStyle_t canLabelFloat;
 	canProgressBarStyle_t canProgressBar;
 	canShutdownLoopIndicatorStyle_t canShutdownLoopIndicator;
+	canWarningStyle_t canWarning;
 	canWidgetTemplateStyle_t canWidgetTemplate;
 } canWidgetStyle_t;
 

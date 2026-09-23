@@ -11,6 +11,7 @@ SRC :=	main.c										\
 		pages/page_can_bus.c						\
 		pages/page_status.c							\
 		pages/page_template.c						\
+		pages/page_warning.c 						\
 		can_widgets/can_widget.c					\
 		can_widgets/can_indicator.c					\
 		can_widgets/can_label_bool.c				\
@@ -20,6 +21,7 @@ SRC :=	main.c										\
 		can_widgets/can_shutdown_loop_indicator.c	\
 		can_widgets/can_fault_popup.c				\
 		can_widgets/can_float_popup.c				\
+		can_widgets/can_warning.c 					\
 		can_widgets/can_widget_template.c			\
 		stylized_widgets/stylized_bar_graph.c		\
 		stylized_widgets/stylized_button.c			\
