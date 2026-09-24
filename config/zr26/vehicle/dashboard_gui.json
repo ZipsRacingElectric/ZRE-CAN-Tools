@@ -1083,29 +1083,29 @@
 						"signalName": 					"BMS_LIMP_MODE",
 						"threshold":					"0.5",
 						"text":							"LIMP MODE",
-						"textXPosition": 					"155",
-						"textYPosition": 					"255",
+						"textXPosition": 					"140",
+						"textYPosition": 					"230",
 						"textStyle":
 						{
-							"font": 					"Helvetica Bold Condensed 64",
+							"font": 					"Helvetica Bold Condensed 62",
 							"fontColor": 				"#F7D616",
 							"blinkColor":				"#F0AA29",
 							"blinkInterval":			"0.7"
 						},
 						"descriptorOne": 					"TEMPERATURE",
-						"descriptorOneXPosition": 					"225",
-						"descriptorOneYPosition": 					"444",
+						"descriptorOneXPosition": 					"221",
+						"descriptorOneYPosition": 					"430",
 						"descriptorOneStyle":
 						{
-							"font": 					"Helvetica Bold Condensed 32",
+							"font": 					"Helvetica Bold Condensed 30",
 							"fontColor": 				"#F0AA29"
 						},
 						"descriptorTwo": 					"CELL VOLTAGE",
 						"descriptorTwoXPosition": 					"225",
-						"descriptorTwoYPosition": 					"27",
+						"descriptorTwoYPosition": 					"15",
 						"descriptorTwoStyle":
 						{
-							"font": 					"Helvetica Bold Condensed 32",
+							"font": 					"Helvetica Bold Condensed 30",
 							"fontColor": 				"#F0AA29"
 						}
 					}
