@@ -273,6 +273,18 @@
 			"comment":  "The maximum number of cell voltage samples until a limp mode is entered."
 		},
 		{
+			"address":  "0x0088",
+			"name":     "LIMP_TEMP_MARGIN",
+			"type":     "float",
+			"comment":  "The temperature margin below over temperature fault at which the BMS limits the allowable torque of the car."
+		},
+		{
+			"address": 	"0x008C",
+			"name":    	"TEMP_LIMP_THRESHOLD",
+			"type": 	"uint16_t",
+			"comment":  "The maximum number of temperaures within the limp temp margin."	
+		},
+		{
 			"address":	"0x1000",
 			"name":		"CURRENT_SENSOR_CHANNEL_1_SAMPLE",
 			"type":		"uint16_t",
