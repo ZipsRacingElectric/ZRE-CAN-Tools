@@ -465,6 +465,36 @@
 			"comment":	"The cumulative driving (positive) torque limit in limp mode, in Nm."
 		},
 		{
+			"address": 	"0x0114",
+			"name":  	"APPS_COAST_THRESHOLD",
+			"type": 	"float",
+			"comment": 	"The threshold of the region on the throttle pedal where torque and regen are not applied. 0 to 100%"
+		},
+		{
+			"address": 	"0x0118",
+			"name": 	"APPS_REGEN_THRESHOLD",
+			"type": 	"float",
+			"comment":  "The threshold of the throttle pedal where when: (pdeal travel < threshold) -> apply regen. 0 to 100%"
+		},
+		{
+			"address": 	"0x011C",
+			"name":  	"ONE_PEDAL_REGEN_REQUEST",
+			"type": 	"float",
+			"comment":  "The regen request scalar that the amount of regen torque motors can handle is scaled by. 0 to 1"
+		},
+		{
+			"address": 	"0x0120",
+			"name":  	"REGEN_APPLICATION_TIME",
+			"type":  	"float",
+			"comment":  "The time for one pedal regen request to ramp linearly from zero torque to configured regen torque request, in seconds."
+		},
+			{
+			"address": 	"0x0124",
+			"name":  	"REGEN_RELEASE_TIME",
+			"type":  	"float",
+			"comment":  "The time for max one pedal regen request to ramp linearly back to zero torque from configured torque request, in seconds." 	
+		},
+		{
 			"address":	"0x1000",
 			"name":		"APPS_1_SAMPLE",
 			"type":		"uint16_t",

@@ -970,15 +970,31 @@ BO_ 19 BMS_EEPROM_RESPONSE: 6 Vector__XXX
  SG_ BMS_EEPROM_RESPONSE_DATA_ADDRESS : 0|16@1+ (1,0) [0|1] "" Vector__XXX
  SG_ BMS_EEPROM_RESPONSE_DATA : 16|32@1+ (1,0) [0|1] "" Vector__XXX
 
-BO_ 530 VCU_TRACTION: 8 Vector__XXX
- SG_ WHEEL_GROUND_SPEED_RL : 0|16@1+ (0.1,0) [0|6553] "km/h" Vector__XXX
- SG_ WHEEL_GROUND_SPEED_RR : 16|16@1+ (0.1,0) [0|6553] "km/h" Vector__XXX
- SG_ WHEEL_GROUND_SPEED_FL : 32|16@1+ (0.1,0) [0|6553] "km/h" Vector__XXX
- SG_ WHEEL_GROUND_SPEED_FR : 48|16@1+ (0.1,0) [0|6553] "km/h" Vector__XXX
+BO_ 530 VCU_GROUND_SPEED: 8 Vector__XXX
+ SG_ WHEEL_GROUND_SPEED_RL : 0|16@1+ (0.01,0) [0|655] "km/h" Vector__XXX
+ SG_ WHEEL_GROUND_SPEED_RR : 16|16@1+ (0.01,0) [0|655] "km/h" Vector__XXX
+ SG_ WHEEL_GROUND_SPEED_FL : 32|16@1+ (0.01,0) [0|655] "km/h" Vector__XXX
+ SG_ WHEEL_GROUND_SPEED_FR : 48|16@1+ (0.01,0) [0|655] "km/h" Vector__XXX
+
+BO_ 531 VCU_TIRE_SLIP: 8 Vector__XXX
+ SG_ TIRE_SLIP_RL : 0|16@1- (0.001,0) [-32.767|32.767] "" Vector__XXX
+ SG_ TIRE_SLIP_RR : 16|16@1- (0.001,0) [-32.767|32.767] "" Vector__XXX
+ SG_ TIRE_SLIP_FL : 32|16@1- (0.001,0) [-32.767|32.767] "" Vector__XXX
+ SG_ TIRE_SLIP_FR : 48|16@1- (0.001,0) [-32.767|32.767] "" Vector__XXX
+
+BO_ 532 VCU_TRACTION_SPEED: 5 Vector__XXX
+ SG_ IMU_SPEED : 0|16@1+ (0.01,0) [0|0] "km/h" Vector__XXX
+ SG_ IMU_ACCELERATION_BIAS : 16|16@1- (0.0001,0) [0|0.8959] "g" Vector__XXX
+ SG_ TRACTION_SELECTED_SPEED : 32|1@1+ (1,0) [0|1] "ENUM" Vector__XXX
 
 BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","reserved","J1939PG";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+
+
+
+
+
 
 
 
