@@ -61,7 +61,13 @@ On Arch Linux, install the equivalent packages with:
 sudo pacman -S --needed python python-pip base-devel ncurses gtk4 openssh
 ```
 
-Python's `venv` module is included with the standard Python package on Arch. On Debian/Ubuntu, it is provided by `python3-venv`. From the project directory, run `make python-dependencies` to create the project `venv` and install the dependencies listed in `requirements.txt`. The default `make` build runs this target as well.
+Python's `venv` module is included with the standard Python package on Arch. On Debian/Ubuntu, it is provided by `python3-venv`. From the project directory, run `make python-dependencies` to create the project `venv` and install the dependencies listed in `requirements.txt`. The default `make` build runs this target as well. To activate the environment in a Bash terminal:
+
+```sh
+source venv/bin/activate
+```
+
+Run `deactivate` to leave the environment.
 
 ## TODO(DiBacco): Write Documentation for Installing Python
 ### For Windows
@@ -69,6 +75,13 @@ Python's `venv` module is included with the standard Python package on Arch. On 
 Some dependencies of this project are not natively built for Windows. A solution to this is to use MSYS2, a collection of tools and libraries that provide a POSIX-like development environment for Windows.
 - Install Python 3 from [python.org](https://www.python.org/downloads/windows/). Ensure the Python launcher (`py`) is installed; the standard installer includes pip and the `venv` module.
 - From the project directory, run `make python-dependencies` to create the project `venv` and install the dependencies listed in `requirements.txt`. The default `make` build runs this target as well.
+- To activate the environment in PowerShell, run:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+  In Command Prompt, run `venv\Scripts\activate.bat` instead. Run `deactivate` to leave the environment.
 - Download and run the MSYS2 installer from [GitHub](https://github.com/msys2/msys2-installer/releases/).
 - When finished, a terminal should open, if not, open one by searching 'MSYS2 UCRT64' from the start menu.
 - In said terminal, run `pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-gtk4`. When prompted, select default (all) packages.

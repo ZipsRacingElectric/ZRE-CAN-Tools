@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 # Decodes ASAM MDF files produced by the CAN MDF Logger
 
+## MDF Decode  -----------------------------------------------------------------------------------------------------------
+##
+## Author: Owen DiBacco
+## Date Created: 2026.11.14
+##
+## Description: concatenates & decodes split MDF fragments
+## Syntax: python3 mdf_decode.py <MDF Logging Dir> <main.dbc> <sensor.dbc>
+## Note: Python dependencies require activating the virtual environment (see README.md)
+
+# python3 mdf_decode.py <MDF-file-or-directory> <CAN1.dbc> <CAN2.dbc>
+
 # Imports ----------------------------------------------------------------------------------
 
 from __future__ import annotations
