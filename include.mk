@@ -43,16 +43,14 @@ else
 	OS_TYPE := $(shell uname | tr '[:upper:]' '[:lower:]')
 endif
 
-# TODO(DiBacco): Guarantee Python is installed on Linux and Windows via documentation
-# TODO(DiBacco): Guarantee pip is installed on Linux and Windows
-
 # Python dependencies used by the MDF decoder
+PYTHON_REQUIREMENTS := $(ROOT_DIR)/requirements.txt
 ifeq ($(OS_TYPE),windows)
-	PYTHON_INSTALL := python3 -m pip install asammdf pandas
+	PYTHON_INSTALL := py -3 -m venv "$(ROOT_DIR)/venv" && "$(ROOT_DIR)/venv/Scripts/python.exe" -m pip install -r "$(PYTHON_REQUIREMENTS)"
 else ifeq ($(OS_TYPE),linux)
-	PYTHON_INSTALL := sudo apt install -y python3-venv python3-full && python3 -m venv ~/mdf-env && bash -c 'source ~/mdf-env/bin/activate && pip install asammdf pandas'
+	PYTHON_INSTALL := python3 -m venv "$(ROOT_DIR)/venv" && "$(ROOT_DIR)/venv/bin/python3" -m pip install -r "$(PYTHON_REQUIREMENTS)"
 else
-	PYTHON_INSTALL := python3 -m pip install asammdf pandas
+	PYTHON_INSTALL := python3 -m pip install -r "$(PYTHON_REQUIREMENTS)"
 endif
 
 ARCH_TYPE := $(shell uname -m)

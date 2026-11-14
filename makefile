@@ -123,6 +123,7 @@ release: bin
 	chmod +x $(RELEASE_DIR)/$(INSTALLER)
 	cp $(UNINSTALLER) $(RELEASE_DIR)/
 	chmod +x $(RELEASE_DIR)/$(UNINSTALLER)
+	cp requirements.txt $(RELEASE_DIR)/
 
 	# Documentation and fonts
 	cp -r $(DOC_DIR) $(RELEASE_DIR)/
