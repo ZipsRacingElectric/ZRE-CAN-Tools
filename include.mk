@@ -43,6 +43,16 @@ else
 	OS_TYPE := $(shell uname | tr '[:upper:]' '[:lower:]')
 endif
 
+# Python dependencies used by the MDF decoder
+PYTHON_REQUIREMENTS := $(ROOT_DIR)/requirements.txt
+ifeq ($(OS_TYPE),windows)
+	PYTHON_INSTALL := py -3 -m venv "$(ROOT_DIR)/venv" && "$(ROOT_DIR)/venv/Scripts/python.exe" -m pip install -r "$(PYTHON_REQUIREMENTS)"
+else ifeq ($(OS_TYPE),linux)
+	PYTHON_INSTALL := python3 -m venv "$(ROOT_DIR)/venv" && "$(ROOT_DIR)/venv/bin/python3" -m pip install -r "$(PYTHON_REQUIREMENTS)"
+else
+	PYTHON_INSTALL := python3 -m pip install -r "$(PYTHON_REQUIREMENTS)"
+endif
+
 ARCH_TYPE := $(shell uname -m)
 
 # Release Version -------------------------------------------------------------

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # TODO(Barach): This needs to create ~/zre
+# TODO(DiBacco): Create Virtual Environment for Python Dependencies
 
 # Shell script to be executed on user login. This is meant to define environment variables and add the installation to the
 # system path.

@@ -10,6 +10,32 @@ IF ERRORLEVEL 1 (
 	exit /B
 )
 
+:: TODO(DiBacco): Verify Windows Implementation of Virtual Environment Config for Python Dependencies
+:: Install python requirements
+where /q py
+IF ERRORLEVEL 1 (
+	echo Python 3 is not installed or the Python launcher is unavailable. Install Python 3 and the py launcher, then re-run this installer.
+	echo Press enter to close...
+	pause >nul
+	exit /B
+)
+
+py -3 -m venv "%~dp0venv"
+IF ERRORLEVEL 1 (
+	echo Failed to create the Python virtual environment. Check that Python 3 and the venv module are available, then re-run this installer.
+	echo Press enter to close...
+	pause >nul
+	exit /B
+)
+
+"%~dp0venv\Scripts\python.exe" -m pip install -r "%~dp0requirements.txt"
+IF ERRORLEVEL 1 (
+	echo Failed to install Python requirements. Check that Python 3 and pip are available, then re-run this installer.
+	echo Press enter to close...
+	pause >nul
+	exit /B
+)
+
 :: Set the ZRE-CAN-Tools directory environment variable
 setx ZRE_CANTOOLS_DIR "%~dp0%
 

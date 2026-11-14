@@ -48,14 +48,40 @@ For all applications, use `-h` to display the help page. For example: `can-dev-c
 
 ### For Linux
 
-Install all of the following dependencies, if not already installed:
-- `libncurses-dev` (Debian) or `ncurses` (Arch) - NCurses development library with wide character support.
-- `libgtk-4-dev` (Debian) or `gtk4` (Arch) - GTK 4 development library.
-- `ssh` (Debian) or `openssh` (Arch) - OpenSSH Client.
+Install Python 3 and the development dependencies if they are not already installed. The Python installation must include `pip` and the `venv` module. On Debian/Ubuntu, install them with:
 
+```sh
+sudo apt update
+sudo apt install python3 python3-pip python3-venv build-essential libncurses-dev libgtk-4-dev openssh-client
+```
+
+On Arch Linux, install the equivalent packages with:
+
+```sh
+sudo pacman -S --needed python python-pip base-devel ncurses gtk4 openssh
+```
+
+Python's `venv` module is included with the standard Python package on Arch. On Debian/Ubuntu, it is provided by `python3-venv`. From the project directory, run `make python-dependencies` to create the project `venv` and install the dependencies listed in `requirements.txt`. The default `make` build runs this target as well. To activate the environment in a Bash terminal:
+
+```sh
+source venv/bin/activate
+```
+
+Run `deactivate` to leave the environment.
+
+## TODO(DiBacco): Write Documentation for Installing Python
 ### For Windows
 
 Some dependencies of this project are not natively built for Windows. A solution to this is to use MSYS2, a collection of tools and libraries that provide a POSIX-like development environment for Windows.
+- Install Python 3 from [python.org](https://www.python.org/downloads/windows/). Ensure the Python launcher (`py`) is installed; the standard installer includes pip and the `venv` module.
+- From the project directory, run `make python-dependencies` to create the project `venv` and install the dependencies listed in `requirements.txt`. The default `make` build runs this target as well.
+- To activate the environment in PowerShell, run:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+  In Command Prompt, run `venv\Scripts\activate.bat` instead. Run `deactivate` to leave the environment.
 - Download and run the MSYS2 installer from [GitHub](https://github.com/msys2/msys2-installer/releases/).
 - When finished, a terminal should open, if not, open one by searching 'MSYS2 UCRT64' from the start menu.
 - In said terminal, run `pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-gtk4`. When prompted, select default (all) packages.
