@@ -1,0 +1,171 @@
+{
+	"name":					"MSB-Rear",
+	"canId":				"0x016",
+	"variables":
+	[
+		{
+			"address":	"0x0000",
+			"name":		"EEPROM_STATUS",
+			"type":		"uint8_t",
+			"comment":	"The status of the MSB's EEPROM. 0 => Hardware failure, 1 => Memory invalid, 3 => Memory valid."
+		},
+		{
+			"address":	"0x0010",
+			"name":		"RL_DAMPER_SAMPLE_MIN",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x0012",
+			"name":		"RL_DAMPER_SAMPLE_MAX",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x0014",
+			"name":		"RL_DAMPER_VALUE_MIN",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0018",
+			"name":		"RL_DAMPER_VALUE_MAX",
+			"type":		"float"
+		},
+		{
+			"address":	"0x001C",
+			"name":		"RR_DAMPER_SAMPLE_MIN",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x001E",
+			"name":		"RR_DAMPER_SAMPLE_MAX",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x0020",
+			"name":		"RR_DAMPER_VALUE_MIN",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0024",
+			"name":		"RR_DAMPER_VALUE_MAX",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0028",
+			"name":		"THERMISTOR_BETA",
+			"type":		"float"
+		},
+		{
+			"address":	"0x002C",
+			"name":		"THERMISTOR_REFERENCE_RESISTANCE",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0030",
+			"name":		"THERMISTOR_REFERENCE_TEMPERATURE",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0034",
+			"name":		"THERMISTOR_RESISTANCE_PULLUP",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0038",
+			"name":		"THERMISTOR_TEMPERATURE_MIN",
+			"type":		"float"
+		},
+		{
+			"address":	"0x003C",
+			"name":		"THERMISTOR_TEMPERATURE_MAX",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0040",
+			"name":		"FL_DAMPER_SAMPLE_MIN",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x0042",
+			"name":		"FL_DAMPER_SAMPLE_MAX",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x0044",
+			"name":		"FL_DAMPER_VALUE_MIN",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0048",
+			"name":		"FL_DAMPER_VALUE_MAX",
+			"type":		"float"
+		},
+		{
+			"address":	"0x004C",
+			"name":		"FR_DAMPER_SAMPLE_MIN",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x004E",
+			"name":		"FR_DAMPER_SAMPLE_MAX",
+			"type":		"uint16_t"
+		},
+		{
+			"address":	"0x0050",
+			"name":		"FR_DAMPER_VALUE_MIN",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0054",
+			"name":		"FR_DAMPER_VALUE_MAX",
+			"type":		"float"
+		},
+		{
+			"address":	"0x1000",
+			"name":		"RL_DAMPER_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x1002",
+			"name":		"RR_DAMPER_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x1004",
+			"name":		"FL_DAMPER_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x1006",
+			"name":		"FR_DAMPER_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x1008",
+			"name":		"THERMISTOR_0_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x100A",
+			"name":		"THERMISTOR_1_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x100C",
+			"name":		"THERMISTOR_2_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		},
+		{
+			"address":	"0x100E",
+			"name":		"THERMISTOR_3_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only"
+		}
+	]
+}

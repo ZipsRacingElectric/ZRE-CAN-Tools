@@ -1,0 +1,575 @@
+{
+	"name":					"VCU",
+	"canId":				"0x010",
+	"faults":
+	[
+		{
+			"name":			"EEPROM HW FAULT",
+			"signal":		"VCU_EEPROM_STATE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"EEPROM UNPROGRAMMED",
+			"signal":		"VCU_EEPROM_STATE",
+			"threshold":	"2.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"APPS-1 CONFIG FAULT",
+			"signal":		"APPS_1_CONFIG_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"APPS-1 SAMPLE FAULT",
+			"signal":		"APPS_1_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"APPS-2 CONFIG FAULT",
+			"signal":		"APPS_2_CONFIG_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"APPS-2 SAMPLE FAULT",
+			"signal":		"APPS_2_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"BSE-F CONFIG FAULT",
+			"signal":		"BSE_F_CONFIG_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"BSE-F SAMPLE FAULT",
+			"signal":		"BSE_F_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"BSE-R CONFIG FAULT",
+			"signal":		"BSE_R_CONFIG_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"BSE-R SAMPLE FAULT",
+			"signal":		"BSE_R_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"SAS HW FAULT",
+			"signal":		"SAS_STATE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"SAS CONFIG FAULT",
+			"signal":		"SAS_STATE",
+			"threshold":	"1.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"SAS SAMPLE FAULT",
+			"signal":		"SAS_STATE",
+			"threshold":	"2.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"PEDALS IMPLAUSIBLE",
+			"signal":		"PEDALS_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		},
+		{
+			"name":			"TORQUE IMPLAUSIBLE",
+			"signal":		"TORQUE_PLAUSIBLE",
+			"threshold":	"0.5",
+			"inverted":		"true"
+		}
+	],
+	"variables":
+	[
+		{
+			"address":	"0x0000",
+			"name":		"EEPROM_STATUS",
+			"type":		"uint8_t",
+			"comment":	"The status of the VCU's EEPROM. 0 => Hardware failure, 1 => Memory invalid, 3 => Memory valid."
+		},
+		{
+			"address":	"0x0010",
+			"name":		"APPS_1_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of APPS-1. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x0012",
+			"name":		"APPS_1_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample at which APPS-1 begins requesting torque."
+		},
+		{
+			"address":	"0x0014",
+			"name":		"APPS_1_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample at which APPS-1 stops requesting torque."
+		},
+		{
+			"address":	"0x0016",
+			"name":		"APPS_1_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of APPS-1. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0018",
+			"name":		"APPS_2_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of APPS-2. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x001A",
+			"name":		"APPS_2_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample at which APPS-2 begins requesting torque."
+		},
+		{
+			"address":	"0x001C",
+			"name":		"APPS_2_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample at which APPS-2 stops requesting torque."
+		},
+		{
+			"address":	"0x001E",
+			"name":		"APPS_2_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of APPS-2. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0020",
+			"name":		"BSE_F_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of BSE-F. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x0022",
+			"name":		"BSE_F_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample of the linear range of BSE-F."
+		},
+		{
+			"address":	"0x0024",
+			"name":		"BSE_F_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample of the linear range of BSE-F."
+		},
+		{
+			"address":	"0x0026",
+			"name":		"BSE_F_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of BSE-F. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0028",
+			"name":		"BSE_R_ABS_MIN",
+			"type":		"uint16_t",
+			"comment":	"The absolute minimum plausible sample of BSE-R. Any lower indicates a fault condition."
+		},
+		{
+			"address":	"0x002A",
+			"name":		"BSE_R_REQ_MIN",
+			"type":		"uint16_t",
+			"comment":	"The starting sample of the linear range of BSE-R."
+		},
+		{
+			"address":	"0x002C",
+			"name":		"BSE_R_REQ_MAX",
+			"type":		"uint16_t",
+			"comment":	"The ending sample of the linear range of BSE-R."
+		},
+		{
+			"address":	"0x002E",
+			"name":		"BSE_R_ABS_MAX",
+			"type":		"uint16_t",
+			"comment":	"The absolute maximum plausible sample of BSE-R. Any higher indicates a fault condition."
+		},
+		{
+			"address":	"0x0030",
+			"name":		"DRIVING_TORQUE_LIMIT",
+			"type":		"float",
+			"comment":	"The cumulative driving (positive) torque limit, in Nm."
+		},
+		{
+			"address":	"0x0034",
+			"name":		"REGEN_TORQUE_LIMIT",
+			"type":		"float",
+			"comment":	"The cumulative regenerative (negative) torque limit, in Nm."
+		},
+		{
+			"address":	"0x0038",
+			"name":		"DRIVING_FR_BIAS",
+			"type":		"float",
+			"comment":	"The front-to-rear bias for distributing driving torque. Only used by certain torque vectoring algorithms. (1 => 100% rearwards, 0 => 100% frontwards)."
+		},
+		{
+			"address":	"0x03C",
+			"name":		"REGEN_FR_BIAS",
+			"type":		"float",
+			"comment":	"The front-to-rear bias for distributing regen torque. Only used by certain torque vectoring algorithms. (1 => 100% rearwards, 0 => 100% frontwards)."
+		},
+		{
+			"address":	"0x0040",
+			"name":		"SAS_ENABLED",
+			"type":		"uint8_t",
+			"comment":	"Enables / disables the steering-angle sensor (0 => Disabled, 1 => Enabled)."
+		},
+		{
+			"address":	"0x0041",
+			"name":		"AMK_AUTO_RESET_REQUEST",
+			"type":		"uint8_t",
+			"comment":	"Enables / disables the automatic suppression of AMK inverter errors. (0 => Disabled, 1 => Enabled)."
+		},
+		{
+			"address":	"0x0042",
+			"name":		"TORQUE_ALGORITHM_INDEX",
+			"type":		"uint16_t",
+			"comment":	"The index of the torque-vectoring algorithm to use. (0 => Straight-diff, 1 => Linear-steering)."
+		},
+		{
+			"address":	"0x0044",
+			"name":		"GLV_BATTERY_SAMPLE_20V",
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the GLV battery at 20.0V."
+		},
+		{
+			"address":	"0x0046",
+			"name":		"GLV_BATTERY_SAMPLE_29V",
+			"type":		"uint16_t",
+			"comment":	"The ADC sample of the GLV battery at 29.0V."
+		},
+		{
+			"address":	"0x0048",
+			"name":		"SAS_SAMPLE_ZERO",
+			"type":		"uint16_t",
+			"comment":	"The sample of the steering angle sensor at the zero position."
+		},
+		{
+			"address":	"0x004A",
+			"name":		"SAS_SAMPLE_NEGATIVE",
+			"type":		"uint16_t",
+			"comment":	"The sample of the steering angle sensor at the negative-most position."
+		},
+		{
+			"address":	"0x004C",
+			"name":		"SAS_SAMPLE_POSITIVE",
+			"type":		"uint16_t",
+			"comment":	"The sample of the steering angle sensor at the positive-most position."
+		},
+		{
+			"address":	"0x0050",
+			"name":		"SAS_ANGLE_NEGATIVE",
+			"type":		"float",
+			"comment":	"The steering angle of the vehicle at the negative-most position."
+		},
+		{
+			"address":	"0x0054",
+			"name":		"SAS_ANGLE_POSITIVE",
+			"type":		"float",
+			"comment":	"The steering angle of the vehicle at the positive-most position."
+		},
+		{
+			"address":	"0x0058",
+			"name":		"SAS_DEADZONE_RANGE",
+			"type":		"float",
+			"comment":	"The range of the steering angle deadzone, centered around the zero position."
+		},
+		{
+			"address":	"0x005C",
+			"name":		"REGEN_DERATING_THROTTLE_LOW",
+			"type":		"float",
+			"comment":	"The throttle position at which no regen should be requested."
+		},
+		{
+			"address":	"0x0060",
+			"name":		"REGEN_DERATING_THROTTLE_HIGH",
+			"type":		"float",
+			"comment":	"The throttle position at which regen should start to be derated."
+		},
+		{
+			"address":	"0x0064",
+			"name":		"REGEN_DERATING_SPEED_LOW",
+			"type":		"float",
+			"comment":	"The ground speed at which no regen should be requested, in km/h (no less than 5 km/h)."
+		},
+		{
+			"address":	"0x0068",
+			"name":		"REGEN_DERATING_SPEED_HIGH",
+			"type":		"float",
+			"comment":	"The ground speed at which regen should start to be derated, in km/h."
+		},
+		{
+			"address":	"0x006C",
+			"name":		"REGEN_DERATING_SPEED_HYSTERESIS",
+			"type":		"float",
+			"comment":	"The amount of hysteresis to apply to the regen speed derating, in km/h."
+		},
+		{
+			"address":	"0x0070",
+			"name":		"POWER_LIMIT",
+			"type":		"float",
+			"comment":	"The cumulative power limit of the vehicle, in W."
+		},
+		{
+			"address":	"0x0074",
+			"name":		"POWER_LIMIT_PID_KP",
+			"type":		"float",
+			"comment":	"The proportional coefficient of the power limit PID, in 1/W."
+		},
+		{
+			"address":	"0x0078",
+			"name":		"POWER_LIMIT_PID_KI",
+			"type":		"float",
+			"comment":	"The integral coefficient of the power limit PID, in 1/Ws."
+		},
+		{
+			"address":	"0x007C",
+			"name":		"POWER_LIMIT_PID_KD",
+			"type":		"float",
+			"comment":	"The derivative coefficient of the power limit PID, in s/W."
+		},
+		{
+			"address":	"0x0080",
+			"name":		"POWER_LIMIT_PID_KA",
+			"type":		"float",
+			"comment":	"The measurement gain of the power limit PID, in range [0, 1)"
+		},
+		{
+			"address":	"0x00BC",
+			"name":		"POWER_LIMIT_EFFICIENCY",
+			"type":		"float",
+			"comment":	"The estimated powertrain efficiency (battery to motor) to use for power limiting."
+		},
+		{
+			"address":	"0x0084",
+			"name":		"SD_DRIVING_LR_BIAS",
+			"type":		"float",
+			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
+		},
+		{
+			"address":	"0x0088",
+			"name":		"SD_REGEN_LR_BIAS",
+			"type":		"float",
+			"comment":	"The left-to-right bias of the straight-diff algorithm (1 => 100% left, 0 => 100% right)."
+		},
+		{
+			"address":	"0x008C",
+			"name":		"LS_STEERING_ANGLE_BEGIN",
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias starts shifting from 50/50."
+		},
+		{
+			"address":	"0x0090",
+			"name":		"LS_STEERING_ANGLE_END",
+			"type":		"float",
+			"comment":	"The steering angle at which the left-to-right bias stops shifting to the end value."
+		},
+		{
+			"address":	"0x0094",
+			"name":		"LS_LR_BIAS_END",
+			"type":		"float",
+			"comment":	"The left-to-right bias at the ending steering angle."
+		},
+		{
+			"address":	"0x0098",
+			"name":		"WATCHDOG_ENABLED",
+			"type":		"uint8_t",
+			"comment":	"Enables / disables the Formula Hybrid + Electric required CAN bus watchdog. (0 => Disabled, 1 => Enabled)."
+		},
+		{
+			"address":	"0x009C",
+			"name":		"GEAR_RATIO",
+			"type":		"float",
+			"comment":	"The reduction ratio of the vehicle's gearboxes. Ex, 14:1 => 14, 27:2 => 13.5."
+		},
+		{
+			"address":	"0x00A0",
+			"name":		"WHEEL_RADIUS",
+			"type":		"float",
+			"comment":	"The radius of the vehicle's wheels, in inches."
+		},
+		{
+			"address":	"0x00A4",
+			"name":		"WHEEL_BASE",
+			"type":		"float",
+			"comment":	"The distance between the center of the front wheel and the center of the rear wheel, along the x-axis, in meters."
+		},
+		{
+			"address":	"0x00A8",
+			"name":		"WEIGHT_FR_BIAS",
+			"type":		"float",
+			"comment":	"The front-to-rear bias of the vehicle's weight distribution. 1 => 100% rearwards, 0 => 100% frontwards."
+		},
+		{
+			"address":	"0x00AC",
+			"name":		"TRACK_WIDTH_REAR",
+			"type":		"float",
+			"comment":	"The distance between the center of the rear left and rear right wheels' contact patches, in meters."
+		},
+		{
+			"address":	"0x00B0",
+			"name":		"TRACK_WIDTH_FRONT",
+			"type":		"float",
+			"comment":	"The distance between the center of the front left and front right wheels' contact patches, in meters."
+		},
+		{
+			"address":	"0x00B4",
+			"name":		"STEERING_RATIO",
+			"type":		"float",
+			"comment":	"The reduction ratio of the vehicle's steering rack. Ex, 10 => 110 deg steering wheel angle = 11 deg wheel angle."
+		},
+		{
+			"address":	"0x00B8",
+			"name":		"YAW_MOMENT_OF_INERTIA",
+			"type":		"float",
+			"comment":	"The moment of intertia of the vehicle, about the yaw axis, in kg*m^2."
+		},
+		{
+			"address":	"0x0100",
+			"name":		"BICYCLE_KP",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0104",
+			"name":		"BICYCLE_KI",
+			"type":		"float"
+		},
+		{
+			"address":	"0x0108",
+			"name":		"BICYCLE_KD",
+			"type":		"float"
+		},
+		{
+			"address":	"0x010C",
+			"name":		"BICYCLE_KA",
+			"type":		"float"
+		},
+		{
+			"address":  "0x0110",
+			"name":     "LIMP_DRIVING_TORQUE_LIMIT",
+			"type":	    "float",
+			"comment":	"The cumulative driving (positive) torque limit in limp mode, in Nm."
+		},
+		{
+			"address": 	"0x0114",
+			"name":  	"APPS_COAST_THRESHOLD",
+			"type": 	"float",
+			"comment": 	"The threshold of the region on the throttle pedal where torque and regen are not applied. 0 to 100%"
+		},
+		{
+			"address": 	"0x0118",
+			"name": 	"APPS_REGEN_THRESHOLD",
+			"type": 	"float",
+			"comment":  "The threshold of the throttle pedal where when: (pdeal travel < threshold) -> apply regen. 0 to 100%"
+		},
+		{
+			"address": 	"0x011C",
+			"name":  	"ONE_PEDAL_REGEN_REQUEST",
+			"type": 	"float",
+			"comment":  "The regen request scalar that the amount of regen torque motors can handle is scaled by. 0 to 1"
+		},
+		{
+			"address": 	"0x0120",
+			"name":  	"REGEN_APPLICATION_TIME",
+			"type":  	"float",
+			"comment":  "The time for one pedal regen request to ramp linearly from zero torque to configured regen torque request, in seconds."
+		},
+			{
+			"address": 	"0x0124",
+			"name":  	"REGEN_RELEASE_TIME",
+			"type":  	"float",
+			"comment":  "The time for max one pedal regen request to ramp linearly back to zero torque from configured torque request, in seconds." 	
+		},
+		{
+			"address":	"0x1000",
+			"name":		"APPS_1_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of APPS-1."
+		},
+		{
+			"address":	"0x1002",
+			"name":		"APPS_2_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of APPS-2."
+		},
+		{
+			"address":	"0x1004",
+			"name":		"BSE_F_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of BSE-F."
+		},
+		{
+			"address":	"0x1006",
+			"name":		"BSE_R_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of BSE-R."
+		},
+		{
+			"address":	"0x1008",
+			"name":		"SAS_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of the SAS."
+		},
+		{
+			"address":	"0x100A",
+			"name":		"GLV_BATTERY_SAMPLE",
+			"type":		"uint16_t",
+			"mode":		"read_only",
+			"comment":	"The raw sample of the GLV battery ADC."
+		},
+		{
+			"address":	"0x100C",
+			"name":		"TORQUE_REQUEST_RL",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The non-derated torque to be requested of the rear-left inverter."
+		},
+		{
+			"address":	"0x1010",
+			"name":		"TORQUE_REQUEST_RR",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The non-derated torque to be requested of the rear-right inverter."
+		},
+		{
+			"address":	"0x1014",
+			"name":		"TORQUE_REQUEST_FL",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The non-derated torque to be requested of the front-left inverter."
+		},
+		{
+			"address":	"0x1018",
+			"name":		"TORQUE_REQUEST_FR",
+			"type":		"float",
+			"mode":		"read_only",
+			"comment":	"The non-derated torque to be requested of the front-right inverter."
+		},
+		{
+			"address":	"0x1000",
+			"name":		"AMK_RESET_REQUEST",
+			"type":		"uint8_t",
+			"mode":		"write_only",
+			"comment":	"Sends an error reset request to all of the AMK inverters."
+		}
+	]
+}
